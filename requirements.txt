@@ -3,7 +3,7 @@ pandas
 numpy
 scikit-learn
 matplotlib
-psycopg2 
+psycopg2
 tensorflow
 requests
 pytest
