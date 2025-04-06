@@ -1,4 +1,4 @@
-# tests/db/test_signal_dao.py
+# tests/db/dao/test_signal_dao.py
 import unittest
 from unittest.mock import patch, MagicMock
 from db.dao.signal_dao import SignalDAO
