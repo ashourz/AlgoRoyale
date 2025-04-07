@@ -7,9 +7,10 @@ from watchdog.events import FileSystemEventHandler, FileCreatedEvent, DirCreated
 """
 mirror_watcher.py
 
-Watches your project root for new files or folders and mirrors them inside ./tests.
-Each mirrored folder includes an __init__.py file.
-Also mirrors moves/renames, and handles file type changes (e.g. .txt → .py).
+👀 Watches ./src/algo_royale/ for new Python files or folders and mirrors them into ./tests/algo_royale/
+📁 Creates mirrored test folders with __init__.py and matching test_<filename>.py
+🔁 Handles file renames, folder moves, and file type changes (e.g. .txt → .py)
+📝 Creates __init__.py files in new folders if they don't exist
 
 📦 Usage:
     From the root of your project:
@@ -32,14 +33,14 @@ Also mirrors moves/renames, and handles file type changes (e.g. .txt → .py).
 
 # Automatically detect project root and tests root
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
-TESTS_ROOT = PROJECT_ROOT / "tests"
-
+WATCH_ROOT = PROJECT_ROOT / "src" / "algo_royale"
+TESTS_ROOT = PROJECT_ROOT / "tests" / "algo_royale"
 
 def is_python_file(path: str) -> bool:
     return path.endswith(".py") and not os.path.basename(path).startswith("test_")
 
 def relative_path(path: str) -> Path:
-    return Path(os.path.relpath(path, PROJECT_ROOT))
+    return Path(os.path.relpath(path, WATCH_ROOT))
 
 
 class MirrorHandler(FileSystemEventHandler):
@@ -106,7 +107,7 @@ class MirrorHandler(FileSystemEventHandler):
         if "tests" in rel.parts:
             print(f"⚠️ Skipping 'tests' folder: {path}")
             return
-        src_dir = PROJECT_ROOT / rel
+        src_dir = WATCH_ROOT / rel
         test_dir = TESTS_ROOT / rel
         os.makedirs(test_dir, exist_ok=True)
 
@@ -154,7 +155,7 @@ def start_watcher():
     print("👀 Watching for file and folder changes... Press Ctrl+C to stop.")
     observer = Observer()
     handler = MirrorHandler()
-    observer.schedule(handler, str(PROJECT_ROOT), recursive=True)
+    observer.schedule(handler, str(WATCH_ROOT), recursive=True)
     observer.start()
 
     try:
