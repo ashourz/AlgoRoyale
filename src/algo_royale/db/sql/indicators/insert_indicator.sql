@@ -1,4 +1,4 @@
--- db/sql/indicators/insert_indicator.sql
+-- db\sql\indicators\insert_indicator.sql
 
 -- This SQL query retrieves all indicators associated with a specific trade ID from the indicators table.
 -- It orders the results by the recorded_at timestamp in descending order.
