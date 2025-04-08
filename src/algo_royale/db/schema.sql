@@ -1,7 +1,9 @@
 -- Drop old tables if needed
 DROP TABLE IF EXISTS trades;
-
 DROP TABLE IF EXISTS trade_signals;
+DROP TABLE IF EXISTS indicators;
+DROP TABLE IF EXISTS news_sentiment;    
+DROP TABLE IF EXISTS stock_data;
 
 -- Trades table
 CREATE TABLE
@@ -63,7 +65,7 @@ CREATE TABLE
 
 -- Stock Date table
 CREATE TABLE
-    IF NOT EXISTS  (
+    stock_data (
         id SERIAL PRIMARY KEY,
         symbol TEXT,
         timestamp TIMESTAMP,

@@ -6,17 +6,9 @@ class TradeDAO(BaseDAO):
         pass  # No need to keep a connection open permanently
     
     def get_recent_trades(self, symbol, limit=100):
-        query = """
-        SELECT * FROM trades
-        WHERE symbol = %s
-        ORDER BY trade_time DESC
-        LIMIT %s
-        """
+        query = self._read_sql_file('get_recent_trades.sql')
         return self._execute(query, (symbol, limit), fetch=True)
 
     def insert_trade(self, symbol, price, trade_time):
-        query = """
-        INSERT INTO trades (symbol, price, trade_time)
-        VALUES (%s, %s, %s)
-        """
+        query = self._read_sql_file('insert_trade.sql')
         self._execute(query, (symbol, price, trade_time))

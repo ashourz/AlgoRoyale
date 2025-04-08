@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "AlgoRoyale"
+name = "algo_royale"
 version = "0.1.0"
 description = ""
 authors = ["Zakaraya Ashour <ashourz@gmail.com>"]
@@ -10,23 +10,37 @@ license = "MIT"
 # Specifies the Python version range. 
 # The caret (^) allows compatible updates within the specified major version.
 # E.g., "^3.8" means any version >=3.8, but <4.0.
-python = "^3.8"
+# python = "^3.8"
 # Use the latest stable versions of dependencies, with explicit versions.
 # To find the latest version of a package, use `poetry show <package-name> --latest'
 # or check the official Python Package Index (PyPI) at https://pypi.org/
+python = "^3.10,<3.12"
 alpaca-trade-api = "^1.0.5"
 pandas = "^1.3.0"
 numpy = "^1.21.0"
-scikit-learn = "^0.24.2"
+scikit-learn = "^1.6.1"
 matplotlib = "^3.4.3"
 psycopg2 = "^2.9.1"
-tensorflow = "^2.5.0"
 requests = "^2.25.1"
+
+# Issue between poetry and tensorflow metadata since >=2.11
+# This is a temporary workaround
+# related to https://github.com/python-poetry/poetry/issues/8271
+# Inspired from https://github.com/tensorflow/tensorflow/blob/adb39b04e9cb116df4659a7e2de9eea27e62f25c/tensorflow/tools/pip_package/setup.py#L148-L162
+# TensorFlow and its dependencies
+# tensorflow = "^2.5.0"
+tensorflow = { version = "^2.13.0" }
+# Platform-specific configurations for TensorFlow and related libraries
+tensorflow-intel = { version = "^2.13.0", platform = "win32" }
+tensorflow-io-gcs-filesystem = [
+    { version = ">= 0.23.1", markers = "platform_machine!='arm64' or platform_system!='Darwin'" },
+    { version = "< 0.32.0", markers = "platform_system == 'Windows'" }
+]
 
 # Development dependencies (tools you need for development, not production).
 # These are optional and can be installed separately if needed.
 # You can use `poetry add --dev <package-name>` to add them later.
-[tool.poetry.dev-dependencies]
+[tool.poetry.group.dev.dependencies]
 # pytest = "^6.2"
 # For file watching, `watchdog` is specified in the dev dependencies.
 # This is useful for automatically reloading or executing scripts when files change.

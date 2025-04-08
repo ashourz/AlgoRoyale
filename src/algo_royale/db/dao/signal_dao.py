@@ -9,12 +9,7 @@ class SignalDAO(BaseDAO):
     def get_signals_by_symbol(self, symbol):
         """Get signals for a specific stock symbol."""
         try:
-            query = """
-            SELECT * FROM trade_signals
-            WHERE symbol = %s
-            ORDER BY created_at DESC
-            LIMIT 1
-            """
+            query = self._read_sql_file('get_signals_by_symbol.sql')
             with connect_db() as conn:  # Automatically manage connection
                 with conn.cursor() as cur:  # Automatically manage cursor
                     cur.execute(query, (symbol,))
@@ -25,16 +20,13 @@ class SignalDAO(BaseDAO):
             raise  # Optionally re-raise the error if needed
 
 
-    def insert_signal(self, symbol, news_time, headline, sentiment_score):
+    def insert_signal(self, symbol, signal, price, created_at):
         """Insert a new signal into the database."""
         try:
-            query = """
-            INSERT INTO trade_signals (symbol, signal, price, created_at)
-            VALUES (%s, %s, %s, NOW())
-            """
+            query = self._read_sql_file('insert_signal.sql')
             with connect_db() as conn:  # Automatically manage connection
                 with conn.cursor() as cur:  # Automatically manage cursor
-                    cur.execute(query, (symbol, news_time, headline, sentiment_score))
+                    cur.execute(query, (symbol, signal, price, created_at))
                     conn.commit()  # Commit the transaction
         except Exception as e:
             print(f"Error inserting signal: {e}")
