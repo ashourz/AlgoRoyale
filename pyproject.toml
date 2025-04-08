@@ -1,0 +1,142 @@
+[tool.poetry]
+name = "AlgoRoyale"
+version = "0.1.0"
+description = ""
+authors = ["Zakaraya Ashour <ashourz@gmail.com>"]
+license = "MIT"
+
+# Dependencies for the project.
+[tool.poetry.dependencies]
+# Specifies the Python version range. 
+# The caret (^) allows compatible updates within the specified major version.
+# E.g., "^3.8" means any version >=3.8, but <4.0.
+python = "^3.8"
+# Use the latest stable versions of dependencies, with explicit versions.
+# To find the latest version of a package, use `poetry show <package-name> --latest'
+# or check the official Python Package Index (PyPI) at https://pypi.org/
+alpaca-trade-api = "^1.0.5"
+pandas = "^1.3.0"
+numpy = "^1.21.0"
+scikit-learn = "^0.24.2"
+matplotlib = "^3.4.3"
+psycopg2 = "^2.9.1"
+tensorflow = "^2.5.0"
+requests = "^2.25.1"
+
+# Development dependencies (tools you need for development, not production).
+# These are optional and can be installed separately if needed.
+# You can use `poetry add --dev <package-name>` to add them later.
+[tool.poetry.dev-dependencies]
+# pytest = "^6.2"
+# For file watching, `watchdog` is specified in the dev dependencies.
+# This is useful for automatically reloading or executing scripts when files change.
+watchdog = "^2.1.0"
+
+# Poetry script configuration.
+# This allows you to define custom scripts that can be run with `poetry run <script-name>`
+# or `poetry run watch` in this case.
+# The script "watch" will execute the function "start_watcher" from the module "scripts.mirror_watcher".    
+[tool.poetry.scripts]
+watch = "scripts.mirror_watcher:start_watcher"
+
+# Build system configuration.
+# This section is required for building the package.
+# It specifies the build system requirements and the backend to use for building the package.
+[build-system]  
+# The `poetry-core` package is a core dependency for building Python packages.
+requires = ["poetry-core>=1.0.0"]
+# The `build-backend` specifies the backend to use for building the package.
+build-backend = "poetry.core.masonry.api"
+
+# ------------------------------------------------------------
+# 📚 Documentation
+# 🛠 How to Build:
+#   After installing Poetry and setting up the environment, you can build the project using the following command:
+#   ```bash
+#   poetry build
+#   ```
+#   This will generate the distribution files in the `dist/` folder for packaging and sharing.
+
+# 🚀 How to Install Poetry:
+#   If you haven't installed Poetry yet, use one of the following methods:
+#
+#   1. **Official Installation (Recommended)**:
+#      - This is the easiest and most stable method:
+#      ```bash
+#      curl -sSL https://install.python-poetry.org | python3 -
+#      ```
+#      📝 *This ensures Poetry is installed properly and in an isolated manner, preventing potential conflicts with other packages.*
+#
+#   2. **Using pip (Not Recommended)**:
+#      - If you need to use `pip`, you can install Poetry via:
+#      ```bash
+#      pip install poetry
+#      ```
+#      ⚠️ *Note: This method might result in conflicts and is less recommended. It's better to use the official installation script.*
+
+# 🖥️ **Installing Poetry from PowerShell**:
+#   If you're using PowerShell on Windows, follow these steps to install Poetry:
+#
+#   1. **Open PowerShell as Administrator**:
+#      - Press `Win + X` and select "Windows PowerShell (Admin)" to open an elevated PowerShell window.
+#
+#   2. **Install Poetry Using the Official Installation Script**:
+#      - Run the following command in your PowerShell terminal:
+#      ```bash
+#      (Invoke-WebRequest -Uri https://install.python-poetry.org -UseBasicParsing).Content | py -
+#      ```
+#      📝 *This command downloads and runs the Poetry installer script, ensuring Poetry is installed correctly.*
+#
+#   3. **Verify Poetry Installation**:
+#      - After installation, verify that Poetry was installed successfully:
+#      ```bash
+#      poetry --version
+#      ```
+#      ✔️ *You should see the version of Poetry installed, confirming it’s working.*
+
+# 🛠 Initializing a Poetry Project:
+#   If you want to initialize a new Poetry project, run:
+#   ```bash
+#   poetry init
+#   ```
+#   🎯 *This will guide you through setting up your `pyproject.toml` and configuring dependencies.*
+
+# ⚡ Installing Dependencies:
+#   To install the dependencies specified in `pyproject.toml`, run:
+#   ```bash
+#   poetry install
+#   ```
+#   📦 *This will automatically set up your virtual environment and install all necessary packages.*
+
+# 📈 Installing for Development:
+#   To install the development dependencies (e.g., `watchdog`, `pytest`), use:
+#   ```bash
+#   poetry install --dev
+#   ```
+
+# 💡 Managing Existing Virtual Environments:
+#   If you already have a virtual environment and are inside it, you don't need to install Poetry globally. Just follow these steps:
+#
+#   1. **Install Poetry inside the virtual environment**:
+#      ```bash
+#      curl -sSL https://install.python-poetry.org | python3 -
+#      ```
+#
+#   2. **Initialize or configure your project**:
+#      - If you're starting a new project, use `poetry init`.
+#      - If you're adding dependencies, use `poetry add <package_name>`.
+#
+#   📘 *Poetry will handle virtual environments for you, making it easy to manage dependencies for the project.*
+
+# 🗑 Cleaning the Project:
+#   To clean up the project (remove `dist/`, `.tox/`, `.nox/`, etc.), use:
+#   ```bash
+#   poetry run python -m clean
+#   ```
+
+# 📌 Updating Dependencies:
+#   To update the dependencies specified in `pyproject.toml`:
+#   ```bash
+#   poetry update
+#   ```
+#   🔄 *Poetry will ensure that you have the latest compatible versions for all your dependencies.*

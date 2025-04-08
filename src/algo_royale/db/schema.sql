@@ -63,7 +63,7 @@ CREATE TABLE
 
 -- Stock Date table
 CREATE TABLE
-    IF NOT EXISTS stock_data (
+    IF NOT EXISTS  (
         id SERIAL PRIMARY KEY,
         symbol TEXT,
         timestamp TIMESTAMP,

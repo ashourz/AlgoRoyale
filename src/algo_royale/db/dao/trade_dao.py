@@ -2,7 +2,9 @@
 from db.dao.base_dao import BaseDAO
 
 class TradeDAO(BaseDAO):
-
+    def __init__(self):
+        pass  # No need to keep a connection open permanently
+    
     def get_recent_trades(self, symbol, limit=100):
         query = """
         SELECT * FROM trades

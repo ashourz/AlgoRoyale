@@ -5,6 +5,7 @@ config.ini
 # Ignore virtual environment folder
 venv/
 .algo_royale_env/
+.venv/
 
 # Ignore Python cache files
 *.pyc
