@@ -1,5 +1,6 @@
 import os
 import time
+import logging
 from pathlib import Path
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler, FileCreatedEvent, DirCreatedEvent, FileMovedEvent, DirMovedEvent
@@ -36,6 +37,13 @@ PROJECT_ROOT = Path(__file__).resolve().parent.parent
 WATCH_ROOT = PROJECT_ROOT / "src" / "algo_royale"
 TESTS_ROOT = PROJECT_ROOT / "tests" / "algo_royale"
 
+# Configure logger
+logging.basicConfig(
+    format='%(asctime)s - %(levelname)s - [MIRROR] %(message)s',
+    level=logging.INFO
+)
+logger = logging.getLogger()
+
 def is_python_file(path: str) -> bool:
     return path.endswith(".py") and not os.path.basename(path).startswith("test_")
 
@@ -43,22 +51,22 @@ def relative_path(path: str) -> Path:
     return Path(os.path.relpath(path, WATCH_ROOT))
 
 
-class MirrorHandler(FileSystemEventHandler):
+class CreateTestDirectory(FileSystemEventHandler):
     def on_created(self, event):
-        print(f"📂 Created: {event.src_path}")
+        logger.info(f"📂 Created: {event.src_path}")
         if isinstance(event, DirCreatedEvent):
             self.handle_directory(event.src_path)
         elif isinstance(event, FileCreatedEvent):
             self.handle_file(event.src_path)
 
     def on_moved(self, event):
-        print(f"🔀 Moved: {event.src_path} → {event.dest_path}")
+        logger.info(f"🔀 Moved: {event.src_path} → {event.dest_path}")
         src_rel = relative_path(event.src_path)
         dest_rel = relative_path(event.dest_path)
 
         # Ignore moves involving the tests folder itself
         if "tests" in src_rel.parts or "tests" in dest_rel.parts:
-            print("⛔ Ignored: Move event involving 'tests' folder.")
+            logger.info("⛔ Ignored: Move event involving 'tests' folder.")
             return
 
         # Handle directory renames/moves
@@ -67,7 +75,7 @@ class MirrorHandler(FileSystemEventHandler):
             test_dest = TESTS_ROOT / dest_rel
             if test_src.exists():
                 test_src.rename(test_dest)
-                print(f"📁 Renamed test directory: {test_src} → {test_dest}")
+                logger.info(f"📁 Renamed test directory: {test_src} → {test_dest}")
 
         # Handle file renames/moves
         elif isinstance(event, FileMovedEvent):
@@ -94,7 +102,7 @@ class MirrorHandler(FileSystemEventHandler):
 
     def on_modified(self, event):
         # Handle cases like renaming from .txt to .py
-        print(f"🔧 Modified: {event.src_path}")
+        logger.info(f"🔧 Modified: {event.src_path}")
         if event.is_directory:
             return
         if is_python_file(event.src_path):
@@ -102,10 +110,10 @@ class MirrorHandler(FileSystemEventHandler):
 
 
     def handle_directory(self, path: str):
-        print(f"📁 Handling directory creation: {path}")
+        logger.info(f"📁 Handling directory creation: {path}")
         rel = relative_path(path)
         if "tests" in rel.parts:
-            print(f"⚠️ Skipping 'tests' folder: {path}")
+            logger.info(f"⚠️ Skipping 'tests' folder: {path}")
             return
         src_dir = WATCH_ROOT / rel
         test_dir = TESTS_ROOT / rel
@@ -114,21 +122,21 @@ class MirrorHandler(FileSystemEventHandler):
         for p in [src_dir, test_dir]:
             init = p / "__init__.py"
             if not init.exists():
-                print(f"📝 Creating __init__.py in {p}")
+                logger.info(f"📝 Creating __init__.py in {p}")
                 init.touch()
 
     def handle_file(self, path: str):
-        print(f"📄 Handling file creation: {path}")
+        logger.info(f"📄 Handling file creation: {path}")
         if not is_python_file(path):
-            print(f"❌ Skipping non-Python file: {path}")
+            logger.info(f"❌ Skipping non-Python file: {path}")
             return
         self.create_test_for_file(path)
 
     def create_test_for_file(self, path: str):
-        print(f"🧪 Creating test file for: {path}")
+        logger.info(f"🧪 Creating test file for: {path}")
         rel = relative_path(path)
         if "tests" in rel.parts:
-            print(f"⚠️ Skipping test file creation (already inside 'tests'): {path}")
+            logger.info(f"⚠️ Skipping test file creation (already inside 'tests'): {path}")
             return
 
         dir_rel = rel.parent
@@ -142,19 +150,19 @@ class MirrorHandler(FileSystemEventHandler):
         # Create __init__.py if needed
         init = test_dir / "__init__.py"
         if not init.exists():
-            print(f"📝 Creating __init__.py in {test_dir}")
+            logger.info(f"📝 Creating __init__.py in {test_dir}")
             init.touch()
 
         if not test_file.exists():
             with open(test_file, "w") as f:
-                print(f"🖊 Writing test file: {test_file}")
+                logger.info(f"🖊 Writing test file: {test_file}")
                 f.write(f"# tests for {rel}\n")
 
 
 def start_watcher():
-    print("👀 Watching for file and folder changes... Press Ctrl+C to stop.")
+    logger.info("👀 Watching for file and folder changes... Press Ctrl+C to stop.")
     observer = Observer()
-    handler = MirrorHandler()
+    handler = CreateTestDirectory()
     observer.schedule(handler, str(WATCH_ROOT), recursive=True)
     observer.start()
 

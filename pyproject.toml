@@ -51,7 +51,8 @@ watchdog = "^2.1.0"
 # or `poetry run watch` in this case.
 # The script "watch" will execute the function "start_watcher" from the module "scripts.mirror_watcher".    
 [tool.poetry.scripts]
-watch = "scripts.mirror_watcher:start_watcher"
+create-test-directory = "scripts.create_test_directory:start_watcher"
+add-file-headers = "scripts.add_file_headers:start_watcher"
 
 # Build system configuration.
 # This section is required for building the package.

@@ -1,4 +1,6 @@
-# db/dao/signal_dao.py
+## db\dao\signal_dao.py
+import decimal
+import datetime
 from db.dao.base_dao import BaseDAO
 from db.db import connect_db
 
@@ -6,7 +8,7 @@ class SignalDAO(BaseDAO):
     def __init__(self):
         pass  # No need to keep a connection open permanently
 
-    def get_signals_by_symbol(self, symbol):
+    def get_signals_by_symbol(self, symbol: str):
         """Get signals for a specific stock symbol."""
         try:
             query = self._read_sql_file('get_signals_by_symbol.sql')
@@ -20,7 +22,7 @@ class SignalDAO(BaseDAO):
             raise  # Optionally re-raise the error if needed
 
 
-    def insert_signal(self, symbol, signal, price, created_at):
+    def insert_signal(self, symbol: str, signal: str, price: decimal, created_at: datetime):
         """Insert a new signal into the database."""
         try:
             query = self._read_sql_file('insert_signal.sql')
@@ -31,4 +33,4 @@ class SignalDAO(BaseDAO):
         except Exception as e:
             print(f"Error inserting signal: {e}")
             # Log the error or re-raise it as needed
-            raise  # Re-raise the exception to be handled higher up in the call stack
+            raise  # Re-raise the exception to be handled higher up in the call stack the call stackck
