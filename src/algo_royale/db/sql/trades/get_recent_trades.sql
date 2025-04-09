@@ -3,5 +3,5 @@
 -- This SQL query retrieves the most recent trades for a specific symbol from the trades table.
 SELECT * FROM trades
 WHERE symbol = %s
-ORDER BY trade_time DESC
-LIMIT %s
+ORDER BY entry_time DESC
+LIMIT %s;

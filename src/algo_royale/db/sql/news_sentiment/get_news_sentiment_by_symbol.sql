@@ -2,4 +2,4 @@
  
 SELECT * FROM news_sentiment
 WHERE symbol = %s
-ORDER BY published_at DESC
+ORDER BY published_at DESC;
