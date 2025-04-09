@@ -2,7 +2,8 @@
 
 import decimal
 import datetime
-from db.dao.base_dao import BaseDAO
+from algo_royale.db.dao.base_dao import BaseDAO
+from algo_royale.db.db import connect_db
 
 class TradeDAO(BaseDAO):
     def __init__(self):
@@ -12,7 +13,7 @@ class TradeDAO(BaseDAO):
         """Get recent trades for a specific stock symbol."""
         try:
             query = self._read_sql_file('get_recent_trades.sql')
-            with self._connect_db() as conn:  # Automatically manage connection
+            with connect_db() as conn:  # Automatically manage connection
                 with conn.cursor() as cur:  # Automatically manage cursor
                     cur.execute(query, (symbol, limit))
                     return cur.fetchall()

@@ -1,7 +1,8 @@
 ## db\dao\stock_data_dao.py
 import decimal
 import datetime 
-from db.dao.base_dao import BaseDAO
+from algo_royale.db.dao.base_dao import BaseDAO
+from algo_royale.db.db import connect_db
 
 class StockDataDAO(BaseDAO):
     def __init__(self):
@@ -11,7 +12,7 @@ class StockDataDAO(BaseDAO):
         """Get stock data for a specific stock symbol."""
         try:
             query = self._read_sql_file('get_stock_data_by_symbol.sql')
-            with self._connect_db() as conn:  # Automatically manage connection
+            with connect_db() as conn:  # Automatically manage connection
                 with conn.cursor() as cur:  # Automatically manage cursor
                     cur.execute(query, (symbol,))
                     return cur.fetchall()
@@ -26,7 +27,7 @@ class StockDataDAO(BaseDAO):
         """Insert new stock data into the database."""
         try:
             query = self._read_sql_file('insert_stock_data.sql')
-            with self._connect_db() as conn:  # Automatically manage connection
+            with connect_db() as conn:  # Automatically manage connection
                 with conn.cursor() as cur:  # Automatically manage cursor
                     cur.execute(query, (symbol, timestamp, open, high, low, close, volume))
                     conn.commit()  # Commit the transaction

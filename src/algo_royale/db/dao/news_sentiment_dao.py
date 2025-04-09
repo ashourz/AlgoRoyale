@@ -1,8 +1,8 @@
 ## db\dao\news_sentiment_dao.py
 import decimal
 import datetime
-from db.dao.base_dao import BaseDAO
-from db.db import connect_db
+from algo_royale.db.dao.base_dao import BaseDAO
+from algo_royale.db.db import connect_db
 
 class NewsSentimentDao(BaseDAO):
     def __init__(self):
