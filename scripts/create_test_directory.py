@@ -4,6 +4,7 @@ import logging
 from pathlib import Path
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler, FileCreatedEvent, DirCreatedEvent, FileMovedEvent, DirMovedEvent
+from collections import defaultdict
 
 """
 mirror_watcher.py
@@ -52,6 +53,9 @@ def relative_path(path: str) -> Path:
 
 
 class CreateTestDirectory(FileSystemEventHandler):
+    def __init__(self):
+        self.recent_creations = defaultdict(float)  # path -> timestamp
+
     def on_created(self, event):
         logger.info(f"📂 Created: {event.src_path}")
         if isinstance(event, DirCreatedEvent):
@@ -101,11 +105,16 @@ class CreateTestDirectory(FileSystemEventHandler):
                 self.create_test_for_file(event.dest_path)
 
     def on_modified(self, event):
-        # Handle cases like renaming from .txt to .py
         logger.info(f"🔧 Modified: {event.src_path}")
         if event.is_directory:
             return
-        if is_python_file(event.src_path):
+        if not is_python_file(event.src_path):
+            return
+
+        rel = relative_path(event.src_path)
+        test_path = TESTS_ROOT / rel.parent / f"test_{Path(event.src_path).stem}.py"
+
+        if not test_path.exists():
             self.create_test_for_file(event.src_path)
 
 
@@ -137,6 +146,12 @@ class CreateTestDirectory(FileSystemEventHandler):
         self.create_test_for_file(path)
 
     def create_test_for_file(self, path: str):
+        now = time.time()
+        if now - self.recent_creations[path] < 2:  # skip if written in last 2 sec
+            logger.info(f"🕒 Skipping duplicate creation for {path}")
+            return
+        self.recent_creations[path] = now
+
         logger.info(f"🧪 Creating test file for: {path}")
         rel = relative_path(path)
         if "tests" in rel.parts:
