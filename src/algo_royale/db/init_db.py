@@ -25,7 +25,7 @@ def apply_schema(conn):
     """
     Apply the schema to the database.
     """
-    schema_path = Path(__file__).parent / "db/schema.sql"
+    schema_path = Path(__file__).parent / "schema.sql"
     
     with open(schema_path, "r") as file:
         schema_sql = file.read()

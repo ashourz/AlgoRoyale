@@ -112,13 +112,17 @@ class CreateTestDirectory(FileSystemEventHandler):
     def handle_directory(self, path: str):
         logger.info(f"📁 Handling directory creation: {path}")
         rel = relative_path(path)
+
+        # Skip directories inside 'tests' or with 'test_' in their names
         if "tests" in rel.parts:
             logger.info(f"⚠️ Skipping 'tests' folder: {path}")
             return
+
         src_dir = WATCH_ROOT / rel
         test_dir = TESTS_ROOT / rel
         os.makedirs(test_dir, exist_ok=True)
 
+        # Create __init__.py only in source directories, not in test directories
         for p in [src_dir, test_dir]:
             init = p / "__init__.py"
             if not init.exists():
@@ -146,12 +150,6 @@ class CreateTestDirectory(FileSystemEventHandler):
         test_file = test_dir / test_file_name
 
         os.makedirs(test_dir, exist_ok=True)
-
-        # Create __init__.py if needed
-        init = test_dir / "__init__.py"
-        if not init.exists():
-            logger.info(f"📝 Creating __init__.py in {test_dir}")
-            init.touch()
 
         if not test_file.exists():
             with open(test_file, "w") as f:
