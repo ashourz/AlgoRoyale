@@ -33,4 +33,3 @@ class IndicatorsDAO(BaseDAO):
     def delete_indicators(self, indicator_id: int) -> None:
         """Delete indicators by ID."""
         return self.delete("delete_indicators.sql", (indicator_id,))
-dicator_id,))
