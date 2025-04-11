@@ -1,4 +1,4 @@
-# src/algo_royale/db/dao/stock_data_dao.py
+## db\dao\stock_data_dao.py
 from src.algo_royale.db.dao.base_dao import BaseDAO
 from decimal import Decimal as Decimal
 from datetime import datetime
@@ -33,3 +33,4 @@ class StockDataDAO(BaseDAO):
     def delete_stock_data(self, stock_data_id: int) -> None:
         """Delete stock data by ID."""
         return self.delete("delete_stock_data.sql", (stock_data_id,))
+ck_data_id,))

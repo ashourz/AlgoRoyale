@@ -1,4 +1,4 @@
-# src/algo_royale/db/dao/news_sentiment_dao.py
+## db\dao\news_sentiment_dao.py
 from src.algo_royale.db.dao.base_dao import BaseDAO
 from decimal import Decimal as Decimal
 from datetime import datetime
@@ -29,4 +29,6 @@ class NewsSentimentDAO(BaseDAO):
     def delete_sentiment(self, sentiment_id: int) -> None:
         """Delete a sentiment record."""
         return self.delete("delete_sentiment.sql", (sentiment_id,))
+
+iment_id,))
 
