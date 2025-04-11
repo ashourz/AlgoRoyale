@@ -1,4 +1,4 @@
-# src/algo_royale/db/dao/trades_dao.py
+## db\dao\trades_dao.py
 from decimal import Decimal
 import datetime
 from src.algo_royale.db.dao.base_dao import BaseDAO
