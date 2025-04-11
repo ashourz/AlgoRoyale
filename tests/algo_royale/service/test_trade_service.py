@@ -14,43 +14,54 @@ class TestTradeService(TestCase):
         self.service = TradeService()
 
     def test_create_trade(self):
-        # Arrange
-        symbol = "AAPL"
-        trade_type = "BUY"
-        price = Decimal("150.00")
-        quantity = 10
-        phase = "Phase1"
-        timestamp = datetime(2024, 4, 11, 0)
-        notes = "Note1"
+        self.service.create_trade(
+            symbol="AAPL",
+            direction="BUY",
+            entry_price=Decimal("150.00"),
+            shares=10,
+            strategy_phase="Phase1",
+            entry_time=datetime(2024, 4, 11),
+            notes="test note"
+        )
+        self.mock_dao.insert_trade.assert_called_once_with(
+            "AAPL", "BUY", Decimal("150.00"), 10, "Phase1", datetime(2024, 4, 11), "test note"
+        )
 
-        # Act
-        self.service.create_trade(symbol, trade_type, price, quantity, phase, timestamp, notes)
+    def test_update_trade(self):
+        self.service.update_trade(
+            trade_id=1,
+            exit_price=Decimal("160.00"),
+            exit_time=datetime(2024, 4, 12),
+            pnl=Decimal("100.00")
+        )
+        self.mock_dao.update_trade.assert_called_once_with(
+            1, Decimal("160.00"), datetime(2024, 4, 12), Decimal("100.00")
+        )
 
-        # Assert
-        self.mock_dao.insert_trade.assert_called_once_with(symbol, trade_type, price, quantity, phase, timestamp, notes)
+    def test_get_trade_by_id(self):
+        self.mock_dao.fetch_trade_by_id.return_value = ("mock_trade",)
+        result = self.service.get_trade_by_id(42)
+        self.mock_dao.fetch_trade_by_id.assert_called_once_with(42)
+        self.assertEqual(result, ("mock_trade",))
+
+    def test_calculate_trade_pnl(self):
+        result = self.service.calculate_trade_pnl(
+            entry_price=Decimal("100.00"),
+            exit_price=Decimal("120.00"),
+            shares=5
+        )
+        self.assertEqual(result, Decimal("100.00"))
 
     def test_get_trade_history(self):
-        # Arrange
-        expected_result = [
-            (1, "AAPL", "BUY", Decimal("150.00"), 10, "Phase1", datetime(2024, 4, 11, 0), "Note1"),
-            (2, "GOOGL", "SELL", Decimal("2800.00"), 5, "Phase2", datetime(2024, 4, 12, 0), "Note2"),
-        ]
-        self.mock_dao.fetch_all_trades.return_value = expected_result
-
-        # Act
+        self.mock_dao.fetch_all_trades.return_value = [("mock_trade_1",), ("mock_trade_2",)]
         result = self.service.get_trade_history()
-
-        # Assert
-        self.assertEqual(result, expected_result)
         self.mock_dao.fetch_all_trades.assert_called_once()
+        self.assertEqual(result, [("mock_trade_1",), ("mock_trade_2",)])
 
     def test_delete_trade(self):
-        # Act
-        self.service.delete_trade(1)
-
-        # Assert
-        self.mock_dao.delete_trade.assert_called_once_with(1)
+        self.service.delete_trade(99)
+        self.mock_dao.delete_trade.assert_called_once_with(99)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

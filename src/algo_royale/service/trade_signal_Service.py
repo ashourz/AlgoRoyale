@@ -1,4 +1,4 @@
-## service\trade_signal_Service.py
+## service\trade_signal_service.py
 from datetime import datetime
 from decimal import Decimal
 from src.algo_royale.db.dao.trade_signals_dao import TradeSignalsDAO

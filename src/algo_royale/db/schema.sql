@@ -1,4 +1,4 @@
--- C:\Users\ashou\AlgoRoyale\src\algo_royale\db\schema.sql
+-- db\schema.sql
 DROP TABLE IF EXISTS trades;
 DROP TABLE IF EXISTS trade_signals;
 DROP TABLE IF EXISTS indicators;
@@ -73,5 +73,7 @@ CREATE TABLE
         high FLOAT,
         low FLOAT,
         close FLOAT,
+        volume INT
+    )   close FLOAT,
         volume INT
     )

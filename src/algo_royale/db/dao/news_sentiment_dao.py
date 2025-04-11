@@ -30,5 +30,3 @@ class NewsSentimentDAO(BaseDAO):
         """Delete a sentiment record."""
         return self.delete("delete_sentiment.sql", (sentiment_id,))
 
-iment_id,))
-

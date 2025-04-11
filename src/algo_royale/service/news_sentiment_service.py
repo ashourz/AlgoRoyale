@@ -7,7 +7,7 @@ class NewsSentimentService:
     def __init__(self):
         self.news_sentiment_dao = NewsSentimentDAO()
 
-    def create_sentiment(self, trade_id: int, symbol: str, sentiment_score: Decimal, headline: str, 
+    def insert_sentiment(self, trade_id: int, symbol: str, sentiment_score: Decimal, headline: str, 
                          source: str, published_at: datetime) -> None:
         """Insert sentiment data for a trade."""
         self.news_sentiment_dao.insert_sentiment(trade_id, symbol, sentiment_score, headline, source, published_at)

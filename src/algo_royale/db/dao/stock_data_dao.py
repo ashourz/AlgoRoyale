@@ -33,4 +33,3 @@ class StockDataDAO(BaseDAO):
     def delete_stock_data(self, stock_data_id: int) -> None:
         """Delete stock data by ID."""
         return self.delete("delete_stock_data.sql", (stock_data_id,))
-ck_data_id,))
