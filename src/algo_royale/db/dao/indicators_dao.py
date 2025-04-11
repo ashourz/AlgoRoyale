@@ -1,4 +1,4 @@
-# src/algo_royale/db/dao/indicators_dao.py
+## db\dao\indicators_dao.py
 from src.algo_royale.db.dao.base_dao import BaseDAO
 from decimal import Decimal
 from datetime import datetime
@@ -33,3 +33,4 @@ class IndicatorsDAO(BaseDAO):
     def delete_indicators(self, indicator_id: int) -> None:
         """Delete indicators by ID."""
         return self.delete("delete_indicators.sql", (indicator_id,))
+dicator_id,))

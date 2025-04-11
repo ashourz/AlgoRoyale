@@ -1,1 +1,2 @@
-# This is an init file for the directory: C:\Users\ashou\AlgoRoyale\data
+## data\__init__.py
+e for the directory: C:\Users\ashou\AlgoRoyale\data

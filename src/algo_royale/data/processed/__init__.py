@@ -1,1 +1,2 @@
-# This is an init file for the directory: C:\Users\ashou\AlgoRoyale\data\processed
+## data\processed\__init__.py
+directory: C:\Users\ashou\AlgoRoyale\data\processed

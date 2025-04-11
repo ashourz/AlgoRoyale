@@ -1,1 +1,2 @@
-# This is an init file for the directory: C:\Users\ashou\AlgoRoyale\training
+## training\__init__.py
+r the directory: C:\Users\ashou\AlgoRoyale\training

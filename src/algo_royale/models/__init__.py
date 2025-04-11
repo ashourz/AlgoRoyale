@@ -1,1 +1,2 @@
-# This is an init file for the directory: C:\Users\ashou\AlgoRoyale\models
+## models\__init__.py
+for the directory: C:\Users\ashou\AlgoRoyale\models

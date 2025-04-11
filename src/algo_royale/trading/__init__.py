@@ -1,1 +1,2 @@
-# This is an init file for the directory: C:\Users\ashou\AlgoRoyale\trading
+## trading\__init__.py
+or the directory: C:\Users\ashou\AlgoRoyale\trading
