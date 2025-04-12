@@ -121,10 +121,6 @@ class TestStockDataService(TestCase):
         self.mock_dao.fetch_all_stock_data.assert_called_once()
         self.assertEqual(result, stock_data_records)
         
-    def tearDown(self):
-        """Clean up after each test."""
-        self.mock_dao.reset_mock()
-        
     def test_get_stock_data_by_symbol_no_data(self):
         """Test the get_stock_data_by_symbol method when no data is found."""
         symbol = "AAPL"
@@ -189,5 +185,11 @@ class TestStockDataService(TestCase):
 
         self.mock_dao.delete_stock_data.assert_called_once_with(stock_data_id)
     
+    
+    def tearDown(self):
+        """Clean up mock objects."""
+        self.mock_dao.reset_mock()
+        self.service = None
+
 if __name__ == "__main__":
     unittest.main()

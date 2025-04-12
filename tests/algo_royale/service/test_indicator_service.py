@@ -68,6 +68,27 @@ class TestIndicatorsService(TestCase):
     def test_delete_indicator(self):
         self.service.delete_indicator(77)
         self.mock_dao.delete_indicator.assert_called_once_with(77)
+        
+    def test_get_indicators_by_trade_id_and_date(self):
+        trade_id = 1
+        start_date = datetime(2024, 4, 10, 0, 0)
+        end_date = datetime(2024, 4, 12, 0, 0)
+        expected = [(1, 1, Decimal("70.1"), Decimal("1.2"), Decimal("1.0"),
+                     Decimal("1000000"), Decimal("150"), Decimal("120"),
+                     Decimal("2.5"), Decimal("145"), Decimal("143"), Decimal("140"),
+                     datetime(2024, 4, 11, 12, 0))]
+
+        self.mock_dao.fetch_indicators_by_trade_id_and_date.return_value = expected
+
+        result = self.service.get_indicators_by_trade_id_and_date(trade_id, start_date, end_date)
+
+        self.mock_dao.fetch_indicators_by_trade_id_and_date.assert_called_once_with(trade_id, start_date, end_date)
+        self.assertEqual(result, expected)
+        
+    def tearDown(self):
+        """Clean up mock objects."""
+        self.mock_dao.reset_mock()
+        self.service = None
 
         
 if __name__ == "__main__":

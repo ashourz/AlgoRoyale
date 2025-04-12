@@ -11,6 +11,11 @@ class IndicatorDAO(BaseDAO):
     def fetch_indicators_by_trade_id(self, trade_id: int) -> List[Tuple[int, int, Decimal, Decimal, Decimal, Decimal, Decimal, Decimal, Decimal, Decimal, Decimal, Decimal, datetime]]:
         """Fetch indicators by trade ID."""
         return self.fetch("get_indicators_by_trade_id.sql", (trade_id,))
+    
+    def fetch_indicators_by_trade_id_and_date(self, trade_id: int, start_date: datetime, end_date: datetime) -> List[Tuple[int, int, Decimal, Decimal, Decimal, Decimal, Decimal, Decimal, Decimal, Decimal, Decimal, Decimal, datetime]]:
+        """Fetch indicators by trade ID and date range."""
+        return self.fetch("get_indicators_by_trade_id_and_date.sql", (trade_id, start_date, end_date))
+
 
     def insert_indicator(self, trade_id: int, rsi: Decimal, macd: Decimal, macd_signal: Decimal, volume: Decimal,
                           bollinger_upper: Decimal, bollinger_lower: Decimal, atr: Decimal, price: Decimal,

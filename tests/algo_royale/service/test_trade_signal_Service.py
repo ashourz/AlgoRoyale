@@ -117,9 +117,6 @@ class TestTradeSignalService(TestCase):
         )
         self.assertEqual(result, signal_records)        
         
-    def tearDown(self):
-        """Clean up after each test."""
-        self.mock_dao.reset_mock()
     
     def test_get_signal_by_symbol_and_date_no_records(self):
         """Test the get_signal_by_symbol_and_date method with no records."""
@@ -152,7 +149,10 @@ class TestTradeSignalService(TestCase):
         signal_id = 999
         self.mock_dao.fetch_signal_by_id.return_value = None
         
-    
+    def tearDown(self):
+        """Clean up mock objects."""
+        self.mock_dao.reset_mock()
+        self.service = None
 
 if __name__ == "__main__":
     unittest.main()

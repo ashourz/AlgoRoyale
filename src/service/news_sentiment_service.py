@@ -1,6 +1,7 @@
 ## service\news_sentiment_service.py
 from decimal import Decimal
 from datetime import datetime
+from typing import List, Tuple
 from src.algo_royale.db.dao.news_sentiment_dao import NewsSentimentDAO
 
 class NewsSentimentService:
@@ -12,15 +13,15 @@ class NewsSentimentService:
         """Insert sentiment data for a trade."""
         self.news_sentiment_dao.insert_sentiment(trade_id, symbol, sentiment_score, headline, source, published_at)
 
-    def get_sentiment_by_trade_id(self, trade_id: int):
+    def get_sentiment_by_trade_id(self, trade_id: int)  -> List[Tuple[int, int, str, Decimal, str, str, datetime]]:
         """Fetch sentiment data by trade ID."""
         return self.news_sentiment_dao.fetch_sentiment_by_trade_id(trade_id)
     
-    def get_sentiment_by_symbol(self, symbol: str):
+    def get_sentiment_by_symbol(self, symbol: str)  -> List[Tuple[int, int, str, Decimal, str, str, datetime]]:
         """Fetch sentiment data by symbol."""
         return self.news_sentiment_dao.fetch_sentiment_by_symbol(symbol)
     
-    def get_sentiment_by_symbol_and_date(self, symbol: str, start_date: datetime, end_date: datetime):
+    def get_sentiment_by_symbol_and_date(self, symbol: str, start_date: datetime, end_date: datetime) -> List[Tuple[int, int, str, Decimal, str, str, datetime]]:
         """Fetch sentiment data by symbol and date range."""
         return self.news_sentiment_dao.fetch_sentiment_by_symbol_and_date(symbol, start_date, end_date)
 

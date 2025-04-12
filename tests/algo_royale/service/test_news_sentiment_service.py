@@ -99,8 +99,12 @@ class TestNewsSentimentService(TestCase):
         self.mock_dao.fetch_sentiment_by_symbol_and_date.return_value = sentiment_records
         result = self.service.get_sentiment_by_symbol_and_date(symbol, start_date, end_date)
         self.mock_dao.fetch_sentiment_by_symbol_and_date.assert_called_once_with(symbol, start_date, end_date)
-        self.assert_Equal(result, sentiment_records)
+        self.assertEqual(result, sentiment_records)
         
-        
+    def tearDown(self):
+        """Clean up mock objects."""
+        self.mock_dao.reset_mock()
+        self.service = None
+
 if __name__ == "__main__":
     unittest.main()

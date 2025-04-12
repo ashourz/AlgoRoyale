@@ -92,7 +92,9 @@ class TestTradeService(TestCase):
         self.assertEqual(result, [("mock_trade",)])
         
     def tearDown(self):
-        self.mock_dao.reset_mock()            
+        """Clean up mock objects."""
+        self.mock_dao.reset_mock()
+        self.service = None    
 
 if __name__ == "__main__":
     unittest.main()
