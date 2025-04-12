@@ -83,3 +83,4 @@ def calculate_trade_pnl():
         shares=data["shares"]
     )
     return jsonify({"pnl": str(pnl)}), 200
+

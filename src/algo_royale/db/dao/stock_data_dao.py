@@ -16,9 +16,9 @@ class StockDataDAO(BaseDAO):
         """Fetch stock data by symbol."""
         return self.fetch("get_stock_data_by_symbol.sql", (symbol,))
     
-    def fetch_stock_data_by_symbol_and_timestamp(self, symbol: str, start_time: datetime, end_time: datetime) -> List[Tuple[int, str, datetime, Decimal, Decimal, Decimal, Decimal, int]]:
+    def fetch_stock_data_by_symbol_and_date(self, symbol: str, start_time: datetime, end_time: datetime) -> List[Tuple[int, str, datetime, Decimal, Decimal, Decimal, Decimal, int]]:
         """Fetch stock data by symbol and timestamp."""
-        return self.fetch("get_stock_data_by_symbol_and_timestamp.sql", (symbol, start_time, end_time))
+        return self.fetch("get_stock_data_by_symbol_and_date.sql", (symbol, start_time, end_time))
     
     def fetch_latest_stock_data(self, symbol: str) -> Optional[Tuple[int, str, datetime, Decimal, Decimal, Decimal, Decimal, int]]:
         """Fetch the latest stock data for a symbol."""

@@ -62,8 +62,8 @@ class TestStockDataService(TestCase):
         self.mock_dao.fetch_latest_stock_data.assert_called_once_with(symbol)
         self.assertEqual(result, latest_stock_data_record)
         
-    def test_get_stock_data_by_symbol_and_timestamp(self):
-        """Test the get_stock_data_by_symbol_and_timestamp method."""
+    def test_get_stock_data_by_symbol_and_date(self):
+        """Test the get_stock_data_by_symbol_and_date method."""
         symbol = "AAPL"
         start_time = datetime(2024, 4, 1, 0, 0, 0)
         end_time = datetime(2024, 4, 30, 23, 59, 59)
@@ -71,13 +71,13 @@ class TestStockDataService(TestCase):
             (1, "AAPL", datetime(2024, 4, 11, 14, 30, 0), Decimal("150.00"), Decimal("155.00"),
              Decimal("149.00"), Decimal("154.00"), 1000)
         ]
-
-        self.mock_dao.fetch_stock_data_by_symbol_and_timestamp.return_value = stock_data_records
-
-        result = self.service.get_stock_data_by_symbol_and_timestamp(symbol, start_time, end_time)
-
-        self.mock_dao.fetch_stock_data_by_symbol_and_timestamp.assert_called_once_with(symbol, start_time, end_time)
-        self.assertEqual(result, stock_data_records)
+        
+        self.mock_dao.fetch_stock_data_by_symbol_and_date.return_value = stock_data_records
+        
+        result = self.service.get_stock_data_by_symbol_and_date(symbol, start_time, end_time)
+        
+        self.mock_dao.fetch_stock_data_by_symbol_and_date.assert_called_once_with(symbol, start_time, end_time)
+        self.assertEqual(result, stock_data_records)    
         
     def test_update_stock_data(self):
         """Test the update_stock_data method."""
@@ -138,7 +138,7 @@ class TestStockDataService(TestCase):
         end_time = datetime(2024, 4, 30, 23, 59, 59)
         self.mock_dao.fetch_stock_data_by_symbol_and_timestamp.return_value = []
 
-        result = self.service.get_stock_data_by_symbol_and_timestamp(symbol, start_time, end_time)
+        result = self.service.get_stock_data_by_symbol_and_date(symbol, start_time, end_time)
 
         self.mock_dao.fetch_stock_data_by_symbol_and_timestamp.assert_called_once_with(symbol, start_time, end_time)
         self.assertEqual(result, [])
