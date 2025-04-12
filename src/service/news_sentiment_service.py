@@ -15,6 +15,10 @@ class NewsSentimentService:
     def get_sentiment_by_trade_id(self, trade_id: int):
         """Fetch sentiment data by trade ID."""
         return self.news_sentiment_dao.fetch_sentiment_by_trade_id(trade_id)
+    
+    def get_sentiment_by_symbol(self, symbol: str):
+        """Fetch sentiment data by symbol."""
+        return self.news_sentiment_dao.fetch_sentiment_by_symbol(symbol)
 
     def update_sentiment(self, sentiment_id: int, sentiment_score: Decimal, headline: str, 
                           source: str, published_at: datetime) -> None:

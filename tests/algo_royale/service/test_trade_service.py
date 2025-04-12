@@ -2,13 +2,13 @@
 import unittest
 from unittest import TestCase
 from unittest.mock import MagicMock, patch
-from src.algo_royale.service.trade_service import TradeService
+from src.service.trade_service import TradeService
 from decimal import Decimal
 from datetime import datetime
 
 class TestTradeService(TestCase):
 
-    @patch("src.algo_royale.service.trade_service.TradesDAO")
+    @patch("src.service.trade_service.TradesDAO")
     def setUp(self, MockTradesDAO):
         self.mock_dao = MockTradesDAO.return_value
         self.service = TradeService()
@@ -43,6 +43,12 @@ class TestTradeService(TestCase):
         result = self.service.get_trade_by_id(42)
         self.mock_dao.fetch_trade_by_id.assert_called_once_with(42)
         self.assertEqual(result, ("mock_trade",))
+        
+    def test_get_trades_by_symbol(self):
+        self.mock_dao.fetch_trades_by_symbol.return_value = [("mock_trade_1",), ("mock_trade_2",)]
+        result = self.service.get_trades_by_symbol("AAPL", limit=5, offset=0)
+        self.mock_dao.fetch_trades_by_symbol.assert_called_once_with("AAPL", 5, 0)
+        self.assertEqual(result, [("mock_trade_1",), ("mock_trade_2",)])
 
     def test_calculate_trade_pnl(self):
         result = self.service.calculate_trade_pnl(
@@ -53,9 +59,9 @@ class TestTradeService(TestCase):
         self.assertEqual(result, Decimal("100.00"))
 
     def test_get_trade_history(self):
-        self.mock_dao.fetch_all_trades.return_value = [("mock_trade_1",), ("mock_trade_2",)]
+        self.mock_dao.fetch_trades.return_value = [("mock_trade_1",), ("mock_trade_2",)]
         result = self.service.get_trade_history()
-        self.mock_dao.fetch_all_trades.assert_called_once()
+        self.mock_dao.fetch_trades.assert_called_once()
         self.assertEqual(result, [("mock_trade_1",), ("mock_trade_2",)])
 
     def test_delete_trade(self):

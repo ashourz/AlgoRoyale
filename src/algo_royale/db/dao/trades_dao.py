@@ -7,13 +7,18 @@ class TradesDAO(BaseDAO):
     def __init__(self):
         super().__init__()
 
-    def fetch_all_trades(self) -> None:
-        """Fetch all trades."""
-        return self.fetch("get_all_trades.sql", [])
+    def fetch_trades(self, limit:int = 10, offset: int = 0) -> None:
+        """Fetch all trades with pagination."""
+        return self.fetch("get_all_trades.sql", (limit, offset))
 
     def fetch_trade_by_id(self, trade_id: int) -> None:
         """Fetch a trade record by its ID."""
         return self.fetch("get_trade_by_id.sql", (trade_id,))
+    
+    def fetch_trades_by_symbol(self, symbol: str, limit:int = 10, offset: int = 0) -> None:
+        """Fetch trades by stock symbol."""
+        return self.fetch("get_trades_by_symbol.sql", (symbol, limit, offset))
+    
 
     def insert_trade(self, symbol: str, direction: str, entry_price: Decimal, exit_price: Decimal, shares: int,
                      entry_time: datetime, exit_time: datetime, strategy_phase: str, pnl: Decimal, notes: str) -> None:

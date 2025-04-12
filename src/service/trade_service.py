@@ -16,16 +16,21 @@ class TradeService:
         """Update an existing trade record."""
         self.trades_dao.update_trade(trade_id, exit_price, exit_time, pnl)
 
-    def get_trade_by_id(self, trade_id: int):
+    def get_trade_by_id(self, trade_id: int) -> Tuple:
         """Get trade details by trade ID."""
         return self.trades_dao.fetch_trade_by_id(trade_id)
+
+    def get_trades_by_symbol(self, symbol: str, limit: int = 10, offset: int = 0) -> List[Tuple]:
+        """Get trades by stock symbol."""
+        return self.trades_dao.fetch_trades_by_symbol(symbol, limit, offset)
 
     def calculate_trade_pnl(self, entry_price: Decimal, exit_price: Decimal, shares: int) -> Decimal:
         """Calculate the profit or loss of a trade."""
         return (exit_price - entry_price) * shares
 
-    def get_trade_history(self) -> List[Tuple]:
-        return self.trades_dao.fetch_all_trades()
+    def get_trade_history(self, limit: int = 10, offset: int = 0) -> List[Tuple]:
+        """Get trade history with pagination."""
+        return self.trades_dao.fetch_trades(limit, offset)
 
     def delete_trade(self, trade_id: int) -> None:
         self.trades_dao.delete_trade(trade_id)

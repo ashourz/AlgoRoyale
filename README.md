@@ -35,3 +35,10 @@ To resolve this issue, you need to set the `PYTHONPATH` to include the `src/` di
    ```
 
 This should allow your tests to run without import errors. Make sure to set the `PYTHONPATH` each time you open a new PowerShell session.
+
+### Poetry Virtual Environment Configuration
+
+In this project, I have configured Poetry to **not create a new virtual environment** by running the following command:
+
+```bash
+poetry config virtualenvs.create false
