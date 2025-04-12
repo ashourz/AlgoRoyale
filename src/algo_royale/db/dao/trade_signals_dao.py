@@ -15,6 +15,14 @@ class TradeSignalsDAO(BaseDAO):
     def fetch_signal_by_id(self, signal_id: int) -> Optional[Tuple[int, str, str, Decimal, datetime]]:
         """Fetch a trade signal by its ID."""
         return self.fetch("get_signal_by_id.sql", (signal_id,))
+    
+    def fetch_signals_by_symbol(self, symbol: str) -> List[Tuple[int, str, str, Decimal, datetime]]:
+        """Fetch trade signals by symbol."""
+        return self.fetch("get_signals_by_symbol.sql", (symbol,))
+    
+    def fetch_signals_by_symbol_and_date(self, symbol: str, start_date: datetime, end_date: datetime) -> List[Tuple[int, str, str, Decimal, datetime]]:
+        """Fetch trade signals by symbol and date."""
+        return self.fetch("get_signals_by_symbol_and_date.sql", (symbol, start_date, end_date))
 
     def insert_signal(self, symbol: str, signal: str, price: Decimal, created_at: datetime) -> None:
         """Insert a new trade signal."""
