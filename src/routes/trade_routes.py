@@ -44,7 +44,6 @@ def get_trades_by_symbol_with_limit(symbol):
     trades = service.get_trades_by_symbol(symbol, limit, offset)
     return jsonify(trades)
 
-
 @trade_bp.route("/history", methods=["GET"])
 def get_trade_history():
     trades = service.get_trade_history()
@@ -54,3 +53,33 @@ def get_trade_history():
 def delete_trade(trade_id):
     service.delete_trade(trade_id)
     return jsonify({"message": "Trade deleted"}), 200
+
+@trade_bp.route("/open", methods=["GET"])
+def get_open_trades():
+    trades = service.get_open_trades()
+    return jsonify(trades)
+
+@trade_bp.route("/date_range", methods=["GET"])
+def get_trades_by_date_range():
+    start_date = request.args.get("start_date")
+    end_date = request.args.get("end_date")
+    trades = service.get_trades_by_date_range(datetime.fromisoformat(start_date), datetime.fromisoformat(end_date))
+    return jsonify(trades)
+
+@trade_bp.route("/symbol_date", methods=["GET"])
+def get_trades_by_symbol_and_date():
+    symbol = request.args.get("symbol")
+    start_date = request.args.get("start_date")
+    end_date = request.args.get("end_date")
+    trades = service.get_trades_by_symbol_and_date(symbol, datetime.fromisoformat(start_date), datetime.fromisoformat(end_date))
+    return jsonify(trades)
+
+@trade_bp.route("/calculate_pnl", methods=["POST"])
+def calculate_trade_pnl():
+    data = request.json
+    pnl = service.calculate_trade_pnl(
+        entry_price=Decimal(data["entry_price"]),
+        exit_price=Decimal(data["exit_price"]),
+        shares=data["shares"]
+    )
+    return jsonify({"pnl": str(pnl)}), 200
