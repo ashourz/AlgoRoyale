@@ -15,7 +15,15 @@ class StockDataDAO(BaseDAO):
     def fetch_stock_data_by_symbol(self, symbol: str) -> List[Tuple[int, str, datetime, Decimal, Decimal, Decimal, Decimal, int]]: 
         """Fetch stock data by symbol."""
         return self.fetch("get_stock_data_by_symbol.sql", (symbol,))
-
+    
+    def fetch_stock_data_by_symbol_and_timestamp(self, symbol: str, start_time: datetime, end_time: datetime) -> List[Tuple[int, str, datetime, Decimal, Decimal, Decimal, Decimal, int]]:
+        """Fetch stock data by symbol and timestamp."""
+        return self.fetch("get_stock_data_by_symbol_and_timestamp.sql", (symbol, start_time, end_time))
+    
+    def fetch_latest_stock_data(self, symbol: str) -> Optional[Tuple[int, str, datetime, Decimal, Decimal, Decimal, Decimal, int]]:
+        """Fetch the latest stock data for a symbol."""
+        return self.fetch_one("get_latest_stock_data.sql", (symbol,))
+    
     def insert_stock_data(self, symbol: str, timestamp: datetime, open: Decimal, high: Decimal, low: Decimal, close: Decimal, volume: int) -> None:
         """Insert new stock data."""
         return self.insert(

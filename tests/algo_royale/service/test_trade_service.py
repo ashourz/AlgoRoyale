@@ -67,7 +67,32 @@ class TestTradeService(TestCase):
     def test_delete_trade(self):
         self.service.delete_trade(99)
         self.mock_dao.delete_trade.assert_called_once_with(99)
-
+        
+    def test_get_open_trades(self):
+        self.mock_dao.fetch_open_trades.return_value = [("mock_open_trade",)]
+        result = self.service.get_open_trades()
+        self.mock_dao.fetch_open_trades.assert_called_once()
+        self.assertEqual(result, [("mock_open_trade",)])
+        
+    def test_get_trades_by_date_range(self):
+        start_date = datetime(2024, 1, 1)
+        end_date = datetime(2024, 12, 31)
+        self.mock_dao.fetch_trades_by_date_range.return_value = [("mock_trade",)]
+        result = self.service.get_trades_by_date_range(start_date, end_date)
+        self.mock_dao.fetch_trades_by_date_range.assert_called_once_with(start_date, end_date)
+        self.assertEqual(result, [("mock_trade",)])
+        
+    def test_get_trades_by_symbol_and_date(self):
+        symbol = "AAPL"
+        start_date = datetime(2024, 1, 1)
+        end_date = datetime(2024, 12, 31)
+        self.mock_dao.fetch_trades_by_symbol_and_date.return_value = [("mock_trade",)]
+        result = self.service.get_trades_by_symbol_and_date(symbol, start_date, end_date)
+        self.mock_dao.fetch_trades_by_symbol_and_date.assert_called_once_with(symbol, start_date, end_date)
+        self.assertEqual(result, [("mock_trade",)])
+        
+    def tearDown(self):
+        self.mock_dao.reset_mock()            
 
 if __name__ == "__main__":
     unittest.main()

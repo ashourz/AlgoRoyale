@@ -31,6 +31,19 @@ class TradeService:
     def get_trade_history(self, limit: int = 10, offset: int = 0) -> List[Tuple]:
         """Get trade history with pagination."""
         return self.trades_dao.fetch_trades(limit, offset)
+    
+    def get_trades_by_date_range(self, start_date: datetime, end_date: datetime) -> List[Tuple]:
+        """Get trades within a specific date range."""
+        return self.trades_dao.fetch_trades_by_date_range(start_date, end_date)
+    
+    def get_open_trades(self) -> List[Tuple]:
+        """Get all open trades."""
+        return self.trades_dao.fetch_open_trades()
+    
+    def get_trades_by_symbol_and_date(self, symbol: str, start_date: datetime, end_date: datetime) -> List[Tuple]:
+        """Get trades by symbol and date range."""
+        return self.trades_dao.fetch_trades_by_symbol_and_date(symbol, start_date, end_date)
+    
 
     def delete_trade(self, trade_id: int) -> None:
         self.trades_dao.delete_trade(trade_id)
