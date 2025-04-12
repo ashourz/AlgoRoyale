@@ -19,6 +19,10 @@ class NewsSentimentService:
     def get_sentiment_by_symbol(self, symbol: str):
         """Fetch sentiment data by symbol."""
         return self.news_sentiment_dao.fetch_sentiment_by_symbol(symbol)
+    
+    def get_sentiment_by_symbol_and_date(self, symbol: str, start_date: datetime, end_date: datetime):
+        """Fetch sentiment data by symbol and date range."""
+        return self.news_sentiment_dao.fetch_sentiment_by_symbol_and_date(symbol, start_date, end_date)
 
     def update_sentiment(self, sentiment_id: int, sentiment_score: Decimal, headline: str, 
                           source: str, published_at: datetime) -> None:

@@ -86,5 +86,21 @@ class TestNewsSentimentService(TestCase):
         self.mock_dao.fetch_sentiment_by_symbol.assert_called_once_with(symbol)
         self.assertEqual(result, sentiment_records)
         
+    def test_fetch_sentiment_by_symbol_and_date(self):
+        """Test the fetch_sentiment_by_symbol_and_date method."""
+        symbol = "AAPL"
+        start_date = datetime(2024, 4, 1)
+        end_date = datetime(2024, 4, 30)
+        sentiment_records = [
+            (1, 1, "AAPL", Decimal("0.75"), "Positive news about AAPL", "Reuters", datetime(2024, 4, 11, 14, 30, 0)),
+            (2, 1, "AAPL", Decimal("0.80"), "Updated news about AAPL", "Bloomberg", datetime(2024, 4, 12, 14, 30, 0))
+        ]
+        
+        self.mock_dao.fetch_sentiment_by_symbol_and_date.return_value = sentiment_records
+        result = self.service.get_sentiment_by_symbol_and_date(symbol, start_date, end_date)
+        self.mock_dao.fetch_sentiment_by_symbol_and_date.assert_called_once_with(symbol, start_date, end_date)
+        self.assert_Equal(result, sentiment_records)
+        
+        
 if __name__ == "__main__":
     unittest.main()

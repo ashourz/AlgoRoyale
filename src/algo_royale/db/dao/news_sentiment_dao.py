@@ -15,7 +15,11 @@ class NewsSentimentDAO(BaseDAO):
     def fetch_sentiment_by_symbol(self, symbol: str) -> List[Tuple[int, int, str, Decimal, str, str, datetime]]:
         """Fetch sentiment data by symbol."""
         return self.fetch("get_sentiment_by_symbol.sql", (symbol,))
-
+    
+    def fetch_sentiment_by_symbol_and_date(self, symbol: str, start_date: datetime, end_date: datetime) -> List[Tuple[int, int, str, Decimal, str, str, datetime]]:
+        """Fetch sentiment data by symbol and date range."""
+        return self.fetch("get_sentiment_by_symbol_and_date.sql", (symbol, start_date, end_date))
+    
     def insert_sentiment(self, trade_id: int, symbol: str, sentiment_score: Decimal, headline: str, source: str, published_at: datetime) -> None:
         """Insert a new sentiment record."""
         return self.insert(
