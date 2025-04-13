@@ -136,11 +136,11 @@ class TestStockDataService(TestCase):
         symbol = "AAPL"
         start_time = datetime(2024, 4, 1, 0, 0, 0)
         end_time = datetime(2024, 4, 30, 23, 59, 59)
-        self.mock_dao.fetch_stock_data_by_symbol_and_timestamp.return_value = []
+        self.mock_dao.fetch_stock_data_by_symbol_and_date.return_value = []
 
         result = self.service.get_stock_data_by_symbol_and_date(symbol, start_time, end_time)
 
-        self.mock_dao.fetch_stock_data_by_symbol_and_timestamp.assert_called_once_with(symbol, start_time, end_time)
+        self.mock_dao.fetch_stock_data_by_symbol_and_date.assert_called_once_with(symbol, start_time, end_time)
         self.assertEqual(result, [])
         
     def test_get_latest_stock_data_no_data(self):
