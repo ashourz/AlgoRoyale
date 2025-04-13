@@ -25,7 +25,7 @@ requests = "^2.25.1"            # For making HTTP requests.
 flask = "^2.0.1"                # Flask is a lightweight WSGI web application framework in Python.
 flask-cors = "^3.0.10"          # For CORS support in Flask applications.
 python-dotenv = "^0.19.0"       # For loading environment variables from a `.env` file.
-
+httpx = "^0.18.0"               # For making HTTP requests with async support.
 # Issue between poetry and tensorflow metadata since >=2.11
 # This is a temporary workaround
 # related to https://github.com/python-poetry/poetry/issues/8271
@@ -44,7 +44,11 @@ tensorflow-io-gcs-filesystem = [
 # These are optional and can be installed separately if needed.
 # You can use `poetry add --dev <package-name>` to add them later.
 [tool.poetry.group.dev.dependencies]
-# pytest = "^6.2"
+pytest = "^6.2"
+pytest-cov = "^2.12"            # For testing and coverage reporting.
+pytest-mock = "^3.6"            # For mocking in tests.
+pytest-asyncio = "^0.16"        # For testing async code with pytest.
+pytest-flask = "^1.2"           # For testing Flask applications with pytest.
 # For file watching, `watchdog` is specified in the dev dependencies.
 # This is useful for automatically reloading or executing scripts when files change.
 watchdog = "^2.1.0"             # For monitoring file system events.

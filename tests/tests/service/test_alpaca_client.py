@@ -7,7 +7,7 @@ from alpaca.data.timeframe import TimeFrame, TimeFrameUnit
 from alpaca.data.enums import DataFeed, Adjustment
 from alpaca.common.enums import Sort, SupportedCurrencies
 
-from src.algo_royale.client.alpaca_api_client import AlpacaClient
+from algo_royale.client.alpaca_data_client import AlpacaClient
 
 class TestAlpacaClient(TestCase):
 
