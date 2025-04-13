@@ -16,12 +16,12 @@ class AlpacaClient:
     def __init__(self, use_paper: bool = True):
         self.api_key = ALPACA_PARAMS["api_key"]
         self.api_secret = ALPACA_PARAMS["api_secret"]
-        self.base_url = ALPACA_PARAMS["base_url_paper"] if use_paper else ALPACA_PARAMS["base_url_live"]
+        # self.base_url = ALPACA_PARAMS["base_url_paper"] if use_paper else ALPACA_PARAMS["base_url_live"]
 
         self.client = StockHistoricalDataClient(
             api_key=self.api_key,
             secret_key=self.api_secret,
-            url_override=self.base_url
+            #  url_override=self.base_url
         )
 
     def fetch_historical_data(
@@ -29,7 +29,7 @@ class AlpacaClient:
         symbols: List[str],
         start_date: datetime,
         end_date: datetime,
-        timeframe=TimeFrame(1, TimeFrameUnit.Minute),
+        timeframe: TimeFrame=TimeFrame(1, TimeFrameUnit.Minute),
         sort_order: Sort = Sort.DESC,
         feed: DataFeed = DataFeed.IEX,
         adjustment: Adjustment = Adjustment.RAW
