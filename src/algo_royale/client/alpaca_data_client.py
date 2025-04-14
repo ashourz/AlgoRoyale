@@ -2,6 +2,7 @@
 import asyncio
 from decimal import Decimal
 from enum import Enum
+import json
 import logging
 from typing import List, Optional
 from models.alpaca_models.alpaca_quote import Quote, QuotesResponse
@@ -9,10 +10,9 @@ import pandas as pd
 from datetime import datetime
 import httpx
 
-
-from alpaca.data.timeframe import TimeFrame, TimeFrameUnit
 from alpaca.data.enums import DataFeed, Adjustment
 from alpaca.common.enums import Sort, SupportedCurrencies
+import websockets
 
 from config.config import ALPACA_PARAMS
 
@@ -27,18 +27,10 @@ class AlpacaDataClient:
         self.base_url = ALPACA_PARAMS["base_url_data"] 
         self.api_key_header = ALPACA_PARAMS["api_key_header"]
         self.api_secret_header = ALPACA_PARAMS["api_secret_header"]
-        
+        self.base_url_data_stream = ALPACA_PARAMS["base_url_data_stream_test"]
+
         self._logger = logging.getLogger(self.__class__.__name__)
         self._logger.setLevel(logging.DEBUG)    
-
-        # self.historical_data_client = StockHistoricalDataClient(
-        #     api_key=self.api_key,
-        #     secret_key=self.api_secret,
-        # )
-        # self.stock_stream = StockDataStream(
-        #     api_key=self.api_key,
-        #     secret_key=self.api_secret
-        # )
 
         self.subscribed_symbols = set()
 
@@ -132,137 +124,37 @@ class AlpacaDataClient:
         
         return QuotesResponse.from_raw(responseJson)
     
-    # def fetch_latest_quotes(
-    #     self,
-    #     symbols: List[str],
-    #     currency=SupportedCurrencies.USD,
-    #     feed: DataFeed = DataFeed.IEX
-    # ) -> pd.DataFrame:
-    #     """Fetch latest stock quotes from Alpaca."""
-        
-    #     request = StockLatestQuoteRequest(
-    #         symbol_or_symbols = symbols,
-    #         feed = feed,
-    #         currency = currency
-    #     )   
-
-    #     latest_quote = self.historical_data_client.get_stock_latest_quote(request)
-    #     self._logger.debug(f"Latest quote for {symbols}: {latest_quote}")
-    #     if latest_quote is None:
-    #         self._logger.warning(f"No latest quote data available for {symbols}")
-    #         return pd.DataFrame()
-
-    #     return latest_quote.df.reset_index()
-    
-    # def fetch_latest_quote(
-    #     self,
-    #     symbol: str,
-    #     currency=SupportedCurrencies.USD,
-    #     feed: DataFeed = DataFeed.IEX
-    # ) -> pd.DataFrame:
-    #     """Fetch latest stock quotes from Alpaca."""
-        
-    #     request = StockLatestQuoteRequest(
-    #         symbol_or_symbols = symbol,
-    #         feed = feed,
-    #         currency = currency
-    #     )
-    #     latest_quote = self.historical_data_client.get_stock_latest_quote(request)
-    #     self._logger.debug(f"Latest quote for {symbol}: {latest_quote}")
-    #     if latest_quote is None:
-    #         self._logger.warning(f"No latest quote data available for {symbols}")
-    #         return pd.DataFrame()
-
-    #     return latest_quote.df.reset_index()
-  
-    async def _subscribe_to_quote_stream(
+    def fetch_latest_quotes(
         self,
         symbols: List[str],
-        on_quote: callable = None
-    ):
-        """Subscribe to Alpaca's real-time quote data stream."""
-        async with self._lock:
-            try:
-                # Ensure the symbols are not already subscribed
-                for symbol in symbols:
-                    if symbol in self.subscribed_symbols:
-                        self._logger.info(f"Already subscribed to {symbol}")
-                        continue
-                    
-                    # Subscribe to the quote stream for each symbol
-                    self.stock_stream.subscribe_quotes(on_quote, [symbol])  # Subscribe each symbol separately
-                    self._logger.info(f"Subscribed to {symbol}")
-                    # Add to the set of subscribed symbols
-                    self.subscribed_symbols.add(symbol)  
-                self.stock_stream.run()  # Start streaming
-            except Exception as e:
-                self._logger.error(f"Error subscribing to quote stream: {e}")
-            
-    def subscribe_quotes(
-        self,
-        symbols: List[str],
-        on_quote: callable = None
-    ):
-        """Public sync wrapper for async stream subscription."""
-        asyncio.run(self._subscribe_to_quote_stream(symbols, on_quote))
+        currency: SupportedCurrencies =SupportedCurrencies.USD,
+        feed: DataFeed = DataFeed.IEX
+    ) -> Optional[QuotesResponse]:
+        """Fetch latest stock quotes from Alpaca."""
         
-    async def _unsubscribe_from_quote_stream(self, symbols: List[str]):
-        """Unsubscribe from Alpaca's real-time quote data stream."""
-        async with self._lock:
-            try:
-                for symbol in symbols:
-                    if symbol not in self.subscribed_symbols:
-                        self._logger.info(f"Not subscribed to {symbol}")
-                        continue
-        
-                    # Unsubscribe from the quote stream
-                    self.stock_stream.unsubscribe_quotes([symbol])  # Unsubscribe each symbol separately
-                    self._logger.info(f"Unsubscribed from {symbol}")
-                    self.subscribed_symbols.discard([symbol])  # Remove from subscribed symbols
-            except Exception as e:
-                self._logger.error(f"Error unsubscribing from quote stream: {e}")
-    
-    def unsubscribe_quotes(self, symbols: List[str]):
-        """Public sync wrapper for async stream unsubscription."""
-        asyncio.run(self._unsubscribe_from_quote_stream(symbols))
-    
-    async def _unsubscribe_all(self):
-        """Unsubscribe from all streams."""
-        async with self._lock:
-            try:
-                if not self.subscribed_symbols:
-                    self._logger.info("No symbols to unsubscribe from.")
-                    return
-                self.stock_stream.unsubscribe_all()
-                self._logger.info("Unsubscribed from all streams.")
-                # Clear the set of subscribed symbols
-                self.subscribed_symbols.clear()
-            except Exception as e:
-                self._logger.error(f"Error unsubscribing from all streams: {e}")
 
-    def unsubscribe_all_quotes(self):
-        """Public sync wrapper for async unsubscribe all."""
-        asyncio.run(self._unsubscribe_all())
+        if not isinstance(symbols, list):
+            symbols = [symbols]
         
-    async def _close_stream(self):
-        """Close the Alpaca data stream."""
-        async with self._lock:
-            try:
-                if not self.stock_stream.is_running():
-                    self._logger.info("Stream is not running.")
-                    return
-                await self.stock_stream.stop()
-                self._logger.info("Stream stopped.")
-                await self.stock_stream.close()
-                self._logger.info("Stream closed.")
-                # Clear the set of subscribed symbols
-                self.subscribed_symbols.clear()
+        params = {}
+        for k, v in {
+            "symbols": ",".join(symbols),
+            "currency": currency,
+            "feed": feed
+        }.items():
+            if v is not None:
+                params[k] = self._format_param(v)
                 
-            except Exception as e:
-                self._logger.error(f"Error closing stream: {e}")
+        responseJson = self.get(
+            url=f"{self.base_url}/stocks/quotes/latest",
+            params=params
+        )
 
-            
-    def close_stream(self):
-        """Public sync wrapper for async stream close."""
-        asyncio.run(self._close_stream())
+        self._logger.debug(f"Latest quotes for {symbols}: {responseJson}")
+        if responseJson is None:
+            self._logger.warning(f"No latest data available for {symbols}")
+            return None       
+        
+        return QuotesResponse.from_raw(responseJson)
+
             

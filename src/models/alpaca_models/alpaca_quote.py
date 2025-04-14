@@ -124,9 +124,11 @@ class QuotesResponse(BaseModel):
             return None
 
         return cls(
-            quotes={
-                symbol: [Quote.from_raw(quote) for quote in quotes]
-                for symbol, quotes in data.get("quotes", {}).items()
+            quotes = {
+                symbol: [
+                    Quote.from_raw(q) for q in (quote if isinstance(quote, list) else [quote])
+                ]
+                for symbol, quote in data["quotes"].items()
             },
             next_page_token=data.get("next_page_token")
         )

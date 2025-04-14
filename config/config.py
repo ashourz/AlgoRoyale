@@ -16,6 +16,5 @@ def get_config(section="postgres"):
 DB_PARAMS = get_config("database")
 ALPACA_PARAMS = get_config("alpaca")
 
-
 # Optionally, you can print out the DB_PARAMS to verify the connection values are correct
 # print(DB_PARAMS)
