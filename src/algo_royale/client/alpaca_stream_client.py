@@ -13,8 +13,10 @@ class DataFeed(Enum):
     TEST = "test"
 
 class AlpacaStreamClient:
+    _instance = None
+    _lock = asyncio.Lock()
     """
-    A client for streaming real-time stock market data (quotes, trades, bars) from Alpaca WebSocket API.
+    Singleton client for streaming real-time stock market data (quotes, trades, bars) from Alpaca WebSocket API.
     
     Features:
     - Reconnection handling
@@ -23,7 +25,7 @@ class AlpacaStreamClient:
     - Asynchronous event handling
     """
 
-    def __init__(self, logger):
+    def __init__(self):
         """
         Initialize the stream client.
 
@@ -31,12 +33,12 @@ class AlpacaStreamClient:
             api_key (str): Alpaca API key.
             api_secret (str): Alpaca API secret.
             base_url_data_stream (str): Base URL for Alpaca WebSocket stream.
-            logger (logging.Logger): Logger instance.
         """
         self.api_key = ALPACA_PARAMS["api_key"]
         self.api_secret = ALPACA_PARAMS["api_secret"]
-        self.base_url_data_stream = ALPACA_PARAMS["base_url_data_stream_test"]
-        self.logger = logger
+        self.base_url_data_stream = ALPACA_PARAMS["base_url_data_stream"]
+        self.logger = logging.getLogger(self.__class__.__name__)
+        self.logger.setLevel(logging.DEBUG) 
 
         self.websocket = None
         self.stop_stream = False
@@ -50,6 +52,12 @@ class AlpacaStreamClient:
         self.reconnect_delay = ALPACA_PARAMS.get("reconnect_delay", 5)
         self.keep_alive_timeout = ALPACA_PARAMS.get("keep_alive_timeout", 20)
 
+    def __new__(cls):
+        if cls._instance is None:
+            cls._instance = super(AlpacaStreamClient, cls).__new__(cls)
+            cls._instance.__init__()
+        return cls._instance
+    
     async def stream(
         self,
         symbols: list[str],
