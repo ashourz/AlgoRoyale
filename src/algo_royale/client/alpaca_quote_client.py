@@ -1,33 +1,30 @@
-## client\alpaca_api_client.py
+# src/algo_royale/client/alpaca_quote_client.py
 import asyncio
-from decimal import Decimal
 from enum import Enum
 import json
 import logging
 from typing import List, Optional
-from models.alpaca_models.alpaca_quote import Quote, QuotesResponse
+from models.alpaca_models.alpaca_quote import QuotesResponse
 import pandas as pd
 from datetime import datetime
 import httpx
 
-from alpaca.data.enums import DataFeed, Adjustment
+from alpaca.data.enums import DataFeed
 from alpaca.common.enums import Sort, SupportedCurrencies
-import websockets
 
-from config.config import ALPACA_PARAMS
+from config.config import ALPACA_PARAMS, ALPACA_SECRETS
 
-class AlpacaDataClient:
+class AlpacaQuoteClient:
     """Singleton class to interact with Alpaca's API for stock data."""
     _instance = None
     _lock = asyncio.Lock()
 
     def __init__(self):
-        self.api_key = ALPACA_PARAMS["api_key"]
-        self.api_secret = ALPACA_PARAMS["api_secret"]
+        self.api_key = ALPACA_SECRETS["api_key"]
+        self.api_secret = ALPACA_SECRETS["api_secret"]
         self.base_url = ALPACA_PARAMS["base_url_data"] 
         self.api_key_header = ALPACA_PARAMS["api_key_header"]
         self.api_secret_header = ALPACA_PARAMS["api_secret_header"]
-        self.base_url_data_stream = ALPACA_PARAMS["base_url_data_stream_test"]
 
         self._logger = logging.getLogger(self.__class__.__name__)
         self._logger.setLevel(logging.DEBUG)    
@@ -36,7 +33,7 @@ class AlpacaDataClient:
 
     def __new__(cls):
         if cls._instance is None:
-            cls._instance = super(AlpacaDataClient, cls).__new__(cls)
+            cls._instance = super(AlpacaQuoteClient, cls).__new__(cls)
             cls._instance.__init__()
         return cls._instance
     

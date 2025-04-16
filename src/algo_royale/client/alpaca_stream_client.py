@@ -5,7 +5,7 @@ import websockets
 from enum import Enum
 import logging
 
-from config.config import ALPACA_PARAMS
+from config.config import ALPACA_PARAMS, ALPACA_SECRETS
 
 class DataFeed(Enum):
     IEX = "iex"
@@ -34,8 +34,8 @@ class AlpacaStreamClient:
             api_secret (str): Alpaca API secret.
             base_url_data_stream (str): Base URL for Alpaca WebSocket stream.
         """
-        self.api_key = ALPACA_PARAMS["api_key"]
-        self.api_secret = ALPACA_PARAMS["api_secret"]
+        self.api_key = ALPACA_SECRETS["api_key"]
+        self.api_secret = ALPACA_SECRETS["api_secret"]
         self.base_url_data_stream = ALPACA_PARAMS["base_url_data_stream"]
         self.logger = logging.getLogger(self.__class__.__name__)
         self.logger.setLevel(logging.DEBUG) 

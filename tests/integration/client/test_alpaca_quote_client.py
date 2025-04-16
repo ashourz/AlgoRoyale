@@ -5,7 +5,7 @@ import asyncio
 from models.alpaca_models.alpaca_quote import Quote, QuotesResponse
 import pytest
 from datetime import datetime, timezone
-from algo_royale.client.alpaca_data_client import AlpacaDataClient
+from algo_royale.client.alpaca_quote_client import AlpacaQuoteClient
 
 # Set up logging (prints to console)
 logging.basicConfig(level=logging.DEBUG)
@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 
 @pytest.fixture(scope="class")
 def alpaca_client():
-    return AlpacaDataClient()
+    return AlpacaQuoteClient()
 
 @pytest.mark.asyncio
 class TestAlpacaDataClientIntegration:

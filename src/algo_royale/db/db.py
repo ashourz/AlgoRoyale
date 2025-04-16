@@ -1,5 +1,5 @@
 import psycopg2
-from config.config import DB_PARAMS  # Import DB credentials
+from config.config import DB_PARAMS, DB_SECRETS  # Import DB credentials
 from contextlib import contextmanager  # For context manager support
 import logging
 logger = logging.getLogger(__name__)
@@ -10,7 +10,7 @@ def connect_db():
     """Context manager for connecting to PostgreSQL."""
     conn = None
     try:
-        conn = psycopg2.connect(**DB_PARAMS)
+        conn = psycopg2.connect(**DB_PARAMS, **DB_SECRETS)  # Unpack DB credentials
         logger.info("✅ Database connection established.")
         yield conn  # Yield the connection object to the caller
     except Exception as e:

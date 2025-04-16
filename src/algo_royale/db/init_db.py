@@ -1,7 +1,7 @@
 import psycopg2
 from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
 from pathlib import Path
-from config.config import DB_PARAMS  # Import DB credentials
+from config.config import DB_PARAMS, DB_SECRETS  # Import DB credentials
 
 def create_database_if_not_exists(dbname, user, password, host="localhost"):
     """
@@ -40,7 +40,7 @@ def main():
     # Use the imported DB_PARAMS directly for connection
     dbname = DB_PARAMS["dbname"]
     user = DB_PARAMS["user"]
-    password = DB_PARAMS["password"]
+    password = DB_SECRETS["password"]
     host = DB_PARAMS["host"]
     port = DB_PARAMS["port"]
 
