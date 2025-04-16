@@ -36,7 +36,7 @@ class AlpacaStreamClient:
         """
         self.api_key = ALPACA_SECRETS["api_key"]
         self.api_secret = ALPACA_SECRETS["api_secret"]
-        self.base_url_data_stream = ALPACA_PARAMS["base_url_data_stream"]
+        self.base_url_data_stream = ALPACA_PARAMS["base_url_data_stream_v2"]
         self.logger = logging.getLogger(self.__class__.__name__)
         self.logger.setLevel(logging.DEBUG) 
 

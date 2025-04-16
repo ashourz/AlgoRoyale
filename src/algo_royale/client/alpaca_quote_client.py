@@ -22,7 +22,7 @@ class AlpacaQuoteClient:
     def __init__(self):
         self.api_key = ALPACA_SECRETS["api_key"]
         self.api_secret = ALPACA_SECRETS["api_secret"]
-        self.base_url = ALPACA_PARAMS["base_url_data"] 
+        self.base_url = ALPACA_PARAMS["base_url_data_v2"] 
         self.api_key_header = ALPACA_PARAMS["api_key_header"]
         self.api_secret_header = ALPACA_PARAMS["api_secret_header"]
 
