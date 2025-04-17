@@ -4,10 +4,11 @@ import logging
 import asyncio
 from models.alpaca_models.alpaca_auction import AuctionResponse
 from models.alpaca_models.alpaca_bar import Bar, BarsResponse, LatestBarsResponse
+from models.alpaca_models.alpaca_condition_code import ConditionCodeMap
 from models.alpaca_models.alpaca_quote import Quote, QuotesResponse
 import pytest
 from datetime import datetime, timezone
-from algo_royale.client.alpaca_stock_client import AlpacaStockClient
+from algo_royale.client.alpaca_stock_client import AlpacaStockClient, Tape, TickType
 
 # Set up logging (prints to console)
 logging.basicConfig(level=logging.DEBUG)
@@ -178,3 +179,37 @@ class TestAlpacaStockClientIntegration:
             assert bar.high_price >= bar.low_price
             assert bar.volume >= 0
             assert bar.num_trades >= 0
+            
+    def test_fetch_condition_codes(self, alpaca_client):
+        """Test fetching condition codes from Alpaca."""
+
+        # Example test inputs
+        ticktype = TickType.TRADE  # or use TickType.TRADE if it's an enum
+        tape = Tape.A          # or use Tape.A
+
+        # Call the method
+        result = alpaca_client.fetch_condition_codes(
+            ticktype=ticktype,
+            tape=tape
+        )
+
+        # Basic assertions
+        assert result is not None
+        assert isinstance(result, ConditionCodeMap)
+
+        # Validate the internal dictionary
+        condition_dict = result.root
+        assert isinstance(condition_dict, dict)
+        assert len(condition_dict) > 0  # should contain at least one mapping
+
+        # Check a known condition code (if mocking, include this one in mock data)
+        for key, value in condition_dict.items():
+            assert isinstance(key, str)
+            assert isinstance(value, str)
+            assert len(key) == 1  # condition code should be one character
+            assert len(value) > 0  # description should be non-empty
+
+        # Test the describe method on an actual key
+        first_key = next(iter(condition_dict))
+        description = result.describe(first_key)
+        assert description == condition_dict[first_key]

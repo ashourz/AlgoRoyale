@@ -1,19 +1,29 @@
 # src/algo_royale/client/alpaca_quote_client.py
 
+from enum import Enum
 from typing import List, Optional
 from algo_royale.client.alpaca_base_client import AlpacaBaseClient
 from models.alpaca_models.alpaca_auction import AuctionResponse
 from models.alpaca_models.alpaca_bar import BarsResponse, LatestBarsResponse
+from models.alpaca_models.alpaca_condition_code import ConditionCodeMap
 from models.alpaca_models.alpaca_quote import QuotesResponse
 from datetime import datetime
 
 from alpaca.data.enums import DataFeed, Adjustment
 from alpaca.common.enums import Sort, SupportedCurrencies
 from alpaca.data.timeframe import TimeFrame, TimeFrameUnit
-from alpaca.data.models.bars import Bar, BarSet
 
 from config.config import ALPACA_PARAMS
 
+
+class TickType(Enum):
+        TRADE = "trade"
+        QUOTE = "quote"
+    
+class Tape(Enum):
+    A = "A",
+    B = "B",
+    C = "C"
 
 class AlpacaStockClient(AlpacaBaseClient):
     """Singleton class to interact with Alpaca's API for stock data."""
@@ -235,3 +245,32 @@ class AlpacaStockClient(AlpacaBaseClient):
         self._logger.debug(f"latest bars: {responseJson}")
 
         return LatestBarsResponse.from_raw(responseJson)
+
+    
+    def fetch_condition_codes(
+        self,
+        ticktype: TickType,
+        tape: Tape
+    ) -> Optional[ConditionCodeMap]:
+        """Fetch condition codes metadata from Alpaca for a specific tick type and tape."""
+        
+        params = {}
+        for k, v in {
+            "tape": tape
+        }.items():
+            if v is not None:
+                params[k] = self._format_param(v)
+                
+        responseJson = self._get(
+            url=f"{self.base_url}/stocks/meta/conditions/{ticktype.value}",
+            params=params
+        )
+
+        if responseJson is None:
+            self._logger.warning(f"No condition codes data available for {tape}")
+            return None       
+        
+        self._logger.debug(f"condition codes: {responseJson}")
+
+        return ConditionCodeMap.from_raw(responseJson)
+    
