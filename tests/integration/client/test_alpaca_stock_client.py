@@ -3,7 +3,7 @@
 import logging
 import asyncio
 from models.alpaca_models.alpaca_auction import AuctionResponse
-from models.alpaca_models.alpaca_bar import BarsResponse
+from models.alpaca_models.alpaca_bar import Bar, BarsResponse, LatestBarsResponse
 from models.alpaca_models.alpaca_quote import Quote, QuotesResponse
 import pytest
 from datetime import datetime, timezone
@@ -143,3 +143,38 @@ class TestAlpacaStockClientIntegration:
                 assert bar.high_price >= bar.low_price
                 assert bar.volume >= 0
                 assert bar.num_trades >= 0
+                
+    def test_fetch_latest_bars(self, alpaca_client):
+        """Test fetching latest bars for a symbol."""
+        symbols = ["AAPL"]
+        start_date = datetime(2022, 1, 3, tzinfo=timezone.utc)
+        end_date = datetime(2022, 1, 4, tzinfo=timezone.utc)
+
+        result = alpaca_client.fetch_latest_bars(
+            symbols=symbols
+        )
+
+        # Basic assertions
+        assert result is not None
+        assert isinstance(result, LatestBarsResponse)
+
+        # Verify bar structure for each symbol
+        for symbol in symbols:
+            bar = result.symbol_bars.get(symbol)
+            assert bar is not None
+            assert isinstance(bar, Bar)
+
+            assert hasattr(bar, "timestamp")
+            assert hasattr(bar, "open_price")
+            assert hasattr(bar, "high_price")
+            assert hasattr(bar, "low_price")
+            assert hasattr(bar, "close_price")
+            assert hasattr(bar, "volume")
+            assert hasattr(bar, "num_trades")
+            assert hasattr(bar, "volume_weighted_price")
+
+            assert isinstance(bar.timestamp, datetime)
+            assert bar.open_price > 0
+            assert bar.high_price >= bar.low_price
+            assert bar.volume >= 0
+            assert bar.num_trades >= 0

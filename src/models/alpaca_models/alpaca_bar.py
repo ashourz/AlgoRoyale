@@ -1,14 +1,9 @@
-# src/models/alpaca_models/alpaca_active_stock.py
-
-from pydantic import BaseModel, RootModel
-from typing import List, Dict, Optional
-from datetime import datetime
-from dateutil.parser import isoparse  # if not using built-in parsing
+# src/models/alpaca_models/alpaca_bar.py
 
 from pydantic import BaseModel
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Union
 from datetime import datetime
-
+from dateutil.parser import isoparse  # If you want to use the isoparse method
 
 class Bar(BaseModel):
     """
@@ -34,10 +29,22 @@ class Bar(BaseModel):
     volume_weighted_price: float
 
     @classmethod
+    def parse_timestamp(cls, raw_ts: Union[int, str]) -> datetime:
+        """Parses a timestamp from int (Unix) or ISO string."""
+        if isinstance(raw_ts, int):
+            return datetime.fromtimestamp(raw_ts, tz=datetime.utc.tzinfo)
+        elif isinstance(raw_ts, str):
+            return isoparse(raw_ts)
+        raise ValueError(f"Unsupported timestamp type: {type(raw_ts)}")
+    
+    @classmethod
     def from_raw(cls, data: dict) -> "Bar":
         """Create a Bar instance from raw dictionary data (Alpaca format)."""
+        if not isinstance(data, dict):
+            raise TypeError(f"Expected dict but got {type(data)}: {data}")
+        
         return cls(
-            timestamp=data["t"],
+            timestamp=cls.parse_timestamp(data["t"]),
             open_price=data["o"],
             high_price=data["h"],
             low_price=data["l"],
@@ -62,19 +69,53 @@ class BarsResponse(BaseModel):
     @classmethod
     def from_raw(cls, raw_data: dict) -> "BarsResponse":
         """
-        Creates a Bars instance from raw API response.
+        Creates a BarsResponse instance from raw API response.
 
         Args:
             raw_data (dict): The raw dictionary response from the Alpaca API.
 
         Returns:
-            Bars: A parsed and validated Bars object.
+            BarsResponse: A parsed and validated BarsResponse object.
         """
+        # We are expecting a "bars" dictionary containing symbols with their corresponding list of bars.
         parsed = {
             symbol: [Bar.from_raw(bar_data) for bar_data in bar_list]
             for symbol, bar_list in raw_data.get("bars", {}).items()
         }
+        
         return cls(
             symbol_bars=parsed,
-            next_page_token=raw_data.get("next_page_token")
+            next_page_token=raw_data.get("next_page_token")  # You may need to add error handling if "next_page_token" is missing
         )
+
+class LatestBarsResponse(BaseModel):
+    """
+    Represents the most recent market bar (price data) for one or more stock symbols.
+
+    This model is used to parse the response from Alpaca's `/stocks/bars/latest` endpoint,
+    which returns a single latest `Bar` object per requested symbol.
+
+    Attributes:
+        symbol_bars (Dict[str, Bar]): A mapping from stock symbol to its most recent Bar object.
+    """
+
+    symbol_bars: Dict[str, Bar]
+
+    @classmethod
+    def from_raw(cls, raw_data: dict) -> "LatestBarsResponse":
+        """
+        Creates a LatestBarsResponse instance from raw API response data.
+
+        Args:
+            raw_data (dict): The raw dictionary response from the Alpaca API. 
+                            Expected to contain a "bars" dictionary where each key 
+                            is a symbol and each value is a single bar (dict).
+
+        Returns:
+            LatestBarsResponse: A parsed and validated LatestBarsResponse object.
+        """
+        parsed = {
+            symbol: Bar.from_raw(bar_data)
+            for symbol, bar_data in raw_data.get("bars", {}).items()
+        }
+        return cls(symbol_bars=parsed)

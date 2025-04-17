@@ -3,7 +3,7 @@
 from typing import List, Optional
 from algo_royale.client.alpaca_base_client import AlpacaBaseClient
 from models.alpaca_models.alpaca_auction import AuctionResponse
-from models.alpaca_models.alpaca_bar import BarsResponse
+from models.alpaca_models.alpaca_bar import BarsResponse, LatestBarsResponse
 from models.alpaca_models.alpaca_quote import QuotesResponse
 from datetime import datetime
 
@@ -202,3 +202,36 @@ class AlpacaStockClient(AlpacaBaseClient):
             return None       
         
         return BarsResponse.from_raw(responseJson)
+    
+    def fetch_latest_bars(
+        self,
+        symbols: List[str],
+        currency=SupportedCurrencies.USD,
+        feed: DataFeed = DataFeed.IEX
+    ) -> Optional[LatestBarsResponse]:
+        """Fetch historical auction data from Alpaca."""
+
+        if not isinstance(symbols, list):
+            symbols = [symbols]
+        
+        params = {}
+        for k, v in {
+            "symbols": ",".join(symbols),
+            "currency": currency,
+            "feed": feed
+        }.items():
+            if v is not None:
+                params[k] = self._format_param(v)
+                
+        responseJson = self._get(
+            url=f"{self.base_url}/stocks/bars/latest",
+            params=params
+        )
+
+        if responseJson is None:
+            self._logger.warning(f"No auctions data available for {symbols}")
+            return None       
+        
+        self._logger.debug(f"latest bars: {responseJson}")
+
+        return LatestBarsResponse.from_raw(responseJson)
