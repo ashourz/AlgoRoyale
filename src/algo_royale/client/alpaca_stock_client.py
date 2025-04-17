@@ -3,11 +3,14 @@
 from typing import List, Optional
 from algo_royale.client.alpaca_base_client import AlpacaBaseClient
 from models.alpaca_models.alpaca_auction import AuctionResponse
+from models.alpaca_models.alpaca_bar import BarsResponse
 from models.alpaca_models.alpaca_quote import QuotesResponse
 from datetime import datetime
 
-from alpaca.data.enums import DataFeed
+from alpaca.data.enums import DataFeed, Adjustment
 from alpaca.common.enums import Sort, SupportedCurrencies
+from alpaca.data.timeframe import TimeFrame, TimeFrameUnit
+from alpaca.data.models.bars import Bar, BarSet
 
 from config.config import ALPACA_PARAMS
 
@@ -149,3 +152,53 @@ class AlpacaStockClient(AlpacaBaseClient):
             return None       
         
         return AuctionResponse.from_raw(responseJson)
+    
+    def fetch_historical_bars(
+        self,
+        symbols: List[str],
+        start_date: datetime,
+        end_date: datetime,
+        currency=SupportedCurrencies.USD,
+        feed: DataFeed = DataFeed.IEX,
+        timeframe: TimeFrame = TimeFrame(1, TimeFrameUnit.Minute),
+        adjustment: Adjustment = Adjustment.RAW,
+        sort_order: Sort = Sort.DESC,
+        page_limit: int = 1000,
+        page_token: str = None,
+    ) -> Optional[BarsResponse]:
+        """Fetch historical auction data from Alpaca."""
+
+        if not isinstance(symbols, list):
+            symbols = [symbols]
+        if not isinstance(start_date, datetime):
+            raise ValueError("start_date must be a datetime object")
+        if not isinstance(end_date, datetime):
+            raise ValueError("end_date must be a datetime object")  
+        
+        params = {}
+        for k, v in {
+            "symbols": ",".join(symbols),
+            "start": start_date.isoformat(),
+            "end": end_date.isoformat(),
+            "currency": currency,
+            "feed": feed,
+            "timeframe":timeframe,
+            "adjustment":adjustment,
+            "sort": sort_order,
+            "limit": min(page_limit, 1000),
+            "page_token": page_token,
+            "asof": None,
+        }.items():
+            if v is not None:
+                params[k] = self._format_param(v)
+                
+        responseJson = self._get(
+            url=f"{self.base_url}/stocks/bars",
+            params=params
+        )
+
+        if responseJson is None:
+            self._logger.warning(f"No auctions data available for {symbols}")
+            return None       
+        
+        return BarsResponse.from_raw(responseJson)
