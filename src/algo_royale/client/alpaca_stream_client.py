@@ -1,20 +1,18 @@
 # src/algo_royale/client/alpaca_stream_client.py
 import asyncio
 import json
+from algo_royale.client.alpaca_base_client import AlpacaBaseClient
 import websockets
 from enum import Enum
-import logging
 
-from config.config import ALPACA_PARAMS, ALPACA_SECRETS
+from config.config import ALPACA_PARAMS
 
 class DataFeed(Enum):
     IEX = "iex"
     SIP = "sip"
     TEST = "test"
 
-class AlpacaStreamClient:
-    _instance = None
-    _lock = asyncio.Lock()
+class AlpacaStreamClient(AlpacaBaseClient):
     """
     Singleton client for streaming real-time stock market data (quotes, trades, bars) from Alpaca WebSocket API.
     
@@ -26,37 +24,20 @@ class AlpacaStreamClient:
     """
 
     def __init__(self):
-        """
-        Initialize the stream client.
-
-        Args:
-            api_key (str): Alpaca API key.
-            api_secret (str): Alpaca API secret.
-            base_url_data_stream (str): Base URL for Alpaca WebSocket stream.
-        """
-        self.api_key = ALPACA_SECRETS["api_key"]
-        self.api_secret = ALPACA_SECRETS["api_secret"]
+        super().__init__()
         self.base_url_data_stream = ALPACA_PARAMS["base_url_data_stream_v2"]
-        self.logger = logging.getLogger(self.__class__.__name__)
-        self.logger.setLevel(logging.DEBUG) 
-
-        self.websocket = None
-        self.stop_stream = False
 
         # Sets to track what you're subscribed to
         self.quote_symbols = set()
         self.trade_symbols = set()
         self.bar_symbols = set()
-
-        # Configurable reconnect delay and keep-alive timeout
-        self.reconnect_delay = ALPACA_PARAMS.get("reconnect_delay", 5)
-        self.keep_alive_timeout = ALPACA_PARAMS.get("keep_alive_timeout", 20)
-
-    def __new__(cls):
-        if cls._instance is None:
-            cls._instance = super(AlpacaStreamClient, cls).__new__(cls)
-            cls._instance.__init__()
-        return cls._instance
+        self.websocket = None
+        self.stop_stream = False
+        
+    @property
+    def client_name(self) -> str:
+        """Subclasses must define a name for logging and ID purposes"""
+        return "AlpacaStreamClient"
     
     async def stream(
         self,
@@ -93,7 +74,7 @@ class AlpacaStreamClient:
                     await self._authenticate(ws)
                     await self._send_subscription(ws)
 
-                    self.logger.info("WebSocket connection established")
+                    self._logger.info("WebSocket connection established")
 
                     # Run both loops concurrently
                     await asyncio.gather(
@@ -102,8 +83,8 @@ class AlpacaStreamClient:
                     )
 
             except Exception as e:
-                self.logger.warning(f"WebSocket disconnected: {e}")
-                self.logger.info(f"Attempting reconnect in {self.reconnect_delay} seconds...")
+                self._logger.warning(f"WebSocket disconnected: {e}")
+                self._logger.info(f"Attempting reconnect in {self.reconnect_delay} seconds...")
                 await asyncio.sleep(self.reconnect_delay)
 
     async def _authenticate(self, ws):
@@ -115,7 +96,7 @@ class AlpacaStreamClient:
         }
         await ws.send(json.dumps(auth_msg))
         response = await ws.recv()
-        self.logger.info(f"Auth response: {response}")
+        self._logger.info(f"Auth response: {response}")
 
     async def _send_subscription(self, ws):
         """Send subscription message for quotes/trades/bars."""
@@ -126,7 +107,7 @@ class AlpacaStreamClient:
             "bars": list(self.bar_symbols)
         }
         await ws.send(json.dumps(msg))
-        self.logger.info(f"Subscribed to quotes: {self.quote_symbols}, trades: {self.trade_symbols}, bars: {self.bar_symbols}")
+        self._logger.info(f"Subscribed to quotes: {self.quote_symbols}, trades: {self.trade_symbols}, bars: {self.bar_symbols}")
 
     async def _unsubscribe(self, ws, quotes=[], trades=[], bars=[]):
         """Send unsubscribe message."""
@@ -137,7 +118,7 @@ class AlpacaStreamClient:
             "bars": bars
         }
         await ws.send(json.dumps(msg))
-        self.logger.info(f"Unsubscribed from quotes: {quotes}, trades: {trades}, bars: {bars}")
+        self._logger.info(f"Unsubscribed from quotes: {quotes}, trades: {trades}, bars: {bars}")
 
     async def _receive_loop(self, ws, on_quote, on_trade, on_bar):
         """
@@ -153,7 +134,7 @@ class AlpacaStreamClient:
             while not self.stop_stream:
                 message = await ws.recv()
                 data = json.loads(message)
-                self.logger.debug(f"Received: {data}")
+                self._logger.debug(f"Received: {data}")
 
                 # Handle each item in list individually
                 for item in data if isinstance(data, list) else [data]:
@@ -166,9 +147,9 @@ class AlpacaStreamClient:
                         await on_bar(item)
 
         except websockets.ConnectionClosed as e:
-            self.logger.warning(f"WebSocket closed: {e}")
+            self._logger.warning(f"WebSocket closed: {e}")
         except Exception as e:
-            self.logger.error(f"Receive error: {e}")
+            self._logger.error(f"Receive error: {e}")
 
     async def _ping_loop(self, ws):
         """Send periodic ping messages to keep the connection alive."""
@@ -176,10 +157,10 @@ class AlpacaStreamClient:
             while not self.stop_stream:
                 ping_msg = {"action": "ping"}
                 await ws.send(json.dumps(ping_msg))
-                self.logger.debug("Sent ping")
+                self._logger.debug("Sent ping")
                 await asyncio.sleep(self.keep_alive_timeout)
         except Exception as e:
-            self.logger.warning(f"Ping loop terminated: {e}")
+            self._logger.warning(f"Ping loop terminated: {e}")
 
     async def add_symbols(self, quotes=[], trades=[], bars=[]):
         """
@@ -217,5 +198,5 @@ class AlpacaStreamClient:
         """
         Stop the WebSocket stream gracefully.
         """
-        self.logger.info("Stopping stream...")
+        self._logger.info("Stopping stream...")
         self.stop_stream = True

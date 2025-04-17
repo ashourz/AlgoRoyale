@@ -1,77 +1,27 @@
 # src/algo_royale/client/alpaca_quote_client.py
-import asyncio
-from enum import Enum
-import json
-import logging
+
 from typing import List, Optional
+from algo_royale.client.alpaca_base_client import AlpacaBaseClient
 from models.alpaca_models.alpaca_quote import QuotesResponse
-import pandas as pd
 from datetime import datetime
-import httpx
 
 from alpaca.data.enums import DataFeed
 from alpaca.common.enums import Sort, SupportedCurrencies
 
-from config.config import ALPACA_PARAMS, ALPACA_SECRETS
+from config.config import ALPACA_PARAMS
 
-class AlpacaQuoteClient:
+
+class AlpacaQuoteClient(AlpacaBaseClient):
     """Singleton class to interact with Alpaca's API for stock data."""
-    _instance = None
-    _lock = asyncio.Lock()
-
-    def __init__(self):
-        self.api_key = ALPACA_SECRETS["api_key"]
-        self.api_secret = ALPACA_SECRETS["api_secret"]
-        self.base_url = ALPACA_PARAMS["base_url_data_v2"] 
-        self.api_key_header = ALPACA_PARAMS["api_key_header"]
-        self.api_secret_header = ALPACA_PARAMS["api_secret_header"]
-
-        self._logger = logging.getLogger(self.__class__.__name__)
-        self._logger.setLevel(logging.DEBUG)    
-
-        self.subscribed_symbols = set()
-
-    def __new__(cls):
-        if cls._instance is None:
-            cls._instance = super(AlpacaQuoteClient, cls).__new__(cls)
-            cls._instance.__init__()
-        return cls._instance
     
-    def _format_param(self, param):
-        if isinstance(param, datetime):
-            # Format to ISO 8601 with Zulu time
-            return param.strftime("%Y-%m-%dT%H:%M:%SZ")
-        elif isinstance(param, Enum):
-            return param.value
-        elif isinstance(param, list):
-            return ",".join(map(str, param))
-        elif param is None:
-            return None
-        else:
-            return str(param)
-
-    def get(
-        self,
-        url: str,
-        includeHeaders: bool = True,
-        params: dict = None,
-    ):
-        """Make a GET request to the Alpaca API."""
-        if params is None:
-            params = {}
-        # Set the headers for authentication
-
-        if includeHeaders:
-             headers ={ 
-                self.api_key_header: self.api_key,
-                self.api_secret_header: self.api_secret}
-        else:
-            headers = {}
+    def __init__(self):
+        super().__init__()
+        self.base_url = ALPACA_PARAMS["base_url_data_v2"] 
         
-
-        response = httpx.get(url, headers=headers, params=params)
-        response.raise_for_status()
-        return response.json()
+    @property
+    def client_name(self) -> str:
+        """Subclasses must define a name for logging and ID purposes"""
+        return "AlpacaQuoteClient"
     
 
     def fetch_historical_quotes(
@@ -109,7 +59,7 @@ class AlpacaQuoteClient:
             if v is not None:
                 params[k] = self._format_param(v)
                 
-        responseJson = self.get(
+        responseJson = self._get(
             url=f"{self.base_url}/stocks/quotes",
             params=params
         )
@@ -142,7 +92,7 @@ class AlpacaQuoteClient:
             if v is not None:
                 params[k] = self._format_param(v)
                 
-        responseJson = self.get(
+        responseJson = self._get(
             url=f"{self.base_url}/stocks/quotes/latest",
             params=params
         )
