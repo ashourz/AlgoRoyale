@@ -2,6 +2,7 @@
 
 from typing import List, Optional
 from algo_royale.client.alpaca_base_client import AlpacaBaseClient
+from models.alpaca_models.alpaca_auction import AuctionResponse
 from models.alpaca_models.alpaca_quote import QuotesResponse
 from datetime import datetime
 
@@ -104,4 +105,47 @@ class AlpacaStockClient(AlpacaBaseClient):
         
         return QuotesResponse.from_raw(responseJson)
 
-            
+    def fetch_historical_auctions(
+        self,
+        symbols: List[str],
+        start_date: datetime,
+        end_date: datetime,
+        currency=SupportedCurrencies.USD,
+        sort_order: Sort = Sort.DESC,
+        page_limit: int = 1000,
+        page_token: str = None,
+    ) -> Optional[AuctionResponse]:
+        """Fetch historical auction data from Alpaca."""
+
+        if not isinstance(symbols, list):
+            symbols = [symbols]
+        if not isinstance(start_date, datetime):
+            raise ValueError("start_date must be a datetime object")
+        if not isinstance(end_date, datetime):
+            raise ValueError("end_date must be a datetime object")  
+        
+        params = {}
+        for k, v in {
+            "symbols": ",".join(symbols),
+            "start": start_date.isoformat(),
+            "end": end_date.isoformat(),
+            "currency": currency,
+            "sort": sort_order,
+            "limit": min(page_limit, 1000),
+            "page_token": page_token,
+            "feed": DataFeed.SIP,
+            "asof": None,
+        }.items():
+            if v is not None:
+                params[k] = self._format_param(v)
+                
+        responseJson = self._get(
+            url=f"{self.base_url}/stocks/auctions",
+            params=params
+        )
+
+        if responseJson is None:
+            self._logger.warning(f"No auctions data available for {symbols}")
+            return None       
+        
+        return AuctionResponse.from_raw(responseJson)
