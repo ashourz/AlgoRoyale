@@ -11,7 +11,7 @@ from alpaca.common.enums import Sort, SupportedCurrencies
 from config.config import ALPACA_PARAMS
 
 
-class AlpacaQuoteClient(AlpacaBaseClient):
+class AlpacaStockClient(AlpacaBaseClient):
     """Singleton class to interact with Alpaca's API for stock data."""
     
     def __init__(self):
@@ -21,7 +21,7 @@ class AlpacaQuoteClient(AlpacaBaseClient):
     @property
     def client_name(self) -> str:
         """Subclasses must define a name for logging and ID purposes"""
-        return "AlpacaQuoteClient"
+        return "AlpacaStockClient"
     
 
     def fetch_historical_quotes(
