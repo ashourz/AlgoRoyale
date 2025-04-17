@@ -88,18 +88,24 @@ class AlpacaCorporateActionClient(AlpacaBaseClient):
         if not isinstance(end_date, datetime):
             raise ValueError("end_date must be a datetime object")  
         
-        params = {}
-        for k, v in {
-            "symbols": ",".join(symbols),
+        params = {
+             "symbols": ",".join(symbols),
             "start": start_date.strftime("%Y-%m-%d"),  # YYYY-MM-DD format
             "end": end_date.strftime("%Y-%m-%d"),      # YYYY-MM-DD format
-            "cusips": ",".join(cusips),
-            "types": ",".join([t.value for t in types]),
-            "ids": ",".join(ids),
             "sort": sort_order,
             "limit": min(page_limit, 1000),  # Alpaca limits to 1000
-            "page_token": page_token,
-        }.items():
+        }
+        if cusips:
+            params["cusips"] = ",".join(cusips)
+        if types:
+            params["types"] = ",".join(types)
+        if ids:
+            params["ids"] = ",".join(ids)
+        if page_token is not None:
+            params["page_token"] = page_token
+
+            
+        for k, v in params.items():
             if v is not None:
                 params[k] = self._format_param(v)
                 

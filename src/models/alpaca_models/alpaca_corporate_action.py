@@ -61,12 +61,12 @@ class CorporateAction(BaseModel):
         
         return CorporateAction(
             ex_date=isoparse(data["ex_date"]),
-            foreign=data["foreign"],
+            foreign=data.get("foreign", False),
             payable_date=isoparse(data["payable_date"]),
             process_date=isoparse(data["process_date"]),
-            rate=data["rate"],
+            rate=data.get("rate", 0.0),
             record_date=isoparse(data["record_date"]),
-            special=data["special"],
+            special=data.get("special", False),
             symbol=data["symbol"]
         )
     
