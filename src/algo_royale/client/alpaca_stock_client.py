@@ -13,6 +13,7 @@ from alpaca.data.enums import DataFeed, Adjustment
 from alpaca.common.enums import Sort, SupportedCurrencies
 from alpaca.data.timeframe import TimeFrame, TimeFrameUnit
 from models.alpaca_models.alpaca_snapshot import SnapshotsResponse
+from models.alpaca_models.alpaca_trade import HistoricalTradesResponse
 
 from config.config import ALPACA_PARAMS
 
@@ -306,4 +307,44 @@ class AlpacaStockClient(AlpacaBaseClient):
         self._logger.debug(f"condition codes: {responseJson}")
 
         return SnapshotsResponse.from_raw(responseJson)
-    
+
+    def fetch_historical_trades(
+        self,
+        symbols: List[str],
+        start_date: datetime,
+        end_date: datetime,
+        currency=SupportedCurrencies.USD,
+        limit: int = 1000,
+        feed: DataFeed = DataFeed.IEX,
+        sort_order: Sort = Sort.DESC,
+        page_token: Optional[str] = None
+    ) -> Optional[HistoricalTradesResponse]:
+        """Fetch historical stock trades from Alpaca between the specified dates for given symbols."""
+        
+        params = {}
+        for k, v in {
+            "symbols": ",".join(symbols),
+            "start": start_date.isoformat(),
+            "end": end_date.isoformat(),
+            "currency": currency,
+            "limit": min(limit,1000),
+            "feed": feed,
+            "sort": sort_order,
+            "page_token": page_token,
+            "asof": None,
+        }.items():
+            if v is not None:
+                params[k] = self._format_param(v)
+
+        responseJson = self._get(
+            url=f"{self.base_url}/stocks/trades",
+            params=params
+        )
+
+        if responseJson is None:
+            self._logger.warning(f"No historical trade data available for {symbols}")
+            return None
+
+        self._logger.debug(f"historical trades: {responseJson}")
+        
+        return HistoricalTradesResponse.from_raw(responseJson)

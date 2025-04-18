@@ -7,6 +7,7 @@ from models.alpaca_models.alpaca_bar import Bar, BarsResponse, LatestBarsRespons
 from models.alpaca_models.alpaca_condition_code import ConditionCodeMap
 from models.alpaca_models.alpaca_quote import Quote, QuotesResponse
 from models.alpaca_models.alpaca_snapshot import SnapshotsResponse
+from models.alpaca_models.alpaca_trade import HistoricalTradesResponse, Trade
 import pytest
 from datetime import datetime, timezone
 from algo_royale.client.alpaca_stock_client import AlpacaStockClient, Tape, TickType
@@ -274,3 +275,44 @@ class TestAlpacaStockClientIntegration:
 
         # Optional: print output for debugging or manual verification
         # print(snapshot.model_dump_json(indent=2))
+
+    def test_fetch_historical_trades(self, alpaca_client):
+        """Test fetching historical trades for a symbol."""
+        symbols = ["AAPL"]
+        start_date = datetime(2022, 1, 3, tzinfo=timezone.utc)
+        end_date = datetime(2022, 1, 4, tzinfo=timezone.utc)
+
+        result = alpaca_client.fetch_historical_trades(
+            symbols=symbols,
+            start_date=start_date,
+            end_date=end_date
+        )
+
+        # Inspect the actual response
+        print(result)  # Add this line to print the response from Alpaca
+
+        # Basic assertions
+        assert result is not None
+        assert isinstance(result, HistoricalTradesResponse)
+
+        # Verify trade structure for each symbol
+        for symbol in symbols:
+            trades = result.trades.get(symbol)
+            assert trades is not None
+            assert isinstance(trades, list)
+            for trade in trades:
+                assert isinstance(trade, Trade)
+                assert hasattr(trade, "timestamp")
+                assert hasattr(trade, "exchange")
+                assert hasattr(trade, "price")
+                assert hasattr(trade, "size")
+                assert hasattr(trade, "conditions")
+                assert hasattr(trade, "identifier")
+                assert hasattr(trade, "trade_type")
+
+                # Ensure the trade attributes are of the correct type and values are reasonable
+                assert isinstance(trade.timestamp, datetime)
+                assert isinstance(trade.price, float)
+                assert trade.price > 0
+                assert isinstance(trade.size, int)
+                assert trade.size >= 0
