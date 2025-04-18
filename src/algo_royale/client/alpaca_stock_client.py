@@ -246,7 +246,6 @@ class AlpacaStockClient(AlpacaBaseClient):
 
         return LatestBarsResponse.from_raw(responseJson)
 
-    
     def fetch_condition_codes(
         self,
         ticktype: TickType,
