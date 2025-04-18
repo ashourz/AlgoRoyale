@@ -6,6 +6,7 @@ from models.alpaca_models.alpaca_auction import AuctionResponse
 from models.alpaca_models.alpaca_bar import Bar, BarsResponse, LatestBarsResponse
 from models.alpaca_models.alpaca_condition_code import ConditionCodeMap
 from models.alpaca_models.alpaca_quote import Quote, QuotesResponse
+from models.alpaca_models.alpaca_snapshot import SnapshotsResponse
 import pytest
 from datetime import datetime, timezone
 from algo_royale.client.alpaca_stock_client import AlpacaStockClient, Tape, TickType
@@ -213,3 +214,63 @@ class TestAlpacaStockClientIntegration:
         first_key = next(iter(condition_dict))
         description = result.describe(first_key)
         assert description == condition_dict[first_key]
+        
+    def test_fetch_snapshots(self, alpaca_client):
+        """Test fetching snapshot data from Alpaca."""
+
+        # Example test input
+        symbols = ["AAPL"]
+
+        # Call the method
+        result = alpaca_client.fetch_snapshots(
+            symbols=symbols
+        )
+
+        # Basic assertions
+        assert result is not None
+        assert isinstance(result, SnapshotsResponse)
+
+        # Validate internal structure
+        snapshot_dict = result.root
+        assert isinstance(snapshot_dict, dict)
+        assert "AAPL" in snapshot_dict
+
+        snapshot = snapshot_dict["AAPL"]
+        assert snapshot is not None
+
+        # Latest Trade
+        if hasattr(snapshot, 'latest_trade') and snapshot.latest_trade:
+            trade = snapshot.latest_trade
+            assert trade.price is not None
+            assert trade.size >= 0
+            assert isinstance(trade.price, float)
+
+        # Latest Quote
+        if hasattr(snapshot, 'latest_quote') and snapshot.latest_quote:
+            quote = snapshot.latest_quote
+            assert quote.ask_price >= 0
+            assert quote.bid_price >= 0
+            assert isinstance(quote.ask_price, float)
+
+        # Minute Bar
+        if hasattr(snapshot, 'minute_bar') and snapshot.minute_bar:
+            bar = snapshot.minute_bar
+            assert bar.open_price is not None
+            assert bar.close_price is not None
+            assert isinstance(bar.volume, int)
+
+        # Daily Bar
+        if hasattr(snapshot, 'daily_bar') and snapshot.daily_bar:
+            daily = snapshot.daily_bar
+            assert daily.high_price >= daily.low_price
+            assert isinstance(daily.volume, int)
+
+        # Previous Daily Bar
+        if hasattr(snapshot, 'prev_daily_bar') and snapshot.prev_daily_bar:
+            prev_daily = snapshot.prev_daily_bar
+            assert prev_daily.high_price >= prev_daily.low_price
+            assert isinstance(prev_daily.volume, int)
+    
+
+        # Optional: print output for debugging or manual verification
+        # print(snapshot.model_dump_json(indent=2))

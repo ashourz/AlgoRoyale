@@ -12,6 +12,7 @@ from datetime import datetime
 from alpaca.data.enums import DataFeed, Adjustment
 from alpaca.common.enums import Sort, SupportedCurrencies
 from alpaca.data.timeframe import TimeFrame, TimeFrameUnit
+from models.alpaca_models.alpaca_snapshot import SnapshotsResponse
 
 from config.config import ALPACA_PARAMS
 
@@ -25,6 +26,12 @@ class Tape(Enum):
     B = "B",
     C = "C"
 
+class SnapshotFeed(Enum):
+    DELAYED_SIP = "delayed_sip",
+    IEX = "iex",
+    OTC = "otc",
+    SIP = "sip"
+    
 class AlpacaStockClient(AlpacaBaseClient):
     """Singleton class to interact with Alpaca's API for stock data."""
     
@@ -242,8 +249,6 @@ class AlpacaStockClient(AlpacaBaseClient):
             self._logger.warning(f"No auctions data available for {symbols}")
             return None       
         
-        self._logger.debug(f"latest bars: {responseJson}")
-
         return LatestBarsResponse.from_raw(responseJson)
 
     def fetch_condition_codes(
@@ -269,7 +274,36 @@ class AlpacaStockClient(AlpacaBaseClient):
             self._logger.warning(f"No condition codes data available for {tape}")
             return None       
         
+        return ConditionCodeMap.from_raw(responseJson)
+    
+    
+    def fetch_snapshots(
+        self,
+        symbols: List[str],
+        currency=SupportedCurrencies.USD,
+        feed: SnapshotFeed = SnapshotFeed.IEX
+    ) -> Optional[SnapshotsResponse]:
+        """Fetch condition codes metadata from Alpaca for a specific tick type and tape."""
+        
+        params = {}
+        for k, v in {
+            "symbols": ",".join(symbols),
+            "currency": currency,
+            "feed": feed        
+        }.items():
+            if v is not None:
+                params[k] = self._format_param(v)
+                
+        responseJson = self._get(
+            url=f"{self.base_url}/stocks/snapshots",
+            params=params
+        )
+
+        if responseJson is None:
+            self._logger.warning(f"No snapshots data available for {symbols}")
+            return None       
+        
         self._logger.debug(f"condition codes: {responseJson}")
 
-        return ConditionCodeMap.from_raw(responseJson)
+        return SnapshotsResponse.from_raw(responseJson)
     
