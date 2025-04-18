@@ -81,3 +81,41 @@ class HistoricalTradesResponse(BaseModel):
                     for symbol, trades in data["trades"].items()},
             next_page_token=data.get("next_page_token")
         )
+
+class LatestTradesResponse(BaseModel):
+    """
+    Represents the response from the Alpaca API when fetching the latest trade for each symbol.
+
+    Attributes:
+        trades (Dict[str, Trade]): A dictionary where each key is a stock symbol (e.g., 'AAPL')
+            and the value is the most recent trade for that symbol.
+        next_page_token (Optional[str]): Token for pagination if more data is available.
+    """
+
+    trades: Dict[str, Trade]
+    next_page_token: Optional[str] = None
+
+    @classmethod
+    def from_raw(cls, data: dict) -> Optional["LatestTradesResponse"]:
+        """
+        Convert raw data from Alpaca API response into a LatestTradesResponse object.
+
+        Args:
+            data (dict): The raw data returned from Alpaca API.
+
+        Returns:
+            LatestTradesResponse: A parsed response object, or None if data is invalid.
+        """
+
+        if not data or "trades" not in data:
+            return None
+
+        parsed_trades = {
+            symbol: Trade.from_raw(trade)
+            for symbol, trade in data["trades"].items()
+        }
+
+        return cls(
+            trades=parsed_trades,
+            next_page_token=data.get("next_page_token")
+        )

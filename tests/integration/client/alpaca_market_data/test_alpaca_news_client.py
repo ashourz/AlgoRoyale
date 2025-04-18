@@ -4,8 +4,8 @@ import logging
 import asyncio
 import pytest
 from datetime import datetime, timezone
-from algo_royale.client.alpaca_news_client import AlpacaNewsClient
-from models.alpaca_models.alpaca_news import News, NewsResponse
+from algo_royale.client.alpaca_market_data.alpaca_news_client import AlpacaNewsClient
+from models.alpaca_market_data.alpaca_news import News, NewsResponse
 
 # Set up logging (prints to console)
 logging.basicConfig(level=logging.DEBUG)

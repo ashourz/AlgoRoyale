@@ -3,17 +3,17 @@
 from enum import Enum
 from typing import List, Optional
 from algo_royale.client.alpaca_base_client import AlpacaBaseClient
-from models.alpaca_models.alpaca_auction import AuctionResponse
-from models.alpaca_models.alpaca_bar import BarsResponse, LatestBarsResponse
-from models.alpaca_models.alpaca_condition_code import ConditionCodeMap
-from models.alpaca_models.alpaca_quote import QuotesResponse
+from models.alpaca_market_data.alpaca_auction import AuctionResponse
+from models.alpaca_market_data.alpaca_bar import BarsResponse, LatestBarsResponse
+from models.alpaca_market_data.alpaca_condition_code import ConditionCodeMap
+from models.alpaca_market_data.alpaca_quote import QuotesResponse
 from datetime import datetime
 
 from alpaca.data.enums import DataFeed, Adjustment
 from alpaca.common.enums import Sort, SupportedCurrencies
 from alpaca.data.timeframe import TimeFrame, TimeFrameUnit
-from models.alpaca_models.alpaca_snapshot import SnapshotsResponse
-from models.alpaca_models.alpaca_trade import HistoricalTradesResponse
+from models.alpaca_market_data.alpaca_snapshot import SnapshotsResponse
+from models.alpaca_market_data.alpaca_trade import HistoricalTradesResponse, LatestTradesResponse
 
 from config.config import ALPACA_PARAMS
 
@@ -348,3 +348,33 @@ class AlpacaStockClient(AlpacaBaseClient):
         self._logger.debug(f"historical trades: {responseJson}")
         
         return HistoricalTradesResponse.from_raw(responseJson)
+    
+    def fetch_latest_trades(
+        self,
+        symbols: List[str],
+        currency=SupportedCurrencies.USD,
+        feed: DataFeed = DataFeed.IEX
+    ) -> Optional[LatestTradesResponse]:
+        """Fetch historical stock trades from Alpaca between the specified dates for given symbols."""
+        
+        params = {}
+        for k, v in {
+            "symbols": ",".join(symbols),
+            "currency": currency,
+            "feed": feed
+        }.items():
+            if v is not None:
+                params[k] = self._format_param(v)
+
+        responseJson = self._get(
+            url=f"{self.base_url}/stocks/trades/latest",
+            params=params
+        )
+
+        if responseJson is None:
+            self._logger.warning(f"No latest trade data available for {symbols}")
+            return None
+
+        self._logger.debug(f"latest trades: {responseJson}")
+        
+        return LatestTradesResponse.from_raw(responseJson)

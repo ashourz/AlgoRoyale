@@ -3,9 +3,9 @@
 import logging
 import asyncio
 import pytest
-from algo_royale.client.alpaca_screener_client import ActiveStockFilter, AlpacaScreenerClient
-from models.alpaca_models.alpaca_active_stock import MostActiveStocksResponse
-from models.alpaca_models.alpaca_market_mover import MarketMoversResponse
+from algo_royale.client.alpaca_market_data.alpaca_screener_client import ActiveStockFilter, AlpacaScreenerClient
+from models.alpaca_market_data.alpaca_active_stock import MostActiveStocksResponse
+from models.alpaca_market_data.alpaca_market_mover import MarketMoversResponse
 
 # Set up logging (prints to console)
 logging.basicConfig(level=logging.DEBUG)

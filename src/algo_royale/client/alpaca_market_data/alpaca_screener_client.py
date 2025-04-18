@@ -3,8 +3,8 @@
 from enum import Enum
 from typing import List, Optional
 from algo_royale.client.alpaca_base_client import AlpacaBaseClient
-from models.alpaca_models.alpaca_active_stock import MostActiveStocksResponse
-from models.alpaca_models.alpaca_market_mover import MarketMoversResponse
+from models.alpaca_market_data.alpaca_active_stock import MostActiveStocksResponse
+from models.alpaca_market_data.alpaca_market_mover import MarketMoversResponse
 from config.config import ALPACA_PARAMS
 
 class ActiveStockFilter(Enum):

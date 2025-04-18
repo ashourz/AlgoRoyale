@@ -1,7 +1,7 @@
 # src/algo_royale/tests/integration/client/test_alpaca_stream_client.py
 import asyncio
 import pytest
-from src.algo_royale.client.alpaca_stream_client import AlpacaStreamClient, DataFeed
+from src.algo_royale.client.alpaca_market_data.alpaca_stream_client import AlpacaStreamClient, DataFeed
 
 # Refactor TestHandler class without __init__ constructor
 class TestHandler:
@@ -21,7 +21,7 @@ class TestHandler:
     
 @pytest.fixture(scope="function")
 async def alpaca_client():
-    from src.algo_royale.client.alpaca_stream_client import AlpacaStreamClient
+    from src.algo_royale.client.alpaca_market_data.alpaca_stream_client import AlpacaStreamClient
     return AlpacaStreamClient()
 
 @pytest.mark.asyncio

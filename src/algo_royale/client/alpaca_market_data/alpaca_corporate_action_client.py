@@ -3,7 +3,7 @@
 from enum import Enum
 from typing import List, Optional
 from algo_royale.client.alpaca_base_client import AlpacaBaseClient
-from models.alpaca_models.alpaca_corporate_action import CorporateActionResponse
+from models.alpaca_market_data.alpaca_corporate_action import CorporateActionResponse
 from datetime import datetime
 from alpaca.common.enums import Sort
 from config.config import ALPACA_PARAMS

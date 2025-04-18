@@ -2,15 +2,15 @@
 
 import logging
 import asyncio
-from models.alpaca_models.alpaca_auction import AuctionResponse
-from models.alpaca_models.alpaca_bar import Bar, BarsResponse, LatestBarsResponse
-from models.alpaca_models.alpaca_condition_code import ConditionCodeMap
-from models.alpaca_models.alpaca_quote import Quote, QuotesResponse
-from models.alpaca_models.alpaca_snapshot import SnapshotsResponse
-from models.alpaca_models.alpaca_trade import HistoricalTradesResponse, Trade
+from models.alpaca_market_data.alpaca_auction import AuctionResponse
+from models.alpaca_market_data.alpaca_bar import Bar, BarsResponse, LatestBarsResponse
+from models.alpaca_market_data.alpaca_condition_code import ConditionCodeMap
+from models.alpaca_market_data.alpaca_quote import Quote, QuotesResponse
+from models.alpaca_market_data.alpaca_snapshot import SnapshotsResponse
+from models.alpaca_market_data.alpaca_trade import HistoricalTradesResponse, Trade, LatestTradesResponse
 import pytest
 from datetime import datetime, timezone
-from algo_royale.client.alpaca_stock_client import AlpacaStockClient, Tape, TickType
+from algo_royale.client.alpaca_market_data.alpaca_stock_client import AlpacaStockClient, Tape, TickType
 
 # Set up logging (prints to console)
 logging.basicConfig(level=logging.DEBUG)
@@ -316,3 +316,38 @@ class TestAlpacaStockClientIntegration:
                 assert trade.price > 0
                 assert isinstance(trade.size, int)
                 assert trade.size >= 0
+                
+    def test_fetch_latest_trades(self, alpaca_client):
+        """Test fetching latest trades for a symbol."""
+        symbols = ["AAPL"]
+
+        result = alpaca_client.fetch_latest_trades(
+            symbols=symbols
+        )
+
+        # Inspect the actual response
+        print(result)  # Add this line to print the response from Alpaca
+
+        # Basic assertions
+        assert result is not None
+        assert isinstance(result, LatestTradesResponse)
+
+        # Verify trade structure for each symbol
+        for symbol in symbols:
+            trade = result.trades.get(symbol)
+   
+            assert isinstance(trade, Trade)
+            assert hasattr(trade, "timestamp")
+            assert hasattr(trade, "exchange")
+            assert hasattr(trade, "price")
+            assert hasattr(trade, "size")
+            assert hasattr(trade, "conditions")
+            assert hasattr(trade, "identifier")
+            assert hasattr(trade, "trade_type")
+
+            # Ensure the trade attributes are of the correct type and values are reasonable
+            assert isinstance(trade.timestamp, datetime)
+            assert isinstance(trade.price, float)
+            assert trade.price > 0
+            assert isinstance(trade.size, int)
+            assert trade.size >= 0
