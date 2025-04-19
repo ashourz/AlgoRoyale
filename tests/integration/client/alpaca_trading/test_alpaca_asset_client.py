@@ -36,3 +36,25 @@ class TestAlpacaAssetClientIntegration:
         for asset in result:
             for attr in expected_attrs:
                 assert hasattr(asset, attr), f"Missing expected attribute: {attr}"
+                
+    def test_fetch_asset_by_symbol_or_id(self, alpaca_client):
+        """Test fetching asset data from Alpaca's live endpoint."""
+        symbol = "AAPL"
+        result = alpaca_client.fetch_asset_by_symbol_or_id(
+            symbol_or_asset_id = symbol
+        )
+
+        if result == None:
+            logger.debug(f"No asset found for {symbol}")
+        else:
+            assert result is not None
+            assert isinstance(result, Asset)
+
+            expected_attrs = [
+                "id", "class_", "exchange", "symbol", "name", "status",
+                "tradable", "marginable", "maintenance_margin_requirement",
+                "shortable", "easy_to_borrow", "fractionable", "attributes"
+            ]
+
+            for attr in expected_attrs:
+                assert hasattr(result, attr), f"Missing expected attribute: {attr}"

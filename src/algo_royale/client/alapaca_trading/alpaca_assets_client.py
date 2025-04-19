@@ -46,6 +46,23 @@ class AlpacaAssetsClient(AlpacaBaseClient):
             return None       
         
         return Asset.parse_assets(responseJson)
+    
+    def fetch_asset_by_symbol_or_id(
+            self,
+            symbol_or_asset_id: str
+        ) -> Optional[Asset]:
+        """Fetch asset data from Alpaca."""
+
+        responseJson = self._get(
+            url=f"{self.base_url}/assets/{symbol_or_asset_id}"
+        )
+
+        self._logger.debug(f"Assets: {responseJson}")
+        if responseJson is None:
+            self._logger.warning(f"No asset data available")
+            return None       
+        
+        return Asset.from_raw(responseJson)
 
 
             
