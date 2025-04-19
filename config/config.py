@@ -31,10 +31,15 @@ DB_USER_SECRETS = get_secrets("dbuser")
 ALPACA_PARAMS = get_config("alpaca")
 ALPACA_SECRETS = get_secrets("alpaca")
 
-if(SETTINGS["environment"] == "test"):
-    ALPACA_TRADING_URL = ALPACA_PARAMS["base_url_trading_paper"]
-else:
-    ALPACA_TRADING_URL = ALPACA_PARAMS["base_url_trading_live"]
+def get_base_url(env):
+    return {
+        "test": ALPACA_PARAMS["base_url_trading_paper"],
+        "prod": ALPACA_PARAMS["base_url_trading_live"]
+    }.get(env, ALPACA_PARAMS["base_url_trading_paper"])  # default to test
+
+ENVIRONMENT = get_config("settings")["environment"]
+
+ALPACA_TRADING_URL = get_base_url(ENVIRONMENT)
 
 TRAINING_PARAMS = get_config("training")
 

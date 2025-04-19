@@ -1,7 +1,6 @@
 # src: tests/integration/client/test_alpaca_client.py
 
 import logging
-import asyncio
 import pytest
 from datetime import datetime, timezone
 from algo_royale.client.alpaca_market_data.alpaca_news_client import AlpacaNewsClient
