@@ -5,7 +5,7 @@ from enum import Enum
 from typing import List, Optional
 from algo_royale.client.alpaca_base_client import AlpacaBaseClient
 from algo_royale.client.exceptions import MissingParameterError, ParameterConflictError
-from models.alpaca_trading.alpaca_order import OrderListResponse, OrderResponse, StopLoss, TakeProfit
+from models.alpaca_trading.alpaca_order import DeleteOrdersResponse, OrderListResponse, OrderResponse, StopLoss, TakeProfit
 from models.alpaca_trading.enums import OrderClass, OrderSide, OrderStatus, OrderStatusFilter, OrderType, PositionIntent, SortDirection, TimeInForce
 from config.config import ALPACA_TRADING_URL
 
@@ -181,7 +181,7 @@ class AlpacaOrdersClient(AlpacaBaseClient):
         side: Optional[OrderSide] = None
     ) -> Optional[OrderListResponse]:
         """
-        Create an order with the given parameters.
+        Get all orders with the given parameters.
 
         Parameters:
             - status (OrderStatusFilter) : Order status to be queried. open, closed or all. Defaults to open.
@@ -194,7 +194,7 @@ class AlpacaOrdersClient(AlpacaBaseClient):
             - side (OrderSide) : 'buy' or 'sell'. Required for all order classes except mleg.
 
         Returns:
-            - OrderResponse object or None if no response.
+            - OrderListResponse object or None if no response.
         """
 
         params = {}
@@ -232,3 +232,48 @@ class AlpacaOrdersClient(AlpacaBaseClient):
             return None
 
         return OrderListResponse.from_raw(response_json)
+    
+    def get_all_orders(
+        self,
+        client_order_id: str
+    ) -> Optional[OrderResponse]:
+        """
+        Get order by client order id.
+
+        Parameters:
+            - client_order_id (str) :The client-assigned order ID.
+
+        Returns:
+            - OrderResponse object or None if no response.
+        """
+
+        response_json = self._get(
+            url=f"{self.base_url}/orders/{client_order_id}"
+        )
+
+        if response_json is None:
+            self._logger.warning("No order response received.")
+            return None
+
+        return OrderResponse.from_raw(response_json)
+    
+    def delete_all_orders(
+        self
+    ) -> Optional[DeleteOrdersResponse]:
+        """
+        Delete all orders.
+
+        Returns:
+            - DeleteOrdersResponse object or None if no response.
+        """
+        response_json = self._delete(
+            url=f"{self.base_url}/orders"
+        )
+
+        if response_json is None:
+            self._logger.warning("No order response received.")
+            return None
+
+        return DeleteOrdersResponse.from_raw(response_json) 
+    
+    

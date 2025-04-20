@@ -4,7 +4,7 @@ from datetime import datetime, timedelta
 import logging
 from algo_royale.client.alapaca_trading.alpaca_orders_client import AlpacaOrdersClient
 from httpx import HTTPStatusError
-from models.alpaca_trading.alpaca_order import OrderListResponse, OrderResponse
+from models.alpaca_trading.alpaca_order import DeleteOrderStatus, DeleteOrdersResponse, OrderListResponse, OrderResponse
 from models.alpaca_trading.enums import OrderSide, OrderStatus, OrderStatusFilter, OrderType, SortDirection, TimeInForce
 import pytest
 
@@ -134,6 +134,40 @@ class TestAlpacaOrdersClientIntegration:
                 logger.debug("⚠️ Test skipped: 422 Unprocessable Entity - Check input parameters.")
                 assert "unprocessable" in response_text or "parameter" in response_text
 
+            else:
+                # ❌ Unexpected error — fail the test
+                pytest.fail(f"Unexpected HTTP {status_code}: {e.response.text}")
+                
+    def test_delete_all_orders(self, alpaca_client):
+        """Test deleting all orders via Alpaca's live endpoint."""
+
+        try:
+            response = alpaca_client.delete_all_orders()
+
+            # ✅ SUCCESS CASE
+            assert response is not None
+            assert isinstance(response, DeleteOrdersResponse)
+            assert isinstance(response.orders, list)
+
+            for order_status in response.orders:
+                assert isinstance(order_status, DeleteOrderStatus)
+
+                assert hasattr(order_status, "id")
+                assert isinstance(order_status.id, str)
+                assert len(order_status.id) > 0
+
+                assert hasattr(order_status, "status")
+                assert isinstance(order_status.status, int)
+                assert order_status.status in {207, 500}  # valid possible HTTP codes
+
+        except HTTPStatusError as e:
+            status_code = e.response.status_code
+            response_text = e.response.text.lower()
+
+            if status_code == 403:
+                pytest.skip(f"Permission denied: {response_text}")
+            elif status_code == 422:
+                pytest.skip(f"Unprocessable request: {response_text}")
             else:
                 # ❌ Unexpected error — fail the test
                 pytest.fail(f"Unexpected HTTP {status_code}: {e.response.text}")

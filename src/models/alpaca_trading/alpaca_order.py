@@ -182,3 +182,26 @@ class OrderListResponse(BaseModel):
         """
         parsed_orders = [OrderResponse.from_raw(order) for order in data]
         return cls(orders=parsed_orders)
+    
+class DeleteOrderStatus(BaseModel):
+    """Represents the status of a single deleted order."""
+    id: str
+    status: int
+
+
+class DeleteOrdersResponse(BaseModel):
+    """Represents the multi-status response when deleting multiple orders."""
+    orders: List[DeleteOrderStatus]
+
+    @classmethod
+    def from_raw(cls, data: List[dict]) -> "DeleteOrdersResponse":
+        """
+        Converts a raw list of dictionaries to a DeleteOrdersResponse.
+
+        Args:
+            data (List[dict]): The raw JSON response from the API.
+
+        Returns:
+            DeleteOrdersResponse: The parsed model.
+        """
+        return cls(orders=[DeleteOrderStatus(**item) for item in data])
