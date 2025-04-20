@@ -54,7 +54,7 @@ class AlpacaScreenerClient(AlpacaBaseClient):
         responseJson = self._get(
             url=f"{self.base_url}/screener/stocks/most-actives",
             params=params
-        )
+        ).json()
         
         if responseJson is None:
             self._logger.warning("No active stocks data found")
@@ -81,7 +81,7 @@ class AlpacaScreenerClient(AlpacaBaseClient):
         responseJson = self._get(
             url=f"{self.base_url}/screener/stocks/movers",
             params=params
-        )
+        ).json()
         
         if responseJson is None:
             self._logger.warning("No market movers data found")

@@ -71,7 +71,7 @@ class AlpacaBaseClient(ABC):
 
         response = httpx.get(url, headers=headers, params=params)
         response.raise_for_status()
-        return response.json()
+        return response
     
     def _post(
         self,
@@ -91,7 +91,7 @@ class AlpacaBaseClient(ABC):
 
         response = httpx.post(url, headers=headers, json=payload)
         response.raise_for_status()
-        return response.json()
+        return response
     
     def _patch(
         self,
@@ -111,7 +111,7 @@ class AlpacaBaseClient(ABC):
 
         response = httpx.patch(url, headers=headers, json=payload)
         response.raise_for_status()
-        return response.json()
+        return response
     
     def _delete(
         self,

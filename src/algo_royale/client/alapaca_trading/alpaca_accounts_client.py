@@ -22,7 +22,7 @@ class AlpacaAccountClient(AlpacaBaseClient):
 
         responseJson = self._get(
             url=f"{self.base_url}/account"
-        )
+        ).json()
 
         # self._logger.debug(f"News for {symbols}: {responseJson}")
         if responseJson is None:

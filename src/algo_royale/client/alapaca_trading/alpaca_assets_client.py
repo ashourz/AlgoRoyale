@@ -38,7 +38,7 @@ class AlpacaAssetsClient(AlpacaBaseClient):
         responseJson = self._get(
             url=f"{self.base_url}/assets",
             params=params
-        )
+        ).json()
 
         self._logger.debug(f"Assets: {responseJson}")
         if responseJson is None:
@@ -55,7 +55,7 @@ class AlpacaAssetsClient(AlpacaBaseClient):
 
         responseJson = self._get(
             url=f"{self.base_url}/assets/{symbol_or_asset_id}"
-        )
+        ).json()
 
         self._logger.debug(f"Assets: {responseJson}")
         if responseJson is None:

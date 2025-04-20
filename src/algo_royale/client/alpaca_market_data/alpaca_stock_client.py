@@ -84,7 +84,7 @@ class AlpacaStockClient(AlpacaBaseClient):
         responseJson = self._get(
             url=f"{self.base_url}/stocks/quotes",
             params=params
-        )
+        ).json()
 
         self._logger.debug(f"Historical quotes for {symbols}: {responseJson}")
         if responseJson is None:
@@ -117,7 +117,7 @@ class AlpacaStockClient(AlpacaBaseClient):
         responseJson = self._get(
             url=f"{self.base_url}/stocks/quotes/latest",
             params=params
-        )
+        ).json()
 
         self._logger.debug(f"Latest quotes for {symbols}: {responseJson}")
         if responseJson is None:
@@ -163,7 +163,7 @@ class AlpacaStockClient(AlpacaBaseClient):
         responseJson = self._get(
             url=f"{self.base_url}/stocks/auctions",
             params=params
-        )
+        ).json()
 
         if responseJson is None:
             self._logger.warning(f"No auctions data available for {symbols}")
@@ -213,7 +213,7 @@ class AlpacaStockClient(AlpacaBaseClient):
         responseJson = self._get(
             url=f"{self.base_url}/stocks/bars",
             params=params
-        )
+        ).json()
 
         if responseJson is None:
             self._logger.warning(f"No auctions data available for {symbols}")
@@ -244,7 +244,7 @@ class AlpacaStockClient(AlpacaBaseClient):
         responseJson = self._get(
             url=f"{self.base_url}/stocks/bars/latest",
             params=params
-        )
+        ).json()
 
         if responseJson is None:
             self._logger.warning(f"No auctions data available for {symbols}")
@@ -269,7 +269,7 @@ class AlpacaStockClient(AlpacaBaseClient):
         responseJson = self._get(
             url=f"{self.base_url}/stocks/meta/conditions/{ticktype.value}",
             params=params
-        )
+        ).json()
 
         if responseJson is None:
             self._logger.warning(f"No condition codes data available for {tape}")
@@ -298,7 +298,7 @@ class AlpacaStockClient(AlpacaBaseClient):
         responseJson = self._get(
             url=f"{self.base_url}/stocks/snapshots",
             params=params
-        )
+        ).json()
 
         if responseJson is None:
             self._logger.warning(f"No snapshots data available for {symbols}")
@@ -339,7 +339,7 @@ class AlpacaStockClient(AlpacaBaseClient):
         responseJson = self._get(
             url=f"{self.base_url}/stocks/trades",
             params=params
-        )
+        ).json()
 
         if responseJson is None:
             self._logger.warning(f"No historical trade data available for {symbols}")
@@ -369,7 +369,7 @@ class AlpacaStockClient(AlpacaBaseClient):
         responseJson = self._get(
             url=f"{self.base_url}/stocks/trades/latest",
             params=params
-        )
+        ).json()
 
         if responseJson is None:
             self._logger.warning(f"No latest trade data available for {symbols}")

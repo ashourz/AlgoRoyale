@@ -21,6 +21,25 @@ def alpaca_client():
 @pytest.mark.asyncio
 class TestAlpacaOrdersClientIntegration:
                 
+    def validate_order(self, order: Order):
+        assert order is not None
+        assert isinstance(order, Order)
+
+        assert hasattr(order, "symbol")
+        assert hasattr(order, "qty")
+        assert hasattr(order, "side")
+        assert hasattr(order, "type")
+        assert hasattr(order, "time_in_force")
+        assert hasattr(order, "id")
+        assert order.id is not None
+        assert hasattr(order, "status")
+        assert order.status in {
+            "new", "partially_filled", "filled", "accepted", "pending_new"
+        }
+
+        assert hasattr(order, "created_at")
+        assert isinstance(order.created_at, datetime)            
+    
     def test_create_order(self, alpaca_client):
         """Test creating a market order via Alpaca's live endpoint."""
 
@@ -86,6 +105,26 @@ class TestAlpacaOrdersClientIntegration:
     def test_get_all_orders(self, alpaca_client):
         """Test fetching orders via Alpaca's live endpoint."""
 
+        symbol = "AAPL"
+        qty = 1  # Small amount for safe testing
+        side = OrderSide.BUY
+        order_type = OrderType.LIMIT
+        time_in_force = TimeInForce.DAY
+        limit_price = 1  # Unlikely to fill for AAPL
+
+        
+        # CREATE ORDER
+        order = alpaca_client.create_order(
+            symbol=symbol,
+            qty=qty,
+            side=side,
+            order_type=order_type,
+            time_in_force=time_in_force,
+            limit_price = limit_price
+        )
+
+        self.validate_order(order)
+
         # Optional filter parameters (minimal test case)
         status = OrderStatusFilter.OPEN  # default is "open" if omitted
         limit = 10
@@ -142,56 +181,43 @@ class TestAlpacaOrdersClientIntegration:
                 
     def test_delete_all_orders(self, alpaca_client):
         """Test deleting all orders via Alpaca's live endpoint."""
+        symbol = "AAPL"
+        qty = 1  # Small amount for safe testing
+        side = OrderSide.BUY
+        order_type = OrderType.LIMIT
+        time_in_force = TimeInForce.DAY
+        limit_price = 1  # Unlikely to fill for AAPL
 
-        try:
-            response = alpaca_client.delete_all_orders()
+        
+        # CREATE ORDER
+        order = alpaca_client.create_order(
+            symbol=symbol,
+            qty=qty,
+            side=side,
+            order_type=order_type,
+            time_in_force=time_in_force,
+            limit_price = limit_price
+        )
 
-            # ✅ SUCCESS CASE
-            assert response is not None
-            assert isinstance(response, DeleteOrdersResponse)
-            assert isinstance(response.orders, list)
+        self.validate_order(order)
+        # try:
+        response = alpaca_client.delete_all_orders()
 
-            for order_status in response.orders:
-                assert isinstance(order_status, DeleteOrderStatus)
+        # ✅ SUCCESS CASE
+        assert response is not None
+        assert isinstance(response, DeleteOrdersResponse)
+        assert isinstance(response.orders, list)
 
-                assert hasattr(order_status, "id")
-                assert isinstance(order_status.id, str)
-                assert len(order_status.id) > 0
+        for order_status in response.orders:
+            assert isinstance(order_status, DeleteOrderStatus)
 
-                assert hasattr(order_status, "status")
-                assert isinstance(order_status.status, int)
-                assert order_status.status in {207, 500}  # valid possible HTTP codes
+            assert hasattr(order_status, "id")
+            assert isinstance(order_status.id, str)
+            assert len(order_status.id) > 0
 
-        except HTTPStatusError as e:
-            status_code = e.response.status_code
-            response_text = e.response.text.lower()
-
-            if status_code == 403:
-                pytest.skip(f"Permission denied: {response_text}")
-            elif status_code == 422:
-                pytest.skip(f"Unprocessable request: {response_text}")
-            else:
-                # ❌ Unexpected error — fail the test
-                pytest.fail(f"Unexpected HTTP {status_code}: {e.response.text}")
-                
-    def validate_order(self, order: Order):
-        assert order is not None
-        assert isinstance(order, Order)
-
-        assert hasattr(order, "symbol")
-        assert hasattr(order, "qty")
-        assert hasattr(order, "side")
-        assert hasattr(order, "type")
-        assert hasattr(order, "time_in_force")
-        assert hasattr(order, "id")
-        assert order.id is not None
-        assert hasattr(order, "status")
-        assert order.status in {
-            "new", "partially_filled", "filled", "accepted", "pending_new"
-        }
-
-        assert hasattr(order, "created_at")
-        assert isinstance(order.created_at, datetime)
+            assert hasattr(order_status, "status")
+            assert isinstance(order_status.status, int)
+            assert order_status.status in {200, 500}  # valid possible HTTP codes
     
     def test_life_cycle(self, alpaca_client):
         """Test creating, getting, replacing, and deleting an order."""

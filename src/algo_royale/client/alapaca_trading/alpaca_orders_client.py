@@ -161,7 +161,7 @@ class AlpacaOrdersClient(AlpacaBaseClient):
         response_json = self._post(
             url=f"{self.base_url}/orders",
             payload=payload
-        )
+        ).json()
 
         if response_json is None:
             self._logger.warning("No order response received.")
@@ -225,7 +225,7 @@ class AlpacaOrdersClient(AlpacaBaseClient):
         response_json = self._get(
             url=f"{self.base_url}/orders",
             params=params
-        )
+        ).json()
 
         if response_json is None:
             self._logger.warning("No order response received.")
@@ -260,7 +260,7 @@ class AlpacaOrdersClient(AlpacaBaseClient):
         response_json = self._get(
             url=f"{self.base_url}/orders:by_client_order_id",
             params = params
-        )
+        ).json()
 
         if response_json is None:
             self._logger.warning("No order response received.")
@@ -331,7 +331,7 @@ class AlpacaOrdersClient(AlpacaBaseClient):
         response_json = self._patch(
             url=f"{self.base_url}/orders/{client_order_id}",
             payload=payload
-        )
+        ).json()
 
         if response_json is None:
             self._logger.warning("No order response received.")
@@ -387,7 +387,7 @@ class AlpacaOrdersClient(AlpacaBaseClient):
         """
         response_json = self._delete(
             url=f"{self.base_url}/orders"
-        )
+        ).json()
 
         if response_json is None:
             self._logger.warning("No order response received.")

@@ -56,7 +56,7 @@ class AlpacaNewsClient(AlpacaBaseClient):
         responseJson = self._get(
             url=f"{self.base_url}/news",
             params=params
-        )
+        ).json()
 
         # self._logger.debug(f"News for {symbols}: {responseJson}")
         if responseJson is None:
@@ -64,6 +64,3 @@ class AlpacaNewsClient(AlpacaBaseClient):
             return None       
         
         return NewsResponse.from_raw(responseJson)
-
-
-            

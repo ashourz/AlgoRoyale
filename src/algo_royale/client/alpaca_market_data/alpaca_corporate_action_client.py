@@ -78,7 +78,7 @@ class AlpacaCorporateActionClient(AlpacaBaseClient):
         responseJson = self._get(
             url=f"{self.base_url}/corporate-actions",
             params=params
-        )
+        ).json()
 
         if responseJson is None:
             self._logger.warning(f"No corporate action data available for {symbols}")
