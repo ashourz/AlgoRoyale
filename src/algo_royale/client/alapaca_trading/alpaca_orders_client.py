@@ -5,7 +5,7 @@ from enum import Enum
 from typing import List, Optional
 from algo_royale.client.alpaca_base_client import AlpacaBaseClient
 from algo_royale.client.exceptions import MissingParameterError, ParameterConflictError
-from models.alpaca_trading.alpaca_order import DeleteOrdersResponse, OrderListResponse, OrderResponse, StopLoss, TakeProfit
+from models.alpaca_trading.alpaca_order import DeleteOrdersResponse, OrderListResponse, Order, StopLoss, TakeProfit
 from models.alpaca_trading.enums import OrderClass, OrderSide, OrderStatus, OrderStatusFilter, OrderType, PositionIntent, SortDirection, TimeInForce
 from config.config import ALPACA_TRADING_URL
 
@@ -39,7 +39,7 @@ class AlpacaOrdersClient(AlpacaBaseClient):
         take_profit: Optional[TakeProfit] = None,
         stop_loss: Optional[StopLoss] = None,
         position_intent: Optional[PositionIntent] = None
-    ) -> Optional[OrderResponse]:
+    ) -> Optional[Order]:
         """
         Create an order with the given parameters.
 
@@ -167,7 +167,7 @@ class AlpacaOrdersClient(AlpacaBaseClient):
             self._logger.warning("No order response received.")
             return None
 
-        return OrderResponse.from_raw(response_json)
+        return Order.from_raw(response_json)
     
     def get_all_orders(
         self,
@@ -233,10 +233,11 @@ class AlpacaOrdersClient(AlpacaBaseClient):
 
         return OrderListResponse.from_raw(response_json)
     
-    def get_all_orders(
+    def get_order_by_client_order_id(
         self,
-        client_order_id: str
-    ) -> Optional[OrderResponse]:
+        client_order_id: str,
+        nested: Optional[bool] = None,
+    ) -> Optional[Order]:
         """
         Get order by client order id.
 
@@ -246,16 +247,134 @@ class AlpacaOrdersClient(AlpacaBaseClient):
         Returns:
             - OrderResponse object or None if no response.
         """
-
+        params = {}
+        params["client_order_id"] = client_order_id
+        if nested:
+            params["nested"] = nested
+            
+                # Format all non-None parameters
+        for k, v in params.items():
+            if v is not None:
+                params[k] = self._format_param(v)
+                
         response_json = self._get(
-            url=f"{self.base_url}/orders/{client_order_id}"
+            url=f"{self.base_url}/orders:by_client_order_id",
+            params = params
         )
 
         if response_json is None:
             self._logger.warning("No order response received.")
             return None
 
-        return OrderResponse.from_raw(response_json)
+        return Order.from_raw(response_json)
+    
+    def replace_order_by_client_order_id(
+        self,
+        client_order_id: str,
+        qty: Optional[int] = None,
+        time_in_force: Optional[TimeInForce] = None,
+        limit_price: Optional[float] = None,
+        stop_price: Optional[float] = None,
+        trail_price: Optional[float] = None,
+        new_client_order_id: Optional[str] = None
+    ) -> Optional[Order]:
+        """
+        Get order by client order id.
+
+        Parameters:
+            - client_order_id (str) :The client-assigned order ID.
+            - qty (float): Number of shares to trade. Can be fractional for market & day orders.
+             - time_in_force (TimeInForce): The Time-In-Force values supported by Alpaca vary based on the order's security type. 
+            
+                Here is a breakdown of the supported TIFs for each specific security type:
+                - Equity trading: day, gtc, opg, cls, ioc, fok.
+                - Options trading: day.
+                - Crypto trading: gtc, ioc.
+                
+            - limit_price (float): Required if type is limit or stop_limit.
+            
+                In case of mleg, the limit_price parameter is expressed with the following notation:
+                    - A positive value indicates a debit, representing a cost or payment to be made.
+                    - A negative value signifies a credit, reflecting an amount to be received.
+
+            - stop_price (float): Required for 'stop' or 'stop_limit'.
+            - trail_price (float): Required (or trail_percent) for 'trailing_stop'.
+            - new_client_order_id (str): Optional client-side ID (<= 128 chars).
+
+                A unique identifier for the order. Automatically generated if not sent. (<= 128 characters)
+                
+        Returns:
+            - OrderResponse object or None if no response.
+        """
+
+        payload = {}
+
+        # --- Build request payload ---
+        if qty:
+            payload["qty"] = str(qty)
+        if time_in_force:
+            payload["time_in_force"] = time_in_force
+        if limit_price:
+            payload["limit_price"] = str(limit_price)
+        if stop_price:
+            payload["stop_price"] = str(stop_price)
+        if trail_price:
+            payload["trail_price"] = str(trail_price)
+        if new_client_order_id:
+            payload["client_order_id"] = new_client_order_id
+
+        # Format all non-None parameters
+        for k, v in payload.items():
+            if v is not None:
+                payload[k] = self._format_param(v)
+
+        response_json = self._patch(
+            url=f"{self.base_url}/orders/{client_order_id}",
+            payload=payload
+        )
+
+        if response_json is None:
+            self._logger.warning("No order response received.")
+            return None
+
+        return Order.from_raw(response_json)
+    
+    def delete_order_by_client_order_id(
+        self,
+        client_order_id: str,
+    ) -> Optional[DeleteOrdersResponse]:
+        """
+        Delete an order by its client_order_id.
+
+        Returns:
+            - None if the order was successfully deleted (204 No Content).
+            - Raises ValueError if the order status is not cancelable (422).
+            - Parsed JSON response in other cases.
+        """
+        response = self._delete(
+            url=f"{self.base_url}/orders/{client_order_id}",
+        )
+
+        if response.status_code == 204:  # No Content - Order successfully deleted
+            return None  # No content to return
+        
+        elif response.status_code == 422:  # Unprocessable Entity - Order cannot be canceled
+            raise ValueError("The order status is not cancelable.")
+        
+        # If the status code is not 204 or 422, we return an error
+        response.raise_for_status()  # This will raise an HTTPError for any 4xx/5xx status codes
+
+        # Only try to parse the response as JSON if it's not empty
+        if response.content:
+            try:
+                # Attempt to parse the response if there's any content
+                response_json = response.json()
+            except ValueError:
+                response_json = None  # Return None if the response body is invalid JSON
+        else:
+            response_json = None  # No content to parse
+        
+        return response_json  # Return parsed JSON or None if there's no content
     
     def delete_all_orders(
         self

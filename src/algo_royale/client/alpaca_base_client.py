@@ -93,6 +93,26 @@ class AlpacaBaseClient(ABC):
         response.raise_for_status()
         return response.json()
     
+    def _patch(
+        self,
+        url: str,
+        includeHeaders: bool = True,
+        payload: dict = None,
+    ):
+        """Make a POST request to the Alpaca API."""
+        if payload is None:
+            payload = {}
+        # Set the headers for authentication
+        headers = {}
+        if includeHeaders:
+             headers ={ 
+                self.api_key_header: self.api_key,
+                self.api_secret_header: self.api_secret}        
+
+        response = httpx.patch(url, headers=headers, json=payload)
+        response.raise_for_status()
+        return response.json()
+    
     def _delete(
         self,
         url: str,
@@ -111,5 +131,5 @@ class AlpacaBaseClient(ABC):
 
         response = httpx.delete(url, headers=headers)
         response.raise_for_status()
-        return response.json()
+        return response
     

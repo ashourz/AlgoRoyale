@@ -31,7 +31,7 @@ class StopLoss(BaseModel):
 
 
 
-class OrderResponse(BaseModel):
+class Order(BaseModel):
     """
     Represents an order response from the Alpaca API. 
 
@@ -104,7 +104,7 @@ class OrderResponse(BaseModel):
     side: OrderSide
     time_in_force: TimeInForce
 
-    limit_price: float
+    limit_price: Optional[float] = None
     stop_price: Optional[float] = None
     trail_percent: Optional[float] = None
     trail_price: Optional[float] = None
@@ -123,7 +123,7 @@ class OrderResponse(BaseModel):
         use_enum_values = False  # Keep enums in their enum form, not strings
 
     @classmethod
-    def from_raw(cls, data: dict) -> "OrderResponse":
+    def from_raw(cls, data: dict) -> "Order":
         """
         Factory method to convert raw API data into a structured OrderResponse object.
         Converts date strings to datetime, and string values to enums or floats.
@@ -147,11 +147,14 @@ class OrderResponse(BaseModel):
             'time_in_force': TimeInForce,
         }
         for key, enum_cls in enum_mappings.items():
-            if key in data and isinstance(data[key], str):
-                try:
-                    data[key] = enum_cls(data[key])
-                except ValueError:
-                    pass  # Leave as-is if unknown enum
+            if key in data:
+                if data[key] == "":
+                    data[key] = None
+                elif isinstance(data[key], str):
+                    try:
+                        data[key] = enum_cls(data[key])
+                    except ValueError:
+                        pass  # Leave as-is if unknown enum
 
         # Convert float fields
         float_fields = [
@@ -172,7 +175,7 @@ class OrderListResponse(BaseModel):
     Represents a list of OrderResponse objects returned from the Alpaca API.
     """
 
-    orders: List[OrderResponse]
+    orders: List[Order]
 
     @classmethod
     def from_raw(cls, data: List[dict]) -> "OrderListResponse":
@@ -180,7 +183,7 @@ class OrderListResponse(BaseModel):
         Factory method to parse a raw list of order dictionaries
         into structured OrderResponse objects.
         """
-        parsed_orders = [OrderResponse.from_raw(order) for order in data]
+        parsed_orders = [Order.from_raw(order) for order in data]
         return cls(orders=parsed_orders)
     
 class DeleteOrderStatus(BaseModel):

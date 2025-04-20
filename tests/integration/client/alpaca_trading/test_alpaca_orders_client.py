@@ -2,9 +2,10 @@
 
 from datetime import datetime, timedelta
 import logging
+from uuid import uuid4
 from algo_royale.client.alapaca_trading.alpaca_orders_client import AlpacaOrdersClient
 from httpx import HTTPStatusError
-from models.alpaca_trading.alpaca_order import DeleteOrderStatus, DeleteOrdersResponse, OrderListResponse, OrderResponse
+from models.alpaca_trading.alpaca_order import DeleteOrderStatus, DeleteOrdersResponse, OrderListResponse, Order
 from models.alpaca_trading.enums import OrderSide, OrderStatus, OrderStatusFilter, OrderType, SortDirection, TimeInForce
 import pytest
 
@@ -24,7 +25,7 @@ class TestAlpacaOrdersClientIntegration:
         """Test creating a market order via Alpaca's live endpoint."""
 
         symbol = "AAPL"
-        qty = 0.01  # small amount for safe testing
+        qty = 1  # small amount for safe testing
         side = OrderSide.BUY
         order_type = OrderType.MARKET
         time_in_force = TimeInForce.DAY
@@ -37,10 +38,11 @@ class TestAlpacaOrdersClientIntegration:
                 order_type=order_type,
                 time_in_force=time_in_force
             )
+            logger.debug("Order Response", order)
 
             # ✅ SUCCESS CASE - Status 200
             assert order is not None
-            assert isinstance(order, OrderResponse)
+            assert isinstance(order, Order)
 
             assert hasattr(order, "symbol")
             assert order.symbol == symbol
@@ -103,7 +105,7 @@ class TestAlpacaOrdersClientIntegration:
             # If any orders are present, inspect their structure
             if orders.orders:
                 for order in orders.orders:
-                    assert isinstance(order, OrderResponse)
+                    assert isinstance(order, Order)
 
                     assert hasattr(order, "id")
                     assert order.id is not None
@@ -171,3 +173,56 @@ class TestAlpacaOrdersClientIntegration:
             else:
                 # ❌ Unexpected error — fail the test
                 pytest.fail(f"Unexpected HTTP {status_code}: {e.response.text}")
+                
+    def validate_order(self, order: Order):
+        assert order is not None
+        assert isinstance(order, Order)
+
+        assert hasattr(order, "symbol")
+        assert hasattr(order, "qty")
+        assert hasattr(order, "side")
+        assert hasattr(order, "type")
+        assert hasattr(order, "time_in_force")
+        assert hasattr(order, "id")
+        assert order.id is not None
+        assert hasattr(order, "status")
+        assert order.status in {
+            "new", "partially_filled", "filled", "accepted", "pending_new"
+        }
+
+        assert hasattr(order, "created_at")
+        assert isinstance(order.created_at, datetime)
+    
+    def test_life_cycle(self, alpaca_client):
+        """Test creating, getting, replacing, and deleting an order."""
+        
+        symbol = "AAPL"
+        qty = 1  # Small amount for safe testing
+        side = OrderSide.BUY
+        order_type = OrderType.LIMIT
+        time_in_force = TimeInForce.DAY
+        limit_price = 1  # Unlikely to fill for AAPL
+
+        
+        # CREATE ORDER
+        order = alpaca_client.create_order(
+            symbol=symbol,
+            qty=qty,
+            side=side,
+            order_type=order_type,
+            time_in_force=time_in_force,
+            limit_price = limit_price
+        )
+
+        self.validate_order(order)
+        
+        # GET ORDER
+        get_order = alpaca_client.get_order_by_client_order_id(
+            client_order_id=order.client_order_id
+        )
+        
+    
+        # DELETE ORDER
+        alpaca_client.delete_order_by_client_order_id(
+            client_order_id=get_order.id
+        )
