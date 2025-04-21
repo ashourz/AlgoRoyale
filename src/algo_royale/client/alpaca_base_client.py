@@ -117,11 +117,9 @@ class AlpacaBaseClient(ABC):
         self,
         url: str,
         includeHeaders: bool = True,
-        payload: dict = None,
+        params: dict = None,
     ):
-        """Make a POST request to the Alpaca API."""
-        if payload is None:
-            payload = {}
+        """Make a DELETE request to the Alpaca API."""
         # Set the headers for authentication
         headers = {}
         if includeHeaders:
@@ -129,7 +127,7 @@ class AlpacaBaseClient(ABC):
                 self.api_key_header: self.api_key,
                 self.api_secret_header: self.api_secret}        
 
-        response = httpx.delete(url, headers=headers)
+        response = httpx.delete(url, headers=headers, params = params)
         response.raise_for_status()
         return response
     

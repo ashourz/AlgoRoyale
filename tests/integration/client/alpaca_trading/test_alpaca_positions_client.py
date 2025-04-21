@@ -1,0 +1,117 @@
+# src: tests/integration/client/test_alpaca_account_client.py
+
+from datetime import datetime, timedelta
+import logging
+from uuid import uuid4
+from algo_royale.client.alapaca_trading.alpaca_positions_client import AlpacaPositionsClient
+from httpx import HTTPStatusError
+from models.alpaca_trading.alpaca_position import ClosedPosition, ClosedPositionList, Position, PositionList, PositionSide
+import pytest
+
+# Set up logging (prints to console)
+logging.basicConfig(level=logging.DEBUG)
+logger = logging.getLogger(__name__)
+
+
+@pytest.fixture(scope="class")
+def alpaca_client():
+    return AlpacaPositionsClient()
+
+@pytest.mark.asyncio
+class TestAlpacaPositionsClientIntegration:
+                
+    def test_get_all_open_positions(self, alpaca_client):
+        """Test fetching all open positions from Alpaca."""
+        result = alpaca_client.get_all_open_positions()
+
+        assert result is not None
+        assert isinstance(result, PositionList)
+        assert isinstance(result.positions, list)
+
+        for pos in result.positions:
+            assert isinstance(pos, Position)
+            assert isinstance(pos.asset_id, str)
+            assert isinstance(pos.symbol, str)
+            assert isinstance(pos.exchange, str)
+            assert isinstance(pos.asset_class, str)
+            assert isinstance(pos.asset_marginable, bool)
+            assert isinstance(pos.qty, float)
+            assert isinstance(pos.qty_available, float)
+            assert isinstance(pos.avg_entry_price, float)
+            assert isinstance(pos.side, PositionSide)
+            assert pos.side in {PositionSide.long, PositionSide.short}
+            assert isinstance(pos.market_value, float)
+            assert isinstance(pos.cost_basis, float)
+            assert isinstance(pos.unrealized_pl, float)
+            assert isinstance(pos.unrealized_plpc, float)
+            assert isinstance(pos.unrealized_intraday_pl, float)
+            assert isinstance(pos.unrealized_intraday_plpc, float)
+            assert isinstance(pos.current_price, float)
+            assert isinstance(pos.lastday_price, float)
+            assert isinstance(pos.change_today, float)
+
+    def test_get_open_position_by_symbol(self, alpaca_client):
+        """Test fetching a single position by symbol."""
+        symbol = "AAPL"  # Make sure this symbol has an open position
+        try:
+
+            result = alpaca_client.get_open_position_by_symbol_or_asset_id(symbol)
+            
+            if result is not None:
+                assert isinstance(result, PositionList)
+                assert isinstance(result.positions, list)
+                assert any(p.symbol == symbol for p in result.positions)
+        except HTTPStatusError as e:
+            if e.response.status_code == 404:
+                # Acceptable: no open positions
+                logger.info(f"404: {e.response.status_code} {e.response.text}")
+                pass
+            else:
+                logger.error(f"HTTP error occurred: {e.response.status_code} {e.response.text}")
+                raise  # Unexpected error, fail the test
+            
+    def test_close_position_by_symbol(self, alpaca_client):
+        """Test closing a position by symbol with quantity."""
+        symbol = "AAPL"  # Ensure you hold this position before running
+        qty = 1
+        try:
+            result = alpaca_client.close_position_by_symbol_or_asset_id(
+                symbol_or_asset_id=symbol,
+                qty=qty
+            )
+    
+            if result is not None:
+                assert isinstance(result, ClosedPositionList)
+                assert hasattr(result, "closedPositions")
+                assert isinstance(result.closedPositions, list)
+
+                for closed in result.closedPositions:
+                    assert isinstance(closed, ClosedPosition)
+                    assert closed.symbol == symbol
+                    assert closed.status == 200
+                    assert closed.order is not None
+        except HTTPStatusError as e:
+            if e.response.status_code == 404:
+                # Acceptable: no open position to close
+                logger.info(f"404: {e.response.status_code} {e.response.text}")
+                pass
+            else:
+                logger.error(f"HTTP error occurred: {e.response.status_code} {e.response.text}")
+                raise  # Unexpected error, fail the test
+    
+    def test_close_all_positions(self, alpaca_client):
+        """Test closing all open positions."""
+
+        result = alpaca_client.close_all_positions()
+        if result is not None:
+            assert result is not None
+            assert isinstance(result, ClosedPositionList)
+            assert isinstance(result.closedPositions, list)
+
+            for closed in result.closedPositions:
+                assert isinstance(closed, ClosedPosition)
+                assert isinstance(closed.symbol, str)
+                assert closed.status == 200
+                assert closed.order is not None
+
+

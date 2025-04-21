@@ -10,7 +10,7 @@ from models.alpaca_trading.enums import OrderClass, OrderSide, OrderStatus, Orde
 from config.config import ALPACA_TRADING_URL
 
 class AlpacaOrdersClient(AlpacaBaseClient):
-    """Singleton class to interact with Alpaca's API for trading corporate action data.""" 
+    """Singleton class to interact with Alpaca's API for orders data.""" 
     
     def __init__(self):
         super().__init__()
