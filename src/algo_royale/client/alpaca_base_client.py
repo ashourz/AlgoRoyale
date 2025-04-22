@@ -76,11 +76,33 @@ class AlpacaBaseClient(ABC):
         response.raise_for_status()
         return response
     
+    def _put(
+        self,
+        url: str,
+        includeHeaders: bool = True,
+        payload: dict = None,
+        params: dict = None,
+    ):
+        """Make a PUT request to the Alpaca API."""
+        if payload is None:
+            payload = {}
+        # Set the headers for authentication
+        headers = {}
+        if includeHeaders:
+             headers ={ 
+                self.api_key_header: self.api_key,
+                self.api_secret_header: self.api_secret}        
+
+        response = httpx.put(url, headers=headers, json=payload, params=params)
+        response.raise_for_status()
+        return response
+    
     def _post(
         self,
         url: str,
         includeHeaders: bool = True,
         payload: dict = None,
+        params: dict = None,
     ):
         """Make a POST request to the Alpaca API."""
         if payload is None:
@@ -92,7 +114,7 @@ class AlpacaBaseClient(ABC):
                 self.api_key_header: self.api_key,
                 self.api_secret_header: self.api_secret}        
 
-        response = httpx.post(url, headers=headers, json=payload)
+        response = httpx.post(url, headers=headers, json=payload, params=params)
         response.raise_for_status()
         return response
     
@@ -102,18 +124,25 @@ class AlpacaBaseClient(ABC):
         includeHeaders: bool = True,
         payload: dict = None,
     ):
-        """Make a POST request to the Alpaca API."""
+        """Make a PATCH request to the Alpaca API."""
         if payload is None:
             payload = {}
         # Set the headers for authentication
         headers = {}
         if includeHeaders:
              headers ={ 
+                "accept": "application/json",
+                "content-type": "application/json",
                 self.api_key_header: self.api_key,
                 self.api_secret_header: self.api_secret}        
 
+        self._logger.log(f"sending PATCH request to {url} | headers:{headers} | json:{payload}")
         response = httpx.patch(url, headers=headers, json=payload)
-        response.raise_for_status()
+        try:
+            response.raise_for_status()
+        except httpx.HTTPStatusError as e:
+            self._logger.log(f"❌ Error: {e} | Response: {response.text}")
+            raise
         return response
     
     def _delete(
@@ -127,6 +156,7 @@ class AlpacaBaseClient(ABC):
         headers = {}
         if includeHeaders:
              headers ={ 
+                "accept": "application/json",
                 self.api_key_header: self.api_key,
                 self.api_secret_header: self.api_secret}        
 

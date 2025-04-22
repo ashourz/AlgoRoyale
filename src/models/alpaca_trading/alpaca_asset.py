@@ -62,7 +62,7 @@ class Asset(BaseModel):
             shortable=data["shortable"],
             easy_to_borrow=data["easy_to_borrow"],
             fractionable=data["fractionable"],
-            attributes=data.get("attributes", []),
+            attributes=data.get("attributes") or []
         )
 
     def parse_assets(raw_data: List[dict]) -> List["Asset"]:

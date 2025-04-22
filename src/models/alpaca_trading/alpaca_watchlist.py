@@ -1,5 +1,5 @@
 from models.alpaca_trading.alpaca_asset import Asset
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from datetime import datetime
 from typing import List, Optional
 
@@ -20,26 +20,31 @@ class Watchlist(BaseModel):
     created_at: datetime
     updated_at: datetime
     name: str
-    assets: Optional[List[Asset]] = []
+    assets: List[Asset]
 
     class Config:
         orm_mode = True
 
-    @classmethod
-    def from_raw(cls, data: dict) -> "Watchlist":
+    @staticmethod
+    def from_raw(data: dict) -> "Watchlist":
         """
-        Factory method to convert raw API data into a structured Watchlist object.
-        Converts date strings to datetime and maps asset entries.
+        Creates a Watchlist object from raw API data.
+
+        Args:
+            data (dict): A dictionary representing a watchlist from the Alpaca API.
+
+        Returns:
+            Watchlist: A Watchlist instance with structured fields.
         """
-        for field in ['created_at', 'updated_at']:
-            if isinstance(data.get(field), str):
-                data[field] = datetime.fromisoformat(data[field].replace("Z", "+00:00"))
-
-        if 'assets' in data and isinstance(data['assets'], list):
-            data['assets'] = [Asset(**asset) for asset in data['assets']]
-
-        return cls(**data)
-
+        return Watchlist(
+            id=data["id"],
+            account_id=data["account_id"],
+            created_at=datetime.fromisoformat(data["created_at"].replace("Z", "+00:00")),
+            updated_at=datetime.fromisoformat(data["updated_at"].replace("Z", "+00:00")),
+            name=data["name"],
+            assets=[Asset.from_raw(asset) for asset in data.get("assets", [])],
+        )
+        
 class WatchlistListResponse(BaseModel):
     """
     Represents a list of Watchlist objects returned from the Alpaca API.

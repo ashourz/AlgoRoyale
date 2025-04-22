@@ -1,12 +1,8 @@
 # src/algo_royale/client/alpaca_trading/alpaca_portfolio_client.py
 
-from datetime import date, datetime
 from typing import List, Optional
 from algo_royale.client.alpaca_base_client import AlpacaBaseClient
-from algo_royale.client.exceptions import ParameterConflictError
-from models.alpaca_trading.alpaca_portfolio import PortfolioPerformance
 from models.alpaca_trading.alpaca_watchlist import Watchlist, WatchlistListResponse
-from models.alpaca_trading.enums import IntradayReporting, PNLReset
 from config.config import ALPACA_TRADING_URL
 
 class AlpacaWatchlistClient(AlpacaBaseClient):
@@ -21,7 +17,7 @@ class AlpacaWatchlistClient(AlpacaBaseClient):
         """Subclasses must define a name for logging and ID purposes"""
         return "AlpacaWatchlistClient"    
     
-    def fetch_all_watchlists(self) -> Optional[WatchlistListResponse]:
+    def get_all_watchlists(self) -> Optional[WatchlistListResponse]:
         """
         Gets all watchlists for an account.
          """
@@ -63,7 +59,7 @@ class AlpacaWatchlistClient(AlpacaBaseClient):
     def delete_watchlist_by_id(
         self,
         watchlist_id: str,
-    ):
+    ) -> bool:
         """
         Get order by client order id.
 
@@ -75,7 +71,10 @@ class AlpacaWatchlistClient(AlpacaBaseClient):
             url=f"{self.base_url}/watchlists/{watchlist_id}",
         )
 
-        return response
+        if response.status_code == 204:
+            return True
+        else:
+            return False
     
     def get_watchlist_by_name(
         self,
@@ -112,7 +111,7 @@ class AlpacaWatchlistClient(AlpacaBaseClient):
     def delete_watchlist_by_name(
         self,
         name: str,
-    ):
+    ) -> bool:
         """
         Delete watchlist by client order name.
 
@@ -133,7 +132,10 @@ class AlpacaWatchlistClient(AlpacaBaseClient):
             params = params
         )
 
-        return response
+        if response.status_code == 204:
+            return True
+        else:
+            return False
     
     def delete_symbol_from_watchlist(
         self,
@@ -177,16 +179,11 @@ class AlpacaWatchlistClient(AlpacaBaseClient):
             - Watchlist object or None if no response.
         """
 
-        params = {"name": name}
-
-        # Format all non-None parameters
-        for k, v in params.items():
-            if v is not None:
-                params[k] = self._format_param(v)
+        payload = {"name": name}
                 
-        response_json = self._post(
+        response_json = self._put(
             url=f"{self.base_url}/watchlists/{watchlist_id}",
-            params = params
+            payload = payload
         ).json()
 
         if response_json is None:
@@ -220,7 +217,7 @@ class AlpacaWatchlistClient(AlpacaBaseClient):
             if v is not None:
                 params[k] = self._format_param(v)
                 
-        response_json = self._post(
+        response_json = self._put(
             url=f"{self.base_url}/watchlists:by_name",
             params = params,
             payload = payload
@@ -287,18 +284,14 @@ class AlpacaWatchlistClient(AlpacaBaseClient):
             - Watchlist object or None if no response.
         """
 
-        params = {}
+        payload = {}
         if symbol:
-            params["symbol"] = symbol
+            payload["symbol"] = symbol
 
-        # Format all non-None parameters
-        for k, v in params.items():
-            if v is not None:
-                params[k] = self._format_param(v)
                 
         response_json = self._post(
             url=f"{self.base_url}/watchlists/{watchlist_id}",
-            params = params
+            payload = payload
         ).json()
 
         if response_json is None:
@@ -323,23 +316,19 @@ class AlpacaWatchlistClient(AlpacaBaseClient):
             - Watchlist object or None if no response.
         """
 
-        params = {}
-        params["name"] = name
+        payload = {}
+        payload["name"] = name
         if symbols:
-            params["symbols"] = symbols
-
-        # Format all non-None parameters
-        for k, v in params.items():
-            if v is not None:
-                params[k] = self._format_param(v)
+            payload["symbols"] = symbols
                 
         response_json = self._post(
             url=f"{self.base_url}/watchlists",
-            params = params
+            payload = payload
         ).json()
 
         if response_json is None:
             self._logger.warning("No watchlist response received.")
             return None
+        self._logger.info("✅ Watchlist created: %s", response_json)
 
         return Watchlist.from_raw(response_json)
