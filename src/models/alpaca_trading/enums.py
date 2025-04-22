@@ -2,7 +2,36 @@
 
 from enum import Enum
 
+class IntradayReporting(str, Enum):
+    """
+    Type of intraday reporting for portfolio history.
+    
+    The following provides a comprehensive breakdown of the supported intraday reporting types:
 
+    - MARKET_HOURS: Only timestamps for the core requity trading hours are returned (usually 9:30am to 4:00pm, trading days only)
+    - EXTENDED_HOURS: Returns timestamps for the whole session including extended hours (usually 4:00am to 8:00pm, trading days only)
+    - CONTINUOUS: Returns price data points 24/7 (for off-session times too). To calculate the equity values we are using the following prices:
+        - Between 4:00am and 10:00pm on trading days the valuation will be calculated based on the last trade (extended hours and normal hours respectively).
+        - After 10:00pm, until the next session open the equities will be valued at their official closing price on the primary exchange.
+    """
+    MARKET_HOURS = "market_hours"
+    EXTENDED_HOURS = "extended_hours"
+    CONTINUOUS = "continuous"
+    
+class PNLReset(str, Enum):
+    """
+    pnl_reset defines how we are calculating the baseline values for Profit And Loss (pnl) for queries with timeframe less than 1D (intraday queries).
+
+    The default behavior for intraday queries is that we reset the pnl value to the previous day's closing equity for each trading day.
+
+    In case of crypto (given it's continous nature), this might not be desired: specifying "no_reset" disables this behavior and all pnl values
+    returned will be relative to the closing equity of the previous trading day.
+
+    For 1D resolution all PnL values are calculated relative to the base_value, we are not reseting the base value.
+    """
+    PER_DAY = "per_day"
+    NO_RESET = "no_reset"
+    
 class SortDirection(str, Enum):
     ASC = "asc"
     DESC = "desc"

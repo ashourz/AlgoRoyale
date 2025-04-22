@@ -3,7 +3,7 @@ from abc import ABC, abstractmethod
 import asyncio
 from enum import Enum
 import logging
-from datetime import datetime
+from datetime import date, datetime
 import httpx
 from config.config import ALPACA_PARAMS, ALPACA_SECRETS
 
@@ -42,6 +42,9 @@ class AlpacaBaseClient(ABC):
         if isinstance(param, datetime):
             # Format to ISO 8601 with Zulu time
             return param.strftime("%Y-%m-%dT%H:%M:%SZ")
+        if isinstance(param, date):
+            # Format to ISO 8601 with Zulu time
+            return param.strftime("%Y-%m-%d")
         elif isinstance(param, Enum):
             return param.value
         elif isinstance(param, list):
