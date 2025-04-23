@@ -12,7 +12,7 @@ class CorporateActionType(Enum):
     SPINOFF = "Spinoff"
     SPLIT = "Split"
 
-class DateType(Enum):
+class CorporateActionDateType(Enum):
     DECLARATION_DATE = "declaration_date"
     EX_DATE = "ex_date"
     RECORD_DATE = "record_date"

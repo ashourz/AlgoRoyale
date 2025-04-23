@@ -484,3 +484,14 @@ class ActivityType(str, Enum):
     """
     Stock split. Refers to activities related to the division of a stock into multiple shares, increasing the number of shares outstanding.
     """
+
+class CalendarDateType(str, Enum):
+    """
+    Enum representing the interpretation of start and end date filters for the market calendar.
+
+    Attributes:
+        TRADING: Indicates filtering by the trading day.
+        SETTLEMENT: Indicates filtering by the settlement date.
+    """
+    TRADING = "TRADING"
+    SETTLEMENT = "SETTLEMENT"
