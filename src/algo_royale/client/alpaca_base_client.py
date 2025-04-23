@@ -90,6 +90,7 @@ class AlpacaBaseClient(ABC):
         headers = {}
         if includeHeaders:
              headers ={ 
+                "accept": "application/json",
                 self.api_key_header: self.api_key,
                 self.api_secret_header: self.api_secret}        
 

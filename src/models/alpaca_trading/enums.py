@@ -1,6 +1,6 @@
 
 
-from enum import Enum
+from enum import Enum, IntEnum
 
 class IntradayReporting(str, Enum):
     """
@@ -255,3 +255,232 @@ class OrderStatus(str, Enum):
             self.SUSPENDED: "The order is suspended and not eligible for trading.",
             self.CALCULATED: "Order execution complete, but financial settlement is still being processed.",
         }.get(self, "Unknown status")    
+        
+class DTBPCheck(str, Enum):
+    """
+    Specifies when to run a DTBP check for an account.
+
+    NOTE: These values are currently the same as PDTCheck however they are not guaranteed to be in sync the future
+
+    please see https://alpaca.markets/docs/api-references/broker-api/trading/trading-configurations/#attributes
+    for more info.
+    """
+
+    BOTH = "both"
+    ENTRY = "entry"
+    EXIT = "exit"
+    
+class PDTCheck(str, Enum):
+    """
+    Specifies when to run a PDT check for an account.
+
+    NOTE: These values are currently the same as DTBPCheck however they are not guaranteed to be in sync the future
+
+    please see https://alpaca.markets/docs/api-references/broker-api/trading/trading-configurations/#attributes
+    for more info.
+    """
+
+    BOTH = "both"
+    ENTRY = "entry"
+    EXIT = "exit"
+    
+class TradeConfirmationEmail(str, Enum):
+    """
+    Used for controlling when an Account will receive a trade confirmation email.
+
+    please see https://docs.alpaca.markets/reference/getaccountconfig
+    for more info.
+    """
+
+    ALL = "all"
+    NONE = "none"
+    
+class OptionsTradingLevel(IntEnum):
+    DISABLED = 0  # No options trading
+    COVERED_CALL_CASH_SECURED_PUT = 1  # Covered Call / Cash-Secured Put
+    LONG_CALL_PUT = 2  # Long Call / Long Put
+    SPREADS_STRADDLES = 3  # Spreads / Straddles
+    
+class MarginMultiplier(str, Enum):
+    ONE = "1"
+    TWO = "2"
+    FOUR = "4"
+    
+
+class TradeActivityType(str, Enum):
+    FILL = "fill"
+    PARTIAL_FILL = "partial_fill"
+
+class ActivityType(str, Enum):
+    """
+    Enum representing the different types of activities in an account.
+    
+    Activity types define the nature of the activity, such as order fills, cash transactions,
+    dividends, interest, mergers, stock splits, etc. These are used for categorizing account activities.
+    """
+    
+    FILL = "FILL"
+    """
+    Order fills, both partial and full. Represents when an order is executed or partially executed.
+    """
+    
+    TRANS = "TRANS"
+    """
+    Cash transactions. Includes both CSD (Cash Deposit) and CSW (Cash Withdrawal).
+    """
+    
+    MISC = "MISC"
+    """
+    Miscellaneous or rarely used activity types that don't fall into other categories.
+    This category includes all types except those in TRANS, DIV, or FILL.
+    """
+    
+    ACATC = "ACATC"
+    """
+    ACATS IN/OUT (Cash) – Refers to cash transfers in or out through the ACATS system (Automated Customer Account Transfer Service).
+    """
+    
+    ACATS = "ACATS"
+    """
+    ACATS IN/OUT (Securities) – Refers to securities transfers in or out through the ACATS system.
+    """
+    
+    CSD = "CSD"
+    """
+    Cash deposit (+). Indicates a cash deposit into the account.
+    """
+    
+    CSW = "CSW"
+    """
+    Cash withdrawal (-). Indicates a cash withdrawal from the account.
+    """
+    
+    DIV = "DIV"
+    """
+    Dividends. Refers to the cash or stock dividends paid by companies to shareholders.
+    """
+    
+    DIVCGL = "DIVCGL"
+    """
+    Dividend (capital gain long term). Represents a long-term capital gain dividend distribution.
+    """
+    
+    DIVCGS = "DIVCGS"
+    """
+    Dividend (capital gain short term). Represents a short-term capital gain dividend distribution.
+    """
+    
+    DIVFEE = "DIVFEE"
+    """
+    Dividend fee. Refers to fees associated with dividend distributions.
+    """
+    
+    DIVFT = "DIVFT"
+    """
+    Dividend adjusted (Foreign Tax Withheld). Refers to dividends adjusted due to foreign tax withholding.
+    """
+    
+    DIVNRA = "DIVNRA"
+    """
+    Dividend adjusted (NRA Withheld). Refers to dividends adjusted due to Non-Resident Alien withholding tax.
+    """
+    
+    DIVROC = "DIVROC"
+    """
+    Dividend return of capital. Refers to a return of capital distribution from the company.
+    """
+    
+    DIVTW = "DIVTW"
+    """
+    Dividend adjusted (Tefra Withheld). Refers to dividends adjusted due to TEFRA (Tax Equity and Fiscal Responsibility Act) withholding.
+    """
+    
+    DIVTXEX = "DIVTXEX"
+    """
+    Dividend (tax exempt). Refers to dividends that are exempt from taxation.
+    """
+    
+    INT = "INT"
+    """
+    Interest (credit/margin). Refers to interest credited to the account, often for margin borrowing.
+    """
+    
+    INTNRA = "INTNRA"
+    """
+    Interest adjusted (NRA Withheld). Refers to interest payments adjusted due to Non-Resident Alien withholding tax.
+    """
+    
+    INTTW = "INTTW"
+    """
+    Interest adjusted (Tefra Withheld). Refers to interest payments adjusted due to TEFRA withholding.
+    """
+    
+    JNL = "JNL"
+    """
+    Journal entry. Represents a general journal entry activity, which could include transfers or corrections.
+    """
+    
+    JNLC = "JNLC"
+    """
+    Journal entry (cash). Represents a journal entry related to cash transactions.
+    """
+    
+    JNLS = "JNLS"
+    """
+    Journal entry (stock). Represents a journal entry related to stock transactions.
+    """
+    
+    MA = "MA"
+    """
+    Merger/Acquisition. Represents activities related to mergers and acquisitions of companies.
+    """
+    
+    NC = "NC"
+    """
+    Name change. Represents activities related to changes in the name of a security or company.
+    """
+    
+    OPASN = "OPASN"
+    """
+    Option assignment. Refers to activities related to the assignment of options in the account.
+    """
+    
+    OPEXP = "OPEXP"
+    """
+    Option expiration. Refers to activities related to the expiration of options in the account.
+    """
+    
+    OPXRC = "OPXRC"
+    """
+    Option exercise. Refers to activities related to the exercise of options in the account.
+    """
+    
+    PTC = "PTC"
+    """
+    Pass Thru Charge. Refers to charges passed through to the account from another entity.
+    """
+    
+    PTR = "PTR"
+    """
+    Pass Thru Rebate. Refers to rebates passed through to the account from another entity.
+    """
+    
+    REORG = "REORG"
+    """
+    Reorg CA. Refers to a corporate action involving the reorganization of securities.
+    """
+    
+    SC = "SC"
+    """
+    Symbol change. Refers to changes in the symbol or ticker of a security.
+    """
+    
+    SSO = "SSO"
+    """
+    Stock spinoff. Refers to activities related to the creation of a new company through a spinoff from an existing company.
+    """
+    
+    SSP = "SSP"
+    """
+    Stock split. Refers to activities related to the division of a stock into multiple shares, increasing the number of shares outstanding.
+    """

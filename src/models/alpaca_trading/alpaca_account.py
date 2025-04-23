@@ -1,8 +1,9 @@
 # src/models/alpaca_models/alpaca_account.py
 
 from enum import Enum
+from models.alpaca_trading.enums import ActivityType, DTBPCheck, MarginMultiplier, OptionsTradingLevel, OrderSide, PDTCheck, TradeActivityType, TradeConfirmationEmail
 from pydantic import BaseModel
-from typing import Optional
+from typing import List, Optional
 from datetime import datetime
 from dateutil.parser import isoparse
 
@@ -91,4 +92,80 @@ class Account(BaseModel):
             last_maintenance_margin=data["last_maintenance_margin"],
             daytrading_buying_power=data["daytrading_buying_power"],
             regt_buying_power=data["regt_buying_power"]
+        )
+        
+
+class AccountConfiguration(BaseModel):
+    dtbp_check: DTBPCheck
+    fractional_trading: bool
+    max_margin_multiplier: MarginMultiplier
+    max_options_trading_level: OptionsTradingLevel
+    no_shorting: bool
+    pdt_check: PDTCheck
+    ptp_no_exception_entry: bool
+    suspend_trade: bool
+    trade_confirm_email: TradeConfirmationEmail
+
+    @staticmethod
+    def from_raw(data: dict) -> "AccountConfiguration":
+        """
+        Convert raw data from Alpaca API response into an AccountConfiguration object.
+
+        Args:
+            data (dict): The raw data returned from Alpaca API.
+
+        Returns:
+            AccountConfiguration: An AccountConfiguration object populated with values from the raw data.
+        """
+        return AccountConfiguration(
+            dtbp_check=DTBPCheck(data["dtbp_check"]),
+            fractional_trading=data["fractional_trading"],
+            max_margin_multiplier=MarginMultiplier(data["max_margin_multiplier"]),
+            max_options_trading_level=OptionsTradingLevel(data["max_options_trading_level"]),
+            no_shorting=data["no_shorting"],
+            pdt_check=PDTCheck(data["pdt_check"]),
+            ptp_no_exception_entry=data["ptp_no_exception_entry"],
+            suspend_trade=data["suspend_trade"],
+            trade_confirm_email=TradeConfirmationEmail(data["trade_confirm_email"])
+        )
+        
+class AccountActivity(BaseModel):
+    activity_type: ActivityType
+    id: str
+    cum_qty: str
+    leaves_qty: str
+    price: str
+    qty: str
+    side: OrderSide
+    symbol: str
+    transaction_time: datetime
+    order_id: str
+    type: TradeActivityType
+    order_status: str
+
+    @staticmethod
+    def from_raw(data: dict) -> "AccountActivity":
+        return AccountActivity(
+            activity_type=ActivityType(data["activity_type"]),
+            id=data["id"],
+            cum_qty=data["cum_qty"],
+            leaves_qty=data["leaves_qty"],
+            price=data["price"],
+            qty=data["qty"],
+            side=OrderSide(data["side"]),
+            symbol=data["symbol"],
+            transaction_time=datetime.fromisoformat(data["transaction_time"].replace("Z", "+00:00")),
+            order_id=data["order_id"],
+            type=TradeActivityType(data["type"]),
+            order_status=data["order_status"]
+        )
+
+
+class AccountActivities(BaseModel):
+    activities: List[AccountActivity]
+
+    @staticmethod
+    def from_raw(data: List[dict]) -> "AccountActivities":
+        return AccountActivities(
+            activities=[AccountActivity.from_raw(item) for item in data]
         )
