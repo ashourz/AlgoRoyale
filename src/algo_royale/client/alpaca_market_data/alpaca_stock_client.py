@@ -14,38 +14,24 @@ from alpaca.common.enums import Sort, SupportedCurrencies
 from alpaca.data.timeframe import TimeFrame, TimeFrameUnit
 from models.alpaca_market_data.alpaca_snapshot import SnapshotsResponse
 from models.alpaca_market_data.alpaca_trade import HistoricalTradesResponse, LatestTradesResponse
+from models.alpaca_market_data.enums import SnapshotFeed, Tape, TickType
 
 from config.config import ALPACA_PARAMS
 
-
-class TickType(Enum):
-        TRADE = "trade"
-        QUOTE = "quote"
-    
-class Tape(Enum):
-    A = "A",
-    B = "B",
-    C = "C"
-
-class SnapshotFeed(Enum):
-    DELAYED_SIP = "delayed_sip",
-    IEX = "iex",
-    OTC = "otc",
-    SIP = "sip"
     
 class AlpacaStockClient(AlpacaBaseClient):
     """Singleton class to interact with Alpaca's API for stock data."""
-    
-    def __init__(self):
-        super().__init__()
-        self.base_url = ALPACA_PARAMS["base_url_data_v2"] 
         
     @property
     def client_name(self) -> str:
         """Subclasses must define a name for logging and ID purposes"""
         return "AlpacaStockClient"
     
-
+    @property
+    def base_url(self) -> str:
+        """Subclasses must define a name for logging and ID purposes"""
+        return ALPACA_PARAMS["base_url_data_v2"] 
+    
     def fetch_historical_quotes(
         self,
         symbols: List[str],

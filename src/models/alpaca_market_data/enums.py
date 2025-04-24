@@ -48,3 +48,34 @@ class CorporateActions(Enum):
     NAME_CHANGE = "name_change"
     WORTHLESS_REMOVAL = "worthless_removal"
     RIGHTS_DISTRIBUTION = "rights_distribution"
+    
+class ActiveStockFilter(Enum):
+    """
+    Enum for different types of active stock filters.
+    
+    Types:
+    - VOLUME: Filter based on trading volume.
+    - TRADES: Filter based on number of trades.
+    """
+    VOLUME = "volume"
+    TRADES = "trades"
+    
+class TickType(Enum):
+        TRADE = "trade"
+        QUOTE = "quote"
+    
+class Tape(Enum):
+    A = "A",
+    B = "B",
+    C = "C"
+
+class SnapshotFeed(Enum):
+    DELAYED_SIP = "delayed_sip",
+    IEX = "iex",
+    OTC = "otc",
+    SIP = "sip"
+    
+class DataFeed(Enum):
+    IEX = "iex"
+    SIP = "sip"
+    TEST = "test"

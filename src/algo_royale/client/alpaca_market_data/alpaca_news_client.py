@@ -9,15 +9,16 @@ from config.config import ALPACA_PARAMS
 
 class AlpacaNewsClient(AlpacaBaseClient):
     """Singleton class to interact with Alpaca's API for news data.""" 
-    
-    def __init__(self):
-        super().__init__()
-        self.base_url = ALPACA_PARAMS["base_url_data_v1beta1"] 
 
     @property
     def client_name(self) -> str:
         """Subclasses must define a name for logging and ID purposes"""
         return "AlpacaNewsClient"    
+    
+    @property
+    def base_url(self) -> str:
+        """Subclasses must define a name for logging and ID purposes"""
+        return ALPACA_PARAMS["base_url_data_v1beta1"] 
     
     def fetch_news(
         self,
@@ -39,8 +40,7 @@ class AlpacaNewsClient(AlpacaBaseClient):
         if not isinstance(end_date, datetime):
             raise ValueError("end_date must be a datetime object")  
         
-        params = {}
-        for k, v in {
+        params = {
             "symbols": ",".join(symbols),
             "start": start_date.strftime("%Y-%m-%d"),  # YYYY-MM-DD format
             "end": end_date.strftime("%Y-%m-%d"),      # YYYY-MM-DD format
@@ -49,18 +49,11 @@ class AlpacaNewsClient(AlpacaBaseClient):
             "sort": sort_order,
             "limit": min(page_limit, 50),  # Alpaca limits to 50
             "page_token": page_token,
-        }.items():
-            if v is not None:
-                params[k] = self._format_param(v)
-                
-        responseJson = self._get(
-            url=f"{self.base_url}/news",
+        }
+         
+        response = self.get(
+            endpoint=f"{self.base_url}/news",
             params=params
-        ).json()
-
-        # self._logger.debug(f"News for {symbols}: {responseJson}")
-        if responseJson is None:
-            self._logger.warning(f"No news data available for {symbols}")
-            return None       
+        )  
         
-        return NewsResponse.from_raw(responseJson)
+        return NewsResponse.from_raw(response)

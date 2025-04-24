@@ -11,15 +11,16 @@ from config.config import ALPACA_PARAMS
 
 class AlpacaCorporateActionClient(AlpacaBaseClient):
     """Singleton class to interact with Alpaca's API for market data corporate action data.""" 
-    
-    def __init__(self):
-        super().__init__()
-        self.base_url = ALPACA_PARAMS["base_url_data_v1"] 
 
     @property
     def client_name(self) -> str:
         """Subclasses must define a name for logging and ID purposes"""
         return "AlpacaCorporateActionClient"    
+    
+    @property
+    def base_url(self) -> str:
+        """Subclasses must define a name for logging and ID purposes"""
+        return ALPACA_PARAMS["base_url_data_v1"] 
     
     def fetch_corporate_actions(
         self,
@@ -55,7 +56,7 @@ class AlpacaCorporateActionClient(AlpacaBaseClient):
             raise ValueError("end_date must be a datetime object")  
         
         params = {
-             "symbols": ",".join(symbols),
+            "symbols": ",".join(symbols),
             "start": start_date.strftime("%Y-%m-%d"),  # YYYY-MM-DD format
             "end": end_date.strftime("%Y-%m-%d"),      # YYYY-MM-DD format
             "sort": sort_order,
@@ -70,18 +71,9 @@ class AlpacaCorporateActionClient(AlpacaBaseClient):
         if page_token is not None:
             params["page_token"] = page_token
 
-            
-        for k, v in params.items():
-            if v is not None:
-                params[k] = self._format_param(v)
-                
-        responseJson = self._get(
-            url=f"{self.base_url}/corporate-actions",
+        response = self.get(
+            endpoint=f"{self.base_url}/corporate-actions",
             params=params
-        ).json()
-
-        if responseJson is None:
-            self._logger.warning(f"No corporate action data available for {symbols}")
-            return None       
+        )
         
-        return CorporateActionResponse.from_raw(responseJson)
+        return CorporateActionResponse.from_raw(response)

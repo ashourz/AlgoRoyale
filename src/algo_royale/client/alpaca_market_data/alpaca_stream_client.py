@@ -2,15 +2,11 @@
 import asyncio
 import json
 from algo_royale.client.alpaca_base_client import AlpacaBaseClient
+from models.alpaca_market_data.enums import DataFeed
 import websockets
 from enum import Enum
 
 from config.config import ALPACA_PARAMS
-
-class DataFeed(Enum):
-    IEX = "iex"
-    SIP = "sip"
-    TEST = "test"
 
 class AlpacaStreamClient(AlpacaBaseClient):
     """
@@ -25,7 +21,6 @@ class AlpacaStreamClient(AlpacaBaseClient):
 
     def __init__(self):
         super().__init__()
-        self.base_url_data_stream = ALPACA_PARAMS["base_url_data_stream_v2"]
 
         # Sets to track what you're subscribed to
         self.quote_symbols = set()
@@ -38,6 +33,11 @@ class AlpacaStreamClient(AlpacaBaseClient):
     def client_name(self) -> str:
         """Subclasses must define a name for logging and ID purposes"""
         return "AlpacaStreamClient"
+    
+    @property
+    def base_url(self) -> str:
+        """Subclasses must define a name for logging and ID purposes"""
+        return ALPACA_PARAMS["base_url_data_stream_v2"] 
     
     async def stream(
         self,
@@ -200,3 +200,4 @@ class AlpacaStreamClient(AlpacaBaseClient):
         """
         self._logger.info("Stopping stream...")
         self.stop_stream = True
+
