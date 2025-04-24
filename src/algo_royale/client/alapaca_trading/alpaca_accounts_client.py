@@ -11,16 +11,17 @@ from config.config import ALPACA_TRADING_URL
 
 class AlpacaAccountClient(AlpacaBaseClient):
     """Singleton class to interact with Alpaca's API for news data.""" 
-    
-    def __init__(self):
-        super().__init__()
-        self.base_url = ALPACA_TRADING_URL
 
     @property
     def client_name(self) -> str:
         """Subclasses must define a name for logging and ID purposes"""
         return "AlpacaNewsClient"    
     
+    @property
+    def base_url(self) -> str:
+        """Subclasses must define a name for logging and ID purposes"""
+        return ALPACA_TRADING_URL
+     
     def fetch_account(self) -> Optional[Account]:
         """Fetch account data from Alpaca."""
 
@@ -28,9 +29,9 @@ class AlpacaAccountClient(AlpacaBaseClient):
             url=f"{self.base_url}/account"
         ).json()
 
-        # self._logger.debug(f"News for {symbols}: {responseJson}")
+        # self.logger.debug(f"News for {symbols}: {responseJson}")
         if responseJson is None:
-            self._logger.warning(f"No account data available")
+            self.logger.warning(f"No account data available")
             return None       
         
         return Account.from_raw(responseJson)
@@ -42,9 +43,9 @@ class AlpacaAccountClient(AlpacaBaseClient):
             url=f"{self.base_url}/account/configurations"
         ).json()
 
-        # self._logger.debug(f"News for {symbols}: {responseJson}")
+        # self.logger.debug(f"News for {symbols}: {responseJson}")
         if responseJson is None:
-            self._logger.warning(f"No account data available")
+            self.logger.warning(f"No account data available")
             return None       
         
         return AccountConfiguration.from_raw(responseJson)
@@ -94,7 +95,7 @@ class AlpacaAccountClient(AlpacaBaseClient):
         )
 
         if response.status_code != 200:
-            self._logger.warning(f"Failed to update account config: {response.status_code} {response.text}")
+            self.logger.warning(f"Failed to update account config: {response.status_code} {response.text}")
             return None
 
         response_json = response.json()
@@ -162,7 +163,7 @@ class AlpacaAccountClient(AlpacaBaseClient):
         )
 
         if response.status_code != 200:
-            self._logger.warning(f"Failed to retrieve account activities: {response.status_code} {response.text}")
+            self.logger.warning(f"Failed to retrieve account activities: {response.status_code} {response.text}")
             return None
 
         response_json = response.json()
@@ -220,7 +221,7 @@ class AlpacaAccountClient(AlpacaBaseClient):
         )
 
         if response.status_code != 200:
-            self._logger.warning(f"Failed to retrieve account activities: {response.status_code} {response.text}")
+            self.logger.warning(f"Failed to retrieve account activities: {response.status_code} {response.text}")
             return None
 
         response_json = response.json()

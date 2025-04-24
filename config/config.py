@@ -1,6 +1,7 @@
 # config/config.py
 
 from configparser import ConfigParser
+import logging
 from pathlib import Path
 
 def load_ini(section, filename):
@@ -44,3 +45,7 @@ ALPACA_TRADING_URL = get_base_url(ENVIRONMENT)
 TRAINING_PARAMS = get_config("training")
 
 LOGGING_PARAMS = get_config("logging")
+
+def get_logging_level() -> int:
+    level_str = LOGGING_PARAMS.get("level", "INFO").upper()
+    return getattr(logging, level_str, logging.INFO)

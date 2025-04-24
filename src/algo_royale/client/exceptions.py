@@ -23,3 +23,24 @@ class InsufficientBuyingPowerError(OrderError):
 class InsufficientSharesError(OrderError):
     """Raised when user attempts to sell more shares than they own."""
     pass
+
+
+
+class AlpacaAPIException(Exception):
+    """Base exception for Alpaca API errors."""
+    def __init__(self, message: str, status_code: int = None):
+        self.message = message
+        self.status_code = status_code
+        super().__init__(self.message)
+
+class AlpacaBadRequestException(AlpacaAPIException):
+    """Exception for Bad Request (400)."""
+    pass
+
+class AlpacaUnauthorizedException(AlpacaAPIException):
+    """Exception for Unauthorized (401)."""
+    pass
+
+class AlpacaServerErrorException(AlpacaAPIException):
+    """Exception for Server Error (500+)."""
+    pass
