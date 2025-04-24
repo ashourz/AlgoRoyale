@@ -71,6 +71,8 @@ class AlpacaBaseClient(ABC):
              headers ={ 
                 self.api_key_header: self.api_key,
                 self.api_secret_header: self.api_secret}        
+             
+        self._logger.log(logging.DEBUG, f"sending GET request to {url} | headers:{headers} | params:{params}")
 
         response = httpx.get(url, headers=headers, params=params)
         response.raise_for_status()
@@ -137,12 +139,12 @@ class AlpacaBaseClient(ABC):
                 self.api_key_header: self.api_key,
                 self.api_secret_header: self.api_secret}        
 
-        self._logger.log(f"sending PATCH request to {url} | headers:{headers} | json:{payload}")
+        self._logger.log(logging.DEBUG, f"sending PATCH request to {url} | headers:{headers} | json:{payload}")
         response = httpx.patch(url, headers=headers, json=payload)
         try:
             response.raise_for_status()
         except httpx.HTTPStatusError as e:
-            self._logger.log(f"❌ Error: {e} | Response: {response.text}")
+            self._logger.log(logging.DEBUG, f"❌ Error: {e} | Response: {response.text}")
             raise
         return response
     

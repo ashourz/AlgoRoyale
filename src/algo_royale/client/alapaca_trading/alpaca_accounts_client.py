@@ -1,6 +1,7 @@
 # src/algo_royale/client/alpaca_news_client.py
 
-from datetime import datetime
+from datetime import date, datetime
+from enum import Enum
 from typing import List, Optional
 from algo_royale.client.alpaca_base_client import AlpacaBaseClient
 from algo_royale.client.exceptions import ParameterConflictError
@@ -68,9 +69,9 @@ class AlpacaAccountClient(AlpacaBaseClient):
         payload = {}
 
         if dtbp_check is not None:
-            payload["dtbp_check"] = dtbp_check
+            payload["dtbp_check"] = dtbp_check.value if isinstance(dtbp_check, Enum) else dtbp_check
         if trade_confirm_email is not None:
-            payload["trade_confirm_email"] = trade_confirm_email
+            payload["trade_confirm_email"] = trade_confirm_email.value if isinstance(trade_confirm_email, Enum) else trade_confirm_email
         if suspend_trade is not None:
             payload["suspend_trade"] = suspend_trade
         if no_shorting is not None:
@@ -86,11 +87,7 @@ class AlpacaAccountClient(AlpacaBaseClient):
         if ptp_no_exception_entry is not None:
             payload["ptp_no_exception_entry"] = ptp_no_exception_entry
 
-        # Format all non-None parameters
-        for k, v in payload.items():
-            if v is not None:
-                payload[k] = self._format_param(v)
-                
+        # Send the PATCH request
         response = self._patch(
             url=f"{self.base_url}/account/configurations",
             payload=payload
@@ -142,11 +139,11 @@ class AlpacaAccountClient(AlpacaBaseClient):
         if category:
             params["category"] = category
         if date:
-            params["date"] = date.isoformat()
+            params["date"] = date
         if until:
-            params["until"] = until.isoformat()
+            params["until"] = until
         if after:
-            params["after"] = after.isoformat()
+            params["after"] = after
         if direction:
             params["direction"] = direction
         if page_size:

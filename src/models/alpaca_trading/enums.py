@@ -400,6 +400,8 @@ class ActivityType(str, Enum):
     Dividend (tax exempt). Refers to dividends that are exempt from taxation.
     """
     
+    FEE = "FEE"
+    
     INT = "INT"
     """
     Interest (credit/margin). Refers to interest credited to the account, often for margin borrowing.

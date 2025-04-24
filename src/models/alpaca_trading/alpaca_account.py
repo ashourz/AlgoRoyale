@@ -93,18 +93,18 @@ class Account(BaseModel):
             daytrading_buying_power=data["daytrading_buying_power"],
             regt_buying_power=data["regt_buying_power"]
         )
-        
+
 
 class AccountConfiguration(BaseModel):
-    dtbp_check: DTBPCheck
-    fractional_trading: bool
-    max_margin_multiplier: MarginMultiplier
-    max_options_trading_level: OptionsTradingLevel
-    no_shorting: bool
-    pdt_check: PDTCheck
-    ptp_no_exception_entry: bool
-    suspend_trade: bool
-    trade_confirm_email: TradeConfirmationEmail
+    dtbp_check: Optional[DTBPCheck] = None
+    fractional_trading: Optional[bool] = None
+    max_margin_multiplier: Optional[MarginMultiplier] = None
+    max_options_trading_level: Optional[OptionsTradingLevel] = None
+    no_shorting: Optional[bool] = None
+    pdt_check: Optional[PDTCheck] = None
+    ptp_no_exception_entry: Optional[bool] = None
+    suspend_trade: Optional[bool] = None
+    trade_confirm_email: Optional[TradeConfirmationEmail] = None
 
     @staticmethod
     def from_raw(data: dict) -> "AccountConfiguration":
@@ -118,46 +118,55 @@ class AccountConfiguration(BaseModel):
             AccountConfiguration: An AccountConfiguration object populated with values from the raw data.
         """
         return AccountConfiguration(
-            dtbp_check=DTBPCheck(data["dtbp_check"]),
-            fractional_trading=data["fractional_trading"],
-            max_margin_multiplier=MarginMultiplier(data["max_margin_multiplier"]),
-            max_options_trading_level=OptionsTradingLevel(data["max_options_trading_level"]),
-            no_shorting=data["no_shorting"],
-            pdt_check=PDTCheck(data["pdt_check"]),
-            ptp_no_exception_entry=data["ptp_no_exception_entry"],
-            suspend_trade=data["suspend_trade"],
-            trade_confirm_email=TradeConfirmationEmail(data["trade_confirm_email"])
+            dtbp_check=DTBPCheck(data["dtbp_check"]) if "dtbp_check" in data else None,
+            fractional_trading=data.get("fractional_trading"),
+            max_margin_multiplier=MarginMultiplier(data["max_margin_multiplier"]) if "max_margin_multiplier" in data else None,
+            max_options_trading_level=OptionsTradingLevel(data["max_options_trading_level"]) if "max_options_trading_level" in data else None,
+            no_shorting=data.get("no_shorting"),
+            pdt_check=PDTCheck(data["pdt_check"]) if "pdt_check" in data else None,
+            ptp_no_exception_entry=data.get("ptp_no_exception_entry"),
+            suspend_trade=data.get("suspend_trade"),
+            trade_confirm_email=TradeConfirmationEmail(data["trade_confirm_email"]) if "trade_confirm_email" in data else None
         )
+
         
 class AccountActivity(BaseModel):
-    activity_type: ActivityType
-    id: str
-    cum_qty: str
-    leaves_qty: str
-    price: str
-    qty: str
-    side: OrderSide
-    symbol: str
-    transaction_time: datetime
-    order_id: str
-    type: TradeActivityType
-    order_status: str
+    activity_type: Optional[ActivityType] = None
+    id: Optional[str] = None
+    cum_qty: Optional[str] = None
+    leaves_qty: Optional[str] = None
+    price: Optional[str] = None
+    qty: Optional[str] = None
+    side: Optional[OrderSide] = None
+    symbol: Optional[str] = None
+    transaction_time: Optional[datetime] = None
+    order_id: Optional[str] = None
+    type: Optional[TradeActivityType] = None
+    order_status: Optional[str] = None
+    # Additional optional fields
+    date: Optional[str] = None
+    net_amount: Optional[str] = None
+    per_share_amount: Optional[str] = None
 
     @staticmethod
     def from_raw(data: dict) -> "AccountActivity":
         return AccountActivity(
-            activity_type=ActivityType(data["activity_type"]),
-            id=data["id"],
-            cum_qty=data["cum_qty"],
-            leaves_qty=data["leaves_qty"],
-            price=data["price"],
-            qty=data["qty"],
-            side=OrderSide(data["side"]),
-            symbol=data["symbol"],
-            transaction_time=datetime.fromisoformat(data["transaction_time"].replace("Z", "+00:00")),
-            order_id=data["order_id"],
-            type=TradeActivityType(data["type"]),
-            order_status=data["order_status"]
+            activity_type=ActivityType(data["activity_type"]) if "activity_type" in data else None,
+            id=data.get("id", None),
+            cum_qty=data.get("cum_qty", None),
+            leaves_qty=data.get("leaves_qty", None),
+            price=data.get("price", None),
+            qty=data.get("qty", None),
+            side=OrderSide(data["side"]) if "side" in data else None,
+            symbol=data.get("symbol", None),
+            transaction_time=datetime.fromisoformat(data["transaction_time"].replace("Z", "+00:00")) if "transaction_time" in data else None,
+            order_id=data.get("order_id", None),
+            type=TradeActivityType(data["type"]) if "type" in data else None,
+            order_status=data.get("order_status", None),
+            # Additional fields
+            date=data.get("date", None),
+            net_amount=data.get("net_amount", None),
+            per_share_amount=data.get("per_share_amount", None),
         )
 
 
