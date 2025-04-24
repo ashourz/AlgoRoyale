@@ -7,15 +7,16 @@ from config.config import ALPACA_TRADING_URL
 
 class AlpacaAssetsClient(AlpacaBaseClient):
     """Singleton class to interact with Alpaca's API for news data.""" 
-    
-    def __init__(self):
-        super().__init__()
-        self.base_url = ALPACA_TRADING_URL
 
     @property
     def client_name(self) -> str:
         """Subclasses must define a name for logging and ID purposes"""
         return "AlpacaAssetsClient"    
+    
+    @property
+    def base_url(self) -> str:
+        """Subclasses must define a name for logging and ID purposes"""
+        return ALPACA_TRADING_URL
     
     def fetch_assets(
             self,
@@ -35,17 +36,12 @@ class AlpacaAssetsClient(AlpacaBaseClient):
                 params[k] = self._format_param(v)
                 
 
-        responseJson = self._get(
-            url=f"{self.base_url}/assets",
+        response = self.get(
+            endpoint=f"{self.base_url}/assets",
             params=params
-        ).json()
-
-        self._logger.debug(f"Assets: {responseJson}")
-        if responseJson is None:
-            self._logger.warning(f"No asset data available")
-            return None       
-        
-        return Asset.parse_assets(responseJson)
+        )
+   
+        return Asset.parse_assets(response)
     
     def fetch_asset_by_symbol_or_id(
             self,
@@ -53,16 +49,11 @@ class AlpacaAssetsClient(AlpacaBaseClient):
         ) -> Optional[Asset]:
         """Fetch asset data from Alpaca."""
 
-        responseJson = self._get(
-            url=f"{self.base_url}/assets/{symbol_or_asset_id}"
-        ).json()
-
-        self._logger.debug(f"Assets: {responseJson}")
-        if responseJson is None:
-            self._logger.warning(f"No asset data available")
-            return None       
+        response = self.get(
+            endpoint=f"{self.base_url}/assets/{symbol_or_asset_id}"
+        )
         
-        return Asset.from_raw(responseJson)
+        return Asset.from_raw(response)
 
 
             

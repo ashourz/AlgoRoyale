@@ -11,15 +11,16 @@ from config.config import ALPACA_TRADING_URL
 
 class AlpacaCalendarClient(AlpacaBaseClient):
     """Singleton class to interact with Alpaca's API for orders data.""" 
-    
-    def __init__(self):
-        super().__init__()
-        self.base_url = ALPACA_TRADING_URL
 
     @property
     def client_name(self) -> str:
         """Subclasses must define a name for logging and ID purposes"""
         return "AlpacaCalendarClient"    
+
+    @property
+    def base_url(self) -> str:
+        """Subclasses must define a name for logging and ID purposes"""
+        return ALPACA_TRADING_URL
     
     def fetch_calendar(
         self,
@@ -38,18 +39,10 @@ class AlpacaCalendarClient(AlpacaBaseClient):
         if date_type:
             params["date_type"] = date_type
         
-        # Format all non-None parameters
-        for k, v in params.items():
-            if v is not None:
-                params[k] = self._format_param(v)
                 
-        responseJson = self._get(
-            url=f"{self.base_url}/calendar",
+        response = self._get(
+            endpoint=f"{self.base_url}/calendar",
             params = params
-        ).json()
-
-        if responseJson is None:
-            self._logger.warning(f"No calendar data available")
-            return None       
+        )   
         
-        return CalendarList.from_raw(responseJson)
+        return CalendarList.from_raw(response)

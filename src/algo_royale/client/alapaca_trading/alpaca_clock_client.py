@@ -11,25 +11,22 @@ from config.config import ALPACA_TRADING_URL
 
 class AlpacaClockClient(AlpacaBaseClient):
     """Singleton class to interact with Alpaca's API for orders data.""" 
-    
-    def __init__(self):
-        super().__init__()
-        self.base_url = ALPACA_TRADING_URL
 
     @property
     def client_name(self) -> str:
         """Subclasses must define a name for logging and ID purposes"""
         return "AlpacaClockClient"    
+
+    @property
+    def base_url(self) -> str:
+        """Subclasses must define a name for logging and ID purposes"""
+        return ALPACA_TRADING_URL
     
     def fetch_clock(self) -> Optional[Clock]:
         """Fetch clock data from Alpaca."""
 
-        responseJson = self._get(
-            url=f"{self.base_url}/clock"
-        ).json()
-
-        if responseJson is None:
-            self._logger.warning(f"No clock data available")
-            return None       
+        response = self.get(
+            endpoint=f"{self.base_url}/clock"
+        )    
         
-        return Clock.from_raw(responseJson)
+        return Clock.from_raw(response)

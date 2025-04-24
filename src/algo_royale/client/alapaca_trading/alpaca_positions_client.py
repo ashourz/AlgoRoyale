@@ -13,15 +13,17 @@ from config.config import ALPACA_TRADING_URL
 
 class AlpacaPositionsClient(AlpacaBaseClient):
     """Singleton class to interact with Alpaca's API for positions data.""" 
-    
-    def __init__(self):
-        super().__init__()
-        self.base_url = ALPACA_TRADING_URL
+
 
     @property
     def client_name(self) -> str:
         """Subclasses must define a name for logging and ID purposes"""
         return "AlpacaPositionsClient"    
+    
+    @property
+    def base_url(self) -> str:
+        """Subclasses must define a name for logging and ID purposes"""
+        return ALPACA_TRADING_URL
     
     def get_all_open_positions(
         self
@@ -33,15 +35,11 @@ class AlpacaPositionsClient(AlpacaBaseClient):
             - PositionList object or None if no response.
         """
 
-        response_json = self._get(
-            url=f"{self.base_url}/positions"
-        ).json()
+        response = self.get(
+            endpoint=f"{self.base_url}/positions"
+        )
 
-        if response_json is None:
-            self._logger.warning("No position response received.")
-            return None
-
-        return PositionList.from_raw(response_json)
+        return PositionList.from_raw(response)
     
     def get_open_position_by_symbol_or_asset_id(
         self,
@@ -56,28 +54,11 @@ class AlpacaPositionsClient(AlpacaBaseClient):
         Returns:
             - PositionList object or None if no response.
         """
-        try:
-            response_json = self._get(
-                url=f"{self.base_url}/positions/{symbol_or_asset_id}",
-            ).json()
+        response = self.get(
+            endpoint=f"{self.base_url}/positions/{symbol_or_asset_id}",
+        )
 
-
-            if response_json is None:
-                self._logger.warning("No position response received.")
-                return None
-
-            return PositionList.from_raw(response_json)
-        except HTTPStatusError as e:
-            if e.response.status_code == 404:
-                # Handle the 404 error with a custom message
-                if 'symbol not found' in e.response.text:
-                    return {"error": "Symbol not found", "message": f"Symbol {symbol_or_asset_id} not found in your positions."}
-                else:
-                    # If the error is not the expected "symbol not found", raise the error again
-                    raise e
-            else:
-                # Raise any other HTTP status errors
-                raise e
+        return PositionList.from_raw(response)
     
     def close_position_by_symbol_or_asset_id(
         self,
@@ -110,28 +91,13 @@ class AlpacaPositionsClient(AlpacaBaseClient):
             params["qty"] = qty
         if percentage:
             params["percentage"] = percentage
-
-
-        # Format all non-None parameters
-        for k, v in params.items():
-            if v is not None:
-                params[k] = self._format_param(v)
                 
-        response = self._delete(
-            url=f"{self.base_url}/positions/{symbol_or_asset_id}",
+        response = self.delete(
+            endpoint=f"{self.base_url}/positions/{symbol_or_asset_id}",
             params=params
         )
-        
-        if response.status_code == 207 and response.text == "[]":
-            return None
 
-        response_json = response.json()
-
-        if response_json is None:
-            self._logger.warning("No closed positions response received.")
-            return None
-
-        return ClosedPositionList.from_raw(response_json) 
+        return ClosedPositionList.from_raw(response) 
 
             
     def close_all_positions(
@@ -149,17 +115,8 @@ class AlpacaPositionsClient(AlpacaBaseClient):
             params["cancel_orders"] = cancel_orders
             
         response = self._delete(
-            url=f"{self.base_url}/positions",
+            endpoint=f"{self.base_url}/positions",
             params =params
         )
 
-        if response.status_code == 207 and response.text == "[]":
-            return None
-
-        response_json = response.json()
-
-        if response_json is None:
-            self._logger.warning("No closed positions response received.")
-            return None
-
-        return ClosedPositionList.from_raw(response_json) 
+        return ClosedPositionList.from_raw(response) 

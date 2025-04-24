@@ -106,6 +106,16 @@ class AlpacaBaseClient(ABC):
         else:
             return str(param)
 
+    def _safe_json_parse(self, response: httpx.Response) -> Any:
+        """Safely parse a JSON response or return None if not applicable."""
+        try:
+            if response.status_code in [204, 207] or not response.text.strip():
+                return None
+            return response.json()
+        except ValueError:
+            self.logger.warning(f"Unable to parse JSON from response: {response.text}")
+            return None
+    
     def _make_request(self, method: str, endpoint: str, params: dict = None, data: dict = None, skip_format: bool = False) -> Any:
         """General method for making HTTP requests to the Alpaca API."""
         try:
@@ -128,7 +138,7 @@ class AlpacaBaseClient(ABC):
             
             response.raise_for_status()  # Will raise HTTPStatusError for 4xx/5xx errors
             self._handle_http_error(response)
-            return response.json()
+            return self._safe_json_parse(response)
         except httpx.HTTPStatusError as e:
             raise AlpacaAPIException(f"HTTP status error: {e}")
         except Exception as e:
@@ -156,7 +166,11 @@ class AlpacaBaseClient(ABC):
             
             response.raise_for_status()  # Will raise HTTPStatusError for 4xx/5xx errors
             self._handle_http_error(response)
-            return response.json()
+            
+            if response.status_code == 204 or not response.content.strip():
+                return None  # Return None explicitly for empty or no-content responses
+            
+            return self._safe_json_parse(response)
         except httpx.HTTPStatusError as e:
             raise AlpacaAPIException(f"HTTP status error: {e}")
         except Exception as e:
@@ -169,6 +183,9 @@ class AlpacaBaseClient(ABC):
     def post(self, endpoint: str, data: dict = None, skip_format: bool = False) -> Any:
         return self._make_request("POST", endpoint, data=data, skip_format=skip_format)
 
+    def patch(self, endpoint: str, data: dict = None, skip_format: bool = False) -> Any:
+        return self._make_request("PATCH", endpoint, data=data, skip_format=skip_format)
+    
     def put(self, endpoint: str, data: dict = None, skip_format: bool = False) -> Any:
         return self._make_request("PUT", endpoint, data=data, skip_format=skip_format)
 
@@ -182,6 +199,9 @@ class AlpacaBaseClient(ABC):
     def post_async(self, endpoint: str, data: dict = None, skip_format: bool = False) -> Any:
         return self._make_request_async("POST", endpoint, data=data, skip_format=skip_format)
 
+    def patch_async(self, endpoint: str, data: dict = None, skip_format: bool = False) -> Any:
+        return self._make_request_async("PATCH", endpoint, data=data, skip_format=skip_format)
+    
     def put_async(self, endpoint: str, data: dict = None, skip_format: bool = False) -> Any:
         return self._make_request_async("PUT", endpoint, data=data, skip_format=skip_format)
 

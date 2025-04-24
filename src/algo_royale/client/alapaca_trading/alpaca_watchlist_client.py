@@ -7,30 +7,27 @@ from config.config import ALPACA_TRADING_URL
 
 class AlpacaWatchlistClient(AlpacaBaseClient):
     """Singleton class to interact with Alpaca's API for watchlist data.""" 
-    
-    def __init__(self):
-        super().__init__()
-        self.base_url = ALPACA_TRADING_URL
 
     @property
     def client_name(self) -> str:
         """Subclasses must define a name for logging and ID purposes"""
         return "AlpacaWatchlistClient"    
     
+    @property
+    def base_url(self) -> str:
+        """Subclasses must define a name for logging and ID purposes"""
+        return ALPACA_TRADING_URL    
+
     def get_all_watchlists(self) -> Optional[WatchlistListResponse]:
         """
         Gets all watchlists for an account.
          """
                 
-        responseJson = self._get(
-            url=f"{self.base_url}/watchlists",
-        ).json()
-
-        if responseJson is None:
-            self._logger.warning(f"No watchlist data available")
-            return None       
+        response = self.get(
+            endpoint=f"{self.base_url}/watchlists",
+        ) 
         
-        return WatchlistListResponse.from_raw(responseJson)
+        return WatchlistListResponse.from_raw(response)
             
     def get_watchlist_by_id(
         self,
@@ -46,20 +43,16 @@ class AlpacaWatchlistClient(AlpacaBaseClient):
             - Watchlist object or None if no response.
         """
                 
-        response_json = self._get(
-            url=f"{self.base_url}/watchlists/{watchlist_id}",
-        ).json()
+        response = self._get(
+            endpoint=f"{self.base_url}/watchlists/{watchlist_id}",
+        )
 
-        if response_json is None:
-            self._logger.warning("No watchlist response received.")
-            return None
-
-        return Watchlist.from_raw(response_json)
+        return Watchlist.from_raw(response)
     
     def delete_watchlist_by_id(
         self,
         watchlist_id: str,
-    ) -> bool:
+    ):
         """
         Get order by client order id.
 
@@ -67,14 +60,9 @@ class AlpacaWatchlistClient(AlpacaBaseClient):
             - watchlist_id (str) :The watchlist ID.
         """
                 
-        response = self._delete(
-            url=f"{self.base_url}/watchlists/{watchlist_id}",
+        self.delete(
+            endpoint=f"{self.base_url}/watchlists/{watchlist_id}",
         )
-
-        if response.status_code == 204:
-            return True
-        else:
-            return False
     
     def get_watchlist_by_name(
         self,
@@ -91,22 +79,13 @@ class AlpacaWatchlistClient(AlpacaBaseClient):
         """
                 
         params = {"name": name}
-
-        # Format all non-None parameters
-        for k, v in params.items():
-            if v is not None:
-                params[k] = self._format_param(v)
                 
-        response_json = self._get(
-            url=f"{self.base_url}/watchlists:by_name",
+        response = self.get(
+            endpoint=f"{self.base_url}/watchlists:by_name",
             params = params
-        ).json()
+        )
 
-        if response_json is None:
-            self._logger.warning("No watchlist response received.")
-            return None
-
-        return Watchlist.from_raw(response_json)
+        return Watchlist.from_raw(response)
     
     def delete_watchlist_by_name(
         self,
@@ -121,22 +100,12 @@ class AlpacaWatchlistClient(AlpacaBaseClient):
         """
                 
         params = {"name": name}
-
-        # Format all non-None parameters
-        for k, v in params.items():
-            if v is not None:
-                params[k] = self._format_param(v)
                 
-        response = self._delete(
-            url=f"{self.base_url}/watchlists:by_name",
+        self.delete(
+            endpoint=f"{self.base_url}/watchlists:by_name",
             params = params
         )
 
-        if response.status_code == 204:
-            return True
-        else:
-            return False
-    
     def delete_symbol_from_watchlist(
         self,
         watchlist_id: str,
@@ -153,15 +122,11 @@ class AlpacaWatchlistClient(AlpacaBaseClient):
             - Watchlist object or None if no response.
         """
         
-        response_json = self._delete(
-            url=f"{self.base_url}/watchlists/{watchlist_id}/{symbol}"
-        ).json()
+        response = self._delete(
+            endpoint=f"{self.base_url}/watchlists/{watchlist_id}/{symbol}"
+        )
 
-        if response_json is None:
-            self._logger.warning("No watchlist response received.")
-            return None
-
-        return Watchlist.from_raw(response_json)
+        return Watchlist.from_raw(response)
     
     def update_watchlist_by_id(
         self,
@@ -181,16 +146,12 @@ class AlpacaWatchlistClient(AlpacaBaseClient):
 
         payload = {"name": name}
                 
-        response_json = self._put(
-            url=f"{self.base_url}/watchlists/{watchlist_id}",
+        response = self.put(
+            endpoint=f"{self.base_url}/watchlists/{watchlist_id}",
             payload = payload
-        ).json()
-
-        if response_json is None:
-            self._logger.warning("No watchlist response received.")
-            return None
-
-        return Watchlist.from_raw(response_json)
+        )
+        
+        return Watchlist.from_raw(response)
     
     def update_watchlist_by_name(
         self,
@@ -211,23 +172,14 @@ class AlpacaWatchlistClient(AlpacaBaseClient):
 
         params = {"name": name}
         payload = {"name": update_name}
-
-        # Format all non-None parameters
-        for k, v in params.items():
-            if v is not None:
-                params[k] = self._format_param(v)
                 
-        response_json = self._put(
-            url=f"{self.base_url}/watchlists:by_name",
+        response = self.put(
+            endpoint=f"{self.base_url}/watchlists:by_name",
             params = params,
             payload = payload
-        ).json()
+        )
 
-        if response_json is None:
-            self._logger.warning("No watchlist response received.")
-            return None
-
-        return Watchlist.from_raw(response_json)
+        return Watchlist.from_raw(response)
     
     def add_asset_to_watchlist_by_name(
         self,
@@ -250,23 +202,14 @@ class AlpacaWatchlistClient(AlpacaBaseClient):
         payload = {}
         if symbol:
             params["symbol"] = symbol
-
-        # Format all non-None parameters
-        for k, v in params.items():
-            if v is not None:
-                params[k] = self._format_param(v)
                 
-        response_json = self._post(
-            url=f"{self.base_url}/watchlists:by_name",
+        response = self.post(
+            endpoint=f"{self.base_url}/watchlists:by_name",
             params = params,
             payload = payload
-        ).json()
+        )
 
-        if response_json is None:
-            self._logger.warning("No watchlist response received.")
-            return None
-
-        return Watchlist.from_raw(response_json)
+        return Watchlist.from_raw(response)
     
     def add_asset_to_watchlist_by_id(
         self,
@@ -289,16 +232,12 @@ class AlpacaWatchlistClient(AlpacaBaseClient):
             payload["symbol"] = symbol
 
                 
-        response_json = self._post(
-            url=f"{self.base_url}/watchlists/{watchlist_id}",
+        response = self.post(
+            endpoint=f"{self.base_url}/watchlists/{watchlist_id}",
             payload = payload
-        ).json()
+        )
 
-        if response_json is None:
-            self._logger.warning("No watchlist response received.")
-            return None
-
-        return Watchlist.from_raw(response_json)
+        return Watchlist.from_raw(response)
     
     def create_watchlist(
         self,
@@ -321,14 +260,9 @@ class AlpacaWatchlistClient(AlpacaBaseClient):
         if symbols:
             payload["symbols"] = symbols
                 
-        response_json = self._post(
-            url=f"{self.base_url}/watchlists",
+        response = self.post(
+            endpoint=f"{self.base_url}/watchlists",
             payload = payload
-        ).json()
+        )
 
-        if response_json is None:
-            self._logger.warning("No watchlist response received.")
-            return None
-        self._logger.info("✅ Watchlist created: %s", response_json)
-
-        return Watchlist.from_raw(response_json)
+        return Watchlist.from_raw(response)

@@ -25,30 +25,20 @@ class AlpacaAccountClient(AlpacaBaseClient):
     def fetch_account(self) -> Optional[Account]:
         """Fetch account data from Alpaca."""
 
-        responseJson = self._get(
-            url=f"{self.base_url}/account"
-        ).json()
-
-        # self.logger.debug(f"News for {symbols}: {responseJson}")
-        if responseJson is None:
-            self.logger.warning(f"No account data available")
-            return None       
+        response = self.get(
+            endpoint=f"{self.base_url}/account"
+        )  
         
-        return Account.from_raw(responseJson)
+        return Account.from_raw(response)
 
     def fetch_account_configuration(self) -> Optional[AccountConfiguration]:
         """Fetch account data from Alpaca."""
 
-        responseJson = self._get(
-            url=f"{self.base_url}/account/configurations"
-        ).json()
-
-        # self.logger.debug(f"News for {symbols}: {responseJson}")
-        if responseJson is None:
-            self.logger.warning(f"No account data available")
-            return None       
+        response = self.get(
+            endpoint=f"{self.base_url}/account/configurations"
+        )
         
-        return AccountConfiguration.from_raw(responseJson)
+        return AccountConfiguration.from_raw(response)
 
     def update_account_configuration(
         self,
@@ -89,17 +79,12 @@ class AlpacaAccountClient(AlpacaBaseClient):
             payload["ptp_no_exception_entry"] = ptp_no_exception_entry
 
         # Send the PATCH request
-        response = self._patch(
+        response = self.patch(
             url=f"{self.base_url}/account/configurations",
             payload=payload
         )
 
-        if response.status_code != 200:
-            self.logger.warning(f"Failed to update account config: {response.status_code} {response.text}")
-            return None
-
-        response_json = response.json()
-        return AccountConfiguration.from_raw(response_json)
+        return AccountConfiguration.from_raw(response)
 
     def get_account_activities(
         self,
@@ -152,22 +137,12 @@ class AlpacaAccountClient(AlpacaBaseClient):
         if page_token:
             params["page_token"] = page_token
 
-        # Format all non-None parameters
-        for k, v in params.items():
-            if v is not None:
-                params[k] = self._format_param(v)
-                
-        response = self._get(
-            url=f"{self.base_url}/account/activities",
+        response = self.get(
+            endpoint=f"{self.base_url}/account/activities",
             params=params
         )
 
-        if response.status_code != 200:
-            self.logger.warning(f"Failed to retrieve account activities: {response.status_code} {response.text}")
-            return None
-
-        response_json = response.json()
-        return AccountActivities.from_raw(response_json)
+        return AccountActivities.from_raw(response)
     
     def get_account_activities_by_activity_type(
         self,
@@ -209,20 +184,10 @@ class AlpacaAccountClient(AlpacaBaseClient):
             params["page_size"] = str(page_size)
         if page_token:
             params["page_token"] = page_token
-
-        # Format all non-None parameters
-        for k, v in params.items():
-            if v is not None:
-                params[k] = self._format_param(v)
                 
-        response = self._get(
-            url=f"{self.base_url}/account/activities/{activity_type.value}",
+        response = self.get(
+            endpoint=f"{self.base_url}/account/activities/{activity_type.value}",
             params=params
         )
 
-        if response.status_code != 200:
-            self.logger.warning(f"Failed to retrieve account activities: {response.status_code} {response.text}")
-            return None
-
-        response_json = response.json()
-        return AccountActivities.from_raw(response_json)
+        return AccountActivities.from_raw(response)

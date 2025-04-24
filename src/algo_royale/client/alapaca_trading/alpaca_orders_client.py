@@ -11,16 +11,17 @@ from config.config import ALPACA_TRADING_URL
 
 class AlpacaOrdersClient(AlpacaBaseClient):
     """Singleton class to interact with Alpaca's API for orders data.""" 
-    
-    def __init__(self):
-        super().__init__()
-        self.base_url = ALPACA_TRADING_URL
 
     @property
     def client_name(self) -> str:
         """Subclasses must define a name for logging and ID purposes"""
         return "AlpacaOrdersClient"    
-    
+
+    @property
+    def base_url(self) -> str:
+        """Subclasses must define a name for logging and ID purposes"""
+        return ALPACA_TRADING_URL
+        
     def create_order(
         self,
         symbol: Optional[str] = None,
@@ -153,21 +154,12 @@ class AlpacaOrdersClient(AlpacaBaseClient):
         if position_intent:
             payload["position_intent"] = position_intent
 
-        # Format all non-None parameters
-        for k, v in payload.items():
-            if v is not None:
-                payload[k] = self._format_param(v)
-
-        response_json = self._post(
-            url=f"{self.base_url}/orders",
+        response = self.post(
+            endpoint=f"{self.base_url}/orders",
             payload=payload
-        ).json()
+        )
 
-        if response_json is None:
-            self._logger.warning("No order response received.")
-            return None
-
-        return Order.from_raw(response_json)
+        return Order.from_raw(response)
     
     def get_all_orders(
         self,
@@ -216,22 +208,13 @@ class AlpacaOrdersClient(AlpacaBaseClient):
             params["symbols"] = ",".join(symbols),
         if side:
             params["side"] = side
-        
-        # Format all non-None parameters
-        for k, v in params.items():
-            if v is not None:
-                params[k] = self._format_param(v)
 
-        response_json = self._get(
-            url=f"{self.base_url}/orders",
+        response = self.get(
+            endpoint=f"{self.base_url}/orders",
             params=params
-        ).json()
+        )
 
-        if response_json is None:
-            self._logger.warning("No order response received.")
-            return None
-
-        return OrderListResponse.from_raw(response_json)
+        return OrderListResponse.from_raw(response)
     
     def get_order_by_client_order_id(
         self,
@@ -251,22 +234,13 @@ class AlpacaOrdersClient(AlpacaBaseClient):
         params["client_order_id"] = client_order_id
         if nested:
             params["nested"] = nested
-            
-                # Format all non-None parameters
-        for k, v in params.items():
-            if v is not None:
-                params[k] = self._format_param(v)
                 
-        response_json = self._get(
-            url=f"{self.base_url}/orders:by_client_order_id",
+        response = self.get(
+            endpoint=f"{self.base_url}/orders:by_client_order_id",
             params = params
-        ).json()
+        )
 
-        if response_json is None:
-            self._logger.warning("No order response received.")
-            return None
-
-        return Order.from_raw(response_json)
+        return Order.from_raw(response)
     
     def replace_order_by_client_order_id(
         self,
@@ -323,26 +297,17 @@ class AlpacaOrdersClient(AlpacaBaseClient):
         if new_client_order_id:
             payload["client_order_id"] = new_client_order_id
 
-        # Format all non-None parameters
-        for k, v in payload.items():
-            if v is not None:
-                payload[k] = self._format_param(v)
-
-        response_json = self._patch(
-            url=f"{self.base_url}/orders/{client_order_id}",
+        response = self.patch(
+            endpoint=f"{self.base_url}/orders/{client_order_id}",
             payload=payload
-        ).json()
+        )
 
-        if response_json is None:
-            self._logger.warning("No order response received.")
-            return None
-
-        return Order.from_raw(response_json)
+        return Order.from_raw(response)
     
     def delete_order_by_client_order_id(
         self,
         client_order_id: str,
-    ) -> Optional[DeleteOrdersResponse]:
+    ):
         """
         Delete an order by its client_order_id.
 
@@ -351,30 +316,9 @@ class AlpacaOrdersClient(AlpacaBaseClient):
             - Raises ValueError if the order status is not cancelable (422).
             - Parsed JSON response in other cases.
         """
-        response = self._delete(
-            url=f"{self.base_url}/orders/{client_order_id}",
-        )
-
-        if response.status_code == 204:  # No Content - Order successfully deleted
-            return None  # No content to return
-        
-        elif response.status_code == 422:  # Unprocessable Entity - Order cannot be canceled
-            raise ValueError("The order status is not cancelable.")
-        
-        # If the status code is not 204 or 422, we return an error
-        response.raise_for_status()  # This will raise an HTTPError for any 4xx/5xx status codes
-
-        # Only try to parse the response as JSON if it's not empty
-        if response.content:
-            try:
-                # Attempt to parse the response if there's any content
-                response_json = response.json()
-            except ValueError:
-                response_json = None  # Return None if the response body is invalid JSON
-        else:
-            response_json = None  # No content to parse
-        
-        return response_json  # Return parsed JSON or None if there's no content
+        self._delete(
+            endpoint=f"{self.base_url}/orders/{client_order_id}",
+        )  
     
     def delete_all_orders(
         self
@@ -385,14 +329,10 @@ class AlpacaOrdersClient(AlpacaBaseClient):
         Returns:
             - DeleteOrdersResponse object or None if no response.
         """
-        response_json = self._delete(
-            url=f"{self.base_url}/orders"
-        ).json()
+        response = self._delete(
+            endpoint=f"{self.base_url}/orders"
+        )
 
-        if response_json is None:
-            self._logger.warning("No order response received.")
-            return None
-
-        return DeleteOrdersResponse.from_raw(response_json) 
+        return DeleteOrdersResponse.from_raw(response) 
     
     

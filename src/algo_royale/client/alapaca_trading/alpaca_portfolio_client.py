@@ -11,14 +11,16 @@ from config.config import ALPACA_TRADING_URL
 class AlpacaPortfolioClient(AlpacaBaseClient):
     """Singleton class to interact with Alpaca's API for portfolio data.""" 
     
-    def __init__(self):
-        super().__init__()
-        self.base_url = ALPACA_TRADING_URL
 
     @property
     def client_name(self) -> str:
         """Subclasses must define a name for logging and ID purposes"""
         return "AlpacaPortfolioClient"    
+    
+    @property
+    def base_url(self) -> str:
+        """Subclasses must define a name for logging and ID purposes"""
+        return ALPACA_TRADING_URL
     
     def fetch_portfolio_history(
             self,
@@ -90,19 +92,11 @@ class AlpacaPortfolioClient(AlpacaBaseClient):
             params["end"] = end
         if cashflow_types:
             params["cashflow_types"] = cashflow_types
-            
-        for k, v in params.items():
-            if v is not None:
-                params[k] = self._format_param(v)
                 
-        responseJson = self._get(
-            url=f"{self.base_url}/account/portfolio/history",
+        response = self._get(
+            endpoint=f"{self.base_url}/account/portfolio/history",
             params=params
-        ).json()
-
-        if responseJson is None:
-            self._logger.warning(f"No portfolio performance data available")
-            return None       
+        )
         
-        return PortfolioPerformance.from_raw(responseJson)
+        return PortfolioPerformance.from_raw(response)
             
