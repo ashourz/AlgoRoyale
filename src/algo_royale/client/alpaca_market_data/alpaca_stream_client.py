@@ -64,7 +64,7 @@ class AlpacaStreamClient(AlpacaBaseClient):
         """
         self.quote_symbols.update(symbols)
 
-        url = f"{self.base_url_data_stream}/{feed.value}"
+        url = f"{self.base_url}/{feed.value}"
 
         while not self.stop_stream:
             try:
@@ -73,7 +73,7 @@ class AlpacaStreamClient(AlpacaBaseClient):
                     await self._authenticate(ws)
                     await self._send_subscription(ws)
 
-                    self._logger.info("WebSocket connection established")
+                    self.logger.info("WebSocket connection established")
 
                     # Run both loops concurrently
                     await asyncio.gather(
@@ -82,8 +82,8 @@ class AlpacaStreamClient(AlpacaBaseClient):
                     )
 
             except Exception as e:
-                self._logger.warning(f"WebSocket disconnected: {e}")
-                self._logger.info(f"Attempting reconnect in {self.reconnect_delay} seconds...")
+                self.logger.warning(f"WebSocket disconnected: {e}")
+                self.logger.info(f"Attempting reconnect in {self.reconnect_delay} seconds...")
                 await asyncio.sleep(self.reconnect_delay)
 
     async def _authenticate(self, ws):
@@ -95,7 +95,7 @@ class AlpacaStreamClient(AlpacaBaseClient):
         }
         await ws.send(json.dumps(auth_msg))
         response = await ws.recv()
-        self._logger.info(f"Auth response: {response}")
+        self.logger.info(f"Auth response: {response}")
 
     async def _send_subscription(self, ws):
         """Send subscription message for quotes/trades/bars."""
@@ -106,7 +106,7 @@ class AlpacaStreamClient(AlpacaBaseClient):
             "bars": list(self.bar_symbols)
         }
         await ws.send(json.dumps(msg))
-        self._logger.info(f"Subscribed to quotes: {self.quote_symbols}, trades: {self.trade_symbols}, bars: {self.bar_symbols}")
+        self.logger.info(f"Subscribed to quotes: {self.quote_symbols}, trades: {self.trade_symbols}, bars: {self.bar_symbols}")
 
     async def _unsubscribe(self, ws, quotes=[], trades=[], bars=[]):
         """Send unsubscribe message."""
@@ -117,7 +117,7 @@ class AlpacaStreamClient(AlpacaBaseClient):
             "bars": bars
         }
         await ws.send(json.dumps(msg))
-        self._logger.info(f"Unsubscribed from quotes: {quotes}, trades: {trades}, bars: {bars}")
+        self.logger.info(f"Unsubscribed from quotes: {quotes}, trades: {trades}, bars: {bars}")
 
     async def _receive_loop(self, ws, on_quote, on_trade, on_bar):
         """
@@ -133,7 +133,7 @@ class AlpacaStreamClient(AlpacaBaseClient):
             while not self.stop_stream:
                 message = await ws.recv()
                 data = json.loads(message)
-                self._logger.debug(f"Received: {data}")
+                self.logger.debug(f"Received: {data}")
 
                 # Handle each item in list individually
                 for item in data if isinstance(data, list) else [data]:
@@ -146,9 +146,9 @@ class AlpacaStreamClient(AlpacaBaseClient):
                         await on_bar(item)
 
         except websockets.ConnectionClosed as e:
-            self._logger.warning(f"WebSocket closed: {e}")
+            self.logger.warning(f"WebSocket closed: {e}")
         except Exception as e:
-            self._logger.error(f"Receive error: {e}")
+            self.logger.error(f"Receive error: {e}")
 
     async def _ping_loop(self, ws):
         """Send periodic ping messages to keep the connection alive."""
@@ -156,10 +156,10 @@ class AlpacaStreamClient(AlpacaBaseClient):
             while not self.stop_stream:
                 ping_msg = {"action": "ping"}
                 await ws.send(json.dumps(ping_msg))
-                self._logger.debug("Sent ping")
+                self.logger.debug("Sent ping")
                 await asyncio.sleep(self.keep_alive_timeout)
         except Exception as e:
-            self._logger.warning(f"Ping loop terminated: {e}")
+            self.logger.warning(f"Ping loop terminated: {e}")
 
     async def add_symbols(self, quotes=[], trades=[], bars=[]):
         """
@@ -197,6 +197,6 @@ class AlpacaStreamClient(AlpacaBaseClient):
         """
         Stop the WebSocket stream gracefully.
         """
-        self._logger.info("Stopping stream...")
+        self.logger.info("Stopping stream...")
         self.stop_stream = True
 

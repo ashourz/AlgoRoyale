@@ -134,62 +134,52 @@ class AlpacaBaseClient(ABC):
     
     def _make_request(self, method: str, endpoint: str, params: dict = None, data: dict = None) -> Any:
         """General method for making HTTP requests to the Alpaca API."""
-        try:
-            # Format parameters with option to skip
-            formatted_params = {key: self._format_param(value) for key, value in (params or {}).items()}
-            formatted_data = {key: self._format_data(value) for key, value in (data or {}).items()}
-            url = f"{self.base_url}/{endpoint}"
-            headers = self._get_headers()
+        # Format parameters with option to skip
+        formatted_params = {key: self._format_param(value) for key, value in (params or {}).items()}
+        formatted_data = {key: self._format_data(value) for key, value in (data or {}).items()}
+        url = f"{self.base_url}/{endpoint}"
+        headers = self._get_headers()
 
-            # Logging the request before sending
-            self.logger.debug(
-                f"sending {method.upper()} request to {url} | headers: {headers} | params: {formatted_params} | data: {formatted_data}"
-            )
-            self.logger.debug(f"Formatted data going into request: {formatted_data}")
+        # Logging the request before sending
+        self.logger.debug(
+            f"sending {method.upper()} request to {url} | headers: {headers} | params: {formatted_params} | data: {formatted_data}"
+        )
+        self.logger.debug(f"Formatted data going into request: {formatted_data}")
 
-            response = self.client.request(method=method, url = url,  headers = headers, params=formatted_params, json=data)
+        response = self.client.request(method=method, url = url,  headers = headers, params=formatted_params, json=data)
 
-            self.logger.debug(f"received response {response.status_code} | body: {response.text}")
-            
-            response.raise_for_status()  # Will raise HTTPStatusError for 4xx/5xx errors
-            self._handle_http_error(response)
-            return self._safe_json_parse(response)
-        except httpx.HTTPStatusError as e:
-            raise AlpacaAPIException(f"HTTP status error: {e}")
-        except Exception as e:
-            raise AlpacaAPIException(f"An unexpected error occurred: {e}")
+        self.logger.debug(f"received response {response.status_code} | body: {response.text}")
+        
+        response.raise_for_status()  # Will raise HTTPStatusError for 4xx/5xx errors
+        self._handle_http_error(response)
+        return self._safe_json_parse(response)
 
     async def _make_request_async(self, method: str, endpoint: str, params: dict = None, data: dict = None) -> Any:
         """General method for making HTTP requests to the Alpaca API."""
-        try:
-            # Format parameters with option to skip
-            formatted_params = {key: self._format_param(value) for key, value in (params or {}).items()}
-            formatted_data = {key: self._format_data(value) for key, value in (data or {}).items()}
-            url = f"{self.base_url}/{endpoint}"
-            headers = self._get_headers()
+        # Format parameters with option to skip
+        formatted_params = {key: self._format_param(value) for key, value in (params or {}).items()}
+        formatted_data = {key: self._format_data(value) for key, value in (data or {}).items()}
+        url = f"{self.base_url}/{endpoint}"
+        headers = self._get_headers()
 
-            # Logging the request before sending
-            self.logger.debug(
-                f"sending {method.upper()} request to {url} | headers: {headers} | params: {formatted_params} | data: {formatted_data}"
-            )
-            
-            response = await self.async_client.request(method=method, url = url,  headers = headers, params=formatted_params, json=data)
+        # Logging the request before sending
+        self.logger.debug(
+            f"sending {method.upper()} request to {url} | headers: {headers} | params: {formatted_params} | data: {formatted_data}"
+        )
+        
+        response = await self.async_client.request(method=method, url = url,  headers = headers, params=formatted_params, json=data)
 
-            self.logger.debug(
-                f"received response {response.status_code} | body: {response.text}"
-            )
-            
-            response.raise_for_status()  # Will raise HTTPStatusError for 4xx/5xx errors
-            self._handle_http_error(response)
-            
-            if response.status_code == 204 or not response.content.strip():
-                return None  # Return None explicitly for empty or no-content responses
-            
-            return self._safe_json_parse(response)
-        except httpx.HTTPStatusError as e:
-            raise AlpacaAPIException(f"HTTP status error: {e}")
-        except Exception as e:
-            raise AlpacaAPIException(f"An unexpected error occurred: {e}")
+        self.logger.debug(
+            f"received response {response.status_code} | body: {response.text}"
+        )
+        
+        response.raise_for_status()  # Will raise HTTPStatusError for 4xx/5xx errors
+        self._handle_http_error(response)
+        
+        if response.status_code == 204 or not response.content.strip():
+            return None  # Return None explicitly for empty or no-content responses
+        
+        return self._safe_json_parse(response)
         
     ## SYNC
     def get(self, endpoint: str, params: dict = None) -> Any:

@@ -54,13 +54,14 @@ class TestAlpacaAccountClientIntegration:
         """Test updating account configuration settings."""
         updated = alpaca_client.update_account_configuration(
             suspend_trade=False,
-            # no_shorting=False,
-            # fractional_trading=True,
-            dtbp_check=DTBPCheck.ENTRY.value,
-            # trade_confirm_email=TradeConfirmationEmail.NONE
+            no_shorting=False,
+            fractional_trading=True,
+            dtbp_check=DTBPCheck.ENTRY,
+            trade_confirm_email=TradeConfirmationEmail.NONE
         )
         assert updated is not None
-        assert updated.dtbp_check == DTBPCheck.BOTH
+        assert isinstance(updated, AccountConfiguration)
+        assert updated.dtbp_check == DTBPCheck.ENTRY
         assert updated.trade_confirm_email == TradeConfirmationEmail.NONE
 
     def test_get_account_activities(self, alpaca_client):
