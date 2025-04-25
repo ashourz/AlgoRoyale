@@ -62,7 +62,7 @@ class AlpacaBaseClient(ABC):
         """Return headers needed for API requests."""
         return {
             "accept": "application/json",
-            # "content-type": "application/json",
+            "content-type": "application/json",
             self.api_key_header: self.api_key,
             self.api_secret_header: self.api_secret,
         }
@@ -85,7 +85,7 @@ class AlpacaBaseClient(ABC):
             raise AlpacaAPIException(f"Unexpected error: {response.text}", response.status_code)
 
     def _format_param(self, param: Any) -> Any:
-        """Format parameter for API requests with option to skip formatting."""
+        """Format parameter for API requests."""
         if isinstance(param, datetime):
             # Format to ISO 8601 with Zulu time
             return param.strftime("%Y-%m-%dT%H:%M:%SZ")
@@ -104,7 +104,7 @@ class AlpacaBaseClient(ABC):
             return str(param)
 
     def _format_data(self, param: Any) -> Any:
-        """Format parameter for API requests with option to skip formatting."""
+        """Format parameter for API requests."""
 
         if isinstance(param, datetime):
             # Format to ISO 8601 with Zulu time
@@ -144,12 +144,11 @@ class AlpacaBaseClient(ABC):
             self.logger.debug(
                 f"sending {method.upper()} request to {url} | headers: {headers} | params: {formatted_params} | data: {formatted_data}"
             )
+            self.logger.debug(f"Formatted data going into request: {formatted_data}")
 
-            response = self.client.request(method=method, url = url,  headers = headers, params=formatted_params, data=data)
+            response = self.client.request(method=method, url = url,  headers = headers, params=formatted_params, json=formatted_data)
 
-            self.logger.debug(
-                f"received response {response.status_code} | body: {response.text}"
-            )
+            self.logger.debug(f"received response {response.status_code} | body: {response.text}")
             
             response.raise_for_status()  # Will raise HTTPStatusError for 4xx/5xx errors
             self._handle_http_error(response)
@@ -173,7 +172,7 @@ class AlpacaBaseClient(ABC):
                 f"sending {method.upper()} request to {url} | headers: {headers} | params: {formatted_params} | data: {formatted_data}"
             )
             
-            response = await self.async_client.request(method=method, url = url,  headers = headers, params=formatted_params, data=data)
+            response = await self.async_client.request(method=method, url = url,  headers = headers, params=formatted_params, json=data)
 
             self.logger.debug(
                 f"received response {response.status_code} | body: {response.text}"

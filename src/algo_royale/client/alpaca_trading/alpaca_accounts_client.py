@@ -55,7 +55,19 @@ class AlpacaAccountClient(AlpacaBaseClient):
         """
         Update and fetch account configuration from Alpaca.
 
-        Args are all optional, used to update account configuration settings.
+        Args:
+            dtbp_check: Optional, to update the day trade buying power check.
+            trade_confirm_email: Optional, to set whether trade confirmations are sent by email.
+            suspend_trade: Optional, to suspend trading for the account.
+            no_shorting: Optional, to prevent shorting of stocks.
+            fractional_trading: Optional, to enable/disable fractional trading.
+            max_margin_multiplier: Optional, to set the maximum margin multiplier.
+            max_options_trading_level: Optional, to set the max options trading level.
+            pdt_check: Optional, to enable/disable pattern day trader check.
+            ptp_no_exception_entry: Optional, to control exception entries in the pattern day trader check.
+
+        Returns:
+            AccountConfiguration: The updated account configuration.
         """
         payload = {}
 
@@ -70,18 +82,18 @@ class AlpacaAccountClient(AlpacaBaseClient):
         if fractional_trading is not None:
             payload["fractional_trading"] = fractional_trading
         if max_margin_multiplier is not None:
-            payload["max_margin_multiplier"] = max_margin_multiplier
+            payload["max_margin_multiplier"] = max_margin_multiplier.value if isinstance(max_margin_multiplier, Enum) else max_margin_multiplier
         if max_options_trading_level is not None:
-            payload["max_options_trading_level"] = max_options_trading_level
+            payload["max_options_trading_level"] = max_options_trading_level.value if isinstance(max_options_trading_level, Enum) else max_options_trading_level
         if pdt_check is not None:
-            payload["pdt_check"] = pdt_check
+            payload["pdt_check"] = pdt_check.value if isinstance(pdt_check, Enum) else pdt_check
         if ptp_no_exception_entry is not None:
             payload["ptp_no_exception_entry"] = ptp_no_exception_entry
 
         # Send the PATCH request
         response = self.patch(
-            url="account/configurations",
-            payload=payload
+            endpoint="account/configurations",
+            data=payload
         )
 
         return AccountConfiguration.from_raw(response)
@@ -121,7 +133,7 @@ class AlpacaAccountClient(AlpacaBaseClient):
 
         if activity_types:
             # Convert ActivityType enum values to their string representation for the API call
-            params["activity_types"] = ",".join([activity_type.value for activity_type in activity_types])
+            params["activity_types"] = activity_types
         if category:
             params["category"] = category
         if date:
@@ -173,11 +185,11 @@ class AlpacaAccountClient(AlpacaBaseClient):
         params = {}
 
         if date:
-            params["date"] = date.isoformat()
+            params["date"] = date
         if until:
-            params["until"] = until.isoformat()
+            params["until"] = until
         if after:
-            params["after"] = after.isoformat()
+            params["after"] = after
         if direction:
             params["direction"] = direction
         if page_size:
@@ -186,7 +198,7 @@ class AlpacaAccountClient(AlpacaBaseClient):
             params["page_token"] = page_token
                 
         response = self.get(
-            endpoint=f"{self.base_url}/account/activities/{activity_type.value}",
+            endpoint=f"account/activities/{activity_type.value}",
             params=params
         )
 

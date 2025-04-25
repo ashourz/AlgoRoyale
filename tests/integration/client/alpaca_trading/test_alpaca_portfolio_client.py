@@ -2,7 +2,7 @@
 
 from datetime import datetime
 import logging
-from algo_royale.client.alapaca_trading.alpaca_portfolio_client import AlpacaPortfolioClient
+from algo_royale.client.alpaca_trading.alpaca_portfolio_client import AlpacaPortfolioClient
 from models.alpaca_trading.alpaca_portfolio import PortfolioPerformance
 import pytest
 

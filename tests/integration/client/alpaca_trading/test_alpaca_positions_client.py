@@ -3,7 +3,7 @@
 from datetime import datetime, timedelta
 import logging
 from uuid import uuid4
-from algo_royale.client.alapaca_trading.alpaca_positions_client import AlpacaPositionsClient
+from algo_royale.client.alpaca_trading.alpaca_positions_client import AlpacaPositionsClient
 from httpx import HTTPStatusError
 from models.alpaca_trading.alpaca_position import ClosedPosition, ClosedPositionList, Position, PositionList, PositionSide
 import pytest

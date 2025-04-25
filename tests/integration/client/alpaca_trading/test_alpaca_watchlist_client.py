@@ -2,7 +2,7 @@
 
 import logging
 import uuid
-from algo_royale.client.alapaca_trading.alpaca_watchlist_client import AlpacaWatchlistClient
+from algo_royale.client.alpaca_trading.alpaca_watchlist_client import AlpacaWatchlistClient
 from models.alpaca_trading.alpaca_watchlist import Watchlist
 import pytest
 

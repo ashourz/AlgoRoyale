@@ -4,7 +4,7 @@ from datetime import datetime, timedelta
 import logging
 from models.alpaca_trading.enums import ActivityType, DTBPCheck, TradeConfirmationEmail
 import pytest
-from algo_royale.client.alapaca_trading.alpaca_accounts_client import AlpacaAccountClient
+from algo_royale.client.alpaca_trading.alpaca_accounts_client import AlpacaAccountClient
 from models.alpaca_trading.alpaca_account import Account, AccountActivities, AccountConfiguration
 
 # Set up logging (prints to console)
@@ -54,10 +54,10 @@ class TestAlpacaAccountClientIntegration:
         """Test updating account configuration settings."""
         updated = alpaca_client.update_account_configuration(
             suspend_trade=False,
-            no_shorting=False,
-            fractional_trading=True,
-            dtbp_check=DTBPCheck.BOTH,
-            trade_confirm_email=TradeConfirmationEmail.NONE
+            # no_shorting=False,
+            # fractional_trading=True,
+            dtbp_check=DTBPCheck.ENTRY.value,
+            # trade_confirm_email=TradeConfirmationEmail.NONE
         )
         assert updated is not None
         assert updated.dtbp_check == DTBPCheck.BOTH

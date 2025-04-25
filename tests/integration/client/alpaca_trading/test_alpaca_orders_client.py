@@ -3,7 +3,7 @@
 from datetime import datetime, timedelta
 import logging
 from uuid import uuid4
-from algo_royale.client.alapaca_trading.alpaca_orders_client import AlpacaOrdersClient
+from algo_royale.client.alpaca_trading.alpaca_orders_client import AlpacaOrdersClient
 from httpx import HTTPStatusError
 from models.alpaca_trading.alpaca_order import DeleteOrderStatus, DeleteOrdersResponse, OrderListResponse, Order
 from models.alpaca_trading.enums import OrderSide, OrderStatus, OrderStatusFilter, OrderType, SortDirection, TimeInForce

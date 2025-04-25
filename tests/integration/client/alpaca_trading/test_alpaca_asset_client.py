@@ -2,7 +2,7 @@
 
 import logging
 import pytest
-from algo_royale.client.alapaca_trading.alpaca_assets_client import AlpacaAssetsClient
+from algo_royale.client.alpaca_trading.alpaca_assets_client import AlpacaAssetsClient
 from models.alpaca_trading.alpaca_asset import Asset
 
 # Set up logging (prints to console)

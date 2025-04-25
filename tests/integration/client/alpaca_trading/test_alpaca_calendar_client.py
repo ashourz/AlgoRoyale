@@ -2,7 +2,7 @@
 
 import logging
 from datetime import datetime
-from algo_royale.client.alapaca_trading.alpaca_calendar_client import AlpacaCalendarClient
+from algo_royale.client.alpaca_trading.alpaca_calendar_client import AlpacaCalendarClient
 import pytest
 
 from models.alpaca_trading.alpaca_calendar import CalendarList, Calendar

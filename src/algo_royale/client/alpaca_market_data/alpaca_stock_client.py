@@ -52,8 +52,7 @@ class AlpacaStockClient(AlpacaBaseClient):
         if not isinstance(end_date, datetime):
             raise ValueError("end_date must be a datetime object")  
         
-        params = {}
-        for k, v in {
+        params = {
             "symbols": ",".join(symbols),
             "start": start_date.isoformat(),
             "end": end_date.isoformat(),
@@ -63,21 +62,14 @@ class AlpacaStockClient(AlpacaBaseClient):
             "page_token": page_token,
             "feed": feed,
             "asof": None,
-        }.items():
-            if v is not None:
-                params[k] = self._format_param(v)
+        }
                 
-        responseJson = self._get(
-            url=f"stocks/quotes",
+        response = self.get(
+            endpoint=f"stocks/quotes",
             params=params
-        ).json()
-
-        self._logger.debug(f"Historical quotes for {symbols}: {responseJson}")
-        if responseJson is None:
-            self._logger.warning(f"No historical data available for {symbols}")
-            return None       
+        )
         
-        return QuotesResponse.from_raw(responseJson)
+        return QuotesResponse.from_raw(response)
     
     def fetch_latest_quotes(
         self,
@@ -87,30 +79,21 @@ class AlpacaStockClient(AlpacaBaseClient):
     ) -> Optional[QuotesResponse]:
         """Fetch latest stock quotes from Alpaca."""
         
-
         if not isinstance(symbols, list):
             symbols = [symbols]
         
-        params = {}
-        for k, v in {
+        params = {
             "symbols": ",".join(symbols),
             "currency": currency,
             "feed": feed
-        }.items():
-            if v is not None:
-                params[k] = self._format_param(v)
+        }
                 
-        responseJson = self._get(
-            url=f"stocks/quotes/latest",
+        response = self.get(
+            endpoint=f"stocks/quotes/latest",
             params=params
-        ).json()
-
-        self._logger.debug(f"Latest quotes for {symbols}: {responseJson}")
-        if responseJson is None:
-            self._logger.warning(f"No latest data available for {symbols}")
-            return None       
+        )
         
-        return QuotesResponse.from_raw(responseJson)
+        return QuotesResponse.from_raw(response)
 
     def fetch_historical_auctions(
         self,
@@ -131,8 +114,7 @@ class AlpacaStockClient(AlpacaBaseClient):
         if not isinstance(end_date, datetime):
             raise ValueError("end_date must be a datetime object")  
         
-        params = {}
-        for k, v in {
+        params = {
             "symbols": ",".join(symbols),
             "start": start_date.isoformat(),
             "end": end_date.isoformat(),
@@ -142,20 +124,14 @@ class AlpacaStockClient(AlpacaBaseClient):
             "page_token": page_token,
             "feed": DataFeed.SIP,
             "asof": None,
-        }.items():
-            if v is not None:
-                params[k] = self._format_param(v)
+        }
                 
-        responseJson = self._get(
-            url=f"stocks/auctions",
+        response = self.get(
+            endpoint=f"stocks/auctions",
             params=params
-        ).json()
-
-        if responseJson is None:
-            self._logger.warning(f"No auctions data available for {symbols}")
-            return None       
+        )  
         
-        return AuctionResponse.from_raw(responseJson)
+        return AuctionResponse.from_raw(response)
     
     def fetch_historical_bars(
         self,
@@ -179,8 +155,7 @@ class AlpacaStockClient(AlpacaBaseClient):
         if not isinstance(end_date, datetime):
             raise ValueError("end_date must be a datetime object")  
         
-        params = {}
-        for k, v in {
+        params = {
             "symbols": ",".join(symbols),
             "start": start_date.isoformat(),
             "end": end_date.isoformat(),
@@ -192,20 +167,14 @@ class AlpacaStockClient(AlpacaBaseClient):
             "limit": min(page_limit, 1000),
             "page_token": page_token,
             "asof": None,
-        }.items():
-            if v is not None:
-                params[k] = self._format_param(v)
+        }
                 
-        responseJson = self._get(
-            url=f"stocks/bars",
+        response = self.get(
+            endpoint=f"stocks/bars",
             params=params
-        ).json()
-
-        if responseJson is None:
-            self._logger.warning(f"No auctions data available for {symbols}")
-            return None       
+        )
         
-        return BarsResponse.from_raw(responseJson)
+        return BarsResponse.from_raw(response)
     
     def fetch_latest_bars(
         self,
@@ -218,25 +187,18 @@ class AlpacaStockClient(AlpacaBaseClient):
         if not isinstance(symbols, list):
             symbols = [symbols]
         
-        params = {}
-        for k, v in {
+        params = {
             "symbols": ",".join(symbols),
             "currency": currency,
             "feed": feed
-        }.items():
-            if v is not None:
-                params[k] = self._format_param(v)
+        }
                 
-        responseJson = self._get(
-            url=f"stocks/bars/latest",
+        response = self.get(
+            endpoint=f"stocks/bars/latest",
             params=params
-        ).json()
-
-        if responseJson is None:
-            self._logger.warning(f"No auctions data available for {symbols}")
-            return None       
+        )      
         
-        return LatestBarsResponse.from_raw(responseJson)
+        return LatestBarsResponse.from_raw(response)
 
     def fetch_condition_codes(
         self,
@@ -245,23 +207,16 @@ class AlpacaStockClient(AlpacaBaseClient):
     ) -> Optional[ConditionCodeMap]:
         """Fetch condition codes metadata from Alpaca for a specific tick type and tape."""
         
-        params = {}
-        for k, v in {
+        params = {
             "tape": tape
-        }.items():
-            if v is not None:
-                params[k] = self._format_param(v)
+        }
                 
-        responseJson = self._get(
-            url=f"stocks/meta/conditions/{ticktype.value}",
+        response = self.get(
+            endpoint=f"stocks/meta/conditions/{ticktype.value}",
             params=params
-        ).json()
-
-        if responseJson is None:
-            self._logger.warning(f"No condition codes data available for {tape}")
-            return None       
+        )
         
-        return ConditionCodeMap.from_raw(responseJson)
+        return ConditionCodeMap.from_raw(response)
     
     
     def fetch_snapshots(
@@ -272,27 +227,17 @@ class AlpacaStockClient(AlpacaBaseClient):
     ) -> Optional[SnapshotsResponse]:
         """Fetch condition codes metadata from Alpaca for a specific tick type and tape."""
         
-        params = {}
-        for k, v in {
+        params = {
             "symbols": ",".join(symbols),
             "currency": currency,
             "feed": feed        
-        }.items():
-            if v is not None:
-                params[k] = self._format_param(v)
-                
-        responseJson = self._get(
-            url=f"stocks/snapshots",
+        }
+        response = self.get(
+            endpoint=f"stocks/snapshots",
             params=params
-        ).json()
+        )
 
-        if responseJson is None:
-            self._logger.warning(f"No snapshots data available for {symbols}")
-            return None       
-        
-        self._logger.debug(f"condition codes: {responseJson}")
-
-        return SnapshotsResponse.from_raw(responseJson)
+        return SnapshotsResponse.from_raw(response)
 
     def fetch_historical_trades(
         self,
@@ -307,8 +252,7 @@ class AlpacaStockClient(AlpacaBaseClient):
     ) -> Optional[HistoricalTradesResponse]:
         """Fetch historical stock trades from Alpaca between the specified dates for given symbols."""
         
-        params = {}
-        for k, v in {
+        params = {
             "symbols": ",".join(symbols),
             "start": start_date.isoformat(),
             "end": end_date.isoformat(),
@@ -318,22 +262,14 @@ class AlpacaStockClient(AlpacaBaseClient):
             "sort": sort_order,
             "page_token": page_token,
             "asof": None,
-        }.items():
-            if v is not None:
-                params[k] = self._format_param(v)
+        }
 
-        responseJson = self._get(
-            url=f"stocks/trades",
+        response = self.get(
+            endpoint=f"stocks/trades",
             params=params
-        ).json()
-
-        if responseJson is None:
-            self._logger.warning(f"No historical trade data available for {symbols}")
-            return None
-
-        self._logger.debug(f"historical trades: {responseJson}")
+        )
         
-        return HistoricalTradesResponse.from_raw(responseJson)
+        return HistoricalTradesResponse.from_raw(response)
     
     def fetch_latest_trades(
         self,
@@ -343,24 +279,15 @@ class AlpacaStockClient(AlpacaBaseClient):
     ) -> Optional[LatestTradesResponse]:
         """Fetch historical stock trades from Alpaca between the specified dates for given symbols."""
         
-        params = {}
-        for k, v in {
+        params = {
             "symbols": ",".join(symbols),
             "currency": currency,
             "feed": feed
-        }.items():
-            if v is not None:
-                params[k] = self._format_param(v)
+        }
 
-        responseJson = self._get(
-            url=f"stocks/trades/latest",
+        response = self.get(
+            endpoint=f"stocks/trades/latest",
             params=params
-        ).json()
-
-        if responseJson is None:
-            self._logger.warning(f"No latest trade data available for {symbols}")
-            return None
-
-        self._logger.debug(f"latest trades: {responseJson}")
+        )
         
-        return LatestTradesResponse.from_raw(responseJson)
+        return LatestTradesResponse.from_raw(response)
