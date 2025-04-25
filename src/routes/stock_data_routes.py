@@ -1,6 +1,6 @@
 # src/routes/stock_data_routes.py
 
-from src.service.stock_data_service import StockDataService
+from src.service.db.stock_data_service import StockDataService
 from datetime import datetime
 from decimal import Decimal
 from flask import Blueprint, request, jsonify

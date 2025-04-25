@@ -5,10 +5,10 @@ from unittest import TestCase
 from unittest.mock import MagicMock, patch
 from decimal import Decimal
 from datetime import datetime
-from src.service.stock_data_service import StockDataService
+from src.service.db.stock_data_service import StockDataService
 
 class TestStockDataService(TestCase):
-    @patch("src.service.stock_data_service.StockDataDAO")
+    @patch("src.service.db.stock_data_service.StockDataDAO")
     def setUp(self, MockStockDataDAO):
         """Set up mock objects and test data."""
         self.mock_dao = MockStockDataDAO.return_value

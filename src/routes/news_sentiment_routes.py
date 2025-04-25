@@ -1,6 +1,6 @@
 
 
-from src.service.news_sentiment_service import NewsSentimentService
+from src.service.db.news_sentiment_service import NewsSentimentService
 from datetime import datetime
 from decimal import Decimal
 from flask import Blueprint, request, jsonify

@@ -69,9 +69,5 @@ class AlpacaNewsClient(AlpacaBaseClient):
             endpoint=f"news",
             params=params
         )
-# "https://data.alpaca.markets/v1beta1/news?symbols=AAPL"
-# "https://data.alpaca.markets/v1beta1/news?symbols=AAPL"
-# "https://data.alpaca.markets/v1beta1/news?symbols=AAPL%2C%20TSLA"
-# "https://data.alpaca.markets/v1beta1/news?symbols=AAPL%2CTSLA"
-# "https://data.alpaca.markets/v1beta1/news?symbols=AAPL%2CGOOGL&limit=50"
+
         return NewsResponse.from_raw(response)

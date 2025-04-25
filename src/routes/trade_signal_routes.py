@@ -1,7 +1,7 @@
 # src/routes/trade_signal_routes.py
 
 from flask import Blueprint, request, jsonify
-from src.service.trade_signal_service import TradeSignalService
+from src.service.db.trade_signal_service import TradeSignalService
 from datetime import datetime
 from decimal import Decimal
 

@@ -5,10 +5,10 @@ from unittest import TestCase
 from unittest.mock import MagicMock, patch
 from decimal import Decimal
 from datetime import datetime
-from src.service.news_sentiment_service import NewsSentimentService
+from src.service.db.news_sentiment_service import NewsSentimentService
 
 class TestNewsSentimentService(TestCase):
-    @patch("src.service.news_sentiment_service.NewsSentimentDAO")
+    @patch("src.service.db.news_sentiment_service.NewsSentimentDAO")
     def setUp(self, MockNewsSentimentDAO):
         """Set up mock objects and test data."""
         self.mock_dao = MockNewsSentimentDAO.return_value

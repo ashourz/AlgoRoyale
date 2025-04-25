@@ -1,7 +1,7 @@
 # src/routes/indicator_routes.py
 
 from flask import Blueprint, request, jsonify
-from src.service.indicator_service import IndicatorService
+from src.service.db.indicator_service import IndicatorService
 from datetime import datetime
 from decimal import Decimal
 
