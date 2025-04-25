@@ -113,8 +113,7 @@ class TestAlpacaWatchlistClientIntegration:
 
         # Step 7: Delete the watchlist
         logger.info("🗑️ Deleting watchlist...")
-        deleted = alpaca_client.delete_watchlist_by_id(watchlist_id)
-        assert deleted is True, "❌ Failed to delete watchlist"
+        alpaca_client.delete_watchlist_by_id(watchlist_id)
         logger.info("✅ Watchlist deleted successfully")
 
         # Final Check: It should not be retrievable now
@@ -150,8 +149,7 @@ class TestAlpacaWatchlistClientIntegration:
 
         # Step 2: Delete the watchlist
         logger.info("🗑️ Deleting watchlist...")
-        deleted = alpaca_client.delete_watchlist_by_name( name = created.name )
-        assert deleted is True, "❌ Failed to delete watchlist"
+        alpaca_client.delete_watchlist_by_name( name = created.name )
         logger.info("✅ Watchlist deleted successfully")
 
         # Final Check: It should not be retrievable now

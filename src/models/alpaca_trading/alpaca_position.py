@@ -134,4 +134,4 @@ class ClosedPositionList(BaseModel):
         into structured ClosedPosition objects.
         """
         parsed_closed_position = [ClosedPosition.from_raw(closedPosition) for closedPosition in data]
-        return cls(orders=parsed_closed_position)
+        return cls(closedPositions=parsed_closed_position)

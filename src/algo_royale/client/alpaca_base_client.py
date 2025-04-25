@@ -147,7 +147,7 @@ class AlpacaBaseClient(ABC):
             )
             self.logger.debug(f"Formatted data going into request: {formatted_data}")
 
-            response = self.client.request(method=method, url = url,  headers = headers, params=formatted_params, json=formatted_data)
+            response = self.client.request(method=method, url = url,  headers = headers, params=formatted_params, json=data)
 
             self.logger.debug(f"received response {response.status_code} | body: {response.text}")
             
@@ -195,14 +195,14 @@ class AlpacaBaseClient(ABC):
     def get(self, endpoint: str, params: dict = None) -> Any:
         return self._make_request("GET", endpoint, params=params)
 
-    def post(self, endpoint: str, data: dict = None) -> Any:
-        return self._make_request("POST", endpoint, data=data)
+    def post(self, endpoint: str, params: dict = None, data: dict = None) -> Any:
+        return self._make_request("POST", endpoint, params=params, data=data)
 
     def patch(self, endpoint: str, data: dict = None) -> Any:
         return self._make_request("PATCH", endpoint, data=data)
     
-    def put(self, endpoint: str, data: dict = None) -> Any:
-        return self._make_request("PUT", endpoint, data=data)
+    def put(self, endpoint: str, params: dict = None, data: dict = None) -> Any:
+        return self._make_request("PUT", endpoint, params=params, data=data)
 
     def delete(self, endpoint: str, params: dict = None) -> Any:
         return self._make_request("DELETE", endpoint, params=params)
@@ -211,14 +211,14 @@ class AlpacaBaseClient(ABC):
     def get_async(self, endpoint: str, params: dict = None) -> Any:
         return self._make_request_async("GET", endpoint, params=params)
 
-    def post_async(self, endpoint: str, data: dict = None) -> Any:
-        return self._make_request_async("POST", endpoint, data=data)
+    def post_async(self, endpoint: str, params:dict =None, data: dict = None) -> Any:
+        return self._make_request_async("POST", endpoint, params=params, data=data)
 
     def patch_async(self, endpoint: str, data: dict = None) -> Any:
         return self._make_request_async("PATCH", endpoint, data=data)
     
-    def put_async(self, endpoint: str, data: dict = None) -> Any:
-        return self._make_request_async("PUT", endpoint, data=data)
+    def put_async(self, endpoint: str, params: dict = None, data: dict = None) -> Any:
+        return self._make_request_async("PUT", endpoint, params=params, data=data)
 
     def delete_async(self, endpoint: str, params: dict = None) -> Any:
         return self._make_request_async("DELETE", endpoint, params=params)
