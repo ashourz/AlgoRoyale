@@ -43,7 +43,7 @@ class AlpacaWatchlistClient(AlpacaBaseClient):
             - Watchlist object or None if no response.
         """
                 
-        response = self._get(
+        response = self.get(
             endpoint=f"watchlists/{watchlist_id}",
         )
 
@@ -122,7 +122,7 @@ class AlpacaWatchlistClient(AlpacaBaseClient):
             - Watchlist object or None if no response.
         """
         
-        response = self._delete(
+        response = self.delete(
             endpoint=f"watchlists/{watchlist_id}/{symbol}"
         )
 
@@ -148,7 +148,7 @@ class AlpacaWatchlistClient(AlpacaBaseClient):
                 
         response = self.put(
             endpoint=f"watchlists/{watchlist_id}",
-            payload = payload
+            data = payload
         )
         
         return Watchlist.from_raw(response)
@@ -176,7 +176,7 @@ class AlpacaWatchlistClient(AlpacaBaseClient):
         response = self.put(
             endpoint=f"watchlists:by_name",
             params = params,
-            payload = payload
+            data = payload
         )
 
         return Watchlist.from_raw(response)
@@ -206,7 +206,7 @@ class AlpacaWatchlistClient(AlpacaBaseClient):
         response = self.post(
             endpoint=f"watchlists:by_name",
             params = params,
-            payload = payload
+            data = payload
         )
 
         return Watchlist.from_raw(response)
@@ -234,7 +234,7 @@ class AlpacaWatchlistClient(AlpacaBaseClient):
                 
         response = self.post(
             endpoint=f"watchlists/{watchlist_id}",
-            payload = payload
+            data = payload
         )
 
         return Watchlist.from_raw(response)
@@ -262,7 +262,7 @@ class AlpacaWatchlistClient(AlpacaBaseClient):
                 
         response = self.post(
             endpoint=f"watchlists",
-            payload = payload
+            data = payload
         )
 
         return Watchlist.from_raw(response)

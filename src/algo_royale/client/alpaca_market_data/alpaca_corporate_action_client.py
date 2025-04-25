@@ -1,11 +1,11 @@
 # src/algo_royale/client/alpaca_corporate_action_client.py
 
-from enum import Enum
 from typing import List, Optional
 from algo_royale.client.alpaca_base_client import AlpacaBaseClient
-from models.alpaca_market_data.alpaca_corporate_action import CorporateActionResponse, CorporateActions
 from datetime import datetime
 from alpaca.common.enums import Sort
+from models.alpaca_market_data.alpaca_corporate_action import CorporateActionResponse
+from models.alpaca_market_data.enums import CorporateActions
 from config.config import ALPACA_PARAMS
 
 
@@ -63,11 +63,11 @@ class AlpacaCorporateActionClient(AlpacaBaseClient):
             "limit": min(page_limit, 1000),  # Alpaca limits to 1000
         }
         if cusips:
-            params["cusips"] = ",".join(cusips)
+            params["cusips"] = cusips
         if types:
-            params["types"] = ",".join(types)
+            params["types"] = types
         if ids:
-            params["ids"] = ",".join(ids)
+            params["ids"] = ids
         if page_token is not None:
             params["page_token"] = page_token
 

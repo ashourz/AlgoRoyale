@@ -93,7 +93,7 @@ class AlpacaPortfolioClient(AlpacaBaseClient):
         if cashflow_types:
             params["cashflow_types"] = cashflow_types
                 
-        response = self._get(
+        response = self.get(
             endpoint=f"account/portfolio/history",
             params=params
         )

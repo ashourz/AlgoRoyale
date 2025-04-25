@@ -105,7 +105,6 @@ class AlpacaBaseClient(ABC):
 
     def _format_data(self, param: Any) -> Any:
         """Format parameter for API requests."""
-
         if isinstance(param, datetime):
             # Format to ISO 8601 with Zulu time
             return param.strftime("%Y-%m-%dT%H:%M:%SZ")
@@ -116,6 +115,8 @@ class AlpacaBaseClient(ABC):
             return param.value
         elif isinstance(param, list):
             return ",".join(map(str, param))
+        # elif isinstance(param, bool):
+            # return str(param).lower()
         elif param is None:
             return None
         else:
@@ -124,7 +125,7 @@ class AlpacaBaseClient(ABC):
     def _safe_json_parse(self, response: httpx.Response) -> Any:
         """Safely parse a JSON response or return None if not applicable."""
         try:
-            if response.status_code in [204, 207] or not response.text.strip():
+            if 200 <= response.status_code < 300 and not response.text.strip():
                 return None
             return response.json()
         except ValueError:

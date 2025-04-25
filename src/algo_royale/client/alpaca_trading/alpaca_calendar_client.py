@@ -4,7 +4,6 @@
 from datetime import datetime
 from typing import Optional
 from algo_royale.client.alpaca_base_client import AlpacaBaseClient
-from models.alpaca_market_data.alpaca_corporate_action import CorporateActionDateType
 from models.alpaca_trading.alpaca_calendar import CalendarList
 from models.alpaca_trading.enums import CalendarDateType
 from config.config import ALPACA_TRADING_URL
@@ -40,7 +39,7 @@ class AlpacaCalendarClient(AlpacaBaseClient):
             params["date_type"] = date_type
         
                 
-        response = self._get(
+        response = self.get(
             endpoint="calendar",
             params = params
         )   

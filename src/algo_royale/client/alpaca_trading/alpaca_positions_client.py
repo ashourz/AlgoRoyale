@@ -114,7 +114,7 @@ class AlpacaPositionsClient(AlpacaBaseClient):
         if cancel_orders:
             params["cancel_orders"] = cancel_orders
             
-        response = self._delete(
+        response = self.delete(
             endpoint=f"positions",
             params =params
         )

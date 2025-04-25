@@ -156,7 +156,7 @@ class AlpacaOrdersClient(AlpacaBaseClient):
 
         response = self.post(
             endpoint="orders",
-            payload=payload
+            data=payload
         )
 
         return Order.from_raw(response)
@@ -299,7 +299,7 @@ class AlpacaOrdersClient(AlpacaBaseClient):
 
         response = self.patch(
             endpoint=f"orders/{client_order_id}",
-            payload=payload
+            data=payload
         )
 
         return Order.from_raw(response)
@@ -316,7 +316,7 @@ class AlpacaOrdersClient(AlpacaBaseClient):
             - Raises ValueError if the order status is not cancelable (422).
             - Parsed JSON response in other cases.
         """
-        self._delete(
+        self.delete(
             endpoint=f"orders/{client_order_id}",
         )  
     
@@ -329,7 +329,7 @@ class AlpacaOrdersClient(AlpacaBaseClient):
         Returns:
             - DeleteOrdersResponse object or None if no response.
         """
-        response = self._delete(
+        response = self.delete(
             endpoint="orders"
         )
 

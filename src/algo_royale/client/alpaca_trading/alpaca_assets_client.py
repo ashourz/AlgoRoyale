@@ -26,16 +26,12 @@ class AlpacaAssetsClient(AlpacaBaseClient):
         ) -> Optional[Asset]:
         """Fetch asset data from Alpaca."""
 
-        params = {}
-        for k, v in {
+        params = {
             "status": status,
             "asset_class": asset_class,
             "exchange": exchange
-        }.items():
-            if v is not None:
-                params[k] = self._format_param(v)
+        }
                 
-
         response = self.get(
             endpoint="assets",
             params=params
