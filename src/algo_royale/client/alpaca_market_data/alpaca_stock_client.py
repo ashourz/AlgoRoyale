@@ -68,7 +68,7 @@ class AlpacaStockClient(AlpacaBaseClient):
                 params[k] = self._format_param(v)
                 
         responseJson = self._get(
-            url=f"{self.base_url}/stocks/quotes",
+            url=f"stocks/quotes",
             params=params
         ).json()
 
@@ -101,7 +101,7 @@ class AlpacaStockClient(AlpacaBaseClient):
                 params[k] = self._format_param(v)
                 
         responseJson = self._get(
-            url=f"{self.base_url}/stocks/quotes/latest",
+            url=f"stocks/quotes/latest",
             params=params
         ).json()
 
@@ -147,7 +147,7 @@ class AlpacaStockClient(AlpacaBaseClient):
                 params[k] = self._format_param(v)
                 
         responseJson = self._get(
-            url=f"{self.base_url}/stocks/auctions",
+            url=f"stocks/auctions",
             params=params
         ).json()
 
@@ -197,7 +197,7 @@ class AlpacaStockClient(AlpacaBaseClient):
                 params[k] = self._format_param(v)
                 
         responseJson = self._get(
-            url=f"{self.base_url}/stocks/bars",
+            url=f"stocks/bars",
             params=params
         ).json()
 
@@ -228,7 +228,7 @@ class AlpacaStockClient(AlpacaBaseClient):
                 params[k] = self._format_param(v)
                 
         responseJson = self._get(
-            url=f"{self.base_url}/stocks/bars/latest",
+            url=f"stocks/bars/latest",
             params=params
         ).json()
 
@@ -253,7 +253,7 @@ class AlpacaStockClient(AlpacaBaseClient):
                 params[k] = self._format_param(v)
                 
         responseJson = self._get(
-            url=f"{self.base_url}/stocks/meta/conditions/{ticktype.value}",
+            url=f"stocks/meta/conditions/{ticktype.value}",
             params=params
         ).json()
 
@@ -282,7 +282,7 @@ class AlpacaStockClient(AlpacaBaseClient):
                 params[k] = self._format_param(v)
                 
         responseJson = self._get(
-            url=f"{self.base_url}/stocks/snapshots",
+            url=f"stocks/snapshots",
             params=params
         ).json()
 
@@ -323,7 +323,7 @@ class AlpacaStockClient(AlpacaBaseClient):
                 params[k] = self._format_param(v)
 
         responseJson = self._get(
-            url=f"{self.base_url}/stocks/trades",
+            url=f"stocks/trades",
             params=params
         ).json()
 
@@ -353,7 +353,7 @@ class AlpacaStockClient(AlpacaBaseClient):
                 params[k] = self._format_param(v)
 
         responseJson = self._get(
-            url=f"{self.base_url}/stocks/trades/latest",
+            url=f"stocks/trades/latest",
             params=params
         ).json()
 

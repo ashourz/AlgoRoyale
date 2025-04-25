@@ -41,7 +41,7 @@ class AlpacaCalendarClient(AlpacaBaseClient):
         
                 
         response = self._get(
-            endpoint=f"{self.base_url}/calendar",
+            endpoint="calendar",
             params = params
         )   
         

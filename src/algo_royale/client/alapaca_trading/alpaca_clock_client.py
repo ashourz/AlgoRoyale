@@ -26,7 +26,7 @@ class AlpacaClockClient(AlpacaBaseClient):
         """Fetch clock data from Alpaca."""
 
         response = self.get(
-            endpoint=f"{self.base_url}/clock"
+            endpoint="/clock"
         )    
         
         return Clock.from_raw(response)

@@ -1,6 +1,7 @@
 # src/algo_royale/client/alpaca_news_client.py
 
-from typing import List, Optional
+from enum import Enum
+from typing import List, Optional, Union
 from algo_royale.client.alpaca_base_client import AlpacaBaseClient
 from models.alpaca_market_data.alpaca_news import NewsResponse
 from datetime import datetime
@@ -22,38 +23,55 @@ class AlpacaNewsClient(AlpacaBaseClient):
     
     def fetch_news(
         self,
-        symbols: List[str],
-        start_date: datetime,
-        end_date: datetime,
-        include_content: bool = True,
-        exclude_contentless: bool = False,
-        sort_order: Sort = Sort.DESC,
-        page_limit: int = 1000,
-        page_token: str = None,
+        symbols: Optional[Union[str, List[str]]] = None,
+        start_date: Optional[datetime] = None,
+        end_date: Optional[datetime] = None,
+        include_content: Optional[bool] = None,
+        exclude_contentless: Optional[bool] = None,
+        sort_order: Optional[Sort] = None,
+        page_limit: Optional[int] = None,
+        page_token: Optional[str] = None,
     ) -> Optional[NewsResponse]:
         """Fetch news data from Alpaca."""
 
-        if not isinstance(symbols, list):
+        if symbols is None:
+            symbols = []
+        if isinstance(symbols, str):
             symbols = [symbols]
-        if not isinstance(start_date, datetime):
-            raise ValueError("start_date must be a datetime object")
-        if not isinstance(end_date, datetime):
-            raise ValueError("end_date must be a datetime object")  
-        
-        params = {
-            "symbols": ",".join(symbols),
-            "start": start_date.strftime("%Y-%m-%d"),  # YYYY-MM-DD format
-            "end": end_date.strftime("%Y-%m-%d"),      # YYYY-MM-DD format
-            "include_content": include_content,
-            "exclude_contentless": exclude_contentless,
-            "sort": sort_order,
-            "limit": min(page_limit, 50),  # Alpaca limits to 50
-            "page_token": page_token,
-        }
-         
+        elif not isinstance(symbols, list):
+            raise ValueError("symbols must be a list of strings or a single string")
+
+        if start_date is not None and not isinstance(start_date, datetime):
+            raise ValueError("start_date must be a datetime object or None")
+        if end_date is not None and not isinstance(end_date, datetime):
+            raise ValueError("end_date must be a datetime object or None")
+
+        params = {}
+
+        if symbols:
+            params["symbols"] = symbols
+        if start_date:
+            params["start"] = start_date
+        if end_date:
+            params["end"] = end_date
+        if include_content is not None:
+            params["include_content"] = include_content
+        if exclude_contentless is not None:
+            params["exclude_contentless"] = exclude_contentless
+        if sort_order:
+            params["sort"] = sort_order
+        if page_limit is not None:
+            params["limit"] = min(page_limit, 50)
+        if page_token:
+            params["page_token"] = page_token
+
         response = self.get(
-            endpoint=f"{self.base_url}/news",
+            endpoint=f"news",
             params=params
-        )  
-        
+        )
+# "https://data.alpaca.markets/v1beta1/news?symbols=AAPL"
+# "https://data.alpaca.markets/v1beta1/news?symbols=AAPL"
+# "https://data.alpaca.markets/v1beta1/news?symbols=AAPL%2C%20TSLA"
+# "https://data.alpaca.markets/v1beta1/news?symbols=AAPL%2CTSLA"
+# "https://data.alpaca.markets/v1beta1/news?symbols=AAPL%2CGOOGL&limit=50"
         return NewsResponse.from_raw(response)

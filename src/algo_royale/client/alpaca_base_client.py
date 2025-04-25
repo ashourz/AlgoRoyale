@@ -30,7 +30,7 @@ class AlpacaBaseClient(ABC):
         self.api_key_header = ALPACA_PARAMS["api_key_header"]
         self.api_secret_header = ALPACA_PARAMS["api_secret_header"]
         
-        self.client = httpx.Client(timeout=10.0)  # or httpx.AsyncClient(...) if using asyncio
+        self.client = httpx.Client(timeout = 10.0)  # or httpx.AsyncClient(...) if using asyncio
         self.async_client = httpx.AsyncClient(timeout=10.0)
 
         # Configurable reconnect delay and keep-alive timeout
@@ -62,9 +62,9 @@ class AlpacaBaseClient(ABC):
         """Return headers needed for API requests."""
         return {
             "accept": "application/json",
-            "content-type": "application/json",
-            "APCA-API-KEY-ID": self.api_key,
-            "APCA-API-SECRET-KEY": self.api_secret,
+            # "content-type": "application/json",
+            self.api_key_header: self.api_key,
+            self.api_secret_header: self.api_secret,
         }
     
     def _handle_http_error(self, response: httpx.Response) -> None:
@@ -81,14 +81,11 @@ class AlpacaBaseClient(ABC):
             raise AlpacaAPIException(f"Unprocessable Entity: {response.text}", 422)
         elif response.status_code >= 500:
             raise AlpacaServerErrorException(f"Server error: {response.text}", response.status_code)
-        elif not response.is_success:
+        elif not (200 <= response.status_code < 300):
             raise AlpacaAPIException(f"Unexpected error: {response.text}", response.status_code)
 
-    def _format_param(self, param: Any, skip_format: bool = False) -> Any:
+    def _format_param(self, param: Any) -> Any:
         """Format parameter for API requests with option to skip formatting."""
-        if skip_format:
-            return param  # If skip_format is True, return the param as-is.
-
         if isinstance(param, datetime):
             # Format to ISO 8601 with Zulu time
             return param.strftime("%Y-%m-%dT%H:%M:%SZ")
@@ -106,6 +103,24 @@ class AlpacaBaseClient(ABC):
         else:
             return str(param)
 
+    def _format_data(self, param: Any) -> Any:
+        """Format parameter for API requests with option to skip formatting."""
+
+        if isinstance(param, datetime):
+            # Format to ISO 8601 with Zulu time
+            return param.strftime("%Y-%m-%dT%H:%M:%SZ")
+        elif isinstance(param, date):
+            # Format to ISO 8601 with Zulu time
+            return param.strftime("%Y-%m-%d")
+        elif isinstance(param, Enum):
+            return param.value
+        elif isinstance(param, list):
+            return ",".join(map(str, param))
+        elif param is None:
+            return None
+        else:
+            return str(param)
+        
     def _safe_json_parse(self, response: httpx.Response) -> Any:
         """Safely parse a JSON response or return None if not applicable."""
         try:
@@ -116,12 +131,12 @@ class AlpacaBaseClient(ABC):
             self.logger.warning(f"Unable to parse JSON from response: {response.text}")
             return None
     
-    def _make_request(self, method: str, endpoint: str, params: dict = None, data: dict = None, skip_format: bool = False) -> Any:
+    def _make_request(self, method: str, endpoint: str, params: dict = None, data: dict = None) -> Any:
         """General method for making HTTP requests to the Alpaca API."""
         try:
             # Format parameters with option to skip
-            formatted_params = {key: self._format_param(value, skip_format) for key, value in (params or {}).items()}
-            formatted_data = {key: self._format_param(value, skip_format) for key, value in (data or {}).items()}
+            formatted_params = {key: self._format_param(value) for key, value in (params or {}).items()}
+            formatted_data = {key: self._format_data(value) for key, value in (data or {}).items()}
             url = f"{self.base_url}/{endpoint}"
             headers = self._get_headers()
 
@@ -130,8 +145,8 @@ class AlpacaBaseClient(ABC):
                 f"sending {method.upper()} request to {url} | headers: {headers} | params: {formatted_params} | data: {formatted_data}"
             )
 
-            response = self.client.request(method, url, params=formatted_params, json=formatted_data)
-            
+            response = self.client.request(method=method, url = url,  headers = headers, params=formatted_params, data=data)
+
             self.logger.debug(
                 f"received response {response.status_code} | body: {response.text}"
             )
@@ -144,12 +159,12 @@ class AlpacaBaseClient(ABC):
         except Exception as e:
             raise AlpacaAPIException(f"An unexpected error occurred: {e}")
 
-    async def _make_request_async(self, method: str, endpoint: str, params: dict = None, data: dict = None, skip_format: bool = False) -> Any:
+    async def _make_request_async(self, method: str, endpoint: str, params: dict = None, data: dict = None) -> Any:
         """General method for making HTTP requests to the Alpaca API."""
         try:
             # Format parameters with option to skip
-            formatted_params = {key: self._format_param(value, skip_format) for key, value in (params or {}).items()}
-            formatted_data = {key: self._format_param(value, skip_format) for key, value in (data or {}).items()}
+            formatted_params = {key: self._format_param(value) for key, value in (params or {}).items()}
+            formatted_data = {key: self._format_data(value) for key, value in (data or {}).items()}
             url = f"{self.base_url}/{endpoint}"
             headers = self._get_headers()
 
@@ -158,8 +173,8 @@ class AlpacaBaseClient(ABC):
                 f"sending {method.upper()} request to {url} | headers: {headers} | params: {formatted_params} | data: {formatted_data}"
             )
             
-            response = await self.async_client.request(method, url, params=formatted_params, json=formatted_data)
-            
+            response = await self.async_client.request(method=method, url = url,  headers = headers, params=formatted_params, data=data)
+
             self.logger.debug(
                 f"received response {response.status_code} | body: {response.text}"
             )
@@ -177,33 +192,33 @@ class AlpacaBaseClient(ABC):
             raise AlpacaAPIException(f"An unexpected error occurred: {e}")
         
     ## SYNC
-    def get(self, endpoint: str, params: dict = None, skip_format: bool = False) -> Any:
-        return self._make_request("GET", endpoint, params=params, skip_format=skip_format)
+    def get(self, endpoint: str, params: dict = None) -> Any:
+        return self._make_request("GET", endpoint, params=params)
 
-    def post(self, endpoint: str, data: dict = None, skip_format: bool = False) -> Any:
-        return self._make_request("POST", endpoint, data=data, skip_format=skip_format)
+    def post(self, endpoint: str, data: dict = None) -> Any:
+        return self._make_request("POST", endpoint, data=data)
 
-    def patch(self, endpoint: str, data: dict = None, skip_format: bool = False) -> Any:
-        return self._make_request("PATCH", endpoint, data=data, skip_format=skip_format)
+    def patch(self, endpoint: str, data: dict = None) -> Any:
+        return self._make_request("PATCH", endpoint, data=data)
     
-    def put(self, endpoint: str, data: dict = None, skip_format: bool = False) -> Any:
-        return self._make_request("PUT", endpoint, data=data, skip_format=skip_format)
+    def put(self, endpoint: str, data: dict = None) -> Any:
+        return self._make_request("PUT", endpoint, data=data)
 
-    def delete(self, endpoint: str, params: dict = None, skip_format: bool = False) -> Any:
-        return self._make_request("DELETE", endpoint, params=params, skip_format=skip_format)
+    def delete(self, endpoint: str, params: dict = None) -> Any:
+        return self._make_request("DELETE", endpoint, params=params)
     
     ## ASYNC
-    def get_async(self, endpoint: str, params: dict = None, skip_format: bool = False) -> Any:
-        return self._make_request_async("GET", endpoint, params=params, skip_format=skip_format)
+    def get_async(self, endpoint: str, params: dict = None) -> Any:
+        return self._make_request_async("GET", endpoint, params=params)
 
-    def post_async(self, endpoint: str, data: dict = None, skip_format: bool = False) -> Any:
-        return self._make_request_async("POST", endpoint, data=data, skip_format=skip_format)
+    def post_async(self, endpoint: str, data: dict = None) -> Any:
+        return self._make_request_async("POST", endpoint, data=data)
 
-    def patch_async(self, endpoint: str, data: dict = None, skip_format: bool = False) -> Any:
-        return self._make_request_async("PATCH", endpoint, data=data, skip_format=skip_format)
+    def patch_async(self, endpoint: str, data: dict = None) -> Any:
+        return self._make_request_async("PATCH", endpoint, data=data)
     
-    def put_async(self, endpoint: str, data: dict = None, skip_format: bool = False) -> Any:
-        return self._make_request_async("PUT", endpoint, data=data, skip_format=skip_format)
+    def put_async(self, endpoint: str, data: dict = None) -> Any:
+        return self._make_request_async("PUT", endpoint, data=data)
 
-    def delete_async(self, endpoint: str, params: dict = None, skip_format: bool = False) -> Any:
-        return self._make_request_async("DELETE", endpoint, params=params, skip_format=skip_format)
+    def delete_async(self, endpoint: str, params: dict = None) -> Any:
+        return self._make_request_async("DELETE", endpoint, params=params)

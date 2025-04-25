@@ -40,7 +40,7 @@ class AlpacaScreenerClient(AlpacaBaseClient):
         }
                 
         response = self.get(
-            endpoint=f"{self.base_url}/screener/stocks/most-actives",
+            endpoint=f"screener/stocks/most-actives",
             params=params
         )
         
@@ -60,7 +60,7 @@ class AlpacaScreenerClient(AlpacaBaseClient):
         }
                 
         response = self.get(
-            endpoint=f"{self.base_url}/screener/stocks/movers",
+            endpoint=f"screener/stocks/movers",
             params=params
         )
         

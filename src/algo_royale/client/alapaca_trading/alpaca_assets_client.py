@@ -37,7 +37,7 @@ class AlpacaAssetsClient(AlpacaBaseClient):
                 
 
         response = self.get(
-            endpoint=f"{self.base_url}/assets",
+            endpoint="assets",
             params=params
         )
    
@@ -50,7 +50,7 @@ class AlpacaAssetsClient(AlpacaBaseClient):
         """Fetch asset data from Alpaca."""
 
         response = self.get(
-            endpoint=f"{self.base_url}/assets/{symbol_or_asset_id}"
+            endpoint=f"assets/{symbol_or_asset_id}"
         )
         
         return Asset.from_raw(response)

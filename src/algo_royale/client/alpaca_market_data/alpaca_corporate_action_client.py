@@ -72,7 +72,7 @@ class AlpacaCorporateActionClient(AlpacaBaseClient):
             params["page_token"] = page_token
 
         response = self.get(
-            endpoint=f"{self.base_url}/corporate-actions",
+            endpoint=f"corporate-actions",
             params=params
         )
         

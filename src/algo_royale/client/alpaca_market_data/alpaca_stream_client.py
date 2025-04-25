@@ -4,7 +4,6 @@ import json
 from algo_royale.client.alpaca_base_client import AlpacaBaseClient
 from models.alpaca_market_data.enums import DataFeed
 import websockets
-from enum import Enum
 
 from config.config import ALPACA_PARAMS
 

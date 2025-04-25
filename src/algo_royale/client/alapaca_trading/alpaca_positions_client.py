@@ -36,7 +36,7 @@ class AlpacaPositionsClient(AlpacaBaseClient):
         """
 
         response = self.get(
-            endpoint=f"{self.base_url}/positions"
+            endpoint=f"positions"
         )
 
         return PositionList.from_raw(response)
@@ -55,7 +55,7 @@ class AlpacaPositionsClient(AlpacaBaseClient):
             - PositionList object or None if no response.
         """
         response = self.get(
-            endpoint=f"{self.base_url}/positions/{symbol_or_asset_id}",
+            endpoint=f"positions/{symbol_or_asset_id}",
         )
 
         return PositionList.from_raw(response)
@@ -93,7 +93,7 @@ class AlpacaPositionsClient(AlpacaBaseClient):
             params["percentage"] = percentage
                 
         response = self.delete(
-            endpoint=f"{self.base_url}/positions/{symbol_or_asset_id}",
+            endpoint=f"positions/{symbol_or_asset_id}",
             params=params
         )
 
@@ -115,7 +115,7 @@ class AlpacaPositionsClient(AlpacaBaseClient):
             params["cancel_orders"] = cancel_orders
             
         response = self._delete(
-            endpoint=f"{self.base_url}/positions",
+            endpoint=f"positions",
             params =params
         )
 

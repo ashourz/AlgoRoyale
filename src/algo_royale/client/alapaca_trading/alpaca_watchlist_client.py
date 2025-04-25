@@ -24,7 +24,7 @@ class AlpacaWatchlistClient(AlpacaBaseClient):
          """
                 
         response = self.get(
-            endpoint=f"{self.base_url}/watchlists",
+            endpoint=f"watchlists",
         ) 
         
         return WatchlistListResponse.from_raw(response)
@@ -44,7 +44,7 @@ class AlpacaWatchlistClient(AlpacaBaseClient):
         """
                 
         response = self._get(
-            endpoint=f"{self.base_url}/watchlists/{watchlist_id}",
+            endpoint=f"watchlists/{watchlist_id}",
         )
 
         return Watchlist.from_raw(response)
@@ -61,7 +61,7 @@ class AlpacaWatchlistClient(AlpacaBaseClient):
         """
                 
         self.delete(
-            endpoint=f"{self.base_url}/watchlists/{watchlist_id}",
+            endpoint=f"watchlists/{watchlist_id}",
         )
     
     def get_watchlist_by_name(
@@ -81,7 +81,7 @@ class AlpacaWatchlistClient(AlpacaBaseClient):
         params = {"name": name}
                 
         response = self.get(
-            endpoint=f"{self.base_url}/watchlists:by_name",
+            endpoint=f"watchlists:by_name",
             params = params
         )
 
@@ -102,7 +102,7 @@ class AlpacaWatchlistClient(AlpacaBaseClient):
         params = {"name": name}
                 
         self.delete(
-            endpoint=f"{self.base_url}/watchlists:by_name",
+            endpoint=f"watchlists:by_name",
             params = params
         )
 
@@ -123,7 +123,7 @@ class AlpacaWatchlistClient(AlpacaBaseClient):
         """
         
         response = self._delete(
-            endpoint=f"{self.base_url}/watchlists/{watchlist_id}/{symbol}"
+            endpoint=f"watchlists/{watchlist_id}/{symbol}"
         )
 
         return Watchlist.from_raw(response)
@@ -147,7 +147,7 @@ class AlpacaWatchlistClient(AlpacaBaseClient):
         payload = {"name": name}
                 
         response = self.put(
-            endpoint=f"{self.base_url}/watchlists/{watchlist_id}",
+            endpoint=f"watchlists/{watchlist_id}",
             payload = payload
         )
         
@@ -174,7 +174,7 @@ class AlpacaWatchlistClient(AlpacaBaseClient):
         payload = {"name": update_name}
                 
         response = self.put(
-            endpoint=f"{self.base_url}/watchlists:by_name",
+            endpoint=f"watchlists:by_name",
             params = params,
             payload = payload
         )
@@ -204,7 +204,7 @@ class AlpacaWatchlistClient(AlpacaBaseClient):
             params["symbol"] = symbol
                 
         response = self.post(
-            endpoint=f"{self.base_url}/watchlists:by_name",
+            endpoint=f"watchlists:by_name",
             params = params,
             payload = payload
         )
@@ -233,7 +233,7 @@ class AlpacaWatchlistClient(AlpacaBaseClient):
 
                 
         response = self.post(
-            endpoint=f"{self.base_url}/watchlists/{watchlist_id}",
+            endpoint=f"watchlists/{watchlist_id}",
             payload = payload
         )
 
@@ -261,7 +261,7 @@ class AlpacaWatchlistClient(AlpacaBaseClient):
             payload["symbols"] = symbols
                 
         response = self.post(
-            endpoint=f"{self.base_url}/watchlists",
+            endpoint=f"watchlists",
             payload = payload
         )
 

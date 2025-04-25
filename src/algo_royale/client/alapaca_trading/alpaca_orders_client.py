@@ -155,7 +155,7 @@ class AlpacaOrdersClient(AlpacaBaseClient):
             payload["position_intent"] = position_intent
 
         response = self.post(
-            endpoint=f"{self.base_url}/orders",
+            endpoint="orders",
             payload=payload
         )
 
@@ -210,7 +210,7 @@ class AlpacaOrdersClient(AlpacaBaseClient):
             params["side"] = side
 
         response = self.get(
-            endpoint=f"{self.base_url}/orders",
+            endpoint="orders",
             params=params
         )
 
@@ -236,7 +236,7 @@ class AlpacaOrdersClient(AlpacaBaseClient):
             params["nested"] = nested
                 
         response = self.get(
-            endpoint=f"{self.base_url}/orders:by_client_order_id",
+            endpoint="orders:by_client_order_id",
             params = params
         )
 
@@ -298,7 +298,7 @@ class AlpacaOrdersClient(AlpacaBaseClient):
             payload["client_order_id"] = new_client_order_id
 
         response = self.patch(
-            endpoint=f"{self.base_url}/orders/{client_order_id}",
+            endpoint=f"orders/{client_order_id}",
             payload=payload
         )
 
@@ -317,7 +317,7 @@ class AlpacaOrdersClient(AlpacaBaseClient):
             - Parsed JSON response in other cases.
         """
         self._delete(
-            endpoint=f"{self.base_url}/orders/{client_order_id}",
+            endpoint=f"orders/{client_order_id}",
         )  
     
     def delete_all_orders(
@@ -330,7 +330,7 @@ class AlpacaOrdersClient(AlpacaBaseClient):
             - DeleteOrdersResponse object or None if no response.
         """
         response = self._delete(
-            endpoint=f"{self.base_url}/orders"
+            endpoint="orders"
         )
 
         return DeleteOrdersResponse.from_raw(response) 

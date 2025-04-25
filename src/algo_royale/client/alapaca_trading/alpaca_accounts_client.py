@@ -26,7 +26,7 @@ class AlpacaAccountClient(AlpacaBaseClient):
         """Fetch account data from Alpaca."""
 
         response = self.get(
-            endpoint=f"{self.base_url}/account"
+            endpoint="account"
         )  
         
         return Account.from_raw(response)
@@ -35,7 +35,7 @@ class AlpacaAccountClient(AlpacaBaseClient):
         """Fetch account data from Alpaca."""
 
         response = self.get(
-            endpoint=f"{self.base_url}/account/configurations"
+            endpoint="account/configurations"
         )
         
         return AccountConfiguration.from_raw(response)
@@ -80,7 +80,7 @@ class AlpacaAccountClient(AlpacaBaseClient):
 
         # Send the PATCH request
         response = self.patch(
-            url=f"{self.base_url}/account/configurations",
+            url="account/configurations",
             payload=payload
         )
 
@@ -138,7 +138,7 @@ class AlpacaAccountClient(AlpacaBaseClient):
             params["page_token"] = page_token
 
         response = self.get(
-            endpoint=f"{self.base_url}/account/activities",
+            endpoint="account/activities",
             params=params
         )
 

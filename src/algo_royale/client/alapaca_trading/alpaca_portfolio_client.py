@@ -94,7 +94,7 @@ class AlpacaPortfolioClient(AlpacaBaseClient):
             params["cashflow_types"] = cashflow_types
                 
         response = self._get(
-            endpoint=f"{self.base_url}/account/portfolio/history",
+            endpoint=f"account/portfolio/history",
             params=params
         )
         
