@@ -4,7 +4,7 @@ from datetime import datetime
 from enum import Enum
 from typing import List, Optional
 from algo_royale.client.alpaca_base_client import AlpacaBaseClient
-from algo_royale.client.exceptions import MissingParameterError, ParameterConflictError
+from algo_royale.client.exceptions import AlpacaPositionNotFoundException, AlpacaResourceNotFoundException, MissingParameterError, ParameterConflictError
 from httpx import HTTPStatusError
 from models.alpaca_trading.alpaca_order import DeleteOrdersResponse, OrderListResponse, Order, StopLoss, TakeProfit
 from models.alpaca_trading.alpaca_position import ClosedPosition, ClosedPositionList, PositionList
@@ -54,11 +54,14 @@ class AlpacaPositionsClient(AlpacaBaseClient):
         Returns:
             - PositionList object or None if no response.
         """
-        response = self.get(
-            endpoint=f"positions/{symbol_or_asset_id}",
-        )
+        try:
+            response = self.get(
+                endpoint=f"positions/{symbol_or_asset_id}",
+            )
 
-        return PositionList.from_raw(response)
+            return PositionList.from_raw(response)
+        except AlpacaResourceNotFoundException as e:
+            raise AlpacaPositionNotFoundException(e.message)
     
     def close_position_by_symbol_or_asset_id(
         self,
@@ -91,14 +94,14 @@ class AlpacaPositionsClient(AlpacaBaseClient):
             params["qty"] = qty
         if percentage:
             params["percentage"] = percentage
-                
-        response = self.delete(
-            endpoint=f"positions/{symbol_or_asset_id}",
-            params=params
-        )
-
-        return ClosedPositionList.from_raw(response) 
-
+        try:
+            response = self.delete(
+                endpoint=f"positions/{symbol_or_asset_id}",
+                params=params
+            )
+            return ClosedPositionList.from_raw(response) 
+        except AlpacaResourceNotFoundException as e:
+            raise AlpacaPositionNotFoundException(e.message)
             
     def close_all_positions(
         self,

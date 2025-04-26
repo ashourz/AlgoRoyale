@@ -5,7 +5,7 @@ from enum import Enum
 import logging
 from datetime import date, datetime
 from typing import Any, Dict
-from algo_royale.client.exceptions import AlpacaAPIException, AlpacaBadRequestException, AlpacaServerErrorException, AlpacaUnauthorizedException
+from algo_royale.client.exceptions import AlpacaAPIException, AlpacaBadRequestException, AlpacaInvalidHeadersException, AlpacaResourceNotFoundException, AlpacaServerErrorException, AlpacaTooManyRequestsException, AlpacaUnauthorizedException, AlpacaUnprocessableException
 import httpx
 from config.config import ALPACA_PARAMS, ALPACA_SECRETS, LOGGING_PARAMS, get_logging_level
 
@@ -70,15 +70,24 @@ class AlpacaBaseClient(ABC):
     def _handle_http_error(self, response: httpx.Response) -> None:
         """Handle HTTP error responses."""
         if response.status_code == 400:
-            raise AlpacaBadRequestException(f"Bad request: {response.text}", 400)
+            raise AlpacaBadRequestException(response.text)
         elif response.status_code == 401:
-            raise AlpacaUnauthorizedException(f"Unauthorized access: {response.text}")
+            raise AlpacaUnauthorizedException(response.text)
         elif response.status_code == 403:
-            raise AlpacaAPIException(f"Forbidden: {response.text}", 403)
+            raise AlpacaInvalidHeadersException(response.text)
         elif response.status_code == 404:
-            raise AlpacaAPIException(f"Resource not found: {response.text}", 404)
+            raise AlpacaResourceNotFoundException(response.text)
         elif response.status_code == 422:
-            raise AlpacaAPIException(f"Unprocessable Entity: {response.text}", 422)
+            raise AlpacaUnprocessableException(response.text)
+        elif response.status_code == 429:
+            limit = response.headers["X-RateLimit-Limit"]
+            remaining = response.headers["X-RateLimit-Remaining"]
+            reset = response.headers["X-RateLimit-Reset"]
+            raise AlpacaTooManyRequestsException(
+                message=response.text,
+                limit=limit, 
+                remaining=remaining, 
+                reset=reset)
         elif response.status_code >= 500:
             raise AlpacaServerErrorException(f"Server error: {response.text}", response.status_code)
         elif not (200 <= response.status_code < 300):
@@ -150,8 +159,8 @@ class AlpacaBaseClient(ABC):
 
         self.logger.debug(f"received response {response.status_code} | body: {response.text}")
         
-        response.raise_for_status()  # Will raise HTTPStatusError for 4xx/5xx errors
         self._handle_http_error(response)
+        response.raise_for_status()  # Will raise HTTPStatusError for 4xx/5xx errors
         return self._safe_json_parse(response)
 
     async def _make_request_async(self, method: str, endpoint: str, params: dict = None, data: dict = None) -> Any:

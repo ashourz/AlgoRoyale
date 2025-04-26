@@ -4,7 +4,7 @@ from datetime import datetime
 from enum import Enum
 from typing import List, Optional
 from algo_royale.client.alpaca_base_client import AlpacaBaseClient
-from algo_royale.client.exceptions import MissingParameterError, ParameterConflictError
+from algo_royale.client.exceptions import AlpacaInvalidHeadersException, AlpacaUnprocessableException, InsufficientBuyingPowerOrSharesError, MissingParameterError, ParameterConflictError, UnprocessableOrderException
 from models.alpaca_trading.alpaca_order import DeleteOrdersResponse, OrderListResponse, Order, StopLoss, TakeProfit
 from models.alpaca_trading.enums import OrderClass, OrderSide, OrderStatus, OrderStatusFilter, OrderType, PositionIntent, SortDirection, TimeInForce
 from config.config import ALPACA_TRADING_URL
@@ -154,12 +154,15 @@ class AlpacaOrdersClient(AlpacaBaseClient):
         if position_intent:
             payload["position_intent"] = position_intent
 
-        response = self.post(
-            endpoint="orders",
-            data=payload
-        )
-
-        return Order.from_raw(response)
+        try:
+            response = self.post(
+                endpoint="orders",
+                data=payload
+            )
+            return Order.from_raw(response)
+        except AlpacaInvalidHeadersException as e:
+            self.logger.error(f"Insufficient buying power or shares. Code:{e.status_code} | Message:{e.message}")
+            raise InsufficientBuyingPowerOrSharesError(e.message)
     
     def get_all_orders(
         self,
@@ -316,10 +319,14 @@ class AlpacaOrdersClient(AlpacaBaseClient):
             - Raises ValueError if the order status is not cancelable (422).
             - Parsed JSON response in other cases.
         """
-        self.delete(
-            endpoint=f"orders/{client_order_id}",
-        )  
-    
+        try:
+            self.delete(
+                endpoint=f"orders/{client_order_id}",
+            )  
+        except UnprocessableOrderException as e:
+            self.logger.error(f"Order cannot be cancelled. Code:{e.status_code} | Message:{e.message}")
+            return None    
+        
     def delete_all_orders(
         self
     ) -> Optional[DeleteOrdersResponse]:
@@ -329,10 +336,11 @@ class AlpacaOrdersClient(AlpacaBaseClient):
         Returns:
             - DeleteOrdersResponse object or None if no response.
         """
-        response = self.delete(
-            endpoint="orders"
-        )
-
-        return DeleteOrdersResponse.from_raw(response) 
-    
-    
+        try:
+            response = self.delete(
+                endpoint="orders"
+            )
+            return DeleteOrdersResponse.from_raw(response) 
+        except AlpacaUnprocessableException as e:
+            self.logger.error(f"Order cannot be cancelled. Code:{e.status_code} | Message:{e.message}")
+            raise UnprocessableOrderException(e.message)    

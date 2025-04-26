@@ -2,6 +2,7 @@
 
 from typing import List, Optional
 from algo_royale.client.alpaca_base_client import AlpacaBaseClient
+from algo_royale.client.exceptions import AlpacaResourceNotFoundException, AlpacaWatchlistNotFoundException
 from models.alpaca_trading.alpaca_watchlist import Watchlist, WatchlistListResponse
 from config.config import ALPACA_TRADING_URL
 
@@ -59,11 +60,14 @@ class AlpacaWatchlistClient(AlpacaBaseClient):
         Parameters:
             - watchlist_id (str) :The watchlist ID.
         """
-                
-        self.delete(
-            endpoint=f"watchlists/{watchlist_id}",
-        )
-    
+        try:
+            self.delete(
+                endpoint=f"watchlists/{watchlist_id}",
+            )
+        except AlpacaResourceNotFoundException as e: 
+            self.logger.error(f"Watchlist not found. Code:{e.status_code} | Message:{e.message}")
+            raise AlpacaWatchlistNotFoundException(e.message)
+        
     def get_watchlist_by_name(
         self,
         name: str,
@@ -100,12 +104,16 @@ class AlpacaWatchlistClient(AlpacaBaseClient):
         """
                 
         params = {"name": name}
-                
-        self.delete(
-            endpoint=f"watchlists:by_name",
-            params = params
-        )
-
+        
+        try:
+            self.delete(
+                endpoint=f"watchlists:by_name",
+                params = params
+            )
+        except AlpacaResourceNotFoundException as e: 
+            self.logger.error(f"Watchlist not found. Code:{e.status_code} | Message:{e.message}")
+            raise AlpacaWatchlistNotFoundException(e.message)
+        
     def delete_symbol_from_watchlist(
         self,
         watchlist_id: str,
@@ -121,13 +129,15 @@ class AlpacaWatchlistClient(AlpacaBaseClient):
         Returns:
             - Watchlist object or None if no response.
         """
+        try:
+            response = self.delete(
+                endpoint=f"watchlists/{watchlist_id}/{symbol}"
+            )
+            return Watchlist.from_raw(response)
+        except AlpacaResourceNotFoundException as e: 
+            self.logger.error(f"Watchlist not found. Code:{e.status_code} | Message:{e.message}")
+            raise AlpacaWatchlistNotFoundException(e.message)
         
-        response = self.delete(
-            endpoint=f"watchlists/{watchlist_id}/{symbol}"
-        )
-
-        return Watchlist.from_raw(response)
-    
     def update_watchlist_by_id(
         self,
         watchlist_id: str,

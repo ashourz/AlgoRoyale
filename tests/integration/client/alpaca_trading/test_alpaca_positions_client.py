@@ -4,6 +4,7 @@ from datetime import datetime, timedelta
 import logging
 from uuid import uuid4
 from algo_royale.client.alpaca_trading.alpaca_positions_client import AlpacaPositionsClient
+from algo_royale.client.exceptions import AlpacaPositionNotFoundException
 from httpx import HTTPStatusError
 from models.alpaca_trading.alpaca_position import ClosedPosition, ClosedPositionList, Position, PositionList, PositionSide
 import pytest
@@ -61,15 +62,9 @@ class TestAlpacaPositionsClientIntegration:
                 assert isinstance(result, PositionList)
                 assert isinstance(result.positions, list)
                 assert any(p.symbol == symbol for p in result.positions)
-        except HTTPStatusError as e:
-            if e.response.status_code == 404:
-                # Acceptable: no open positions
-                logger.info(f"404: {e.response.status_code} {e.response.text}")
-                pass
-            else:
-                logger.error(f"HTTP error occurred: {e.response.status_code} {e.response.text}")
-                raise  # Unexpected error, fail the test
-            
+        except AlpacaPositionNotFoundException:
+            pass
+                    
     def test_close_position_by_symbol(self, alpaca_client):
         """Test closing a position by symbol with quantity."""
         symbol = "AAPL"  # Ensure you hold this position before running
@@ -90,14 +85,8 @@ class TestAlpacaPositionsClientIntegration:
                     assert closed.symbol == symbol
                     assert closed.status == 200
                     assert closed.order is not None
-        except HTTPStatusError as e:
-            if e.response.status_code == 404:
-                # Acceptable: no open position to close
-                logger.info(f"404: {e.response.status_code} {e.response.text}")
-                pass
-            else:
-                logger.error(f"HTTP error occurred: {e.response.status_code} {e.response.text}")
-                raise  # Unexpected error, fail the test
+        except AlpacaPositionNotFoundException:
+            pass
     
     def test_close_all_positions(self, alpaca_client):
         """Test closing all open positions."""

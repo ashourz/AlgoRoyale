@@ -2,6 +2,7 @@
 
 from typing import List, Optional
 from algo_royale.client.alpaca_base_client import AlpacaBaseClient
+from algo_royale.client.exceptions import AlpacaAssetNotFoundException, AlpacaResourceNotFoundException
 from models.alpaca_trading.alpaca_asset import Asset
 from config.config import ALPACA_TRADING_URL
 
@@ -32,12 +33,16 @@ class AlpacaAssetsClient(AlpacaBaseClient):
             "exchange": exchange
         }
                 
-        response = self.get(
-            endpoint="assets",
-            params=params
-        )
-   
-        return Asset.parse_assets(response)
+        try:
+            response = self.get(
+                endpoint="assets",
+                params=params
+            )
+            return Asset.parse_assets(response)
+        except AlpacaResourceNotFoundException as e:
+            self.logger.error(f"Asset not found. Code:{e.status_code} | Message:{e.message}")
+            raise AlpacaAssetNotFoundException(e.message)
+    
     
     def fetch_asset_by_symbol_or_id(
             self,
@@ -45,11 +50,13 @@ class AlpacaAssetsClient(AlpacaBaseClient):
         ) -> Optional[Asset]:
         """Fetch asset data from Alpaca."""
 
-        response = self.get(
-            endpoint=f"assets/{symbol_or_asset_id}"
-        )
-        
-        return Asset.from_raw(response)
-
+        try:
+            response = self.get(
+                endpoint=f"assets/{symbol_or_asset_id}"
+            )
+            return Asset.from_raw(response)
+        except AlpacaResourceNotFoundException as e:
+            self.logger.error(f"Asset not found. Code:{e.status_code} | Message:{e.message}")
+            raise AlpacaAssetNotFoundException(e.message)
 
             
