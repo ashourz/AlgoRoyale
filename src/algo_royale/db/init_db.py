@@ -1,7 +1,7 @@
 import psycopg2
 from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
-from pathlib import Path
 from config.config import DB_PARAMS, DB_SECRETS  # Import DB credentials
+from migration_manager import apply_migrations  # Import the migration manager
 
 def create_database_if_not_exists(dbname, user, password, host="localhost"):
     """
@@ -21,21 +21,6 @@ def create_database_if_not_exists(dbname, user, password, host="localhost"):
     conn.close()
 
 
-def apply_schema(conn):
-    """
-    Apply the schema to the database.
-    """
-    schema_path = Path(__file__).parent / "schema.sql"
-    
-    with open(schema_path, "r") as file:
-        schema_sql = file.read()
-
-    with conn.cursor() as cur:
-        cur.execute(schema_sql)
-        conn.commit()
-        print("✅ Schema applied successfully.")
-
-
 def main():
     # Use the imported DB_PARAMS directly for connection
     dbname = DB_PARAMS["dbname"]
@@ -50,8 +35,8 @@ def main():
     # Step 2: Connect to the created or existing database
     conn = psycopg2.connect(dbname=dbname, user=user, password=password, host=host, port=port)
 
-    # Step 3: Apply schema
-    apply_schema(conn)
+    # Step 3: Apply migrations using the migration manager (delegated)
+    apply_migrations(conn)
 
     # Close the connection
     conn.close()

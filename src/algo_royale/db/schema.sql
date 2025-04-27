@@ -5,6 +5,12 @@ DROP TABLE IF EXISTS indicators;
 DROP TABLE IF EXISTS news_sentiment;    
 DROP TABLE IF EXISTS stock_data;
 
+-- DB Migrations
+CREATE TABLE schema_migrations (
+    id SERIAL PRIMARY KEY,
+    version VARCHAR(50) NOT NULL,
+    applied_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
 -- Trades table
 CREATE TABLE
     trades (
@@ -75,6 +81,7 @@ CREATE TABLE
         close FLOAT,
         volume INT
     );
+
 -- Indexes for performance
 CREATE INDEX idx_trade_symbol ON trades (symbol);
 CREATE INDEX idx_trade_signals_symbol ON trade_signals (symbol);
