@@ -1,4 +1,4 @@
-# alpaca_client/exceptions.py
+## client\exceptions.py
 
 ## REQUEST EXCEPTION
 class ClientRequestException(Exception):

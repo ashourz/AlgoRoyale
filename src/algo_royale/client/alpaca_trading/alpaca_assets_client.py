@@ -1,4 +1,4 @@
-# src/algo_royale/client/alpaca_news_client.py
+## client\alpaca_trading\alpaca_assets_client.py
 
 from typing import List, Optional
 from algo_royale.client.alpaca_base_client import AlpacaBaseClient

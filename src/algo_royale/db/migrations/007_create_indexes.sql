@@ -1,4 +1,4 @@
--- migrations/005_create_indexes.sql
+-- db\migrations\007_create_indexes.sql
 
 -- Indexes for performance
 CREATE INDEX idx_trade_symbol ON trades (symbol);

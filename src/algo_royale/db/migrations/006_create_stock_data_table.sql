@@ -1,4 +1,4 @@
--- migrations/004_create_stock_data_table.sql
+-- db\migrations\006_create_stock_data_table.sql
 
 -- Create Stock Data table
 CREATE TABLE stock_data (

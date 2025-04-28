@@ -1,4 +1,4 @@
--- migrations/003_create_dependent_tables.sql
+-- db\migrations\004_create_indicators_table.sql
 
 -- Indicators table
 CREATE TABLE

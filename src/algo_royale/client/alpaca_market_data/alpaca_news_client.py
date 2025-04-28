@@ -1,4 +1,4 @@
-# src/algo_royale/client/alpaca_news_client.py
+## client\alpaca_market_data\alpaca_news_client.py
 
 from enum import Enum
 from typing import List, Optional, Union

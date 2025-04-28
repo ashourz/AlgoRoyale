@@ -1,4 +1,4 @@
-# src/algo_royale/client/alpaca_news_client.py
+## client\alpaca_trading\alpaca_accounts_client.py
 
 from datetime import date, datetime
 from enum import Enum

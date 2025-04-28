@@ -1,4 +1,4 @@
--- migrations/002_create_core_tables.sql
+-- db\migrations\002_create_trades_table.sql
 
 -- Trades table
 CREATE TABLE

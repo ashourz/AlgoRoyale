@@ -1,4 +1,4 @@
--- migrations/002_create_core_tables.sql
+-- db\migrations\003_create_trade_signals_table.sql
 
 -- Trade Signals table
 CREATE TABLE

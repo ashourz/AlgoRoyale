@@ -1,4 +1,4 @@
-# src/algo_royale/client/alpaca_quote_client.py
+## client\alpaca_market_data\alpaca_stock_client.py
 
 from enum import Enum
 from typing import List, Optional

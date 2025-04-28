@@ -1,4 +1,4 @@
--- migrations/001_initial_setup.sql
+-- db\migrations\001_create_initial_schema.sql
 
 DROP TABLE IF EXISTS trades;
 DROP TABLE IF EXISTS trade_signals;

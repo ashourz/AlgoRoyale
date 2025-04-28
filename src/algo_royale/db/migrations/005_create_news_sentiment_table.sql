@@ -1,4 +1,4 @@
--- migrations/003_create_dependent_tables.sql
+-- db\migrations\005_create_news_sentiment_table.sql
 
 -- News Sentiment table
 CREATE TABLE
