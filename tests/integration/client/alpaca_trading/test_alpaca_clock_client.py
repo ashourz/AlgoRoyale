@@ -1,13 +1,13 @@
 # src: tests/integration/client/test_alpaca_portfolio_client.py
 
-import logging
 from algo_royale.client.alpaca_trading.alpaca_clock_client import AlpacaClockClient
 from models.alpaca_trading.alpaca_clock import Clock
 import pytest
 
+from logger.log_config import LoggerType, get_logger
+
 # Set up logging (prints to console)
-logging.basicConfig(level=logging.DEBUG)
-logger = logging.getLogger(__name__)
+logger = get_logger(LoggerType.INTEGRATION)
 
 
 @pytest.fixture(scope="class")

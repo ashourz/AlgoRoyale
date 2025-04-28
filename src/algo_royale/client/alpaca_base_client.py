@@ -2,12 +2,13 @@
 from abc import ABC, abstractmethod
 import asyncio
 from enum import Enum
-import logging
 from datetime import date, datetime
 from typing import Any, Dict
 from algo_royale.client.exceptions import AlpacaAPIException, AlpacaBadRequestException, AlpacaInvalidHeadersException, AlpacaResourceNotFoundException, AlpacaServerErrorException, AlpacaTooManyRequestsException, AlpacaUnauthorizedException, AlpacaUnprocessableException
 import httpx
-from config.config import ALPACA_PARAMS, ALPACA_SECRETS, LOGGING_PARAMS, get_logging_level
+from config.config import ALPACA_PARAMS, ALPACA_SECRETS
+from logger.log_config import LoggerType, get_logger
+
 
 class AlpacaBaseClient(ABC):
     """Singleton class to interact with Alpaca's API"""
@@ -37,14 +38,7 @@ class AlpacaBaseClient(ABC):
         self.reconnect_delay = ALPACA_PARAMS.get("reconnect_delay", 5)
         self.keep_alive_timeout = ALPACA_PARAMS.get("keep_alive_timeout", 20)
 
-        self.logger = logging.getLogger(self.__class__.__name__)
-        self.logger.setLevel(get_logging_level())    
-
-        if not self.logger.handlers:
-            handler = logging.StreamHandler()
-            formatter = logging.Formatter("[%(asctime)s] [%(levelname)s] %(message)s")
-            handler.setFormatter(formatter)
-            self.logger.addHandler(handler)
+        self.logger = get_logger(LoggerType.PROD)   
             
     @property
     @abstractmethod

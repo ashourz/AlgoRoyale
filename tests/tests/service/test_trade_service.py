@@ -1,7 +1,7 @@
 # tests/test_trade_service.py
 import unittest
 from unittest import TestCase
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 from src.service.db.trade_service import TradeService
 from decimal import Decimal
 from datetime import datetime

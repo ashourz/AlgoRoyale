@@ -1,15 +1,14 @@
 # src: tests/integration/client/test_alpaca_screener_client.py
 
-import logging
-import asyncio
 import pytest
 from algo_royale.client.alpaca_market_data.alpaca_screener_client import ActiveStockFilter, AlpacaScreenerClient
 from models.alpaca_market_data.alpaca_active_stock import MostActiveStocksResponse
 from models.alpaca_market_data.alpaca_market_mover import MarketMoversResponse
 
+from logger.log_config import LoggerType, get_logger
+
 # Set up logging (prints to console)
-logging.basicConfig(level=logging.DEBUG)
-logger = logging.getLogger(__name__)
+logger = get_logger(LoggerType.INTEGRATION)
 
 
 @pytest.fixture(scope="class")

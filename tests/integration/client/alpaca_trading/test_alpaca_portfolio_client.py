@@ -1,14 +1,14 @@
 # src: tests/integration/client/test_alpaca_portfolio_client.py
 
 from datetime import datetime
-import logging
 from algo_royale.client.alpaca_trading.alpaca_portfolio_client import AlpacaPortfolioClient
 from models.alpaca_trading.alpaca_portfolio import PortfolioPerformance
 import pytest
 
+from logger.log_config import LoggerType, get_logger
+
 # Set up logging (prints to console)
-logging.basicConfig(level=logging.DEBUG)
-logger = logging.getLogger(__name__)
+logger = get_logger(LoggerType.INTEGRATION)
 
 
 @pytest.fixture(scope="class")

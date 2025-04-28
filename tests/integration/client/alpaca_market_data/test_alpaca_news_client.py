@@ -1,15 +1,14 @@
 # src: tests/integration/client/test_alpaca_client.py
 
-import logging
 import pytest
 from datetime import datetime, timezone
 from algo_royale.client.alpaca_market_data.alpaca_news_client import AlpacaNewsClient
 from models.alpaca_market_data.alpaca_news import News, NewsResponse
 
-# Set up logging (prints to console)
-logging.basicConfig(level=logging.DEBUG)
-logger = logging.getLogger(__name__)
+from logger.log_config import LoggerType, get_logger
 
+# Set up logging (prints to console)
+logger = get_logger(LoggerType.INTEGRATION)
 
 @pytest.fixture(scope="class")
 def alpaca_client():

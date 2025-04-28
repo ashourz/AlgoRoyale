@@ -6,9 +6,10 @@ import pytest
 from algo_royale.client.alpaca_trading.alpaca_assets_client import AlpacaAssetsClient
 from models.alpaca_trading.alpaca_asset import Asset
 
+from logger.log_config import LoggerType, get_logger
+
 # Set up logging (prints to console)
-logging.basicConfig(level=logging.DEBUG)
-logger = logging.getLogger(__name__)
+logger = get_logger(LoggerType.INTEGRATION)
 
 
 @pytest.fixture(scope="class")

@@ -1,18 +1,16 @@
 # src: tests/integration/client/test_alpaca_account_client.py
 
-from datetime import datetime, timedelta
-import logging
-from uuid import uuid4
+from datetime import datetime
 from algo_royale.client.alpaca_trading.alpaca_orders_client import AlpacaOrdersClient
-from algo_royale.client.exceptions import AlpacaInvalidHeadersException, InsufficientBuyingPowerOrSharesError, UnprocessableOrderException
-from httpx import HTTPStatusError
+from algo_royale.client.exceptions import InsufficientBuyingPowerOrSharesError, UnprocessableOrderException
 from models.alpaca_trading.alpaca_order import DeleteOrderStatus, DeleteOrdersResponse, OrderListResponse, Order
-from models.alpaca_trading.enums import OrderSide, OrderStatus, OrderStatusFilter, OrderType, SortDirection, TimeInForce
+from models.alpaca_trading.enums import OrderSide, OrderStatusFilter, OrderType, SortDirection, TimeInForce
 import pytest
 
+from logger.log_config import LoggerType, get_logger
+
 # Set up logging (prints to console)
-logging.basicConfig(level=logging.DEBUG)
-logger = logging.getLogger(__name__)
+logger = get_logger(LoggerType.INTEGRATION)
 
 
 @pytest.fixture(scope="class")

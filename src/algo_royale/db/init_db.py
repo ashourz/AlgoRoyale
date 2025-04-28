@@ -1,7 +1,7 @@
+from algo_royale.db.migrations.migration_manager import apply_migrations
 import psycopg2
 from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
 from config.config import DB_PARAMS, DB_SECRETS  # Import DB credentials
-from migration_manager import apply_migrations  # Import the migration manager
 
 def create_database_if_not_exists(dbname, user, password, host="localhost"):
     """

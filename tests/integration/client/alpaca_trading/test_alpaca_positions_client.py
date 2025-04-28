@@ -1,18 +1,14 @@
 # src: tests/integration/client/test_alpaca_account_client.py
 
-from datetime import datetime, timedelta
-import logging
-from uuid import uuid4
 from algo_royale.client.alpaca_trading.alpaca_positions_client import AlpacaPositionsClient
 from algo_royale.client.exceptions import AlpacaPositionNotFoundException
-from httpx import HTTPStatusError
 from models.alpaca_trading.alpaca_position import ClosedPosition, ClosedPositionList, Position, PositionList, PositionSide
 import pytest
 
-# Set up logging (prints to console)
-logging.basicConfig(level=logging.DEBUG)
-logger = logging.getLogger(__name__)
+from logger.log_config import LoggerType, get_logger
 
+# Set up logging (prints to console)
+logger = get_logger(LoggerType.INTEGRATION)
 
 @pytest.fixture(scope="class")
 def alpaca_client():
