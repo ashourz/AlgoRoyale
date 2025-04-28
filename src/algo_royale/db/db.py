@@ -1,16 +1,18 @@
 import psycopg2
-from config.config import DB_PARAMS, DB_SECRETS  # Import DB credentials
-from contextlib import contextmanager  # For context manager support
-import logging
-logger = logging.getLogger(__name__)
+from config.db_config import get_db_connection, close_connection  # Import the new centralized connection function
+from contextlib import contextmanager
 
+from logger.log_config import LoggerType, get_logger  # For context manager support
+
+logger = get_logger(LoggerType.PROD)  # Use the logger as needed
 
 @contextmanager
-def connect_db():
+def connect_db(create_if_not_exists=False):
     """Context manager for connecting to PostgreSQL."""
     conn = None
     try:
-        conn = psycopg2.connect(**DB_PARAMS, **DB_SECRETS)  # Unpack DB credentials
+        # Use get_db_connection to handle connection and database creation
+        conn = get_db_connection(create_if_not_exists=create_if_not_exists)
         logger.info("✅ Database connection established.")
         yield conn  # Yield the connection object to the caller
     except Exception as e:
@@ -18,16 +20,14 @@ def connect_db():
         raise  # Reraise the exception to propagate it
     finally:
         if conn:
-            conn.close()  # Ensure connection is closed after use
-            logger.info("✅ Database connection closed.")
+            close_connection(conn)  # Ensure connection is closed after use
 
 
 def close_db(conn):
     """Close the database connection."""
     try:
-        if conn:
-            conn.close()
-            logger.info("✅ Database connection closed.")
+        close_connection(conn)  # Close connection via the centralized function
+        logger.info("✅ Database connection closed.")
     except Exception as e:
         logger.error(f"❌ Error closing the database connection: {e}")
         raise

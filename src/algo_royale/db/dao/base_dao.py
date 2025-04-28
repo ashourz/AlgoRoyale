@@ -1,10 +1,12 @@
 ## db\dao\base_dao.py
-import logging
 import os
+
+from logger.log_config import LoggerType, get_logger
 
 class BaseDAO:
     def __init__(self, connection):
         self.conn = connection
+        self.logger = get_logger(LoggerType.PROD)   
 
     def _load_sql(self, filename):
         sql_path = os.path.join(os.path.dirname(__file__), '..', 'sql', filename)
@@ -18,7 +20,7 @@ class BaseDAO:
                 cur.execute(query, params)
                 return cur.fetchall()
         except Exception as e:
-            logging.error(f"[{log_name}] Fetch failed: {e}")
+            self.logger.error(f"[{log_name}] Fetch failed: {e}")
             self.conn.rollback()
             raise
 
@@ -29,7 +31,7 @@ class BaseDAO:
                 cur.execute(query, params)
                 return cur.fetchone()
         except Exception as e:
-            logging.error(f"[{log_name}] FetchOne failed: {e}")
+            self.logger.error(f"[{log_name}] FetchOne failed: {e}")
             self.conn.rollback()
             raise
 
@@ -40,7 +42,7 @@ class BaseDAO:
                 cur.execute(query, params)
             self.conn.commit()
         except Exception as e:
-            logging.error(f"[{log_name}] Insert failed: {e}")
+            self.logger.error(f"[{log_name}] Insert failed: {e}")
             self.conn.rollback()
             raise
 
@@ -51,7 +53,7 @@ class BaseDAO:
                 cur.execute(query, params)
             self.conn.commit()
         except Exception as e:
-            logging.error(f"[{log_name}] Update failed: {e}")
+            self.logger.error(f"[{log_name}] Update failed: {e}")
             self.conn.rollback()
             raise
 
@@ -62,6 +64,6 @@ class BaseDAO:
                 cur.execute(query, params)
             self.conn.commit()
         except Exception as e:
-            logging.error(f"[{log_name}] Delete failed: {e}")
+            self.logger.error(f"[{log_name}] Delete failed: {e}")
             self.conn.rollback()
             raise
