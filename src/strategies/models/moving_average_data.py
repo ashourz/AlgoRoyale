@@ -19,5 +19,5 @@ class MovingAverageData(BaseModel):
         Converts a list of MovingAverageData objects into a pandas DataFrame.
         Ensures that the data is properly validated before conversion.
         """
-        valid_data = [cls(**item).dict() for item in data]  # Validate and parse data
+        valid_data = [item.dict() for item in data]  # Call the 'dict' method of the instance directly
         return pd.DataFrame(valid_data)
