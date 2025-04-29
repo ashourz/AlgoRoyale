@@ -2,7 +2,7 @@
 
 import pytest
 from datetime import datetime, timezone
-from algo_royale.client.alpaca_market_data.alpaca_corporate_action_client import AlpacaCorporateActionClient
+from the_risk_is_not_enough.client.alpaca_market_data.alpaca_corporate_action_client import AlpacaCorporateActionClient
 from models.alpaca_market_data.alpaca_corporate_action import CorporateActionResponse, CorporateAction
 
 from logger.log_config import LoggerType, get_logger

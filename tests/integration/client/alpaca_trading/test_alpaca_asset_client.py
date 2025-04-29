@@ -1,9 +1,9 @@
 # src: tests/integration/client/test_alpaca_account_client.py
 
 import logging
-from algo_royale.client.exceptions import AlpacaAssetNotFoundException
+from the_risk_is_not_enough.client.exceptions import AlpacaAssetNotFoundException
 import pytest
-from algo_royale.client.alpaca_trading.alpaca_assets_client import AlpacaAssetsClient
+from the_risk_is_not_enough.client.alpaca_trading.alpaca_assets_client import AlpacaAssetsClient
 from models.alpaca_trading.alpaca_asset import Asset
 
 from logger.log_config import LoggerType, get_logger

@@ -8,7 +8,7 @@ from models.alpaca_market_data.alpaca_snapshot import SnapshotsResponse
 from models.alpaca_market_data.alpaca_trade import HistoricalTradesResponse, Trade, LatestTradesResponse
 import pytest
 from datetime import datetime, timezone
-from algo_royale.client.alpaca_market_data.alpaca_stock_client import AlpacaStockClient, Tape, TickType
+from the_risk_is_not_enough.client.alpaca_market_data.alpaca_stock_client import AlpacaStockClient, Tape, TickType
 
 from logger.log_config import LoggerType, get_logger
 

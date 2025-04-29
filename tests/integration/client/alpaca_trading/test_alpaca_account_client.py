@@ -3,7 +3,7 @@
 from datetime import datetime, timedelta
 from models.alpaca_trading.enums import ActivityType, DTBPCheck, TradeConfirmationEmail
 import pytest
-from algo_royale.client.alpaca_trading.alpaca_accounts_client import AlpacaAccountClient
+from the_risk_is_not_enough.client.alpaca_trading.alpaca_accounts_client import AlpacaAccountClient
 from models.alpaca_trading.alpaca_account import Account, AccountActivities, AccountConfiguration
 
 from logger.log_config import LoggerType, get_logger

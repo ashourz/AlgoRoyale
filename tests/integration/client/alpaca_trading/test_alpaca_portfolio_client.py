@@ -1,7 +1,7 @@
 # src: tests/integration/client/test_alpaca_portfolio_client.py
 
 from datetime import datetime
-from algo_royale.client.alpaca_trading.alpaca_portfolio_client import AlpacaPortfolioClient
+from the_risk_is_not_enough.client.alpaca_trading.alpaca_portfolio_client import AlpacaPortfolioClient
 from models.alpaca_trading.alpaca_portfolio import PortfolioPerformance
 import pytest
 

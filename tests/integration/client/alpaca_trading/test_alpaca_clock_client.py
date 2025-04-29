@@ -1,6 +1,6 @@
 # src: tests/integration/client/test_alpaca_portfolio_client.py
 
-from algo_royale.client.alpaca_trading.alpaca_clock_client import AlpacaClockClient
+from the_risk_is_not_enough.client.alpaca_trading.alpaca_clock_client import AlpacaClockClient
 from models.alpaca_trading.alpaca_clock import Clock
 import pytest
 

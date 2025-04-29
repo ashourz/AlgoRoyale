@@ -1,7 +1,7 @@
 # src: tests/integration/client/test_alpaca_screener_client.py
 
 import pytest
-from algo_royale.client.alpaca_market_data.alpaca_screener_client import ActiveStockFilter, AlpacaScreenerClient
+from the_risk_is_not_enough.client.alpaca_market_data.alpaca_screener_client import ActiveStockFilter, AlpacaScreenerClient
 from models.alpaca_market_data.alpaca_active_stock import MostActiveStocksResponse
 from models.alpaca_market_data.alpaca_market_mover import MarketMoversResponse
 

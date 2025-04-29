@@ -1,8 +1,8 @@
 # src: tests/integration/client/test_alpaca_account_client.py
 
 from datetime import datetime
-from algo_royale.client.alpaca_trading.alpaca_orders_client import AlpacaOrdersClient
-from algo_royale.client.exceptions import InsufficientBuyingPowerOrSharesError, UnprocessableOrderException
+from the_risk_is_not_enough.client.alpaca_trading.alpaca_orders_client import AlpacaOrdersClient
+from the_risk_is_not_enough.client.exceptions import InsufficientBuyingPowerOrSharesError, UnprocessableOrderException
 from models.alpaca_trading.alpaca_order import DeleteOrderStatus, DeleteOrdersResponse, OrderListResponse, Order
 from models.alpaca_trading.enums import OrderSide, OrderStatusFilter, OrderType, SortDirection, TimeInForce
 import pytest

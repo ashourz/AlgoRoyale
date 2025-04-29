@@ -2,7 +2,7 @@
 
 import pytest
 from datetime import datetime, timezone
-from algo_royale.client.alpaca_market_data.alpaca_news_client import AlpacaNewsClient
+from the_risk_is_not_enough.client.alpaca_market_data.alpaca_news_client import AlpacaNewsClient
 from models.alpaca_market_data.alpaca_news import News, NewsResponse
 
 from logger.log_config import LoggerType, get_logger

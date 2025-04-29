@@ -1,7 +1,7 @@
 # src: tests/integration/client/test_alpaca_account_client.py
 
-from algo_royale.client.alpaca_trading.alpaca_positions_client import AlpacaPositionsClient
-from algo_royale.client.exceptions import AlpacaPositionNotFoundException
+from the_risk_is_not_enough.client.alpaca_trading.alpaca_positions_client import AlpacaPositionsClient
+from the_risk_is_not_enough.client.exceptions import AlpacaPositionNotFoundException
 from models.alpaca_trading.alpaca_position import ClosedPosition, ClosedPositionList, Position, PositionList, PositionSide
 import pytest
 
