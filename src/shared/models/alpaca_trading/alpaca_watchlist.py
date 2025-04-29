@@ -1,4 +1,4 @@
-from models.alpaca_trading.alpaca_asset import Asset
+from shared.models.alpaca_trading.alpaca_asset import Asset
 from pydantic import BaseModel, Field
 from datetime import datetime
 from typing import List, Optional

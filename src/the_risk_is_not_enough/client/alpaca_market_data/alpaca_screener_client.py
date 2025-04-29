@@ -3,9 +3,9 @@
 from enum import Enum
 from typing import List, Optional
 from the_risk_is_not_enough.client.alpaca_base_client import AlpacaBaseClient
-from models.alpaca_market_data.alpaca_active_stock import MostActiveStocksResponse
-from models.alpaca_market_data.alpaca_market_mover import MarketMoversResponse
-from models.alpaca_market_data.enums import ActiveStockFilter
+from shared.models.alpaca_market_data.alpaca_active_stock import MostActiveStocksResponse
+from shared.models.alpaca_market_data.alpaca_market_mover import MarketMoversResponse
+from shared.models.alpaca_market_data.enums import ActiveStockFilter
 from config.config import ALPACA_PARAMS
    
 

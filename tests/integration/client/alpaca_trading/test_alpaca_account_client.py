@@ -1,15 +1,16 @@
 # src: tests/integration/client/test_alpaca_account_client.py
 
 from datetime import datetime, timedelta
-from models.alpaca_trading.enums import ActivityType, DTBPCheck, TradeConfirmationEmail
 import pytest
+from shared.models.alpaca_trading.alpaca_account import Account, AccountActivities, AccountConfiguration
+from shared.models.alpaca_trading.enums import ActivityType, DTBPCheck, TradeConfirmationEmail
 from the_risk_is_not_enough.client.alpaca_trading.alpaca_accounts_client import AlpacaAccountClient
-from models.alpaca_trading.alpaca_account import Account, AccountActivities, AccountConfiguration
 
-from logger.log_config import LoggerType, get_logger
+from logger.logger_singleton import LoggerSingleton, LoggerType
+
 
 # Set up logging (prints to console)
-logger = get_logger(LoggerType.INTEGRATION)
+logger = LoggerSingleton().get_logger(LoggerType.INTEGRATION)
 
 
 @pytest.fixture(scope="class")

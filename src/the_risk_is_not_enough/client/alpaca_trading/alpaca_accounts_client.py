@@ -5,8 +5,8 @@ from enum import Enum
 from typing import List, Optional
 from the_risk_is_not_enough.client.alpaca_base_client import AlpacaBaseClient
 from the_risk_is_not_enough.client.exceptions import ParameterConflictError
-from models.alpaca_trading.alpaca_account import Account, AccountActivities, AccountConfiguration
-from models.alpaca_trading.enums import ActivityType, DTBPCheck, MarginMultiplier, OptionsTradingLevel, PDTCheck, SortDirection, TradeConfirmationEmail
+from shared.models.alpaca_trading.alpaca_account import Account, AccountActivities, AccountConfiguration
+from shared.models.alpaca_trading.enums import ActivityType, DTBPCheck, MarginMultiplier, OptionsTradingLevel, PDTCheck, SortDirection, TradeConfirmationEmail
 from config.config import ALPACA_TRADING_URL
 
 class AlpacaAccountClient(AlpacaBaseClient):

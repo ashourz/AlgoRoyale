@@ -1,8 +1,8 @@
 from typing import Optional, List
 from datetime import datetime
 from the_risk_is_not_enough.client.alpaca_trading.alpaca_accounts_client import AlpacaAccountClient
-from models.alpaca_trading.alpaca_account import Account, AccountActivities, AccountConfiguration
-from models.alpaca_trading.enums import ActivityType, SortDirection, TradeConfirmationEmail, DTBPCheck, MarginMultiplier, OptionsTradingLevel, PDTCheck
+from shared.models.alpaca_trading.alpaca_account import Account, AccountActivities, AccountConfiguration
+from shared.models.alpaca_trading.enums import ActivityType, SortDirection, TradeConfirmationEmail, DTBPCheck, MarginMultiplier, OptionsTradingLevel, PDTCheck
 from the_risk_is_not_enough.client.exceptions import ParameterConflictError
 
 class AlpacaAccountService:

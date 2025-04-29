@@ -5,10 +5,10 @@ from unittest import TestCase
 from unittest.mock import patch
 from decimal import Decimal
 from datetime import datetime
-from src.service.db.indicator_service import IndicatorService
+from shared.service.db.indicator_service import IndicatorService
 
 class TestIndicatorsService(TestCase):
-    @patch("src.service.db.indicator_service.IndicatorDAO")
+    @patch("shared.service.db.indicator_service.IndicatorDAO")
     def setUp(self, MockIndicatorDAO):
         """Set up mock objects and test data."""
         self.mock_dao = MockIndicatorDAO.return_value

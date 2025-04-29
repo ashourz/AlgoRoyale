@@ -1,16 +1,16 @@
 # src: tests/integration/client/test_alpaca_account_client.py
 
 from datetime import datetime
+from shared.models.alpaca_trading.alpaca_order import DeleteOrderStatus, DeleteOrdersResponse, Order, OrderListResponse
+from shared.models.alpaca_trading.enums import OrderSide, OrderStatusFilter, OrderType, SortDirection, TimeInForce
 from the_risk_is_not_enough.client.alpaca_trading.alpaca_orders_client import AlpacaOrdersClient
 from the_risk_is_not_enough.client.exceptions import InsufficientBuyingPowerOrSharesError, UnprocessableOrderException
-from models.alpaca_trading.alpaca_order import DeleteOrderStatus, DeleteOrdersResponse, OrderListResponse, Order
-from models.alpaca_trading.enums import OrderSide, OrderStatusFilter, OrderType, SortDirection, TimeInForce
 import pytest
 
-from logger.log_config import LoggerType, get_logger
+from logger.logger_singleton import LoggerSingleton, LoggerType
 
 # Set up logging (prints to console)
-logger = get_logger(LoggerType.INTEGRATION)
+logger = LoggerSingleton().get_logger(LoggerType.INTEGRATION)
 
 
 @pytest.fixture(scope="class")

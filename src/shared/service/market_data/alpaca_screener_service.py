@@ -1,9 +1,9 @@
 # src/algo_royale/service/alpaca_screener_service.py
 
 from typing import Optional
-from models.alpaca_market_data.enums import ActiveStockFilter
-from models.alpaca_market_data.alpaca_active_stock import MostActiveStocksResponse
-from models.alpaca_market_data.alpaca_market_mover import MarketMoversResponse
+from shared.models.alpaca_market_data.enums import ActiveStockFilter
+from shared.models.alpaca_market_data.alpaca_active_stock import MostActiveStocksResponse
+from shared.models.alpaca_market_data.alpaca_market_mover import MarketMoversResponse
 
 from the_risk_is_not_enough.client.alpaca_market_data.alpaca_screener_client import AlpacaScreenerClient
 

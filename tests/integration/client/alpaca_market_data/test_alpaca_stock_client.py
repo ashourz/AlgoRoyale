@@ -1,19 +1,20 @@
 # src: tests/integration/client/test_alpaca_client.py
 
-from models.alpaca_market_data.alpaca_auction import AuctionResponse
-from models.alpaca_market_data.alpaca_bar import Bar, BarsResponse, LatestBarsResponse
-from models.alpaca_market_data.alpaca_condition_code import ConditionCodeMap
-from models.alpaca_market_data.alpaca_quote import Quote, QuotesResponse
-from models.alpaca_market_data.alpaca_snapshot import SnapshotsResponse
-from models.alpaca_market_data.alpaca_trade import HistoricalTradesResponse, Trade, LatestTradesResponse
 import pytest
 from datetime import datetime, timezone
+from shared.models.alpaca_market_data.alpaca_auction import AuctionResponse
+from shared.models.alpaca_market_data.alpaca_bar import Bar, BarsResponse, LatestBarsResponse
+from shared.models.alpaca_market_data.alpaca_condition_code import ConditionCodeMap
+from shared.models.alpaca_market_data.alpaca_quote import Quote, QuotesResponse
+from shared.models.alpaca_market_data.alpaca_snapshot import SnapshotsResponse
+from shared.models.alpaca_market_data.alpaca_trade import HistoricalTradesResponse, LatestTradesResponse, Trade
 from the_risk_is_not_enough.client.alpaca_market_data.alpaca_stock_client import AlpacaStockClient, Tape, TickType
 
-from logger.log_config import LoggerType, get_logger
+from logger.logger_singleton import LoggerSingleton, LoggerType
+
 
 # Set up logging (prints to console)
-logger = get_logger(LoggerType.INTEGRATION)
+logger = LoggerSingleton().get_logger(LoggerType.INTEGRATION)
 
 
 @pytest.fixture(scope="class")

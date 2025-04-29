@@ -4,8 +4,8 @@ from datetime import date, datetime
 from typing import List, Optional
 from the_risk_is_not_enough.client.alpaca_base_client import AlpacaBaseClient
 from the_risk_is_not_enough.client.exceptions import ParameterConflictError
-from models.alpaca_trading.alpaca_portfolio import PortfolioPerformance
-from models.alpaca_trading.enums import IntradayReporting, PNLReset
+from shared.models.alpaca_trading.alpaca_portfolio import PortfolioPerformance
+from shared.models.alpaca_trading.enums import IntradayReporting, PNLReset
 from config.config import ALPACA_TRADING_URL
 
 class AlpacaPortfolioClient(AlpacaBaseClient):

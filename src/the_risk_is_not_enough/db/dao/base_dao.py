@@ -1,12 +1,13 @@
 ## db\dao\base_dao.py
 import os
 
-from logger.log_config import LoggerType, get_logger
+from logger.logger_singleton import LoggerSingleton, LoggerType
+
 
 class BaseDAO:
     def __init__(self, connection):
         self.conn = connection
-        self.logger = get_logger(LoggerType.PROD)   
+        self.logger = LoggerSingleton().get_logger(LoggerType.TRADING)   
 
     def _load_sql(self, filename):
         sql_path = os.path.join(os.path.dirname(__file__), '..', 'sql', filename)

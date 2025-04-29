@@ -1,15 +1,16 @@
 # src/tests/integration/client/test_alpaca_calendar_client.py
 
 from datetime import datetime
+from shared.models.alpaca_trading.alpaca_calendar import Calendar, CalendarList
 from the_risk_is_not_enough.client.alpaca_trading.alpaca_calendar_client import AlpacaCalendarClient
 import pytest
 
-from models.alpaca_trading.alpaca_calendar import CalendarList, Calendar
+from logger.logger_singleton import LoggerSingleton, LoggerType
 
-from logger.log_config import LoggerType, get_logger
+
 
 # Set up logging (prints to console)
-logger = get_logger(LoggerType.INTEGRATION)
+logger = LoggerSingleton().get_logger(LoggerType.INTEGRATION)
 
 
 @pytest.fixture(scope="class")

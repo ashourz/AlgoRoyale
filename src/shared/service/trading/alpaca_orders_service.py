@@ -1,8 +1,8 @@
 from typing import List, Optional
 from datetime import datetime
 from the_risk_is_not_enough.client.alpaca_trading.alpaca_orders_client import AlpacaOrdersClient
-from models.alpaca_trading.alpaca_order import DeleteOrdersResponse, OrderListResponse, Order, StopLoss, TakeProfit
-from models.alpaca_trading.enums import OrderClass, OrderSide, OrderStatusFilter, OrderType, PositionIntent, SortDirection, TimeInForce
+from shared.models.alpaca_trading.alpaca_order import DeleteOrdersResponse, OrderListResponse, Order, StopLoss, TakeProfit
+from shared.models.alpaca_trading.enums import OrderClass, OrderSide, OrderStatusFilter, OrderType, PositionIntent, SortDirection, TimeInForce
 from the_risk_is_not_enough.client.exceptions import MissingParameterError, ParameterConflictError
 
 class AlpacaOrdersService:

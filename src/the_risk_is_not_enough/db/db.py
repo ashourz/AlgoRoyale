@@ -2,9 +2,10 @@ import psycopg2
 from config.db_config import get_db_connection, close_connection  # Import the new centralized connection function
 from contextlib import contextmanager
 
-from logger.log_config import LoggerType, get_logger  # For context manager support
+from logger.logger_singleton import LoggerSingleton, LoggerType
 
-logger = get_logger(LoggerType.PROD)  # Use the logger as needed
+
+logger = LoggerSingleton().get_logger(LoggerType.TRADING)  # Use the logger as needed
 
 @contextmanager
 def connect_db(create_if_not_exists=False):

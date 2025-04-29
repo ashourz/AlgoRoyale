@@ -4,8 +4,8 @@
 from datetime import datetime
 from typing import Optional
 from the_risk_is_not_enough.client.alpaca_base_client import AlpacaBaseClient
-from models.alpaca_trading.alpaca_calendar import CalendarList
-from models.alpaca_trading.enums import CalendarDateType
+from shared.models.alpaca_trading.alpaca_calendar import CalendarList
+from shared.models.alpaca_trading.enums import CalendarDateType
 from config.config import ALPACA_TRADING_URL
 
 class AlpacaCalendarClient(AlpacaBaseClient):

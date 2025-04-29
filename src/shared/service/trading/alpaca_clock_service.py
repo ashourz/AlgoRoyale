@@ -1,6 +1,6 @@
 from typing import Optional
 from the_risk_is_not_enough.client.alpaca_trading.alpaca_clock_client import AlpacaClockClient
-from models.alpaca_trading.alpaca_clock import Clock
+from shared.models.alpaca_trading.alpaca_clock import Clock
 from the_risk_is_not_enough.client.exceptions import ClockNotFoundError
 
 class AlpacaClockService:

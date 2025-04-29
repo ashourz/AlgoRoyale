@@ -1,7 +1,7 @@
 from typing import Optional
 from datetime import datetime
 from the_risk_is_not_enough.client.alpaca_trading.alpaca_calendar_client import AlpacaCalendarClient
-from models.alpaca_trading.alpaca_calendar import CalendarList
+from shared.models.alpaca_trading.alpaca_calendar import CalendarList
 from the_risk_is_not_enough.client.exceptions import CalendarNotFoundError
 
 class AlpacaCalendarService:

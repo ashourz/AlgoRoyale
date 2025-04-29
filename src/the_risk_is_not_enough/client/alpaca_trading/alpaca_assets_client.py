@@ -3,7 +3,7 @@
 from typing import List, Optional
 from the_risk_is_not_enough.client.alpaca_base_client import AlpacaBaseClient
 from the_risk_is_not_enough.client.exceptions import AlpacaAssetNotFoundException, AlpacaResourceNotFoundException
-from models.alpaca_trading.alpaca_asset import Asset
+from shared.models.alpaca_trading.alpaca_asset import Asset
 from config.config import ALPACA_TRADING_URL
 
 class AlpacaAssetsClient(AlpacaBaseClient):

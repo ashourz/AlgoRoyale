@@ -2,8 +2,8 @@ from decimal import Decimal
 from unittest import TestCase
 import numpy as np
 import pandas as pd
-from strategies.models.moving_average_data import MovingAverageData
-from strategies.moving_average_strategy import MovingAverageStrategy
+from shared.strategies.models.moving_average_data import MovingAverageData
+from shared.strategies.moving_average_strategy import MovingAverageStrategy
 
 class TestMovingAverageStrategy(TestCase):
     

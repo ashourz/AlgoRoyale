@@ -1,14 +1,14 @@
 # src: tests/integration/client/test_alpaca_account_client.py
 
 import uuid
+from shared.models.alpaca_trading.alpaca_watchlist import Watchlist
 from the_risk_is_not_enough.client.alpaca_trading.alpaca_watchlist_client import AlpacaWatchlistClient
-from models.alpaca_trading.alpaca_watchlist import Watchlist
+from logger.logger_singleton import LoggerSingleton, LoggerType
 import pytest
 
-from logger.log_config import LoggerType, get_logger
 
 # Set up logging (prints to console)
-logger = get_logger(LoggerType.INTEGRATION)
+logger = LoggerSingleton().get_logger(LoggerType.INTEGRATION)
 
 @pytest.fixture(scope="class")
 def alpaca_client():

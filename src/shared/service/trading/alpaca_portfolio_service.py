@@ -2,8 +2,8 @@
 
 from datetime import datetime
 from typing import Optional
-from models.alpaca_trading.alpaca_portfolio import PortfolioPerformance
-from models.alpaca_trading.enums import IntradayReporting, PNLReset
+from shared.models.alpaca_trading.alpaca_portfolio import PortfolioPerformance
+from shared.models.alpaca_trading.enums import IntradayReporting, PNLReset
 from the_risk_is_not_enough.client.alpaca_trading.alpaca_portfolio_client import AlpacaPortfolioClient
 from the_risk_is_not_enough.client.exceptions import ParameterConflictError
 

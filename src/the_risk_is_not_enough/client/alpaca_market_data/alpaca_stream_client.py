@@ -2,7 +2,7 @@
 import asyncio
 import json
 from the_risk_is_not_enough.client.alpaca_base_client import AlpacaBaseClient
-from models.alpaca_market_data.enums import DataFeed
+from shared.models.alpaca_market_data.enums import DataFeed
 import websockets
 
 from config.config import ALPACA_PARAMS

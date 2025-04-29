@@ -6,9 +6,9 @@ from typing import List, Optional
 from the_risk_is_not_enough.client.alpaca_base_client import AlpacaBaseClient
 from the_risk_is_not_enough.client.exceptions import AlpacaPositionNotFoundException, AlpacaResourceNotFoundException, MissingParameterError, ParameterConflictError
 from httpx import HTTPStatusError
-from models.alpaca_trading.alpaca_order import DeleteOrdersResponse, OrderListResponse, Order, StopLoss, TakeProfit
-from models.alpaca_trading.alpaca_position import ClosedPosition, ClosedPositionList, PositionList
-from models.alpaca_trading.enums import OrderClass, OrderSide, OrderStatus, OrderStatusFilter, OrderType, PositionIntent, SortDirection, TimeInForce
+from shared.models.alpaca_trading.alpaca_order import DeleteOrdersResponse, OrderListResponse, Order, StopLoss, TakeProfit
+from shared.models.alpaca_trading.alpaca_position import ClosedPosition, ClosedPositionList, PositionList
+from shared.models.alpaca_trading.enums import OrderClass, OrderSide, OrderStatus, OrderStatusFilter, OrderType, PositionIntent, SortDirection, TimeInForce
 from config.config import ALPACA_TRADING_URL
 
 class AlpacaPositionsClient(AlpacaBaseClient):

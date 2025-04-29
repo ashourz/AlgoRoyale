@@ -1,6 +1,6 @@
 # src/models/alpaca_models/alpaca_trading/alpaca_order.py
 
-from models.alpaca_trading.alpaca_order import Order
+from shared.models.alpaca_trading.alpaca_order import Order
 from pydantic import BaseModel
 from typing import List
 from enum import Enum

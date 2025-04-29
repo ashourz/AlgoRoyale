@@ -1,12 +1,14 @@
 import pandas as pd
-from strategies.base_strategy import Strategy
-from strategies.models.moving_average_data import MovingAverageData
 from typing import List
 
-from logger.log_config import LoggerType, get_logger
+from shared.strategies.base_strategy import Strategy
+from shared.strategies.models.moving_average_data import MovingAverageData
+
+from logger.logger_singleton import LoggerSingleton, LoggerType
 
 
-logger = get_logger(LoggerType.TEST)
+
+logger = LoggerSingleton().get_logger(LoggerType.TEST)
 
 class MovingAverageStrategy(Strategy):
     """

@@ -3,7 +3,6 @@ import logging
 from logging.handlers import RotatingFileHandler
 import os
 
-from logger.log_config import get_logger
 
 # Step 1: Enum with logging level as a parameter for different modules
 class LoggerType(Enum):
@@ -38,7 +37,7 @@ def _setup_logger(logger_type: LoggerType) -> logging.Logger:
     Set up the logger with rotating file handler and specified log level.
 
     Args:
-        logger_type (LoggerType): The logger type (e.g., TEST, INTEGRATION, PROD, etc.)
+        logger_type (LoggerType): The logger type (e.g., TEST, INTEGRATION, TRADING, etc.)
 
     Returns:
         logging.Logger: Configured logger for the given environment/module.
@@ -61,12 +60,12 @@ def _setup_logger(logger_type: LoggerType) -> logging.Logger:
 # Step 3: Pre-create all loggers for each environment/module
 LOGGER_MAP = {logger_type: _setup_logger(logger_type) for logger_type in LoggerType}
 
-def _get_logger(logger_type: LoggerType = LoggerType.PROD) -> logging.Logger:
+def _get_logger(logger_type: LoggerType = LoggerType.TRADING) -> logging.Logger:
     """
     Retrieve the logger for a specific environment/module.
 
     Args:
-        logger_type (LoggerType, optional): The logger type (default is PROD). 
+        logger_type (LoggerType, optional): The logger type (default is TRADING). 
 
     Returns:
         logging.Logger: The logger associated with the specified environment/module.
@@ -103,7 +102,7 @@ class LoggerSingleton:
             cls._instance.logger = None  # Initially no logger instance
         return cls._instance
 
-    def get_logger(self, logger_type: LoggerType = LoggerType.PROD):
+    def get_logger(self, logger_type: LoggerType = LoggerType.TRADING):
         """
         Retrieve the logger instance for the specified environment/module.
 

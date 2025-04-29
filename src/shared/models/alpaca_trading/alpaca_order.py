@@ -4,7 +4,7 @@ from datetime import datetime
 
 from typing import List, Optional
 
-from models.alpaca_trading.enums import OrderClass, OrderSide, OrderStatus, OrderType, TimeInForce
+from shared.models.alpaca_trading.enums import OrderClass, OrderSide, OrderStatus, OrderType, TimeInForce
 from pydantic import BaseModel, Field
 
 

@@ -1,15 +1,16 @@
 # src: tests/integration/client/test_alpaca_account_client.py
 
 import logging
+from shared.models.alpaca_trading.alpaca_asset import Asset
 from the_risk_is_not_enough.client.exceptions import AlpacaAssetNotFoundException
 import pytest
 from the_risk_is_not_enough.client.alpaca_trading.alpaca_assets_client import AlpacaAssetsClient
-from models.alpaca_trading.alpaca_asset import Asset
 
-from logger.log_config import LoggerType, get_logger
+from logger.logger_singleton import LoggerSingleton, LoggerType
+
 
 # Set up logging (prints to console)
-logger = get_logger(LoggerType.INTEGRATION)
+logger = LoggerSingleton().get_logger(LoggerType.INTEGRATION)
 
 
 @pytest.fixture(scope="class")

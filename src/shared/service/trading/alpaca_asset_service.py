@@ -1,6 +1,6 @@
 from typing import Optional, List
 from the_risk_is_not_enough.client.alpaca_trading.alpaca_assets_client import AlpacaAssetsClient
-from models.alpaca_trading.alpaca_asset import Asset
+from shared.models.alpaca_trading.alpaca_asset import Asset
 from the_risk_is_not_enough.client.exceptions import AssetNotFoundError
 
 class AlpacaAssetService:

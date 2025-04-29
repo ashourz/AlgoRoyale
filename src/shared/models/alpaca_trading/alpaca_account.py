@@ -1,7 +1,7 @@
 # src/models/alpaca_models/alpaca_account.py
 
 from enum import Enum
-from models.alpaca_trading.enums import ActivityType, DTBPCheck, MarginMultiplier, OptionsTradingLevel, OrderSide, PDTCheck, TradeActivityType, TradeConfirmationEmail
+from shared.models.alpaca_trading.enums import ActivityType, DTBPCheck, MarginMultiplier, OptionsTradingLevel, OrderSide, PDTCheck, TradeActivityType, TradeConfirmationEmail
 from pydantic import BaseModel
 from typing import List, Optional
 from datetime import datetime

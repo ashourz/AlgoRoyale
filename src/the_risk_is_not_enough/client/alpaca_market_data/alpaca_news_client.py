@@ -3,7 +3,7 @@
 from enum import Enum
 from typing import List, Optional, Union
 from the_risk_is_not_enough.client.alpaca_base_client import AlpacaBaseClient
-from models.alpaca_market_data.alpaca_news import NewsResponse
+from shared.models.alpaca_market_data.alpaca_news import NewsResponse
 from datetime import datetime
 from alpaca.common.enums import Sort
 from config.config import ALPACA_PARAMS

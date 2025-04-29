@@ -1,12 +1,11 @@
 # src/algo_royale/client/alpaca_corporate_action_client.py
 
 from datetime import datetime
-from enum import Enum
 from typing import List, Optional
+from shared.models.alpaca_trading.alpaca_order import DeleteOrdersResponse, Order, OrderListResponse, StopLoss, TakeProfit
+from shared.models.alpaca_trading.enums import OrderClass, OrderSide, OrderStatusFilter, OrderType, PositionIntent, SortDirection, TimeInForce
 from the_risk_is_not_enough.client.alpaca_base_client import AlpacaBaseClient
 from the_risk_is_not_enough.client.exceptions import AlpacaInvalidHeadersException, AlpacaUnprocessableException, InsufficientBuyingPowerOrSharesError, MissingParameterError, ParameterConflictError, UnprocessableOrderException
-from models.alpaca_trading.alpaca_order import DeleteOrdersResponse, OrderListResponse, Order, StopLoss, TakeProfit
-from models.alpaca_trading.enums import OrderClass, OrderSide, OrderStatus, OrderStatusFilter, OrderType, PositionIntent, SortDirection, TimeInForce
 from config.config import ALPACA_TRADING_URL
 
 class AlpacaOrdersClient(AlpacaBaseClient):
