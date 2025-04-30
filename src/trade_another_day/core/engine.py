@@ -1,25 +1,33 @@
+import os
 
-
+from shared.utils.data_loader import load_all_symbol_data_from_watchlist
 
 class BacktestEngine:
-    def __init__(self, strategy: BaseStrategy):
-        self.strategy = strategy
-        self.symbols = get_watchlist()
+    def __init__(self, config, fetch_if_missing=True):
+        self.watchlist_path = config['watchlist_path']
+        self.data_dir = config['data_dir']
+        self.fetch_if_missing = fetch_if_missing
+        self.data = None
 
-    def run(self):
-        for symbol in self.symbols:
-            print(f"[•] Running backtest for {symbol}...")
+    def load_data(self):
+        """
+        Load data for all symbols in the watchlist.
+        """
+        print("[INFO] Loading data for all symbols in the watchlist...")
+        self.data = load_all_symbol_data_from_watchlist(self.watchlist_path, self.data_dir, self.fetch_if_missing)
+        print(f"[INFO] Loaded data for {len(self.data)} symbols.")
 
-            # Step 1: Load data
-            df = load_symbol_data(symbol)
-            if df.empty:
-                print(f"[!] No data for {symbol}, skipping.")
-                continue
+    def run_backtest(self):
+        """
+        Run the backtest using the loaded data.
+        """
+        if self.data is None:
+            raise ValueError("Data has not been loaded. Please load data before running the backtest.")
 
-            # Step 2: Run strategy
-            results = self.strategy.run(df)
+        print("[INFO] Running backtest...")
+        # Example of iterating through symbols and their data for backtest logic
+        for symbol, df in self.data.items():
+            # Implement your backtest logic here
+            print(f"[INFO] Running backtest for {symbol}...")
 
-            # Step 3: Save results
-            save_results(self.strategy.name, symbol, results)
-
-        print("[✓] Backtest completed for all symbols.")
+        print("[INFO] Backtest complete.")

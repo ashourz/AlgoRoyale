@@ -1,4 +1,7 @@
 
+from turtle import pd
+
+
 def evaluate_performance(portfolio):
     returns = pd.Series(portfolio.history).pct_change().fillna(0)
     total_return = portfolio.history[-1] / portfolio.initial_capital - 1
