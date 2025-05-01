@@ -5,11 +5,11 @@ from shared.models.alpaca_market_data.alpaca_active_stock import MostActiveStock
 from shared.models.alpaca_market_data.alpaca_market_mover import MarketMoversResponse
 from the_risk_is_not_enough.client.alpaca_market_data.alpaca_screener_client import ActiveStockFilter, AlpacaScreenerClient
 
-from logger.logger_singleton import LoggerSingleton, LoggerType
+from logger.logger_singleton import Environment, LoggerSingleton, LoggerType
 
 
 # Set up logging (prints to console)
-logger = LoggerSingleton().get_logger(LoggerType.INTEGRATION)
+logger = LoggerSingleton(LoggerType.TRADING, Environment.TEST).get_logger()
 
 
 @pytest.fixture(scope="class")

@@ -4,11 +4,11 @@ from typing import List
 from shared.strategies.base_strategy import Strategy
 from shared.strategies.models.moving_average_data import MovingAverageData
 
-from logger.logger_singleton import LoggerSingleton, LoggerType
+from logger.logger_singleton import Environment, LoggerSingleton, LoggerType
 
 
 
-logger = LoggerSingleton().get_logger(LoggerType.TEST)
+logger = LoggerSingleton(LoggerType.TRADING, Environment.PRODUCTION).get_logger()
 
 class MovingAverageStrategy(Strategy):
     """
