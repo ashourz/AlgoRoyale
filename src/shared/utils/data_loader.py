@@ -2,6 +2,10 @@ import os
 import pandas as pd
 from trade_another_day.utils.watchlist import load_watchlist
 
+from logger.logger_singleton import Environment, LoggerSingleton, LoggerType
+
+logger = LoggerSingleton(LoggerType.TRADING, Environment.PRODUCTION)
+
 def ensure_dir_exists(path: str):
     os.makedirs(path, exist_ok=True)
 
@@ -16,7 +20,7 @@ def _load_data_for_symbol(symbol: str, data_dir: str, fetch_if_missing=True) -> 
         return pd.read_csv(filepath, parse_dates=["datetime"])
 
     if fetch_if_missing:
-        print(f"[INFO] Data for {symbol} not found locally. Attempting to fetch...")
+        logger.info(f"Data for {symbol} not found locally. Attempting to fetch...")
         df = _fetch_data_for_symbol(symbol)
         if df is not None:
             df.to_csv(filepath, index=False)
@@ -56,6 +60,6 @@ def load_all_symbol_data_from_watchlist(
         try:
             data[symbol] = _load_data_for_symbol(symbol, data_dir, fetch_if_missing)
         except Exception as e:
-            print(f"[WARN] Could not load data for {symbol}: {e}")
+            logger.info(f"[WARN] Could not load data for {symbol}: {e}")
 
     return data

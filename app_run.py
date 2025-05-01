@@ -36,13 +36,16 @@ This will:
 """
 
 import os
+from logger.logger_singleton import Environment, LoggerSingleton, LoggerType
 from src.app import app
+
+logger = LoggerSingleton(LoggerType.TRADING, Environment.PROD).get_logger()
 
 def set_environment_variables():
     """Sets Flask app and environment variables."""
     os.environ['FLASK_APP'] = 'src.app'
     os.environ['FLASK_ENV'] = 'development'
-    print("Environment variables set for Flask.")
+    logger.info("Environment variables set for Flask.")
 
 if __name__ == "__main__":
     set_environment_variables()

@@ -5,6 +5,10 @@ import psycopg2
 from config.config import DB_PARAMS, DB_SECRETS
 from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
 
+from logger.logger_singleton import Environment, LoggerSingleton, LoggerType
+
+logger = LoggerSingleton(LoggerType.TRADING, Environment.PRODUCTION)
+
 def get_db_connection(retries=3, delay=2, create_if_not_exists=False):
     """
     Create and return a psycopg2 database connection.
@@ -37,19 +41,19 @@ def get_db_connection(retries=3, delay=2, create_if_not_exists=False):
                     cur.execute(f"SELECT 1 FROM pg_database WHERE datname = '{dbname}'")
                     if not cur.fetchone():
                         cur.execute(f"CREATE DATABASE {dbname}")
-                        print(f"✅ Created database: {dbname}")
+                        logger.info(f"✅ Created database: {dbname}")
                     else:
-                        print(f"ℹ️ Database already exists: {dbname}")
+                        logger.info(f"ℹ️ Database already exists: {dbname}")
 
             return conn  # Return the connection, regardless of whether it's the creation connection or the target DB connection
 
         except psycopg2.OperationalError as e:
             attempt += 1
-            print(f"⚠️  Database connection failed (attempt {attempt}/{retries}): {e}")
+            logger.info(f"⚠️  Database connection failed (attempt {attempt}/{retries}): {e}")
             if attempt < retries:
                 time.sleep(delay)  # wait before retrying
             else:
-                print("❌ Max retries reached. Could not connect to the database.")
+                logger.info("❌ Max retries reached. Could not connect to the database.")
                 raise
 
 def close_connection(conn):
@@ -58,4 +62,4 @@ def close_connection(conn):
     """
     if conn:
         conn.close()
-        print("✅ Connection closed.")
+        logger.info("✅ Connection closed.")

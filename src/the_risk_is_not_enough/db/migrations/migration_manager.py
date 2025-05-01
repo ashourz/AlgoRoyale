@@ -1,6 +1,9 @@
 import psycopg2
 from pathlib import Path
-from config.config import DB_PARAMS, DB_SECRETS
+
+from logger.logger_singleton import Environment, LoggerSingleton, LoggerType
+
+logger = LoggerSingleton(LoggerType.TRADING, Environment.PRODUCTION)
 
 def apply_migrations(conn):
     """
@@ -32,7 +35,7 @@ def apply_migrations(conn):
                 with open(migration, "r") as file:
                     schema_sql = file.read()
                     cur.execute(schema_sql)
-                    print(f"✅ Applied migration {version}")
+                    logger.info(f"✅ Applied migration {version}")
                 
                 # Log the applied migration in the schema_migrations table
                 cur.execute("""

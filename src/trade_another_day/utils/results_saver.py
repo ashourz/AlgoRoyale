@@ -2,8 +2,11 @@ import os
 import pandas as pd
 from datetime import datetime
 
+from logger.logger_singleton import Environment, LoggerSingleton, LoggerType
+
 RESULTS_DIR = os.path.join(os.path.dirname(__file__), "..", "results")
 os.makedirs(RESULTS_DIR, exist_ok=True)
+logger = LoggerSingleton(LoggerType.BACKTESTING, Environment.PRODUCTION)
 
 def save_results(strategy_name: str, symbol: str, results_df: pd.DataFrame):
     """
@@ -19,4 +22,4 @@ def save_results(strategy_name: str, symbol: str, results_df: pd.DataFrame):
     filepath = os.path.join(RESULTS_DIR, filename)
 
     results_df.to_csv(filepath, index=False)
-    print(f"[+] Results saved to: {filepath}")
+    logger.info(f"[+] Results saved to: {filepath}")

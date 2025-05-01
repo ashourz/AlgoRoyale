@@ -3,6 +3,10 @@
 from pydantic import RootModel
 from typing import Dict, Any
 
+from logger.logger_singleton import Environment, LoggerSingleton, LoggerType
+
+logger = LoggerSingleton(LoggerType.TRADING, Environment.PRODUCTION)
+
 class ConditionCodeMap(RootModel[Dict[str, str]]):
     """
     A model that maps trade condition codes (single-character keys) to their descriptions.
@@ -48,5 +52,5 @@ if __name__ == "__main__":
     }
 
     condition_map = ConditionCodeMap.from_raw(raw_data)
-    print(condition_map.describe("A"))  # Output: Acquisition
-    print(condition_map.describe("Z"))  # Output: Unknown condition code
+    logger.info(condition_map.describe("A"))  # Output: Acquisition
+    logger.info(condition_map.describe("Z"))  # Output: Unknown condition code

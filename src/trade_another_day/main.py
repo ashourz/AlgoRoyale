@@ -3,8 +3,6 @@ import os
 from trade_another_day.config.config import load_config
 from trade_another_day.core.engine import BacktestEngine
 
-
-
 def run_backtest():
     # Load the configuration settings
     config = load_config()

@@ -12,10 +12,8 @@ from the_risk_is_not_enough.client.alpaca_market_data.alpaca_stock_client import
 
 from logger.logger_singleton import Environment, LoggerSingleton, LoggerType
 
-
 # Set up logging (prints to console)
 logger = LoggerSingleton(LoggerType.TRADING, Environment.TEST).get_logger()
-
 
 @pytest.fixture(scope="class")
 def alpaca_client():
@@ -289,7 +287,7 @@ class TestAlpacaStockClientIntegration:
         )
 
         # Inspect the actual response
-        print(result)  # Add this line to print the response from Alpaca
+        logger.info(result)  # Add this line to print the response from Alpaca
 
         # Basic assertions
         assert result is not None
@@ -326,7 +324,7 @@ class TestAlpacaStockClientIntegration:
         )
 
         # Inspect the actual response
-        print(result)  # Add this line to print the response from Alpaca
+        logger.info(result)  # Add this line to print the response from Alpaca
 
         # Basic assertions
         assert result is not None
