@@ -31,7 +31,7 @@ class BacktestDataLoader:
             try:
                 data[symbol] = self.load_symbol(symbol, fetch_if_missing)
             except Exception as e:
-                self.logger.warn(f"Could not load data for {symbol}: {e}")
+                self.logger.warning(f"Could not load data for {symbol}: {e}")
         return data
 
     def load_symbol(self, symbol: str, fetch_if_missing=True) -> pd.DataFrame:
@@ -66,11 +66,11 @@ class BacktestDataLoader:
         # bars_response is a BarsResponse object
         bars = bars_response.symbol_bars.get(symbol, [])
         if not bars:
-            self.logger.warn(f"No bars returned for {symbol}")
+            self.logger.warning(f"No bars returned for {symbol}")
             return None
 
         # Convert list of Bar objects to list of dicts
-        rows = [bar.dict() for bar in bars]
+        rows = [bar.model_dump() for bar in bars]
 
         df = pd.DataFrame(rows)
         df["symbol"] = symbol  # Optional: add symbol column for reference
