@@ -1,5 +1,7 @@
 from datetime import datetime
 import os
+from algo_royale.trade_another_day.utils.validation_utils import validate_date
+import dateutil
 import pandas as pd
 from algo_royale.shared.models.alpaca_market_data.enums import DataFeed
 from algo_royale.shared.service.market_data.alpaca_stock_service import AlpacaQuoteService
@@ -16,11 +18,20 @@ class BacktestDataLoader:
         os.makedirs(self.data_dir, exist_ok=True)
         self.quote_client = AlpacaQuoteService()
         self.watchlist = load_watchlist(self.config["watchlist_path"])
-        self.start_date = datetime.strptime(self.config["start_date"], "%Y-%m-%d")
-        self.end_date =  datetime.strptime(self.config["end_date"], "%Y-%m-%d")
-        self.interval =  self.config["interval"]
+        
+        # Validate dates
+        self.raw_start_date = self.config["start_date"]
+        self.raw_end_date = self.config["end_date"]
+        validate_date(self.raw_start_date, "start_date")
+        validate_date(self.raw_end_date, "end_date")
+        
+        # Parse dates
+        self.start_date = dateutil.parser.parse(self.raw_start_date)
+        self.end_date = dateutil.parser.parse(self.raw_end_date)
+        
+        self.interval = self.config["interval"]
         self.logger = LoggerSingleton(LoggerType.BACKTESTING, Environment.PRODUCTION).get_logger()
-
+        
     def load_all(self, fetch_if_missing=True) -> dict:
         """
         Loads data for all symbols in the watchlist.
