@@ -7,6 +7,8 @@ from trade_another_day.config.config import load_config
 from trade_another_day.utils.watchlist import load_watchlist
 from alpaca.common.enums import SupportedCurrencies
 
+from logger.logger_singleton import Environment, LoggerSingleton, LoggerType
+
 class BacktestDataLoader:
     def __init__(self):
         self.config = load_config()
@@ -17,6 +19,7 @@ class BacktestDataLoader:
         self.start_date = datetime.strptime(self.config["start_date"], "%Y-%m-%d")
         self.end_date =  datetime.strptime(self.config["end_date"], "%Y-%m-%d")
         self.interval =  self.config["interval"]
+        self.logger = LoggerSingleton(LoggerType.BACKTESTING, Environment.PRODUCTION)
 
     def load_all(self, fetch_if_missing=True) -> dict:
         """
@@ -28,7 +31,7 @@ class BacktestDataLoader:
             try:
                 data[symbol] = self.load_symbol(symbol, fetch_if_missing)
             except Exception as e:
-                print(f"[WARN] Could not load data for {symbol}: {e}")
+                self.logger.warn(f"Could not load data for {symbol}: {e}")
         return data
 
     def load_symbol(self, symbol: str, fetch_if_missing=True) -> pd.DataFrame:
@@ -41,7 +44,7 @@ class BacktestDataLoader:
             return pd.read_csv(filepath, parse_dates=["datetime"])
 
         if fetch_if_missing:
-            print(f"[INFO] Fetching data for {symbol}...")
+            self.logger.info(f"Fetching data for {symbol}...")
             df = self._fetch_data_for_symbol(symbol)
             if df is not None:
                 df.to_csv(filepath, index=False)
@@ -52,25 +55,23 @@ class BacktestDataLoader:
         raise FileNotFoundError(f"[ERROR] Data for {symbol} not found and fetching disabled.")
 
     def _fetch_data_for_symbol(self, symbol: str) -> pd.DataFrame:
-        """
-        Replace this mock implementation with a real data fetch call.
-        """
-        print(f"[MOCK FETCH] {symbol} from {self.start} to {self.end} at {self.interval}")
-        self.quote_client.fetch_historical_bars(
-            symbols=self.watchlist,
+        bars_response = self.quote_client.fetch_historical_bars(
+            symbols=[symbol],
             start_date=self.start_date,
-            end_date=self.end_date, 
+            end_date=self.end_date,
             currency=SupportedCurrencies.USD,
-            feed = DataFeed.IEX
+            feed=DataFeed.IEX
         )
-        # Example mocked structure
-        date_range = pd.date_range(start=self.start, end=self.end, freq='D')
-        df = pd.DataFrame({
-            "datetime": date_range,
-            "open": 100 + pd.np.random.randn(len(date_range)),
-            "high": 101 + pd.np.random.randn(len(date_range)),
-            "low": 99 + pd.np.random.randn(len(date_range)),
-            "close": 100 + pd.np.random.randn(len(date_range)),
-            "volume": pd.np.random.randint(1000, 5000, size=len(date_range))
-        })
+
+        # bars_response is a BarsResponse object
+        bars = bars_response.symbol_bars.get(symbol, [])
+        if not bars:
+            self.logger.warn(f"No bars returned for {symbol}")
+            return None
+
+        # Convert list of Bar objects to list of dicts
+        rows = [bar.dict() for bar in bars]
+
+        df = pd.DataFrame(rows)
+        df["symbol"] = symbol  # Optional: add symbol column for reference
         return df
