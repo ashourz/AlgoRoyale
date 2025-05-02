@@ -19,7 +19,7 @@ class BacktestDataLoader:
         self.start_date = datetime.strptime(self.config["start_date"], "%Y-%m-%d")
         self.end_date =  datetime.strptime(self.config["end_date"], "%Y-%m-%d")
         self.interval =  self.config["interval"]
-        self.logger = LoggerSingleton(LoggerType.BACKTESTING, Environment.PRODUCTION)
+        self.logger = LoggerSingleton(LoggerType.BACKTESTING, Environment.PRODUCTION).get_logger()
 
     def load_all(self, fetch_if_missing=True) -> dict:
         """

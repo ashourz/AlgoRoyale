@@ -4,7 +4,7 @@ from configparser import ConfigParser
 import logging
 from pathlib import Path
 
-def load_ini(section, filename):
+def _load_ini(section, filename):
     config = ConfigParser()
     path = Path(__file__).parent / filename
     config.read(path)
@@ -14,23 +14,23 @@ def load_ini(section, filename):
         raise Exception(f"Section '{section}' not found in {filename}")
 
 # Usage helpers
-def get_config(section):
-    return load_ini(section, "config.ini")
+def _get_config(section):
+    return _load_ini(section, "config.ini")
 
-def get_secrets(section):
-    return load_ini(section, "secrets.ini")
+def _get_secrets(section):
+    return _load_ini(section, "secrets.ini")
 
 # Example: Load relevant configs
-SETTINGS = get_config("settings")
+SETTINGS = _get_config("settings")
 
-DB_PARAMS = get_config("database")
-DB_SECRETS = get_secrets("database")
+DB_PARAMS = _get_config("database")
+DB_SECRETS = _get_secrets("database")
 
-DB_USER_PARAMS = get_config("dbuser")
-DB_USER_SECRETS = get_secrets("dbuser")
+DB_USER_PARAMS = _get_config("dbuser")
+DB_USER_SECRETS = _get_secrets("dbuser")
 
-ALPACA_PARAMS = get_config("alpaca")
-ALPACA_SECRETS = get_secrets("alpaca")
+ALPACA_PARAMS = _get_config("alpaca")
+ALPACA_SECRETS = _get_secrets("alpaca")
 
 def get_base_url(env):
     return {
@@ -38,13 +38,13 @@ def get_base_url(env):
         "prod": ALPACA_PARAMS["base_url_trading_live"]
     }.get(env, ALPACA_PARAMS["base_url_trading_paper"])  # default to test
 
-ENVIRONMENT = get_config("settings")["environment"]
+ENVIRONMENT = _get_config("settings")["environment"]
 
 ALPACA_TRADING_URL = get_base_url(ENVIRONMENT)
 
-TRAINING_PARAMS = get_config("training")
+TRAINING_PARAMS = _get_config("training")
 
-LOGGING_PARAMS = get_config("logging")
+LOGGING_PARAMS = _get_config("logging")
 
 def get_logging_level() -> int:
     level_str = LOGGING_PARAMS.get("level", "INFO").upper()

@@ -10,7 +10,7 @@ def run_backtest():
     data_dir = config['data_dir']
 
     # Initialize the BacktestEngine
-    backtest_engine = BacktestEngine(watchlist_path, data_dir, fetch_if_missing=True)
+    backtest_engine = BacktestEngine(fetch_if_missing=True)
 
     # Load the data for the backtest
     backtest_engine.load_data()

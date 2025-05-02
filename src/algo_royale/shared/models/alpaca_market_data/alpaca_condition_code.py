@@ -5,7 +5,7 @@ from typing import Dict, Any
 
 from algo_royale.shared.logger.logger_singleton import Environment, LoggerSingleton, LoggerType
 
-logger = LoggerSingleton(LoggerType.TRADING, Environment.PRODUCTION)
+logger = LoggerSingleton(LoggerType.TRADING, Environment.PRODUCTION).get_logger()
 
 class ConditionCodeMap(RootModel[Dict[str, str]]):
     """

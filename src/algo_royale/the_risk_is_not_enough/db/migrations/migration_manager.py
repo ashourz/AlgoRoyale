@@ -1,8 +1,8 @@
 from pathlib import Path
 
-from logger.logger_singleton import Environment, LoggerSingleton, LoggerType
+from algo_royale.shared.logger.logger_singleton import Environment, LoggerSingleton, LoggerType
 
-logger = LoggerSingleton(LoggerType.TRADING, Environment.PRODUCTION)
+logger = LoggerSingleton(LoggerType.TRADING, Environment.PRODUCTION).get_logger()
 
 def apply_migrations(conn):
     """

@@ -36,7 +36,7 @@ This will:
 """
 
 import os
-from logger.logger_singleton import Environment, LoggerSingleton, LoggerType
+from algo_royale.shared.logger.logger_singleton import Environment, LoggerSingleton, LoggerType
 from src.app import app
 
 logger = LoggerSingleton(LoggerType.TRADING, Environment.PROD).get_logger()

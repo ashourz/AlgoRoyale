@@ -1,14 +1,13 @@
 
-from algo_royale.trade_another_day.utils.data_loader import load_all_symbol_data_from_watchlist
+from algo_royale.trade_another_day.utils.data_loader import BacktestDataLoader
 
 from algo_royale.shared.logger.logger_singleton import Environment, LoggerSingleton, LoggerType
 
 class BacktestEngine:
-    def __init__(self, config, fetch_if_missing=True):
-        self.watchlist_path = config['watchlist_path']
-        self.data_dir = config['data_dir']
+    def __init__(self, fetch_if_missing=True):
         self.fetch_if_missing = fetch_if_missing
-        self.logger = LoggerSingleton(LoggerType.BACKTESTING, Environment.PRODUCTION)
+        self.logger = LoggerSingleton(LoggerType.BACKTESTING, Environment.PRODUCTION).get_logger()
+        self.loader = BacktestDataLoader()
         self.data = None
 
     def load_data(self):
@@ -16,7 +15,7 @@ class BacktestEngine:
         Load data for all symbols in the watchlist.
         """
         self.logger.info("Loading data for all symbols in the watchlist...")
-        self.data = load_all_symbol_data_from_watchlist(self.watchlist_path, self.data_dir, self.fetch_if_missing)
+        self.data = self.loader.load_all(self.fetch_if_missing)
         self.logger.info(f"Loaded data for {len(self.data)} symbols.")
 
     def run_backtest(self):

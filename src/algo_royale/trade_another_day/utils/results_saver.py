@@ -2,11 +2,11 @@ import os
 import pandas as pd
 from datetime import datetime
 
-from logger.logger_singleton import Environment, LoggerSingleton, LoggerType
+from algo_royale.shared.logger.logger_singleton import Environment, LoggerSingleton, LoggerType
 
 RESULTS_DIR = os.path.join(os.path.dirname(__file__), "..", "results")
 os.makedirs(RESULTS_DIR, exist_ok=True)
-logger = LoggerSingleton(LoggerType.BACKTESTING, Environment.PRODUCTION)
+logger = LoggerSingleton(LoggerType.BACKTESTING, Environment.PRODUCTION).get_logger()
 
 def save_results(strategy_name: str, symbol: str, results_df: pd.DataFrame):
     """

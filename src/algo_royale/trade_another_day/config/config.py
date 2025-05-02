@@ -1,32 +1,44 @@
 import configparser
 import os
+from pathlib import Path
 
 # Path to the config.ini file inside the config folder (relative to this file)
 CONFIG_FILE_PATH = os.path.join(os.path.dirname(__file__), 'config', 'config.ini')
+def _load_ini(section, filename):
+    config = configparser.ConfigParser()
+    path = Path(__file__).parent / filename
+    config.read(path)
+    if section in config:
+        return config[section]
+    else:
+        raise Exception(f"Section '{section}' not found in {filename}")
+    
+# Usage helpers
+def _get_config(section):
+    return _load_ini(section, "config.ini")
 
 def load_config():
     """
     Loads the configuration from the config.ini file and converts relative paths to absolute paths.
     """
+    PATHS = _get_config("paths")
+    PARAMETERS = _get_config("parameters")
+    BACKTEST = _get_config("backtest")
+
     config = configparser.ConfigParser()
     config.read(CONFIG_FILE_PATH)
 
     # Get the absolute paths based on the location of this script (backtesting folder)
     base_path = os.path.dirname(CONFIG_FILE_PATH)
 
-    # Resolve the relative paths to absolute paths
-    watchlist_path = os.path.join(base_path, config.get('paths', 'watchlist_path'))
-    data_dir = os.path.join(base_path, config.get('paths', 'data_dir'))
-    results_dir = os.path.join(base_path, config.get('paths', 'results_dir'))
-
     return {
-        'watchlist_path': watchlist_path,
-        'data_dir': data_dir,
-        'results_dir': results_dir,
-        'initial_capital': config.getfloat('parameters', 'initial_capital'),
-        'short_window': config.getint('parameters', 'short_window'),
-        'long_window': config.getint('parameters', 'long_window'),
-        'start_date': config.get('backtest', 'start_date'),
-        'end_date': config.get('backtest', 'end_date'),
-        'interval': config.get('backtest', 'interval')
+        'watchlist_path': PATHS["watchlist_path"],
+        'data_dir': PATHS["data_dir"],
+        'results_dir': PATHS["results_dir"],
+        'initial_capital': PARAMETERS["initial_capital"],
+        'short_window': PARAMETERS["short_window"],
+        'long_window': PARAMETERS["long_window"],
+        'start_date': BACKTEST["start_date"],
+        'end_date': BACKTEST["end_date"],
+        'interval': BACKTEST["interval"]
     }
