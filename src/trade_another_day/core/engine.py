@@ -1,6 +1,6 @@
 import os
 
-from shared.utils.data_loader import load_all_symbol_data_from_watchlist
+from trade_another_day.utils.data_loader import load_all_symbol_data_from_watchlist
 
 class BacktestEngine:
     def __init__(self, config, fetch_if_missing=True):
