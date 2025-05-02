@@ -7,7 +7,7 @@ from typing import Any, Dict
 from the_risk_is_not_enough.client.exceptions import AlpacaAPIException, AlpacaBadRequestException, AlpacaInvalidHeadersException, AlpacaResourceNotFoundException, AlpacaServerErrorException, AlpacaTooManyRequestsException, AlpacaUnauthorizedException, AlpacaUnprocessableException
 import httpx
 from config.config import ALPACA_PARAMS, ALPACA_SECRETS
-from logger.logger_singleton import LoggerSingleton, LoggerType
+from logger.logger_singleton import Environment, LoggerSingleton, LoggerType
 
 
 class AlpacaBaseClient(ABC):
@@ -38,7 +38,7 @@ class AlpacaBaseClient(ABC):
         self.reconnect_delay = ALPACA_PARAMS.get("reconnect_delay", 5)
         self.keep_alive_timeout = ALPACA_PARAMS.get("keep_alive_timeout", 20)
 
-        self.logger = LoggerSingleton().get_logger(LoggerType.TRADING)   
+        self.logger = LoggerSingleton(LoggerType.TRADING, Environment.PRODUCTION).get_logger()
             
     @property
     @abstractmethod

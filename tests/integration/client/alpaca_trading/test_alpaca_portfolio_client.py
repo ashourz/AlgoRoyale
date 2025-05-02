@@ -5,10 +5,10 @@ from shared.models.alpaca_trading.alpaca_portfolio import PortfolioPerformance
 from the_risk_is_not_enough.client.alpaca_trading.alpaca_portfolio_client import AlpacaPortfolioClient
 import pytest
 
-from logger.logger_singleton import LoggerSingleton, LoggerType
+from logger.logger_singleton import Environment, LoggerSingleton, LoggerType
 
 # Set up logging (prints to console)
-logger = LoggerSingleton().get_logger(LoggerType.INTEGRATION)
+logger = LoggerSingleton(LoggerType.TRADING, Environment.TEST).get_logger()
 
 
 @pytest.fixture(scope="class")

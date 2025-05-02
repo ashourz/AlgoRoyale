@@ -5,11 +5,11 @@ from datetime import datetime, timezone
 from shared.models.alpaca_market_data.alpaca_news import News, NewsResponse
 from the_risk_is_not_enough.client.alpaca_market_data.alpaca_news_client import AlpacaNewsClient
 
-from logger.logger_singleton import LoggerSingleton, LoggerType
+from logger.logger_singleton import Environment, LoggerSingleton, LoggerType
 
 
 # Set up logging (prints to console)
-logger = LoggerSingleton().get_logger(LoggerType.INTEGRATION)
+logger = LoggerSingleton(LoggerType.TRADING, Environment.TEST).get_logger()
 
 @pytest.fixture(scope="class")
 def alpaca_client():

@@ -10,11 +10,11 @@ from shared.models.alpaca_market_data.alpaca_snapshot import SnapshotsResponse
 from shared.models.alpaca_market_data.alpaca_trade import HistoricalTradesResponse, LatestTradesResponse, Trade
 from the_risk_is_not_enough.client.alpaca_market_data.alpaca_stock_client import AlpacaStockClient, Tape, TickType
 
-from logger.logger_singleton import LoggerSingleton, LoggerType
+from logger.logger_singleton import Environment, LoggerSingleton, LoggerType
 
 
 # Set up logging (prints to console)
-logger = LoggerSingleton().get_logger(LoggerType.INTEGRATION)
+logger = LoggerSingleton(LoggerType.TRADING, Environment.TEST).get_logger()
 
 
 @pytest.fixture(scope="class")
