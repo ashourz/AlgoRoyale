@@ -1,11 +1,11 @@
 # config/db_config.py
 
 import time
+from algo_royale.the_risk_is_not_enough.config.config import DB_PARAMS, DB_SECRETS
 import psycopg2
-from config.config import DB_PARAMS, DB_SECRETS
 from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
 
-from logger.logger_singleton import Environment, LoggerSingleton, LoggerType
+from algo_royale.shared.logger.logger_singleton import Environment, LoggerSingleton, LoggerType
 
 logger = LoggerSingleton(LoggerType.TRADING, Environment.PRODUCTION)
 

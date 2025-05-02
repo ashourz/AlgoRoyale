@@ -2,11 +2,11 @@
 
 from datetime import datetime
 from typing import List, Optional
-from shared.models.alpaca_trading.alpaca_order import DeleteOrdersResponse, Order, OrderListResponse, StopLoss, TakeProfit
-from shared.models.alpaca_trading.enums import OrderClass, OrderSide, OrderStatusFilter, OrderType, PositionIntent, SortDirection, TimeInForce
-from the_risk_is_not_enough.client.alpaca_base_client import AlpacaBaseClient
-from the_risk_is_not_enough.client.exceptions import AlpacaInvalidHeadersException, AlpacaUnprocessableException, InsufficientBuyingPowerOrSharesError, MissingParameterError, ParameterConflictError, UnprocessableOrderException
-from config.config import ALPACA_TRADING_URL
+from algo_royale.shared.models.alpaca_trading.alpaca_order import DeleteOrdersResponse, Order, OrderListResponse, StopLoss, TakeProfit
+from algo_royale.shared.models.alpaca_trading.enums import OrderClass, OrderSide, OrderStatusFilter, OrderType, PositionIntent, SortDirection, TimeInForce
+from algo_royale.the_risk_is_not_enough.client.alpaca_base_client import AlpacaBaseClient
+from algo_royale.the_risk_is_not_enough.client.exceptions import AlpacaInvalidHeadersException, AlpacaUnprocessableException, InsufficientBuyingPowerOrSharesError, MissingParameterError, ParameterConflictError, UnprocessableOrderException
+from algo_royale.the_risk_is_not_enough.config.config import ALPACA_TRADING_URL
 
 class AlpacaOrdersClient(AlpacaBaseClient):
     """Singleton class to interact with Alpaca's API for orders data.""" 

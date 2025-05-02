@@ -2,7 +2,7 @@ import os
 import pandas as pd
 from unittest.mock import patch, MagicMock
 
-from trade_another_day.utils.data_loader import BacktestDataLoader
+from algo_royale.trade_another_day.utils.data_loader import BacktestDataLoader
 
 # Mock Bar model
 class MockBar:

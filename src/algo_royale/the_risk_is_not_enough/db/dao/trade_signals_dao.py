@@ -1,5 +1,5 @@
 ## db\dao\trade_signals_dao.py
-from src.the_risk_is_not_enough.db.dao.base_dao import BaseDAO
+from algo_royale.the_risk_is_not_enough.db.dao.base_dao import BaseDAO
 from decimal import Decimal
 from datetime import datetime
 from typing import List, Optional, Tuple

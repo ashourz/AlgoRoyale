@@ -1,8 +1,8 @@
 # src/algo_royale/service/alpaca_watchlist_service.py
 
 from typing import List, Optional
-from the_risk_is_not_enough.client.alpaca_trading.alpaca_watchlist_client import AlpacaWatchlistClient
-from shared.models.alpaca_trading.alpaca_watchlist import Watchlist, WatchlistListResponse
+from algo_royale.the_risk_is_not_enough.client.alpaca_trading.alpaca_watchlist_client import AlpacaWatchlistClient
+from algo_royale.shared.models.alpaca_trading.alpaca_watchlist import Watchlist, WatchlistListResponse
 
 class AlpacaWatchlistService:
     """Service class for interacting with Alpaca's watchlist data."""

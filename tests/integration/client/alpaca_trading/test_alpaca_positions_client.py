@@ -1,9 +1,9 @@
 # src: tests/integration/client/test_alpaca_account_client.py
 
-from shared.models.alpaca_trading.alpaca_position import ClosedPosition, ClosedPositionList, Position, PositionList, PositionSide
-from the_risk_is_not_enough.client.alpaca_trading.alpaca_positions_client import AlpacaPositionsClient
-from the_risk_is_not_enough.client.exceptions import AlpacaPositionNotFoundException
-from logger.logger_singleton import Environment, LoggerSingleton, LoggerType
+from algo_royale.shared.models.alpaca_trading.alpaca_position import ClosedPosition, ClosedPositionList, Position, PositionList, PositionSide
+from algo_royale.the_risk_is_not_enough.client.alpaca_trading.alpaca_positions_client import AlpacaPositionsClient
+from algo_royale.the_risk_is_not_enough.client.exceptions import AlpacaPositionNotFoundException
+from algo_royale.shared.logger.logger_singleton import Environment, LoggerSingleton, LoggerType
 import pytest
 
 

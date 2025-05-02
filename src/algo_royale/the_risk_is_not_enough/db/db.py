@@ -1,8 +1,7 @@
-import psycopg2
-from config.db_config import get_db_connection, close_connection  # Import the new centralized connection function
+from algo_royale.the_risk_is_not_enough.config.db_config import close_connection, get_db_connection
 from contextlib import contextmanager
 
-from logger.logger_singleton import Environment, LoggerSingleton, LoggerType
+from algo_royale.shared.logger.logger_singleton import Environment, LoggerSingleton, LoggerType
 
 
 logger = LoggerSingleton(LoggerType.TRADING, Environment.PRODUCTION).get_logger()

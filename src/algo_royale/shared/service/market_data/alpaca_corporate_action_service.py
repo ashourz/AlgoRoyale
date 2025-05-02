@@ -4,9 +4,9 @@ from datetime import datetime
 from typing import List, Optional
 from alpaca.common.enums import Sort
 
-from the_risk_is_not_enough.client.alpaca_market_data.alpaca_corporate_action_client import AlpacaCorporateActionClient
-from shared.models.alpaca_market_data.alpaca_corporate_action import CorporateActionResponse
-from shared.models.alpaca_market_data.enums import CorporateActions
+from algo_royale.the_risk_is_not_enough.client.alpaca_market_data.alpaca_corporate_action_client import AlpacaCorporateActionClient
+from algo_royale.shared.models.alpaca_market_data.alpaca_corporate_action import CorporateActionResponse
+from algo_royale.shared.models.alpaca_market_data.enums import CorporateActions
 
 
 class AlpacaCorporateActionService:

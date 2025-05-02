@@ -1,8 +1,8 @@
 import os
 
-from trade_another_day.utils.data_loader import load_all_symbol_data_from_watchlist
+from algo_royale.trade_another_day.utils.data_loader import load_all_symbol_data_from_watchlist
 
-from logger.logger_singleton import Environment, LoggerSingleton, LoggerType
+from algo_royale.shared.logger.logger_singleton import Environment, LoggerSingleton, LoggerType
 
 class BacktestEngine:
     def __init__(self, config, fetch_if_missing=True):

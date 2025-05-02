@@ -3,7 +3,7 @@
 from flask import Blueprint, request, jsonify
 from datetime import datetime
 from decimal import Decimal
-from shared.service.db.indicator_service import IndicatorService
+from algo_royale.shared.service.db.indicator_service import IndicatorService
 
 indicator_bp = Blueprint("indicator", __name__)
 service = IndicatorService()

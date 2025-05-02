@@ -1,10 +1,10 @@
 ## client\alpaca_trading\alpaca_assets_client.py
 
 from typing import List, Optional
-from the_risk_is_not_enough.client.alpaca_base_client import AlpacaBaseClient
-from the_risk_is_not_enough.client.exceptions import AlpacaAssetNotFoundException, AlpacaResourceNotFoundException
-from shared.models.alpaca_trading.alpaca_asset import Asset
-from config.config import ALPACA_TRADING_URL
+from algo_royale.the_risk_is_not_enough.client.alpaca_base_client import AlpacaBaseClient
+from algo_royale.the_risk_is_not_enough.client.exceptions import AlpacaAssetNotFoundException, AlpacaResourceNotFoundException
+from algo_royale.shared.models.alpaca_trading.alpaca_asset import Asset
+from algo_royale.the_risk_is_not_enough.config.config import ALPACA_TRADING_URL
 
 class AlpacaAssetsClient(AlpacaBaseClient):
     """Singleton class to interact with Alpaca's API for news data.""" 

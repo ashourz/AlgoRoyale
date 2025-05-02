@@ -26,6 +26,7 @@ flask = "^2.0.1"                # Flask is a lightweight WSGI web application fr
 flask-cors = "^3.0.10"          # For CORS support in Flask applications.
 python-dotenv = "^0.19.0"       # For loading environment variables from a `.env` file.
 httpx = "^0.18.0"               # For making HTTP requests with async support.
+
 # Issue between poetry and tensorflow metadata since >=2.11
 # This is a temporary workaround
 # related to https://github.com/python-poetry/poetry/issues/8271
@@ -65,8 +66,8 @@ mypy = "^0.910"                 # For static type checking in Python.
 testmaker = "scripts.create_test_directory:start_watcher"
 fileheader = "scripts.add_file_headers:start_watcher"
 backtester = "src.algo_royale.trade_another_day.main:run_backtest"
-trader = "src.algo_royale.the_risk_is_not_enough.main"
-watchlist = "src.algo_royale.golden_eye.main"
+# trader = "src.algo_royale.the_risk_is_not_enough.main"
+# watchlist = "src.algo_royale.golden_eye.main"
 
 # Build system configuration.
 # This section is required for building the package.

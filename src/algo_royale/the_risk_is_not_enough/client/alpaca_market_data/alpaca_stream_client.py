@@ -1,11 +1,11 @@
 ## client\alpaca_market_data\alpaca_stream_client.py
 import asyncio
 import json
-from the_risk_is_not_enough.client.alpaca_base_client import AlpacaBaseClient
-from shared.models.alpaca_market_data.enums import DataFeed
+from algo_royale.the_risk_is_not_enough.client.alpaca_base_client import AlpacaBaseClient
+from algo_royale.shared.models.alpaca_market_data.enums import DataFeed
+from algo_royale.the_risk_is_not_enough.config.config import ALPACA_PARAMS
 import websockets
 
-from config.config import ALPACA_PARAMS
 
 class AlpacaStreamClient(AlpacaBaseClient):
     """

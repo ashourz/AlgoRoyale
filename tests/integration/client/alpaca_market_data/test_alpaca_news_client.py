@@ -2,10 +2,10 @@
 
 import pytest
 from datetime import datetime, timezone
-from shared.models.alpaca_market_data.alpaca_news import News, NewsResponse
-from the_risk_is_not_enough.client.alpaca_market_data.alpaca_news_client import AlpacaNewsClient
+from algo_royale.shared.models.alpaca_market_data.alpaca_news import News, NewsResponse
+from algo_royale.the_risk_is_not_enough.client.alpaca_market_data.alpaca_news_client import AlpacaNewsClient
 
-from logger.logger_singleton import Environment, LoggerSingleton, LoggerType
+from algo_royale.shared.logger.logger_singleton import Environment, LoggerSingleton, LoggerType
 
 
 # Set up logging (prints to console)

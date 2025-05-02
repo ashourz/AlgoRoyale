@@ -2,11 +2,11 @@
 
 from datetime import date, datetime
 from typing import List, Optional
-from the_risk_is_not_enough.client.alpaca_base_client import AlpacaBaseClient
-from the_risk_is_not_enough.client.exceptions import ParameterConflictError
-from shared.models.alpaca_trading.alpaca_portfolio import PortfolioPerformance
-from shared.models.alpaca_trading.enums import IntradayReporting, PNLReset
-from config.config import ALPACA_TRADING_URL
+from algo_royale.the_risk_is_not_enough.client.alpaca_base_client import AlpacaBaseClient
+from algo_royale.the_risk_is_not_enough.client.exceptions import ParameterConflictError
+from algo_royale.shared.models.alpaca_trading.alpaca_portfolio import PortfolioPerformance
+from algo_royale.shared.models.alpaca_trading.enums import IntradayReporting, PNLReset
+from algo_royale.the_risk_is_not_enough.config.config import ALPACA_TRADING_URL
 
 class AlpacaPortfolioClient(AlpacaBaseClient):
     """Singleton class to interact with Alpaca's API for portfolio data.""" 

@@ -1,10 +1,10 @@
 import pandas as pd
 from typing import List
 
-from shared.strategies.base_strategy import Strategy
-from shared.strategies.models.moving_average_data import MovingAverageData
+from algo_royale.shared.strategies.base_strategy import Strategy
+from algo_royale.shared.strategies.models.moving_average_data import MovingAverageData
 
-from logger.logger_singleton import Environment, LoggerSingleton, LoggerType
+from algo_royale.shared.logger.logger_singleton import Environment, LoggerSingleton, LoggerType
 
 
 

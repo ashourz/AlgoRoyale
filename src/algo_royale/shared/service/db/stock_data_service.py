@@ -3,7 +3,7 @@ from decimal import Decimal
 from datetime import datetime
 from typing import List, Tuple
 
-from src.the_risk_is_not_enough.db.dao.stock_data_dao import StockDataDAO
+from algo_royale.the_risk_is_not_enough.db.dao.stock_data_dao import StockDataDAO
 
 class StockDataService:
     def __init__(self):

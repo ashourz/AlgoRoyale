@@ -3,7 +3,7 @@
 from pydantic import RootModel
 from typing import Dict, Any
 
-from logger.logger_singleton import Environment, LoggerSingleton, LoggerType
+from algo_royale.shared.logger.logger_singleton import Environment, LoggerSingleton, LoggerType
 
 logger = LoggerSingleton(LoggerType.TRADING, Environment.PRODUCTION)
 

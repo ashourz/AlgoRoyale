@@ -2,20 +2,20 @@
 
 from enum import Enum
 from typing import List, Optional
-from the_risk_is_not_enough.client.alpaca_base_client import AlpacaBaseClient
-from shared.models.alpaca_market_data.alpaca_auction import AuctionResponse
-from shared.models.alpaca_market_data.alpaca_bar import BarsResponse, LatestBarsResponse
-from shared.models.alpaca_market_data.alpaca_condition_code import ConditionCodeMap
-from shared.models.alpaca_market_data.alpaca_quote import QuotesResponse
+from algo_royale.the_risk_is_not_enough.client.alpaca_base_client import AlpacaBaseClient
+from algo_royale.shared.models.alpaca_market_data.alpaca_auction import AuctionResponse
+from algo_royale.shared.models.alpaca_market_data.alpaca_bar import BarsResponse, LatestBarsResponse
+from algo_royale.shared.models.alpaca_market_data.alpaca_condition_code import ConditionCodeMap
+from algo_royale.shared.models.alpaca_market_data.alpaca_quote import QuotesResponse
 from datetime import datetime
 
 from alpaca.data.enums import DataFeed, Adjustment
 from alpaca.common.enums import Sort, SupportedCurrencies
 from alpaca.data.timeframe import TimeFrame, TimeFrameUnit
-from shared.models.alpaca_market_data.alpaca_snapshot import SnapshotsResponse
-from shared.models.alpaca_market_data.alpaca_trade import HistoricalTradesResponse, LatestTradesResponse
-from shared.models.alpaca_market_data.enums import SnapshotFeed, Tape, TickType
-from the_risk_is_not_enough.config.config import ALPACA_PARAMS
+from algo_royale.shared.models.alpaca_market_data.alpaca_snapshot import SnapshotsResponse
+from algo_royale.shared.models.alpaca_market_data.alpaca_trade import HistoricalTradesResponse, LatestTradesResponse
+from algo_royale.shared.models.alpaca_market_data.enums import SnapshotFeed, Tape, TickType
+from algo_royale.the_risk_is_not_enough.config.config import ALPACA_PARAMS
 
 
     

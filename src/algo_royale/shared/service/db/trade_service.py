@@ -1,7 +1,7 @@
 ## service\trade_service.py
 from datetime import datetime
 from decimal import Decimal
-from src.the_risk_is_not_enough.db.dao.trades_dao import TradesDAO
+from algo_royale.the_risk_is_not_enough.db.dao.trades_dao import TradesDAO
 from typing import List, Tuple
 
 class TradeService:

@@ -1,12 +1,13 @@
 ## client\alpaca_market_data\alpaca_corporate_action_client.py
 
 from typing import List, Optional
-from shared.models.alpaca_market_data.enums import CorporateActions
-from the_risk_is_not_enough.client.alpaca_base_client import AlpacaBaseClient
+
+from algo_royale.shared.models.alpaca_market_data.alpaca_corporate_action import CorporateActionResponse
+from algo_royale.shared.models.alpaca_market_data.enums import CorporateActions
+from algo_royale.the_risk_is_not_enough.client.alpaca_base_client import AlpacaBaseClient
+from algo_royale.the_risk_is_not_enough.config.config import ALPACA_PARAMS
 from datetime import datetime
 from alpaca.common.enums import Sort
-from shared.models.alpaca_market_data.alpaca_corporate_action import CorporateActionResponse
-from config.config import ALPACA_PARAMS
 
 
 class AlpacaCorporateActionClient(AlpacaBaseClient):

@@ -2,7 +2,7 @@
 from decimal import Decimal
 from datetime import datetime
 from typing import List, Tuple
-from src.the_risk_is_not_enough.db.dao.base_dao import BaseDAO
+from algo_royale.the_risk_is_not_enough.db.dao.base_dao import BaseDAO
 
 class TradesDAO(BaseDAO):
     def __init__(self):

@@ -1,9 +1,9 @@
 # src/algo_royale/services/alpaca_trading/alpaca_positions_service.py
 
 from typing import Optional
-from shared.models.alpaca_trading.alpaca_position import ClosedPositionList, PositionList
-from the_risk_is_not_enough.client.alpaca_trading.alpaca_positions_client import AlpacaPositionsClient
-from the_risk_is_not_enough.client.exceptions import MissingParameterError, ParameterConflictError
+from algo_royale.shared.models.alpaca_trading.alpaca_position import ClosedPositionList, PositionList
+from algo_royale.the_risk_is_not_enough.client.alpaca_trading.alpaca_positions_client import AlpacaPositionsClient
+from algo_royale.the_risk_is_not_enough.client.exceptions import MissingParameterError, ParameterConflictError
 
 class AlpacaPositionsService:
     """Service class to manage positions data and actions on Alpaca API."""

@@ -2,10 +2,10 @@
 
 from datetime import datetime
 from typing import List, Optional, Union
-from the_risk_is_not_enough.client.alpaca_market_data.alpaca_news_client import AlpacaNewsClient
+from algo_royale.the_risk_is_not_enough.client.alpaca_market_data.alpaca_news_client import AlpacaNewsClient
 from alpaca.common.enums import Sort
 
-from shared.models.alpaca_market_data.alpaca_news import NewsResponse
+from algo_royale.shared.models.alpaca_market_data.alpaca_news import NewsResponse
 
 
 class AlpacaNewsService:

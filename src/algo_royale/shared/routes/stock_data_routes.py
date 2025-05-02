@@ -1,6 +1,6 @@
 # src/routes/stock_data_routes.py
 
-from shared.service.db.stock_data_service import StockDataService
+from algo_royale.shared.service.db.stock_data_service import StockDataService
 from datetime import datetime
 from decimal import Decimal
 from flask import Blueprint, request, jsonify

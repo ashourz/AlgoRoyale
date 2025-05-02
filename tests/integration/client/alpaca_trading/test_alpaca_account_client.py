@@ -2,11 +2,11 @@
 
 from datetime import datetime, timedelta
 import pytest
-from shared.models.alpaca_trading.alpaca_account import Account, AccountActivities, AccountConfiguration
-from shared.models.alpaca_trading.enums import ActivityType, DTBPCheck, TradeConfirmationEmail
-from the_risk_is_not_enough.client.alpaca_trading.alpaca_accounts_client import AlpacaAccountClient
+from algo_royale.shared.models.alpaca_trading.alpaca_account import Account, AccountActivities, AccountConfiguration
+from algo_royale.shared.models.alpaca_trading.enums import ActivityType, DTBPCheck, TradeConfirmationEmail
+from algo_royale.the_risk_is_not_enough.client.alpaca_trading.alpaca_accounts_client import AlpacaAccountClient
 
-from logger.logger_singleton import Environment, LoggerSingleton, LoggerType
+from algo_royale.shared.logger.logger_singleton import Environment, LoggerSingleton, LoggerType
 
 
 # Set up logging (prints to console)

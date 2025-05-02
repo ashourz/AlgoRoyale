@@ -1,13 +1,13 @@
 from datetime import datetime
 import os
 import pandas as pd
-from shared.models.alpaca_market_data.enums import DataFeed
-from shared.service.market_data.alpaca_stock_service import AlpacaQuoteService
-from trade_another_day.config.config import load_config
-from trade_another_day.utils.watchlist import load_watchlist
+from algo_royale.shared.models.alpaca_market_data.enums import DataFeed
+from algo_royale.shared.service.market_data.alpaca_stock_service import AlpacaQuoteService
+from algo_royale.trade_another_day.config.config import load_config
+from algo_royale.trade_another_day.utils.watchlist import load_watchlist
 from alpaca.common.enums import SupportedCurrencies
 
-from logger.logger_singleton import Environment, LoggerSingleton, LoggerType
+from algo_royale.shared.logger.logger_singleton import Environment, LoggerSingleton, LoggerType
 
 class BacktestDataLoader:
     def __init__(self):
