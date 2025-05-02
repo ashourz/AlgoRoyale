@@ -1,22 +1,18 @@
 import os
+from typing import List
 
-import os
 
-# Path to the config directory where the watchlist.txt resides
-CONFIG_DIR = os.path.join(os.path.dirname(__file__), '..', 'config')
-WATCHLIST_FILE = os.path.join(CONFIG_DIR, 'watchlist.txt')
-
-def load_watchlist():
+def load_watchlist(path: str):
     """Load symbols from the watchlist.txt file in the config folder."""
-    if not os.path.exists(WATCHLIST_FILE):
-        raise FileNotFoundError(f"Watchlist file not found at: {WATCHLIST_FILE}")
+    if not os.path.exists(path):
+        raise FileNotFoundError(f"Watchlist file not found at: {path}")
     
-    with open(WATCHLIST_FILE, 'r') as file:
-        watchlist = file.read().splitlines()  # Read each line as a separate symbol
+    with open(path, "r") as f:
+        watchlist = [line.strip() for line in f if line.strip()]   # Read each line as a separate symbol
     
     return watchlist
 
-def save_watchlist(symbols):
+def save_watchlist(path: str, symbols: List[str]):
     """Save the current list of symbols to the watchlist.txt file."""
-    with open(WATCHLIST_FILE, 'w') as file:
+    with open(path, 'w') as file:
         file.write("\n".join(symbols))  # Save each symbol on a new line
