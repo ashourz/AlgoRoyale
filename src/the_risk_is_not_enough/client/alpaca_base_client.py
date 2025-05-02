@@ -6,7 +6,8 @@ from datetime import date, datetime
 from typing import Any, Dict
 from the_risk_is_not_enough.client.exceptions import AlpacaAPIException, AlpacaBadRequestException, AlpacaInvalidHeadersException, AlpacaResourceNotFoundException, AlpacaServerErrorException, AlpacaTooManyRequestsException, AlpacaUnauthorizedException, AlpacaUnprocessableException
 import httpx
-from config.config import ALPACA_PARAMS, ALPACA_SECRETS
+from the_risk_is_not_enough.config.config import ALPACA_PARAMS, ALPACA_SECRETS
+
 from logger.logger_singleton import Environment, LoggerSingleton, LoggerType
 
 

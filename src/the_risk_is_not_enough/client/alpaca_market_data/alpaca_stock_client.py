@@ -15,8 +15,8 @@ from alpaca.data.timeframe import TimeFrame, TimeFrameUnit
 from shared.models.alpaca_market_data.alpaca_snapshot import SnapshotsResponse
 from shared.models.alpaca_market_data.alpaca_trade import HistoricalTradesResponse, LatestTradesResponse
 from shared.models.alpaca_market_data.enums import SnapshotFeed, Tape, TickType
+from the_risk_is_not_enough.config.config import ALPACA_PARAMS
 
-from config.config import ALPACA_PARAMS
 
     
 class AlpacaStockClient(AlpacaBaseClient):
