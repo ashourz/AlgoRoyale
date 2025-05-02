@@ -7,6 +7,9 @@ venv/
 .algo_royale_env/
 .venv/
 
+# Ignore build dist folder
+dist/ 
+
 # Ignore Python cache files
 *.pyc
 __pycache__/

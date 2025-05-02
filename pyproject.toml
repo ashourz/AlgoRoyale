@@ -56,6 +56,7 @@ flake8 = "^3.9.2"               # For linting Python code.
 black = "^21.7b0"               # For automatic code formatting.
 isort = "^5.9.3"                # For sorting imports in Python files.     
 mypy = "^0.910"                 # For static type checking in Python.
+
 # Poetry script configuration.
 # This allows you to define custom scripts that can be run with `poetry run <script-name>`
 # or `poetry run watch` in this case.
@@ -63,6 +64,9 @@ mypy = "^0.910"                 # For static type checking in Python.
 [tool.poetry.scripts]
 testmaker = "scripts.create_test_directory:start_watcher"
 fileheader = "scripts.add_file_headers:start_watcher"
+backtester = "src.algo_royale.trade_another_day.main:run_backtest"
+trader = "src.algo_royale.the_risk_is_not_enough.main"
+watchlist = "src.algo_royale.golden_eye.main"
 
 # Build system configuration.
 # This section is required for building the package.
@@ -72,6 +76,7 @@ fileheader = "scripts.add_file_headers:start_watcher"
 requires = ["poetry-core>=1.0.0"]
 # The `build-backend` specifies the backend to use for building the package.
 build-backend = "poetry.core.masonry.api"
+
 
 # ------------------------------------------------------------
 # 📚 Documentation
