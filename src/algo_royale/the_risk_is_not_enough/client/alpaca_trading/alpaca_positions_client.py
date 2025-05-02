@@ -4,9 +4,7 @@ from typing import Optional
 from algo_royale.the_risk_is_not_enough.client.alpaca_base_client import AlpacaBaseClient
 from algo_royale.the_risk_is_not_enough.client.exceptions import AlpacaPositionNotFoundException, AlpacaResourceNotFoundException, MissingParameterError, ParameterConflictError
 from algo_royale.the_risk_is_not_enough.config.config import ALPACA_TRADING_URL
-from algo_royale.shared.models.alpaca_trading.alpaca_order import DeleteOrdersResponse, OrderListResponse, Order, StopLoss, TakeProfit
-from algo_royale.shared.models.alpaca_trading.alpaca_position import ClosedPosition, ClosedPositionList, PositionList
-from algo_royale.shared.models.alpaca_trading.enums import OrderClass, OrderSide, OrderStatus, OrderStatusFilter, OrderType, PositionIntent, SortDirection, TimeInForce
+from algo_royale.shared.models.alpaca_trading.alpaca_position import ClosedPositionList, PositionList
 
 class AlpacaPositionsClient(AlpacaBaseClient):
     """Singleton class to interact with Alpaca's API for positions data.""" 
@@ -33,7 +31,7 @@ class AlpacaPositionsClient(AlpacaBaseClient):
         """
 
         response = self.get(
-            endpoint=f"positions"
+            endpoint="positions"
         )
 
         return PositionList.from_raw(response)
@@ -115,7 +113,7 @@ class AlpacaPositionsClient(AlpacaBaseClient):
             params["cancel_orders"] = cancel_orders
             
         response = self.delete(
-            endpoint=f"positions",
+            endpoint="positions",
             params =params
         )
 

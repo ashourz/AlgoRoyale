@@ -2,7 +2,7 @@
 from algo_royale.the_risk_is_not_enough.db.dao.base_dao import BaseDAO
 from decimal import Decimal
 from datetime import datetime
-from typing import List, Optional, Tuple
+from typing import List, Tuple
 
 class IndicatorDAO(BaseDAO):
     def __init__(self):

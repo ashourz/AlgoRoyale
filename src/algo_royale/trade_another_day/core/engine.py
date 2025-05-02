@@ -1,4 +1,3 @@
-import os
 
 from algo_royale.trade_another_day.utils.data_loader import load_all_symbol_data_from_watchlist
 

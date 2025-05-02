@@ -120,7 +120,7 @@ class TestAlpacaWatchlistClientIntegration:
         logger.info("❓ Verifying watchlist deletion...")
         try:
             should_be_none = alpaca_client.get_watchlist_by_id(watchlist_id)
-        except Exception as e:
+        except Exception:
             should_be_none = None
         assert should_be_none is None, "❌ Watchlist still exists after deletion"
         logger.info("✅ Watchlist deletion confirmed")
@@ -156,7 +156,7 @@ class TestAlpacaWatchlistClientIntegration:
         logger.info("❓ Verifying watchlist deletion...")
         try:
             should_be_none = alpaca_client.get_watchlist_by_id(watchlist_id)
-        except Exception as e:
+        except Exception:
             should_be_none = None
         assert should_be_none is None, "❌ Watchlist still exists after deletion"
         logger.info("✅ Watchlist deletion confirmed")

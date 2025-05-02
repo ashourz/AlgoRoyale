@@ -1,6 +1,6 @@
 ## client\alpaca_trading\alpaca_accounts_client.py
 
-from datetime import date, datetime
+from datetime import datetime
 from enum import Enum
 from typing import List, Optional
 from algo_royale.the_risk_is_not_enough.client.alpaca_base_client import AlpacaBaseClient

@@ -21,7 +21,6 @@ class TestHandler:
     
 @pytest.fixture(scope="function")
 async def alpaca_client():
-    from algo_royale.the_risk_is_not_enough.client.alpaca_market_data.alpaca_stream_client import AlpacaStreamClient
     return AlpacaStreamClient()
 
 @pytest.mark.asyncio

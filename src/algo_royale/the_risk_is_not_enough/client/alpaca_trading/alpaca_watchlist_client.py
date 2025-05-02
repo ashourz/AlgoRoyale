@@ -25,7 +25,7 @@ class AlpacaWatchlistClient(AlpacaBaseClient):
          """
                 
         response = self.get(
-            endpoint=f"watchlists",
+            endpoint="watchlists",
         ) 
         
         return WatchlistListResponse.from_raw(response)
@@ -85,7 +85,7 @@ class AlpacaWatchlistClient(AlpacaBaseClient):
         params = {"name": name}
                 
         response = self.get(
-            endpoint=f"watchlists:by_name",
+            endpoint="watchlists:by_name",
             params = params
         )
 
@@ -107,7 +107,7 @@ class AlpacaWatchlistClient(AlpacaBaseClient):
         
         try:
             self.delete(
-                endpoint=f"watchlists:by_name",
+                endpoint="watchlists:by_name",
                 params = params
             )
         except AlpacaResourceNotFoundException as e: 
@@ -184,7 +184,7 @@ class AlpacaWatchlistClient(AlpacaBaseClient):
         payload = {"name": update_name}
                 
         response = self.put(
-            endpoint=f"watchlists:by_name",
+            endpoint="watchlists:by_name",
             params = params,
             data = payload
         )
@@ -214,7 +214,7 @@ class AlpacaWatchlistClient(AlpacaBaseClient):
             params["symbol"] = symbol
                 
         response = self.post(
-            endpoint=f"watchlists:by_name",
+            endpoint="watchlists:by_name",
             params = params,
             data = payload
         )
@@ -271,7 +271,7 @@ class AlpacaWatchlistClient(AlpacaBaseClient):
             payload["symbols"] = symbols
                 
         response = self.post(
-            endpoint=f"watchlists",
+            endpoint="watchlists",
             data = payload
         )
 

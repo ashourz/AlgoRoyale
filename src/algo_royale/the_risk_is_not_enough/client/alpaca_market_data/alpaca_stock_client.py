@@ -1,6 +1,5 @@
 ## client\alpaca_market_data\alpaca_stock_client.py
 
-from enum import Enum
 from typing import List, Optional
 from algo_royale.the_risk_is_not_enough.client.alpaca_base_client import AlpacaBaseClient
 from algo_royale.shared.models.alpaca_market_data.alpaca_auction import AuctionResponse
@@ -65,7 +64,7 @@ class AlpacaStockClient(AlpacaBaseClient):
         }
                 
         response = self.get(
-            endpoint=f"stocks/quotes",
+            endpoint="stocks/quotes",
             params=params
         )
         
@@ -89,7 +88,7 @@ class AlpacaStockClient(AlpacaBaseClient):
         }
                 
         response = self.get(
-            endpoint=f"stocks/quotes/latest",
+            endpoint="stocks/quotes/latest",
             params=params
         )
         
@@ -127,7 +126,7 @@ class AlpacaStockClient(AlpacaBaseClient):
         }
                 
         response = self.get(
-            endpoint=f"stocks/auctions",
+            endpoint="stocks/auctions",
             params=params
         )  
         
@@ -170,7 +169,7 @@ class AlpacaStockClient(AlpacaBaseClient):
         }
                 
         response = self.get(
-            endpoint=f"stocks/bars",
+            endpoint="stocks/bars",
             params=params
         )
         
@@ -194,7 +193,7 @@ class AlpacaStockClient(AlpacaBaseClient):
         }
                 
         response = self.get(
-            endpoint=f"stocks/bars/latest",
+            endpoint="stocks/bars/latest",
             params=params
         )      
         
@@ -233,7 +232,7 @@ class AlpacaStockClient(AlpacaBaseClient):
             "feed": feed        
         }
         response = self.get(
-            endpoint=f"stocks/snapshots",
+            endpoint="stocks/snapshots",
             params=params
         )
 
@@ -265,7 +264,7 @@ class AlpacaStockClient(AlpacaBaseClient):
         }
 
         response = self.get(
-            endpoint=f"stocks/trades",
+            endpoint="stocks/trades",
             params=params
         )
         
@@ -286,7 +285,7 @@ class AlpacaStockClient(AlpacaBaseClient):
         }
 
         response = self.get(
-            endpoint=f"stocks/trades/latest",
+            endpoint="stocks/trades/latest",
             params=params
         )
         

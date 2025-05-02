@@ -1,4 +1,3 @@
-import os
 
 from algo_royale.trade_another_day.core.engine import BacktestEngine
 

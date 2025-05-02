@@ -1,7 +1,7 @@
 # src/models/alpaca_models/alpaca_quote.py
 
 from pydantic import BaseModel
-from typing import List, Dict, Optional
+from typing import List, Optional
 from datetime import datetime
 from dateutil.parser import isoparse  # if not using built-in parsing
 

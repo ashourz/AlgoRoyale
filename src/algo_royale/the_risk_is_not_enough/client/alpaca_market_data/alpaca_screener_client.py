@@ -1,7 +1,6 @@
 ## client\alpaca_market_data\alpaca_screener_client.py
 
-from enum import Enum
-from typing import List, Optional
+from typing import Optional
 from algo_royale.the_risk_is_not_enough.client.alpaca_base_client import AlpacaBaseClient
 from algo_royale.shared.models.alpaca_market_data.alpaca_active_stock import MostActiveStocksResponse
 from algo_royale.shared.models.alpaca_market_data.alpaca_market_mover import MarketMoversResponse
@@ -40,7 +39,7 @@ class AlpacaScreenerClient(AlpacaBaseClient):
         }
                 
         response = self.get(
-            endpoint=f"screener/stocks/most-actives",
+            endpoint="screener/stocks/most-actives",
             params=params
         )
         
@@ -60,7 +59,7 @@ class AlpacaScreenerClient(AlpacaBaseClient):
         }
                 
         response = self.get(
-            endpoint=f"screener/stocks/movers",
+            endpoint="screener/stocks/movers",
             params=params
         )
         

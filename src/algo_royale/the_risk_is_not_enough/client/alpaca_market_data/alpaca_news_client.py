@@ -1,6 +1,5 @@
 ## client\alpaca_market_data\alpaca_news_client.py
 
-from enum import Enum
 from typing import List, Optional, Union
 from algo_royale.the_risk_is_not_enough.client.alpaca_base_client import AlpacaBaseClient
 from algo_royale.shared.models.alpaca_market_data.alpaca_news import NewsResponse
@@ -66,7 +65,7 @@ class AlpacaNewsClient(AlpacaBaseClient):
             params["page_token"] = page_token
 
         response = self.get(
-            endpoint=f"news",
+            endpoint="news",
             params=params
         )
 

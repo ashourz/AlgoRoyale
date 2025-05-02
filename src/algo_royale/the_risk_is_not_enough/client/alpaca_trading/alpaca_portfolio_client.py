@@ -1,7 +1,7 @@
 ## client\alpaca_trading\alpaca_portfolio_client.py
 
-from datetime import date, datetime
-from typing import List, Optional
+from datetime import datetime
+from typing import Optional
 from algo_royale.the_risk_is_not_enough.client.alpaca_base_client import AlpacaBaseClient
 from algo_royale.the_risk_is_not_enough.client.exceptions import ParameterConflictError
 from algo_royale.shared.models.alpaca_trading.alpaca_portfolio import PortfolioPerformance
@@ -94,7 +94,7 @@ class AlpacaPortfolioClient(AlpacaBaseClient):
             params["cashflow_types"] = cashflow_types
                 
         response = self.get(
-            endpoint=f"account/portfolio/history",
+            endpoint="account/portfolio/history",
             params=params
         )
         

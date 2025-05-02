@@ -1,4 +1,3 @@
-import os
 import pandas as pd
 from unittest.mock import patch, MagicMock
 
@@ -24,9 +23,9 @@ class MockBar:
             "volume": self.volume
         }
 
-@patch("trade_another_day.utils.data_loader.AlpacaQuoteService")
-@patch("trade_another_day.utils.data_loader.load_config")
-@patch("trade_another_day.utils.data_loader.load_watchlist")
+@patch("algo_royale.trade_another_day.utils.data_loader.AlpacaQuoteService")
+@patch("algo_royale.trade_another_day.utils.data_loader.load_config")
+@patch("algo_royale.trade_another_day.utils.data_loader.load_watchlist")
 def test_fetch_data_for_symbol(mock_watchlist, mock_config, mock_quote_service):
     mock_watchlist.return_value = ["AAPL"]
     mock_config.return_value = {
@@ -54,10 +53,10 @@ def test_fetch_data_for_symbol(mock_watchlist, mock_config, mock_quote_service):
     assert df.iloc[0]["open"] == 100
 
 
-@patch("trade_another_day.utils.data_loader.pd.read_csv")
-@patch("trade_another_day.utils.data_loader.os.path.exists")
-@patch("trade_another_day.utils.data_loader.load_config")
-@patch("trade_another_day.utils.data_loader.load_watchlist")
+@patch("algo_royale.trade_another_day.utils.data_loader.pd.read_csv")
+@patch("algo_royale.trade_another_day.utils.data_loader.os.path.exists")
+@patch("algo_royale.trade_another_day.utils.data_loader.load_config")
+@patch("algo_royale.trade_another_day.utils.data_loader.load_watchlist")
 def test_load_symbol_reads_existing_file(mock_watchlist, mock_config, mock_exists, mock_read_csv):
     mock_watchlist.return_value = ["AAPL"]
     mock_config.return_value = {
@@ -79,9 +78,9 @@ def test_load_symbol_reads_existing_file(mock_watchlist, mock_config, mock_exist
     mock_read_csv.assert_called_once()
 
 
-@patch("trade_another_day.utils.data_loader.BacktestDataLoader.load_symbol")
-@patch("trade_another_day.utils.data_loader.load_config")
-@patch("trade_another_day.utils.data_loader.load_watchlist")
+@patch("algo_royale.trade_another_day.utils.data_loader.BacktestDataLoader.load_symbol")
+@patch("algo_royale.trade_another_day.utils.data_loader.load_config")
+@patch("algo_royale.trade_another_day.utils.data_loader.load_watchlist")
 def test_load_all_calls_load_symbol(mock_watchlist, mock_config, mock_load_symbol):
     mock_watchlist.return_value = ["AAPL", "TSLA"]
     mock_config.return_value = {

@@ -1,4 +1,3 @@
-import psycopg2
 from pathlib import Path
 
 from logger.logger_singleton import Environment, LoggerSingleton, LoggerType

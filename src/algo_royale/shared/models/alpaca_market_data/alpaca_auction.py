@@ -1,9 +1,8 @@
 # src/models/alpaca_models/alpaca_active_stock.py
 
 from pydantic import BaseModel, RootModel
-from typing import List, Dict, Optional
+from typing import List, Optional
 from datetime import datetime
-from dateutil.parser import isoparse  # if not using built-in parsing
 
 class AuctionEvent(BaseModel):
     condition: str         # e.g. "M", "6", "Q", "O"
