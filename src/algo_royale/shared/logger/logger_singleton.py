@@ -3,6 +3,8 @@ import logging
 from logging.handlers import RotatingFileHandler
 import os
 
+from algo_royale.shared.utils.path_utils import get_project_root
+
 
 class Environment(Enum):
     PRODUCTION = "production"
@@ -21,9 +23,8 @@ class LoggerType(Enum):
         self.log_name = log_name
         self.log_level = log_level
 
-
-BASE_LOG_DIR = os.path.join(os.path.dirname(__file__), "..", "logs")
-
+PROJECT_ROOT = get_project_root()
+BASE_LOG_DIR = PROJECT_ROOT / "logs"  # Logs will always be at project root
 
 class LoggerSingleton:
     """
