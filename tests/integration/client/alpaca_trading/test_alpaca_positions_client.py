@@ -10,16 +10,18 @@ import pytest
 # Set up logging (prints to console)
 logger = LoggerSingleton(LoggerType.TRADING, Environment.TEST).get_logger()
 
-@pytest.fixture(scope="class")
-def alpaca_client():
-    return AlpacaPositionsClient()
-
+@pytest.fixture
+async def alpaca_client(event_loop):
+    client = AlpacaPositionsClient()
+    yield client
+    await client.async_client.aclose()  # Clean up the async client
+    
 @pytest.mark.asyncio
 class TestAlpacaPositionsClientIntegration:
                 
-    def test_get_all_open_positions(self, alpaca_client):
+    async def test_get_all_open_positions(self, alpaca_client):
         """Test fetching all open positions from Alpaca."""
-        result = alpaca_client.get_all_open_positions()
+        result = await alpaca_client.get_all_open_positions()
 
         assert result is not None
         assert isinstance(result, PositionList)
@@ -47,12 +49,11 @@ class TestAlpacaPositionsClientIntegration:
             assert isinstance(pos.lastday_price, float)
             assert isinstance(pos.change_today, float)
 
-    def test_get_open_position_by_symbol(self, alpaca_client):
+    async def test_get_open_position_by_symbol(self, alpaca_client):
         """Test fetching a single position by symbol."""
         symbol = "AAPL"  # Make sure this symbol has an open position
         try:
-
-            result = alpaca_client.get_open_position_by_symbol_or_asset_id(symbol)
+            result = await alpaca_client.get_open_position_by_symbol_or_asset_id(symbol)
             
             if result is not None:
                 assert isinstance(result, PositionList)
@@ -61,12 +62,12 @@ class TestAlpacaPositionsClientIntegration:
         except AlpacaPositionNotFoundException:
             pass
                     
-    def test_close_position_by_symbol(self, alpaca_client):
+    async def test_close_position_by_symbol(self, alpaca_client):
         """Test closing a position by symbol with quantity."""
         symbol = "AAPL"  # Ensure you hold this position before running
         qty = 1
         try:
-            result = alpaca_client.close_position_by_symbol_or_asset_id(
+            result = await alpaca_client.close_position_by_symbol_or_asset_id(
                 symbol_or_asset_id=symbol,
                 qty=qty
             )
@@ -84,10 +85,10 @@ class TestAlpacaPositionsClientIntegration:
         except AlpacaPositionNotFoundException:
             pass
     
-    def test_close_all_positions(self, alpaca_client):
+    async def test_close_all_positions(self, alpaca_client):
         """Test closing all open positions."""
 
-        result = alpaca_client.close_all_positions()
+        result = await alpaca_client.close_all_positions()
         if result is not None:
             assert result is not None
             assert isinstance(result, ClosedPositionList)

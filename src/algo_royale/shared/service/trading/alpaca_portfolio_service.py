@@ -13,7 +13,7 @@ class AlpacaPortfolioService:
     def __init__(self):
         self.client = AlpacaPortfolioClient()
 
-    def get_portfolio_history(
+    async def get_portfolio_history(
         self,
         period: Optional[str] = None,
         timeframe: Optional[str] = None,
@@ -35,7 +35,7 @@ class AlpacaPortfolioService:
             raise ParameterConflictError("Only two of start, end (or date_end) and period can be specified at the same time.")
 
         # Delegate the actual API request to AlpacaPortfolioClient
-        return self.client.fetch_portfolio_history(
+        return await self.client.fetch_portfolio_history(
             period=period,
             timeframe=timeframe,
             intraday_reporting=intraday_reporting,

@@ -21,7 +21,7 @@ class AlpacaCalendarClient(AlpacaBaseClient):
         """Subclasses must define a name for logging and ID purposes"""
         return ALPACA_TRADING_URL
     
-    def fetch_calendar(
+    async def fetch_calendar(
         self,
         start: Optional[datetime] = None,
         end: Optional[datetime] = None,
@@ -39,7 +39,7 @@ class AlpacaCalendarClient(AlpacaBaseClient):
             params["date_type"] = date_type
         
                 
-        response = self.get(
+        response = await self.get(
             endpoint="calendar",
             params = params
         )   

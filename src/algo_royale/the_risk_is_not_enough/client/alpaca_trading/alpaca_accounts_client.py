@@ -22,25 +22,25 @@ class AlpacaAccountClient(AlpacaBaseClient):
         """Subclasses must define a name for logging and ID purposes"""
         return ALPACA_TRADING_URL
      
-    def fetch_account(self) -> Optional[Account]:
+    async def fetch_account(self) -> Optional[Account]:
         """Fetch account data from Alpaca."""
 
-        response = self.get(
+        response = await self.get(
             endpoint="account"
         )  
         
         return Account.from_raw(response)
 
-    def fetch_account_configuration(self) -> Optional[AccountConfiguration]:
+    async def fetch_account_configuration(self) -> Optional[AccountConfiguration]:
         """Fetch account data from Alpaca."""
 
-        response = self.get(
+        response = await self.get(
             endpoint="account/configurations"
         )
         
         return AccountConfiguration.from_raw(response)
 
-    def update_account_configuration(
+    async def update_account_configuration(
         self,
         dtbp_check: Optional[DTBPCheck] = None,
         trade_confirm_email: Optional[TradeConfirmationEmail] = None,
@@ -91,14 +91,14 @@ class AlpacaAccountClient(AlpacaBaseClient):
             payload["ptp_no_exception_entry"] = ptp_no_exception_entry
 
         # Send the PATCH request
-        response = self.patch(
+        response = await self.patch(
             endpoint="account/configurations",
             data=payload
         )
 
         return AccountConfiguration.from_raw(response)
 
-    def get_account_activities(
+    async def get_account_activities(
         self,
         activity_types: Optional[List[ActivityType]] = None,
         category: Optional[str] = None,
@@ -149,14 +149,14 @@ class AlpacaAccountClient(AlpacaBaseClient):
         if page_token:
             params["page_token"] = page_token
 
-        response = self.get(
+        response = await self.get(
             endpoint="account/activities",
             params=params
         )
 
         return AccountActivities.from_raw(response)
     
-    def get_account_activities_by_activity_type(
+    async def get_account_activities_by_activity_type(
         self,
         activity_type: ActivityType,
         date: Optional[datetime] = None,
@@ -197,7 +197,7 @@ class AlpacaAccountClient(AlpacaBaseClient):
         if page_token:
             params["page_token"] = page_token
                 
-        response = self.get(
+        response = await self.get(
             endpoint=f"account/activities/{activity_type.value}",
             params=params
         )

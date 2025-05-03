@@ -11,17 +11,19 @@ from algo_royale.shared.logger.logger_singleton import Environment, LoggerSingle
 logger = LoggerSingleton(LoggerType.TRADING, Environment.TEST).get_logger()
 
 
-@pytest.fixture(scope="class")
-def alpaca_client():
-    return AlpacaClockClient()
-
+@pytest.fixture
+async def alpaca_client(event_loop):
+    client = AlpacaClockClient()
+    yield client
+    await client.async_client.aclose()  # Clean up the async client
+    
 @pytest.mark.asyncio
 class TestAlpacaClockClientIntegration:
 
-    def test_fetch_clock(self, alpaca_client):
+    async def test_fetch_clock(self, alpaca_client):
         """Test fetching portfolio history data from Alpaca's live endpoint."""
 
-        result = alpaca_client.fetch_clock()
+        result = await alpaca_client.fetch_clock()
 
         assert result is not None
         assert isinstance(result, Clock)

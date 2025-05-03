@@ -19,10 +19,10 @@ class AlpacaClockClient(AlpacaBaseClient):
         """Subclasses must define a name for logging and ID purposes"""
         return ALPACA_TRADING_URL
     
-    def fetch_clock(self) -> Optional[Clock]:
+    async def fetch_clock(self) -> Optional[Clock]:
         """Fetch clock data from Alpaca."""
 
-        response = self.get(
+        response = await self.get(
             endpoint="/clock"
         )    
         

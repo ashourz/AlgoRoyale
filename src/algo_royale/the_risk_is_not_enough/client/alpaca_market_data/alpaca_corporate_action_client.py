@@ -22,8 +22,8 @@ class AlpacaCorporateActionClient(AlpacaBaseClient):
     def base_url(self) -> str:
         """Subclasses must define a name for logging and ID purposes"""
         return ALPACA_PARAMS["base_url_data_v1"] 
-    
-    def fetch_corporate_actions(
+        
+    async def fetch_corporate_actions(
         self,
         symbols: List[str],
         start_date: datetime,
@@ -72,7 +72,7 @@ class AlpacaCorporateActionClient(AlpacaBaseClient):
         if page_token is not None:
             params["page_token"] = page_token
 
-        response = self.get(
+        response = await self.get(
             endpoint="corporate-actions",
             params=params
         )

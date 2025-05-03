@@ -16,7 +16,7 @@ class AlpacaCalendarService:
         """
         self.calendar_client = calendar_client
 
-    def get_calendar(
+    async def get_calendar(
         self,
         start: Optional[datetime] = None,
         end: Optional[datetime] = None,
@@ -33,14 +33,14 @@ class AlpacaCalendarService:
         Returns:
             Optional[CalendarList]: A list of corporate action calendar data retrieved from Alpaca, or None if no calendar data matches.
         """
-        calendar = self.calendar_client.fetch_calendar(start=start, end=end, date_type=date_type)
+        calendar = await self.calendar_client.fetch_calendar(start=start, end=end, date_type=date_type)
 
         if not calendar:
             return None
 
         return calendar
 
-    def get_calendar_by_date(self, start: datetime, end: datetime) -> Optional[CalendarList]:
+    async def get_calendar_by_date(self, start: datetime, end: datetime) -> Optional[CalendarList]:
         """
         Fetches corporate action calendar data from the Alpaca API for a specific date range.
 
@@ -54,7 +54,7 @@ class AlpacaCalendarService:
         Raises:
             CalendarNotFoundError: If no calendar data is found for the given date range.
         """
-        calendar = self.calendar_client.fetch_calendar(start=start, end=end)
+        calendar = await self.calendar_client.fetch_calendar(start=start, end=end)
 
         if not calendar:
             raise CalendarNotFoundError(f"No corporate action calendar data found for the dates {start} to {end}.")

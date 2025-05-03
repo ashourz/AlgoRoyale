@@ -19,18 +19,18 @@ class AlpacaWatchlistClient(AlpacaBaseClient):
         """Subclasses must define a name for logging and ID purposes"""
         return ALPACA_TRADING_URL    
 
-    def get_all_watchlists(self) -> Optional[WatchlistListResponse]:
+    async def get_all_watchlists(self) -> Optional[WatchlistListResponse]:
         """
         Gets all watchlists for an account.
          """
                 
-        response = self.get(
+        response = await self.get(
             endpoint="watchlists",
         ) 
         
         return WatchlistListResponse.from_raw(response)
             
-    def get_watchlist_by_id(
+    async def get_watchlist_by_id(
         self,
         watchlist_id: str,
     ) -> Optional[Watchlist]:
@@ -44,13 +44,13 @@ class AlpacaWatchlistClient(AlpacaBaseClient):
             - Watchlist object or None if no response.
         """
                 
-        response = self.get(
+        response = await self.get(
             endpoint=f"watchlists/{watchlist_id}",
         )
 
         return Watchlist.from_raw(response)
     
-    def delete_watchlist_by_id(
+    async def delete_watchlist_by_id(
         self,
         watchlist_id: str,
     ):
@@ -61,14 +61,14 @@ class AlpacaWatchlistClient(AlpacaBaseClient):
             - watchlist_id (str) :The watchlist ID.
         """
         try:
-            self.delete(
+            await self.delete(
                 endpoint=f"watchlists/{watchlist_id}",
             )
         except AlpacaResourceNotFoundException as e: 
             self.logger.error(f"Watchlist not found. Code:{e.status_code} | Message:{e.message}")
             raise AlpacaWatchlistNotFoundException(e.message)
         
-    def get_watchlist_by_name(
+    async def get_watchlist_by_name(
         self,
         name: str,
     ) -> Optional[Watchlist]:
@@ -84,14 +84,14 @@ class AlpacaWatchlistClient(AlpacaBaseClient):
                 
         params = {"name": name}
                 
-        response = self.get(
+        response = await self.get(
             endpoint="watchlists:by_name",
             params = params
         )
 
         return Watchlist.from_raw(response)
     
-    def delete_watchlist_by_name(
+    async def delete_watchlist_by_name(
         self,
         name: str,
     ) -> bool:
@@ -106,7 +106,7 @@ class AlpacaWatchlistClient(AlpacaBaseClient):
         params = {"name": name}
         
         try:
-            self.delete(
+            await self.delete(
                 endpoint="watchlists:by_name",
                 params = params
             )
@@ -114,7 +114,7 @@ class AlpacaWatchlistClient(AlpacaBaseClient):
             self.logger.error(f"Watchlist not found. Code:{e.status_code} | Message:{e.message}")
             raise AlpacaWatchlistNotFoundException(e.message)
         
-    def delete_symbol_from_watchlist(
+    async def delete_symbol_from_watchlist(
         self,
         watchlist_id: str,
         symbol: str
@@ -130,7 +130,7 @@ class AlpacaWatchlistClient(AlpacaBaseClient):
             - Watchlist object or None if no response.
         """
         try:
-            response = self.delete(
+            response = await self.delete(
                 endpoint=f"watchlists/{watchlist_id}/{symbol}"
             )
             return Watchlist.from_raw(response)
@@ -138,7 +138,7 @@ class AlpacaWatchlistClient(AlpacaBaseClient):
             self.logger.error(f"Watchlist not found. Code:{e.status_code} | Message:{e.message}")
             raise AlpacaWatchlistNotFoundException(e.message)
         
-    def update_watchlist_by_id(
+    async def update_watchlist_by_id(
         self,
         watchlist_id: str,
         name: str
@@ -156,14 +156,14 @@ class AlpacaWatchlistClient(AlpacaBaseClient):
 
         payload = {"name": name}
                 
-        response = self.put(
+        response = await self.put(
             endpoint=f"watchlists/{watchlist_id}",
             data = payload
         )
         
         return Watchlist.from_raw(response)
     
-    def update_watchlist_by_name(
+    async def update_watchlist_by_name(
         self,
         name: str,
         update_name: str,
@@ -183,7 +183,7 @@ class AlpacaWatchlistClient(AlpacaBaseClient):
         params = {"name": name}
         payload = {"name": update_name}
                 
-        response = self.put(
+        response = await self.put(
             endpoint="watchlists:by_name",
             params = params,
             data = payload
@@ -191,7 +191,7 @@ class AlpacaWatchlistClient(AlpacaBaseClient):
 
         return Watchlist.from_raw(response)
     
-    def add_asset_to_watchlist_by_name(
+    async def add_asset_to_watchlist_by_name(
         self,
         name: str,
         symbol: Optional[str],
@@ -213,7 +213,7 @@ class AlpacaWatchlistClient(AlpacaBaseClient):
         if symbol:
             params["symbol"] = symbol
                 
-        response = self.post(
+        response = await self.post(
             endpoint="watchlists:by_name",
             params = params,
             data = payload
@@ -221,7 +221,7 @@ class AlpacaWatchlistClient(AlpacaBaseClient):
 
         return Watchlist.from_raw(response)
     
-    def add_asset_to_watchlist_by_id(
+    async def add_asset_to_watchlist_by_id(
         self,
         watchlist_id: str,
         symbol: Optional[str],
@@ -242,14 +242,14 @@ class AlpacaWatchlistClient(AlpacaBaseClient):
             payload["symbol"] = symbol
 
                 
-        response = self.post(
+        response = await self.post(
             endpoint=f"watchlists/{watchlist_id}",
             data = payload
         )
 
         return Watchlist.from_raw(response)
     
-    def create_watchlist(
+    async def create_watchlist(
         self,
         name: str,
         symbols: Optional[List[str]],
@@ -270,7 +270,7 @@ class AlpacaWatchlistClient(AlpacaBaseClient):
         if symbols:
             payload["symbols"] = symbols
                 
-        response = self.post(
+        response = await self.post(
             endpoint="watchlists",
             data = payload
         )

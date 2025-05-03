@@ -21,7 +21,7 @@ class AlpacaOrdersClient(AlpacaBaseClient):
         """Subclasses must define a name for logging and ID purposes"""
         return ALPACA_TRADING_URL
         
-    def create_order(
+    async def create_order(
         self,
         symbol: Optional[str] = None,
         qty: Optional[float] = None,
@@ -154,7 +154,7 @@ class AlpacaOrdersClient(AlpacaBaseClient):
             payload["position_intent"] = position_intent
 
         try:
-            response = self.post(
+            response = await self.post(
                 endpoint="orders",
                 data=payload
             )
@@ -163,7 +163,7 @@ class AlpacaOrdersClient(AlpacaBaseClient):
             self.logger.error(f"Insufficient buying power or shares. Code:{e.status_code} | Message:{e.message}")
             raise InsufficientBuyingPowerOrSharesError(e.message)
     
-    def get_all_orders(
+    async def get_all_orders(
         self,
         status: Optional[OrderStatusFilter] = None, 
         limit: Optional[int] = None,
@@ -211,14 +211,14 @@ class AlpacaOrdersClient(AlpacaBaseClient):
         if side:
             params["side"] = side
 
-        response = self.get(
+        response = await self.get(
             endpoint="orders",
             params=params
         )
 
         return OrderListResponse.from_raw(response)
     
-    def get_order_by_client_order_id(
+    async def get_order_by_client_order_id(
         self,
         client_order_id: str,
         nested: Optional[bool] = None,
@@ -237,14 +237,14 @@ class AlpacaOrdersClient(AlpacaBaseClient):
         if nested:
             params["nested"] = nested
                 
-        response = self.get(
+        response = await self.get(
             endpoint="orders:by_client_order_id",
             params = params
         )
 
         return Order.from_raw(response)
     
-    def replace_order_by_client_order_id(
+    async def replace_order_by_client_order_id(
         self,
         client_order_id: str,
         qty: Optional[int] = None,
@@ -299,14 +299,14 @@ class AlpacaOrdersClient(AlpacaBaseClient):
         if new_client_order_id:
             payload["client_order_id"] = new_client_order_id
 
-        response = self.patch(
+        response = await self.patch(
             endpoint=f"orders/{client_order_id}",
             data=payload
         )
 
         return Order.from_raw(response)
     
-    def delete_order_by_client_order_id(
+    async def delete_order_by_client_order_id(
         self,
         client_order_id: str,
     ):
@@ -319,14 +319,14 @@ class AlpacaOrdersClient(AlpacaBaseClient):
             - Parsed JSON response in other cases.
         """
         try:
-            self.delete(
+            await self.delete(
                 endpoint=f"orders/{client_order_id}",
             )  
         except UnprocessableOrderException as e:
             self.logger.error(f"Order cannot be cancelled. Code:{e.status_code} | Message:{e.message}")
             return None    
         
-    def delete_all_orders(
+    async def delete_all_orders(
         self
     ) -> Optional[DeleteOrdersResponse]:
         """
@@ -336,7 +336,7 @@ class AlpacaOrdersClient(AlpacaBaseClient):
             - DeleteOrdersResponse object or None if no response.
         """
         try:
-            response = self.delete(
+            response = await self.delete(
                 endpoint="orders"
             )
             return DeleteOrdersResponse.from_raw(response) 

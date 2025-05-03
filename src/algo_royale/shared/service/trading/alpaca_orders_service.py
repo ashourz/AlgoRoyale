@@ -16,7 +16,7 @@ class AlpacaOrdersService:
     def __init__(self):
         self.client = AlpacaOrdersClient()
 
-    def create_order(self, 
+    async def create_order(self, 
                      symbol: Optional[str] = None,
                      qty: Optional[float] = None,
                      notional: Optional[float] = None,
@@ -57,7 +57,7 @@ class AlpacaOrdersService:
         Returns:
             - Order: The created order object.
         """
-        return self.client.create_order(
+        return await self.client.create_order(
             symbol=symbol,
             qty=qty,
             notional=notional,
@@ -76,7 +76,7 @@ class AlpacaOrdersService:
             position_intent=position_intent
         )
 
-    def get_all_orders(self, 
+    async def get_all_orders(self, 
                        status: Optional[OrderStatusFilter] = None, 
                        limit: Optional[int] = None,
                        after: Optional[datetime] = None,
@@ -101,7 +101,7 @@ class AlpacaOrdersService:
         Returns:
             - OrderListResponse: The list of orders matching the filter.
         """
-        return self.client.get_all_orders(
+        return await self.client.get_all_orders(
             status=status,
             limit=limit,
             after=after,
@@ -112,7 +112,7 @@ class AlpacaOrdersService:
             side=side
         )
 
-    def get_order_by_client_order_id(self, 
+    async def get_order_by_client_order_id(self, 
                                      client_order_id: str, 
                                      nested: Optional[bool] = None) -> Optional[Order]:
         """
@@ -125,12 +125,12 @@ class AlpacaOrdersService:
         Returns:
             - Order: The order object associated with the client-order ID.
         """
-        return self.client.get_order_by_client_order_id(
+        return await self.client.get_order_by_client_order_id(
             client_order_id=client_order_id,
             nested=nested
         )
 
-    def replace_order_by_client_order_id(self, 
+    async def replace_order_by_client_order_id(self, 
                                          client_order_id: str, 
                                          qty: Optional[int] = None, 
                                          time_in_force: Optional[TimeInForce] = None, 
@@ -153,7 +153,7 @@ class AlpacaOrdersService:
         Returns:
             - Order: The updated order object.
         """
-        return self.client.replace_order_by_client_order_id(
+        return await self.client.replace_order_by_client_order_id(
             client_order_id=client_order_id,
             qty=qty,
             time_in_force=time_in_force,
@@ -163,7 +163,7 @@ class AlpacaOrdersService:
             new_client_order_id=new_client_order_id
         )
 
-    def delete_order_by_client_order_id(self, client_order_id: str):
+    async def delete_order_by_client_order_id(self, client_order_id: str):
         """
         Delete an order by its client-order ID.
 
@@ -174,13 +174,13 @@ class AlpacaOrdersService:
             - None: If the order was successfully deleted.
             - Raises ValueError: If the order status is not cancelable.
         """
-        self.client.delete_order_by_client_order_id(client_order_id)
+        await self.client.delete_order_by_client_order_id(client_order_id)
 
-    def delete_all_orders(self) -> Optional[DeleteOrdersResponse]:
+    async def delete_all_orders(self) -> Optional[DeleteOrdersResponse]:
         """
         Delete all orders for the account.
 
         Returns:
             - DeleteOrdersResponse: The response indicating success or failure.
         """
-        return self.client.delete_all_orders()
+        return await self.client.delete_all_orders()

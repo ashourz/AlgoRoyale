@@ -15,21 +15,21 @@ class AlpacaClockService:
         """
         self.clock_client = clock_client
 
-    def get_clock(self) -> Optional[Clock]:
+    async def get_clock(self) -> Optional[Clock]:
         """
         Fetches clock data from the Alpaca API.
 
         Returns:
             Optional[Clock]: The clock data retrieved from Alpaca, or None if no clock data is found.
         """
-        clock = self.clock_client.fetch_clock()
+        clock = await self.clock_client.fetch_clock()
 
         if not clock:
             return None
 
         return clock
 
-    def get_clock_or_raise(self) -> Clock:
+    async def get_clock_or_raise(self) -> Clock:
         """
         Fetches clock data from the Alpaca API and raises an exception if no data is found.
 
@@ -39,7 +39,7 @@ class AlpacaClockService:
         Raises:
             ClockNotFoundError: If no clock data is found.
         """
-        clock = self.clock_client.fetch_clock()
+        clock = await self.clock_client.fetch_clock()
 
         if not clock:
             raise ClockNotFoundError("Clock data could not be retrieved from Alpaca.")

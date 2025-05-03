@@ -11,20 +11,23 @@ from algo_royale.shared.logger.logger_singleton import Environment, LoggerSingle
 # Set up logging (prints to console)
 logger = LoggerSingleton(LoggerType.TRADING, Environment.TEST).get_logger()
 
-@pytest.fixture(scope="class")
-def alpaca_client():
-    return AlpacaNewsClient()
 
+@pytest.fixture
+async def alpaca_client(event_loop):
+    client = AlpacaNewsClient()
+    yield client
+    await client.async_client.aclose()  # Clean up the async client
+    
 @pytest.mark.asyncio
 class TestAlpacaNewsClientIntegration:
 
-    def test_fetch_news(self, alpaca_client):
+    async def test_fetch_news(self, alpaca_client):
         """Test fetching news data from Alpaca's live endpoint."""
         symbols = ["AAPL"]
         start_date = datetime(2024, 4, 1, 0,0,0,tzinfo=timezone.utc)
         end_date = datetime(2024, 4, 3, tzinfo=timezone.utc)
 
-        result = alpaca_client.fetch_news(
+        result = await alpaca_client.fetch_news(
             symbols=symbols,
             # start_date=start_date,
             # end_date=end_date

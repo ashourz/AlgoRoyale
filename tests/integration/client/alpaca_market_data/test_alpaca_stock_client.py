@@ -15,20 +15,23 @@ from algo_royale.shared.logger.logger_singleton import Environment, LoggerSingle
 # Set up logging (prints to console)
 logger = LoggerSingleton(LoggerType.TRADING, Environment.TEST).get_logger()
 
-@pytest.fixture(scope="class")
-def alpaca_client():
-    return AlpacaStockClient()
-
+@pytest.fixture
+async def alpaca_client():
+    client = AlpacaStockClient()
+    yield client
+    if hasattr(client, "async_client") and hasattr(client.async_client, "aclose"):
+        await client.async_client.aclose()
+    
 @pytest.mark.asyncio
 class TestAlpacaStockClientIntegration:
 
-    def test_fetch_historical_quotes(self, alpaca_client):
+    async def test_fetch_historical_quotes(self, alpaca_client):
         """Test fetching historical quote data from Alpaca's live endpoint."""
         symbols = ["AAPL"]
         start_date = datetime(2024, 4, 1, tzinfo=timezone.utc)
         end_date = datetime(2024, 4, 3, tzinfo=timezone.utc)
 
-        result = alpaca_client.fetch_historical_quotes(
+        result = await alpaca_client.fetch_historical_quotes(
             symbols=symbols,
             start_date=start_date,
             end_date=end_date
@@ -49,11 +52,11 @@ class TestAlpacaStockClientIntegration:
         for attr in expected_attrs:
             assert hasattr(first_quote, attr), f"Missing expected attribute: {attr}"
             
-    def test_fetch_latest_quotes(self, alpaca_client):
+    async def test_fetch_latest_quotes(self, alpaca_client):
         """Test fetching the latest quote for a symbol."""
         symbols = ["AAPL"]
 
-        result = alpaca_client.fetch_latest_quotes(
+        result = await alpaca_client.fetch_latest_quotes(
             symbols=symbols
         )
 
@@ -73,13 +76,13 @@ class TestAlpacaStockClientIntegration:
             assert hasattr(first_quote, attr), f"Missing expected attribute: {attr}"
             
                         
-    def test_fetch_historical_auctions(self, alpaca_client):
+    async def test_fetch_historical_auctions(self, alpaca_client):
         """Test fetching the latest quote for a symbol."""
         symbols = ["AAPL"]
         start_date = datetime(2024, 4, 1, tzinfo=timezone.utc)
         end_date = datetime(2024, 4, 3, tzinfo=timezone.utc)
         
-        result = alpaca_client.fetch_historical_auctions(
+        result = await alpaca_client.fetch_historical_auctions(
             symbols=symbols,
             start_date = start_date,
             end_date = end_date
@@ -107,13 +110,13 @@ class TestAlpacaStockClientIntegration:
                     assert event.size >= 0
                     assert isinstance(event.timestamp, datetime)
 
-    def test_fetch_historical_bars(self, alpaca_client):
+    async def test_fetch_historical_bars(self, alpaca_client):
         """Test fetching historical bars for a symbol."""
         symbols = ["AAPL"]
         start_date = datetime(2022, 1, 3, tzinfo=timezone.utc)
         end_date = datetime(2022, 1, 4, tzinfo=timezone.utc)
 
-        result = alpaca_client.fetch_historical_bars(
+        result = await alpaca_client.fetch_historical_bars(
             symbols=symbols,
             start_date=start_date,
             end_date=end_date
@@ -145,13 +148,13 @@ class TestAlpacaStockClientIntegration:
                 assert bar.volume >= 0
                 assert bar.num_trades >= 0
                 
-    def test_fetch_latest_bars(self, alpaca_client):
+    async def test_fetch_latest_bars(self, alpaca_client):
         """Test fetching latest bars for a symbol."""
         symbols = ["AAPL"]
         start_date = datetime(2022, 1, 3, tzinfo=timezone.utc)
         end_date = datetime(2022, 1, 4, tzinfo=timezone.utc)
 
-        result = alpaca_client.fetch_latest_bars(
+        result = await alpaca_client.fetch_latest_bars(
             symbols=symbols
         )
 
@@ -180,7 +183,7 @@ class TestAlpacaStockClientIntegration:
             assert bar.volume >= 0
             assert bar.num_trades >= 0
             
-    def test_fetch_condition_codes(self, alpaca_client):
+    async def test_fetch_condition_codes(self, alpaca_client):
         """Test fetching condition codes from Alpaca."""
 
         # Example test inputs
@@ -188,7 +191,7 @@ class TestAlpacaStockClientIntegration:
         tape = Tape.A          # or use Tape.A
 
         # Call the method
-        result = alpaca_client.fetch_condition_codes(
+        result = await alpaca_client.fetch_condition_codes(
             ticktype=ticktype,
             tape=tape
         )
@@ -214,14 +217,14 @@ class TestAlpacaStockClientIntegration:
         description = result.describe(first_key)
         assert description == condition_dict[first_key]
         
-    def test_fetch_snapshots(self, alpaca_client):
+    async def test_fetch_snapshots(self, alpaca_client):
         """Test fetching snapshot data from Alpaca."""
 
         # Example test input
         symbols = ["AAPL"]
 
         # Call the method
-        result = alpaca_client.fetch_snapshots(
+        result = await alpaca_client.fetch_snapshots(
             symbols=symbols
         )
 
@@ -274,13 +277,13 @@ class TestAlpacaStockClientIntegration:
         # Optional: print output for debugging or manual verification
         # print(snapshot.model_dump_json(indent=2))
 
-    def test_fetch_historical_trades(self, alpaca_client):
+    async def test_fetch_historical_trades(self, alpaca_client):
         """Test fetching historical trades for a symbol."""
         symbols = ["AAPL"]
         start_date = datetime(2022, 1, 3, tzinfo=timezone.utc)
         end_date = datetime(2022, 1, 4, tzinfo=timezone.utc)
 
-        result = alpaca_client.fetch_historical_trades(
+        result = await alpaca_client.fetch_historical_trades(
             symbols=symbols,
             start_date=start_date,
             end_date=end_date
@@ -315,11 +318,11 @@ class TestAlpacaStockClientIntegration:
                 assert isinstance(trade.size, int)
                 assert trade.size >= 0
                 
-    def test_fetch_latest_trades(self, alpaca_client):
+    async def test_fetch_latest_trades(self, alpaca_client):
         """Test fetching latest trades for a symbol."""
         symbols = ["AAPL"]
 
-        result = alpaca_client.fetch_latest_trades(
+        result = await alpaca_client.fetch_latest_trades(
             symbols=symbols
         )
 

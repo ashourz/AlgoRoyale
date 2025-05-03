@@ -22,7 +22,7 @@ class AlpacaPortfolioClient(AlpacaBaseClient):
         """Subclasses must define a name for logging and ID purposes"""
         return ALPACA_TRADING_URL
     
-    def fetch_portfolio_history(
+    async def fetch_portfolio_history(
             self,
             period: Optional[str] = None,
             timeframe: Optional[str] = None,
@@ -93,7 +93,7 @@ class AlpacaPortfolioClient(AlpacaBaseClient):
         if cashflow_types:
             params["cashflow_types"] = cashflow_types
                 
-        response = self.get(
+        response = await self.get(
             endpoint="account/portfolio/history",
             params=params
         )

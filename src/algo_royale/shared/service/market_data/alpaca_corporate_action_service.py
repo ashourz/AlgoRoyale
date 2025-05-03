@@ -18,7 +18,7 @@ class AlpacaCorporateActionService:
     def __init__(self, client: Optional[AlpacaCorporateActionClient] = None):
         self.client = client or AlpacaCorporateActionClient()
 
-    def get_corporate_actions_for_symbols(
+    async def get_corporate_actions_for_symbols(
         self,
         symbols: List[str],
         start_date: datetime,
@@ -30,7 +30,7 @@ class AlpacaCorporateActionService:
         """
         Fetch corporate actions for a list of stock symbols and a date range.
         """
-        return self.client.fetch_corporate_actions(
+        return await self.client.fetch_corporate_actions(
             symbols=symbols,
             start_date=start_date,
             end_date=end_date,
@@ -39,7 +39,7 @@ class AlpacaCorporateActionService:
             page_limit=limit
         )
 
-    def get_corporate_actions_by_ids(
+    async def get_corporate_actions_by_ids(
         self,
         action_ids: List[str],
         symbols: Optional[List[str]] = [],
@@ -55,7 +55,7 @@ class AlpacaCorporateActionService:
         if not end_date:
             end_date = datetime.utcnow()
 
-        return self.client.fetch_corporate_actions(
+        return await self.client.fetch_corporate_actions(
             symbols=symbols,
             start_date=start_date,
             end_date=end_date,

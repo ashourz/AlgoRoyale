@@ -15,7 +15,7 @@ class AlpacaAssetService:
         """
         self.assets_client = assets_client
 
-    def get_assets(
+    async def get_assets(
         self,
         status: Optional[str] = None,
         asset_class: str = "us_equity",
@@ -32,14 +32,14 @@ class AlpacaAssetService:
         Returns:
             Optional[List[Asset]]: A list of assets retrieved from Alpaca, or None if no assets match.
         """
-        assets = self.assets_client.fetch_assets(status=status, asset_class=asset_class, exchange=exchange)
+        assets = await self.assets_client.fetch_assets(status=status, asset_class=asset_class, exchange=exchange)
         
         if not assets:
             return None
 
         return assets
 
-    def get_asset_by_symbol_or_id(self, symbol_or_asset_id: str) -> Optional[Asset]:
+    async def get_asset_by_symbol_or_id(self, symbol_or_asset_id: str) -> Optional[Asset]:
         """
         Fetches a single asset by symbol or asset ID from the Alpaca API.
 
@@ -52,7 +52,7 @@ class AlpacaAssetService:
         Raises:
             AssetNotFoundError: If the asset cannot be found in the Alpaca API.
         """
-        asset = self.assets_client.fetch_asset_by_symbol_or_id(symbol_or_asset_id)
+        asset = await self.assets_client.fetch_asset_by_symbol_or_id(symbol_or_asset_id)
         
         if asset is None:
             raise AssetNotFoundError(f"Asset with symbol or ID '{symbol_or_asset_id}' not found.")

@@ -78,6 +78,8 @@ requires = ["poetry-core>=1.0.0"]
 # The `build-backend` specifies the backend to use for building the package.
 build-backend = "poetry.core.masonry.api"
 
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
 
 # ------------------------------------------------------------
 # 📚 Documentation

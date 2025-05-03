@@ -21,7 +21,7 @@ class AlpacaScreenerClient(AlpacaBaseClient):
         """Subclasses must define a name for logging and ID purposes"""
         return ALPACA_PARAMS["base_url_data_v1beta1"] 
     
-    def fetch_active_stocks(
+    async def fetch_active_stocks(
         self,
         by: ActiveStockFilter,
         top: int = 10,
@@ -38,14 +38,14 @@ class AlpacaScreenerClient(AlpacaBaseClient):
             "top": min(top, 100),  # Alpaca limits to 100
         }
                 
-        response = self.get(
+        response = await self.get(
             endpoint="screener/stocks/most-actives",
             params=params
         )
         
         return MostActiveStocksResponse.from_raw(response)
                 
-    def fetch_market_movers(
+    async def fetch_market_movers(
         self,
         top: int = 10
     ) -> Optional[MarketMoversResponse]:
@@ -58,7 +58,7 @@ class AlpacaScreenerClient(AlpacaBaseClient):
             "top": min(top, 50),  # Alpaca limits to 50
         }
                 
-        response = self.get(
+        response = await self.get(
             endpoint="screener/stocks/movers",
             params=params
         )

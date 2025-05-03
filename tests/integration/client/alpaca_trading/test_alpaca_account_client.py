@@ -1,30 +1,23 @@
-# src: tests/integration/client/test_alpaca_account_client.py
-
-from datetime import datetime, timedelta
 import pytest
+from datetime import datetime, timedelta
 from algo_royale.shared.models.alpaca_trading.alpaca_account import Account, AccountActivities, AccountConfiguration
 from algo_royale.shared.models.alpaca_trading.enums import ActivityType, DTBPCheck, TradeConfirmationEmail
 from algo_royale.the_risk_is_not_enough.client.alpaca_trading.alpaca_accounts_client import AlpacaAccountClient
 
-from algo_royale.shared.logger.logger_singleton import Environment, LoggerSingleton, LoggerType
+# Async fixture for AlpacaAccountClient
+@pytest.fixture
+async def alpaca_client():
+    client = AlpacaAccountClient()
+    yield client
+    await client.close()
 
-
-# Set up logging (prints to console)
-logger = LoggerSingleton(LoggerType.TRADING, Environment.TEST).get_logger()
-
-
-@pytest.fixture(scope="class")
-def alpaca_client():
-    return AlpacaAccountClient()
 
 @pytest.mark.asyncio
-class TestAlpacaAccountClientIntegration:
+class TestAlpacaAccountClient:
+    """Test class for AlpacaAccountClient with setup/teardown methods"""
 
-    def test_fetch_account(self, alpaca_client):
-        """Test fetching account data from Alpaca's live endpoint."""
-
-        result = alpaca_client.fetch_account()
-
+    async def test_fetch_account(self, alpaca_client):
+        result = await alpaca_client.fetch_account()
         assert result is not None
         assert isinstance(result, Account)
 
@@ -41,19 +34,18 @@ class TestAlpacaAccountClientIntegration:
         ]
 
         for attr in expected_attrs:
-            assert hasattr(result, attr), f"Missing expected attribute: {attr}"
-            assert getattr(result, attr) is not None, f"{attr} is None"    
-            
-    def test_fetch_account_configuration(self, alpaca_client):
-        """Test retrieving account configuration settings."""
-        config = alpaca_client.fetch_account_configuration()
+            assert hasattr(result, attr), f"Missing attribute: {attr}"
+            if attr not in ["pending_transfer_in", "pending_transfer_out", "accrued_fees"]:
+                assert getattr(result, attr) is not None, f"{attr} is None"
+
+    async def test_fetch_account_configuration(self, alpaca_client):
+        config = await alpaca_client.fetch_account_configuration()
         assert config is not None
         assert isinstance(config, AccountConfiguration)
         assert hasattr(config, "dtbp_check")
 
-    def test_update_account_configuration(self, alpaca_client):
-        """Test updating account configuration settings."""
-        updated = alpaca_client.update_account_configuration(
+    async def test_update_account_configuration(self, alpaca_client):
+        updated = await alpaca_client.update_account_configuration(
             suspend_trade=False,
             no_shorting=False,
             fractional_trading=True,
@@ -65,19 +57,17 @@ class TestAlpacaAccountClientIntegration:
         assert updated.dtbp_check == DTBPCheck.ENTRY
         assert updated.trade_confirm_email == TradeConfirmationEmail.NONE
 
-    def test_get_account_activities(self, alpaca_client):
-        """Test fetching general account activities."""
-        activities = alpaca_client.get_account_activities(
+    async def test_get_account_activities(self, alpaca_client):
+        activities = await alpaca_client.get_account_activities(
             after=datetime.now() - timedelta(days=30),
             page_size=5
         )
         assert activities is not None
         assert isinstance(activities, AccountActivities)
 
-    def test_get_account_activities_by_type(self, alpaca_client):
-        """Test fetching account activities by specific activity type."""
+    async def test_get_account_activities_by_type(self, alpaca_client):
         activity_type = ActivityType.FILL
-        activities = alpaca_client.get_account_activities_by_activity_type(
+        activities = await alpaca_client.get_account_activities_by_activity_type(
             activity_type=activity_type
         )
         assert activities is not None

@@ -20,7 +20,7 @@ class AlpacaPositionsClient(AlpacaBaseClient):
         """Subclasses must define a name for logging and ID purposes"""
         return ALPACA_TRADING_URL
     
-    def get_all_open_positions(
+    async def get_all_open_positions(
         self
     ) -> Optional[PositionList]:
         """
@@ -30,13 +30,13 @@ class AlpacaPositionsClient(AlpacaBaseClient):
             - PositionList object or None if no response.
         """
 
-        response = self.get(
+        response = await self.get(
             endpoint="positions"
         )
 
         return PositionList.from_raw(response)
     
-    def get_open_position_by_symbol_or_asset_id(
+    async def get_open_position_by_symbol_or_asset_id(
         self,
         symbol_or_asset_id: str
     ) -> Optional[PositionList]:
@@ -50,7 +50,7 @@ class AlpacaPositionsClient(AlpacaBaseClient):
             - PositionList object or None if no response.
         """
         try:
-            response = self.get(
+            response = await self.get(
                 endpoint=f"positions/{symbol_or_asset_id}",
             )
 
@@ -58,7 +58,7 @@ class AlpacaPositionsClient(AlpacaBaseClient):
         except AlpacaResourceNotFoundException as e:
             raise AlpacaPositionNotFoundException(e.message)
     
-    def close_position_by_symbol_or_asset_id(
+    async def close_position_by_symbol_or_asset_id(
         self,
         symbol_or_asset_id: str,
         qty: Optional[float] = None,
@@ -90,7 +90,7 @@ class AlpacaPositionsClient(AlpacaBaseClient):
         if percentage:
             params["percentage"] = percentage
         try:
-            response = self.delete(
+            response = await self.delete(
                 endpoint=f"positions/{symbol_or_asset_id}",
                 params=params
             )
@@ -98,7 +98,7 @@ class AlpacaPositionsClient(AlpacaBaseClient):
         except AlpacaResourceNotFoundException as e:
             raise AlpacaPositionNotFoundException(e.message)
             
-    def close_all_positions(
+    async def close_all_positions(
         self,
         cancel_orders: Optional[bool] = None
     ) -> Optional[ClosedPositionList]:
@@ -112,7 +112,7 @@ class AlpacaPositionsClient(AlpacaBaseClient):
         if cancel_orders:
             params["cancel_orders"] = cancel_orders
             
-        response = self.delete(
+        response = await self.delete(
             endpoint="positions",
             params =params
         )

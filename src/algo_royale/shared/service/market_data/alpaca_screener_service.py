@@ -17,7 +17,7 @@ class AlpacaScreenerService:
     def __init__(self, client: Optional[AlpacaScreenerClient] = None):
         self.client = client or AlpacaScreenerClient()
 
-    def get_most_active_stocks(
+    async def get_most_active_stocks(
         self,
         by: ActiveStockFilter,
         top: int = 10
@@ -25,13 +25,13 @@ class AlpacaScreenerService:
         """
         Fetch most active stocks using a specific filter (e.g., VOLUME or TRADES).
         """
-        return self.client.fetch_active_stocks(by=by, top=top)
+        return await self.client.fetch_active_stocks(by=by, top=top)
 
-    def get_market_movers(
+    async def get_market_movers(
         self,
         top: int = 10
     ) -> Optional[MarketMoversResponse]:
         """
         Fetch market movers (top gainers and losers).
         """
-        return self.client.fetch_market_movers(top=top)
+        return await self.client.fetch_market_movers(top=top)

@@ -31,7 +31,7 @@ class AlpacaStockClient(AlpacaBaseClient):
         """Subclasses must define a name for logging and ID purposes"""
         return ALPACA_PARAMS["base_url_data_v2"] 
     
-    def fetch_historical_quotes(
+    async def fetch_historical_quotes(
         self,
         symbols: List[str],
         start_date: datetime,
@@ -63,14 +63,14 @@ class AlpacaStockClient(AlpacaBaseClient):
             "asof": None,
         }
                 
-        response = self.get(
+        response = await self.get(
             endpoint="stocks/quotes",
             params=params
         )
         
         return QuotesResponse.from_raw(response)
     
-    def fetch_latest_quotes(
+    async def fetch_latest_quotes(
         self,
         symbols: List[str],
         currency: SupportedCurrencies =SupportedCurrencies.USD,
@@ -87,14 +87,14 @@ class AlpacaStockClient(AlpacaBaseClient):
             "feed": feed
         }
                 
-        response = self.get(
+        response = await self.get(
             endpoint="stocks/quotes/latest",
             params=params
         )
         
         return QuotesResponse.from_raw(response)
 
-    def fetch_historical_auctions(
+    async def fetch_historical_auctions(
         self,
         symbols: List[str],
         start_date: datetime,
@@ -125,14 +125,14 @@ class AlpacaStockClient(AlpacaBaseClient):
             "asof": None,
         }
                 
-        response = self.get(
+        response = await self.get(
             endpoint="stocks/auctions",
             params=params
         )  
         
         return AuctionResponse.from_raw(response)
     
-    def fetch_historical_bars(
+    async def fetch_historical_bars(
         self,
         symbols: List[str],
         start_date: datetime,
@@ -168,14 +168,14 @@ class AlpacaStockClient(AlpacaBaseClient):
             "asof": None,
         }
                 
-        response = self.get(
+        response = await self.get(
             endpoint="stocks/bars",
             params=params
         )
         
         return BarsResponse.from_raw(response)
     
-    def fetch_latest_bars(
+    async def fetch_latest_bars(
         self,
         symbols: List[str],
         currency=SupportedCurrencies.USD,
@@ -192,14 +192,14 @@ class AlpacaStockClient(AlpacaBaseClient):
             "feed": feed
         }
                 
-        response = self.get(
+        response = await self.get(
             endpoint="stocks/bars/latest",
             params=params
         )      
         
         return LatestBarsResponse.from_raw(response)
 
-    def fetch_condition_codes(
+    async def fetch_condition_codes(
         self,
         ticktype: TickType,
         tape: Tape
@@ -210,7 +210,7 @@ class AlpacaStockClient(AlpacaBaseClient):
             "tape": tape
         }
                 
-        response = self.get(
+        response = await self.get(
             endpoint=f"stocks/meta/conditions/{ticktype.value}",
             params=params
         )
@@ -218,7 +218,7 @@ class AlpacaStockClient(AlpacaBaseClient):
         return ConditionCodeMap.from_raw(response)
     
     
-    def fetch_snapshots(
+    async def fetch_snapshots(
         self,
         symbols: List[str],
         currency=SupportedCurrencies.USD,
@@ -231,14 +231,14 @@ class AlpacaStockClient(AlpacaBaseClient):
             "currency": currency,
             "feed": feed        
         }
-        response = self.get(
+        response = await self.get(
             endpoint="stocks/snapshots",
             params=params
         )
 
         return SnapshotsResponse.from_raw(response)
 
-    def fetch_historical_trades(
+    async def fetch_historical_trades(
         self,
         symbols: List[str],
         start_date: datetime,
@@ -263,14 +263,14 @@ class AlpacaStockClient(AlpacaBaseClient):
             "asof": None,
         }
 
-        response = self.get(
+        response = await self.get(
             endpoint="stocks/trades",
             params=params
         )
         
         return HistoricalTradesResponse.from_raw(response)
     
-    def fetch_latest_trades(
+    async def fetch_latest_trades(
         self,
         symbols: List[str],
         currency=SupportedCurrencies.USD,
@@ -284,7 +284,7 @@ class AlpacaStockClient(AlpacaBaseClient):
             "feed": feed
         }
 
-        response = self.get(
+        response = await self.get(
             endpoint="stocks/trades/latest",
             params=params
         )

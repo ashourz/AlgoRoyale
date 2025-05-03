@@ -11,20 +11,22 @@ from algo_royale.shared.logger.logger_singleton import Environment, LoggerSingle
 # Set up logging (prints to console)
 logger = LoggerSingleton(LoggerType.TRADING, Environment.TEST).get_logger()
 
-@pytest.fixture(scope="class")
-def alpaca_client():
-    return AlpacaCorporateActionClient()
-
+@pytest.fixture
+async def alpaca_client(event_loop):
+    client = AlpacaCorporateActionClient()
+    yield client
+    await client.async_client.aclose()  # Clean up the async cli    ent
+    
 @pytest.mark.asyncio
 class TestAlpacaCorporateActionClientIntegration:
 
-    def test_fetch_corporate_actions(self, alpaca_client):
+    async def test_fetch_corporate_actions(self, alpaca_client):
         """Test fetching corporate actions data from Alpaca's live endpoint."""
         symbols = ["AAPL", "GOOGL"]
         start_date = datetime(2020, 4, 1, tzinfo=timezone.utc)
         end_date = datetime(2024, 4, 3, tzinfo=timezone.utc)
 
-        result = alpaca_client.fetch_corporate_actions(
+        result = await alpaca_client.fetch_corporate_actions(
             symbols=symbols,
             start_date=start_date,
             end_date=end_date

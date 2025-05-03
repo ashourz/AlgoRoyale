@@ -19,7 +19,7 @@ class AlpacaAssetsClient(AlpacaBaseClient):
         """Subclasses must define a name for logging and ID purposes"""
         return ALPACA_TRADING_URL
     
-    def fetch_assets(
+    async def fetch_assets(
             self,
             status: Optional[str] = None,
             asset_class: str = "us_equity",
@@ -34,7 +34,7 @@ class AlpacaAssetsClient(AlpacaBaseClient):
         }
                 
         try:
-            response = self.get(
+            response = await self.get(
                 endpoint="assets",
                 params=params
             )
@@ -44,14 +44,14 @@ class AlpacaAssetsClient(AlpacaBaseClient):
             raise AlpacaAssetNotFoundException(e.message)
     
     
-    def fetch_asset_by_symbol_or_id(
+    async def fetch_asset_by_symbol_or_id(
             self,
             symbol_or_asset_id: str
         ) -> Optional[Asset]:
         """Fetch asset data from Alpaca."""
 
         try:
-            response = self.get(
+            response = await self.get(
                 endpoint=f"assets/{symbol_or_asset_id}"
             )
             return Asset.from_raw(response)

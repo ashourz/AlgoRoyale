@@ -17,7 +17,7 @@ class AlpacaNewsService:
     def __init__(self, client: Optional[AlpacaNewsClient] = None):
         self.client = client or AlpacaNewsClient()
 
-    def get_recent_news(
+    async def get_recent_news(
         self,
         symbols: Union[str, List[str]],
         limit: int = 10,
@@ -29,7 +29,7 @@ class AlpacaNewsService:
         Fetch recent news articles for a given symbol or list of symbols.
         Returns up to `limit` results.
         """
-        return self.client.fetch_news(
+        return await self.client.fetch_news(
             symbols=symbols,
             include_content=include_content,
             exclude_contentless=exclude_contentless,
@@ -37,7 +37,7 @@ class AlpacaNewsService:
             page_limit=limit
         )
 
-    def get_news_in_date_range(
+    async def get_news_in_date_range(
         self,
         symbols: Union[str, List[str]],
         start_date: datetime,
@@ -47,7 +47,7 @@ class AlpacaNewsService:
         """
         Fetch news articles for the given symbol(s) between start and end dates.
         """
-        return self.client.fetch_news(
+        return await self.client.fetch_news(
             symbols=symbols,
             start_date=start_date,
             end_date=end_date,

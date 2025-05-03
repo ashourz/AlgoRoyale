@@ -10,16 +10,16 @@ class AlpacaWatchlistService:
     def __init__(self, client: AlpacaWatchlistClient):
         self.client = client
 
-    def get_all_watchlists(self) -> Optional[WatchlistListResponse]:
+    async def get_all_watchlists(self) -> Optional[WatchlistListResponse]:
         """
         Gets all watchlists for the account.
 
         Returns:
             - WatchlistListResponse object or None if no response.
         """
-        return self.client.get_all_watchlists()
+        return await self.client.get_all_watchlists()
 
-    def get_watchlist_by_id(self, watchlist_id: str) -> Optional[Watchlist]:
+    async def get_watchlist_by_id(self, watchlist_id: str) -> Optional[Watchlist]:
         """
         Get a specific watchlist by ID.
 
@@ -29,9 +29,9 @@ class AlpacaWatchlistService:
         Returns:
             - Watchlist object or None if no response.
         """
-        return self.client.get_watchlist_by_id(watchlist_id)
+        return await self.client.get_watchlist_by_id(watchlist_id)
 
-    def get_watchlist_by_name(self, name: str) -> Optional[Watchlist]:
+    async def get_watchlist_by_name(self, name: str) -> Optional[Watchlist]:
         """
         Get a specific watchlist by name.
 
@@ -41,9 +41,9 @@ class AlpacaWatchlistService:
         Returns:
             - Watchlist object or None if no response.
         """
-        return self.client.get_watchlist_by_name(name)
+        return await self.client.get_watchlist_by_name(name)
 
-    def create_watchlist(self, name: str, symbols: Optional[List[str]] = None) -> Optional[Watchlist]:
+    async def create_watchlist(self, name: str, symbols: Optional[List[str]] = None) -> Optional[Watchlist]:
         """
         Create a new watchlist.
 
@@ -54,9 +54,9 @@ class AlpacaWatchlistService:
         Returns:
             - Watchlist object or None if no response.
         """
-        return self.client.create_watchlist(name, symbols)
+        return await self.client.create_watchlist(name, symbols)
 
-    def update_watchlist_by_id(self, watchlist_id: str, name: str) -> Optional[Watchlist]:
+    async def update_watchlist_by_id(self, watchlist_id: str, name: str) -> Optional[Watchlist]:
         """
         Update an existing watchlist by ID.
 
@@ -67,9 +67,9 @@ class AlpacaWatchlistService:
         Returns:
             - Watchlist object or None if no response.
         """
-        return self.client.update_watchlist_by_id(watchlist_id, name)
+        return await self.client.update_watchlist_by_id(watchlist_id, name)
 
-    def update_watchlist_by_name(self, name: str, update_name: str) -> Optional[Watchlist]:
+    async def update_watchlist_by_name(self, name: str, update_name: str) -> Optional[Watchlist]:
         """
         Update an existing watchlist by name.
 
@@ -80,27 +80,27 @@ class AlpacaWatchlistService:
         Returns:
             - Watchlist object or None if no response.
         """
-        return self.client.update_watchlist_by_name(name, update_name)
+        return await self.client.update_watchlist_by_name(name, update_name)
 
-    def delete_watchlist_by_id(self, watchlist_id: str):
+    async def delete_watchlist_by_id(self, watchlist_id: str):
         """
         Delete a watchlist by ID.
 
         Parameters:
             - watchlist_id (str) : The watchlist ID.
         """
-        self.client.delete_watchlist_by_id(watchlist_id)
+        await self.client.delete_watchlist_by_id(watchlist_id)
 
-    def delete_watchlist_by_name(self, name: str) -> bool:
+    async def delete_watchlist_by_name(self, name: str) -> bool:
         """
         Delete a watchlist by name.
 
         Parameters:
             - name (str) : The watchlist name.
         """
-        self.client.delete_watchlist_by_name(name)
+        await self.client.delete_watchlist_by_name(name)
 
-    def delete_symbol_from_watchlist(self, watchlist_id: str, symbol: str) -> Optional[Watchlist]:
+    async def delete_symbol_from_watchlist(self, watchlist_id: str, symbol: str) -> Optional[Watchlist]:
         """
         Remove a symbol from a specific watchlist.
 
@@ -111,9 +111,9 @@ class AlpacaWatchlistService:
         Returns:
             - Watchlist object or None if no response.
         """
-        return self.client.delete_symbol_from_watchlist(watchlist_id, symbol)
+        return await self.client.delete_symbol_from_watchlist(watchlist_id, symbol)
 
-    def add_asset_to_watchlist_by_name(self, name: str, symbol: Optional[str] = None) -> Optional[Watchlist]:
+    async def add_asset_to_watchlist_by_name(self, name: str, symbol: Optional[str] = None) -> Optional[Watchlist]:
         """
         Add an asset to a watchlist by name.
 
@@ -124,9 +124,9 @@ class AlpacaWatchlistService:
         Returns:
             - Watchlist object or None if no response.
         """
-        return self.client.add_asset_to_watchlist_by_name(name, symbol)
+        return await self.client.add_asset_to_watchlist_by_name(name, symbol)
 
-    def add_asset_to_watchlist_by_id(self, watchlist_id: str, symbol: Optional[str] = None) -> Optional[Watchlist]:
+    async def add_asset_to_watchlist_by_id(self, watchlist_id: str, symbol: Optional[str] = None) -> Optional[Watchlist]:
         """
         Add an asset to a watchlist by ID.
 
@@ -137,5 +137,5 @@ class AlpacaWatchlistService:
         Returns:
             - Watchlist object or None if no response.
         """
-        return self.client.add_asset_to_watchlist_by_id(watchlist_id, symbol)
+        return await self.client.add_asset_to_watchlist_by_id(watchlist_id, symbol)
 

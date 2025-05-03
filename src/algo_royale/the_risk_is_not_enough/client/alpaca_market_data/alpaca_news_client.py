@@ -20,7 +20,7 @@ class AlpacaNewsClient(AlpacaBaseClient):
         """Subclasses must define a name for logging and ID purposes"""
         return ALPACA_PARAMS["base_url_data_v1beta1"] 
     
-    def fetch_news(
+    async def fetch_news(
         self,
         symbols: Optional[Union[str, List[str]]] = None,
         start_date: Optional[datetime] = None,
@@ -64,7 +64,7 @@ class AlpacaNewsClient(AlpacaBaseClient):
         if page_token:
             params["page_token"] = page_token
 
-        response = self.get(
+        response = await self.get(
             endpoint="news",
             params=params
         )

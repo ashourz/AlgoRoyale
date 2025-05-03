@@ -17,25 +17,25 @@ class AlpacaAccountService:
         """
         self.account_client = account_client
 
-    def get_account_data(self) -> Optional[Account]:
+    async def get_account_data(self) -> Optional[Account]:
         """
         Fetches account data from the Alpaca API.
 
         Returns:
             Optional[Account]: The account data retrieved from Alpaca, or None if no data is found.
         """
-        return self.account_client.fetch_account()
+        return await self.account_client.fetch_account()
 
-    def get_account_configuration(self) -> Optional[AccountConfiguration]:
+    async def get_account_configuration(self) -> Optional[AccountConfiguration]:
         """
         Fetches account configuration from the Alpaca API.
 
         Returns:
             Optional[AccountConfiguration]: The account configuration retrieved from Alpaca.
         """
-        return self.account_client.fetch_account_configuration()
+        return await self.account_client.fetch_account_configuration()
 
-    def update_account_configuration(
+    async def update_account_configuration(
         self,
         dtbp_check: Optional[DTBPCheck] = None,
         trade_confirm_email: Optional[TradeConfirmationEmail] = None,
@@ -64,7 +64,7 @@ class AlpacaAccountService:
         Returns:
             Optional[AccountConfiguration]: The updated account configuration retrieved from Alpaca.
         """
-        return self.account_client.update_account_configuration(
+        return await self.account_client.update_account_configuration(
             dtbp_check=dtbp_check,
             trade_confirm_email=trade_confirm_email,
             suspend_trade=suspend_trade,
@@ -76,7 +76,7 @@ class AlpacaAccountService:
             ptp_no_exception_entry=ptp_no_exception_entry
         )
 
-    def get_account_activities(
+    async def get_account_activities(
         self,
         activity_types: Optional[List[ActivityType]] = None,
         category: Optional[str] = None,
@@ -106,7 +106,7 @@ class AlpacaAccountService:
         if activity_types and category:
             raise ParameterConflictError("Specify either 'activity_types' or 'category' or neither, not both.")
 
-        return self.account_client.get_account_activities(
+        return await self.account_client.get_account_activities(
             activity_types=activity_types,
             category=category,
             date=date,
@@ -117,7 +117,7 @@ class AlpacaAccountService:
             page_token=page_token
         )
 
-    def get_account_activities_by_activity_type(
+    async def get_account_activities_by_activity_type(
         self,
         activity_type: ActivityType,
         date: Optional[datetime] = None,
@@ -142,7 +142,7 @@ class AlpacaAccountService:
         Returns:
             Optional[AccountActivities]: A list of account activity objects filtered by the activity type.
         """
-        return self.account_client.get_account_activities_by_activity_type(
+        return await self.account_client.get_account_activities_by_activity_type(
             activity_type=activity_type,
             date=date,
             until=until,

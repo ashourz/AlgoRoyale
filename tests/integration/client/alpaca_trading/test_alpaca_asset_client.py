@@ -12,17 +12,19 @@ from algo_royale.shared.logger.logger_singleton import Environment, LoggerSingle
 logger = LoggerSingleton(LoggerType.TRADING, Environment.TEST).get_logger()
 
 
-@pytest.fixture(scope="class")
-def alpaca_client():
-    return AlpacaAssetsClient()
-
+@pytest.fixture
+async def alpaca_client(event_loop):
+    client = AlpacaAssetsClient()
+    yield client
+    await client.async_client.aclose()  # Clean up the async client
+    
 @pytest.mark.asyncio
 class TestAlpacaAssetClientIntegration:
     
-    def test_fetch_assets(self, alpaca_client):
+    async def test_fetch_assets(self, alpaca_client):
         """Test fetching asset data from Alpaca's live endpoint."""
         try:
-            result = alpaca_client.fetch_assets()
+            result = await alpaca_client.fetch_assets()
 
             assert result is not None
             assert isinstance(result, list)
@@ -41,11 +43,11 @@ class TestAlpacaAssetClientIntegration:
         except AlpacaAssetNotFoundException:
             return None
                 
-    def test_fetch_asset_by_symbol_or_id(self, alpaca_client):
+    async def test_fetch_asset_by_symbol_or_id(self, alpaca_client):
         """Test fetching asset data from Alpaca's live endpoint."""
         symbol = "AAPL"
         try:
-            result = alpaca_client.fetch_asset_by_symbol_or_id(
+            result = await alpaca_client.fetch_asset_by_symbol_or_id(
                 symbol_or_asset_id = symbol
             )
             assert result is not None

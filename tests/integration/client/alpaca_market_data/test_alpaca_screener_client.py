@@ -19,11 +19,11 @@ def alpaca_client():
 @pytest.mark.asyncio
 class TestAlpacaScreenerClientIntegration:
 
-    def test_fetch_active_stocks(self, alpaca_client):
+    async def test_fetch_active_stocks(self, alpaca_client):
         """Test fetching active stocks data from Alpaca's live endpoint."""
         by = ActiveStockFilter.VOLUME
         top = 10
-        result = alpaca_client.fetch_active_stocks(
+        result = await alpaca_client.fetch_active_stocks(
             by=by,
             top=top
         )
@@ -40,10 +40,10 @@ class TestAlpacaScreenerClientIntegration:
             assert hasattr(first_stock, attr), f"Missing expected attribute: {attr}"
             assert getattr(first_stock, attr) is not None, f"{attr} is None"
             
-    def test_fetch_market_movers(self, alpaca_client):
+    async def test_fetch_market_movers(self, alpaca_client):
         """Test fetching market movers data from Alpaca's live endpoint."""
         top = 10
-        result = alpaca_client.fetch_market_movers(
+        result = await alpaca_client.fetch_market_movers(
             top=top
         )
         

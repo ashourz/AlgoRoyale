@@ -25,7 +25,7 @@ class AlpacaQuoteService:
     def __init__(self):
         self.client = AlpacaStockClient()
 
-    def fetch_historical_quotes(
+    async def fetch_historical_quotes(
         self,
         symbols: List[str],
         start_date: datetime,
@@ -52,11 +52,11 @@ class AlpacaQuoteService:
         Returns:
             Optional[QuotesResponse]: Historical stock quotes if successful.
         """
-        return self.client.fetch_historical_quotes(
+        return await self.client.fetch_historical_quotes(
             symbols, start_date, end_date, currency, sort_order, feed, page_limit, page_token
         )
     
-    def fetch_latest_quotes(
+    async def fetch_latest_quotes(
         self,
         symbols: List[str],
         currency: SupportedCurrencies = SupportedCurrencies.USD,
@@ -73,9 +73,9 @@ class AlpacaQuoteService:
         Returns:
             Optional[QuotesResponse]: Latest stock quotes if successful.
         """
-        return self.client.fetch_latest_quotes(symbols, currency, feed)
+        return await self.client.fetch_latest_quotes(symbols, currency, feed)
 
-    def fetch_historical_auctions(
+    async def fetch_historical_auctions(
         self,
         symbols: List[str],
         start_date: datetime,
@@ -100,11 +100,11 @@ class AlpacaQuoteService:
         Returns:
             Optional[AuctionResponse]: Historical auction data if successful.
         """
-        return self.client.fetch_historical_auctions(
+        return await self.client.fetch_historical_auctions(
             symbols, start_date, end_date, currency, sort_order, page_limit, page_token
         )
 
-    def fetch_historical_bars(
+    async def fetch_historical_bars(
         self,
         symbols: List[str],
         start_date: datetime,
@@ -135,11 +135,11 @@ class AlpacaQuoteService:
         Returns:
             Optional[BarsResponse]: Historical bar data if successful.
         """
-        return self.client.fetch_historical_bars(
+        return await self.client.fetch_historical_bars(
             symbols, start_date, end_date, currency, feed, timeframe, adjustment, sort_order, page_limit, page_token
         )
 
-    def fetch_latest_bars(
+    async def fetch_latest_bars(
         self,
         symbols: List[str],
         currency=SupportedCurrencies.USD,
@@ -156,9 +156,9 @@ class AlpacaQuoteService:
         Returns:
             Optional[LatestBarsResponse]: Latest bar data if successful.
         """
-        return self.client.fetch_latest_bars(symbols, currency, feed)
+        return await self.client.fetch_latest_bars(symbols, currency, feed)
 
-    def fetch_condition_codes(
+    async def fetch_condition_codes(
         self,
         ticktype: TickType,
         tape: Tape
@@ -173,9 +173,9 @@ class AlpacaQuoteService:
         Returns:
             Optional[ConditionCodeMap]: Condition code map if successful.
         """
-        return self.client.fetch_condition_codes(ticktype, tape)
+        return await self.client.fetch_condition_codes(ticktype, tape)
 
-    def fetch_snapshots(
+    async def fetch_snapshots(
         self,
         symbols: List[str],
         currency=SupportedCurrencies.USD,
@@ -192,9 +192,9 @@ class AlpacaQuoteService:
         Returns:
             Optional[SnapshotsResponse]: Snapshot data if successful.
         """
-        return self.client.fetch_snapshots(symbols, currency, feed)
+        return await self.client.fetch_snapshots(symbols, currency, feed)
 
-    def fetch_historical_trades(
+    async def fetch_historical_trades(
         self,
         symbols: List[str],
         start_date: datetime,
@@ -221,11 +221,11 @@ class AlpacaQuoteService:
         Returns:
             Optional[HistoricalTradesResponse]: Historical trade data if successful.
         """
-        return self.client.fetch_historical_trades(
+        return await self.client.fetch_historical_trades(
             symbols, start_date, end_date, currency, limit, feed, sort_order, page_token
         )
 
-    def fetch_latest_trades(
+    async def fetch_latest_trades(
         self,
         symbols: List[str],
         currency=SupportedCurrencies.USD,
@@ -242,4 +242,4 @@ class AlpacaQuoteService:
         Returns:
             Optional[LatestTradesResponse]: Latest trade data if successful.
         """
-        return self.client.fetch_latest_trades(symbols, currency, feed)
+        return await self.client.fetch_latest_trades(symbols, currency, feed)
