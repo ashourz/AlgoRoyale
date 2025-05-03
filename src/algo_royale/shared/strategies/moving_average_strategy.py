@@ -1,100 +1,83 @@
 import pandas as pd
 from typing import List
-
 from algo_royale.shared.strategies.base_strategy import Strategy
-from algo_royale.shared.strategies.models.moving_average_data import MovingAverageData
-
 from algo_royale.shared.logger.logger_singleton import Environment, LoggerSingleton, LoggerType
-
-
 
 logger = LoggerSingleton(LoggerType.TRADING, Environment.PRODUCTION).get_logger()
 
 class MovingAverageStrategy(Strategy):
     """
-    A simple Moving Average Strategy for trading.
-    The strategy generates trading signals based on two moving averages:
-    - Buy when the short-term moving average crosses above the long-term moving average (Golden Cross).
-    - Sell when the short-term moving average crosses below the long-term moving average (Death Cross).
-    - Hold when no crossover occurs.
-    
-    Parameters:
-    - short_window: The period for the short-term moving average (default: 50 days).
-    - long_window: The period for the long-term moving average (default: 200 days).
+    Maintains the exact same signal generation logic as the original,
+    but works directly with DataFrames instead of MovingAverageData objects.
     """
-
-    def __init__(self, short_window=50, long_window=200):
-        """
-        Initialize the Moving Average Strategy.
-        
-        :param short_window: Short-term moving average window in days (default: 50 days)
-            - Defines the period for the short-term moving average.
-            - Typically, a shorter window (e.g., 10 or 20 days) reacts more quickly to price changes.
-            - Suitable for identifying short-term trends or changes in momentum.
-        
-        :param long_window: Long-term moving average window in days (default: 200 days)
-            - Defines the period for the long-term moving average.
-            - Typically, a longer window (e.g., 50 or 200 days) smooths out price data and is slower to react.
-            - Suitable for identifying the broader, long-term trend.
-        """
+    
+    def __init__(self, short_window: int = 50, long_window: int = 200, 
+                 close_col: str = 'close'):
         self.short_window = short_window
         self.long_window = long_window
+        self.close_col = close_col
         
-    def generate_signals(self, historical_data: List[MovingAverageData]) -> List[str]:
+    def generate_signals(self, df: pd.DataFrame) -> List[str]:
         """
-        Generate trading signals based on the moving average crossovers:
-        - 'buy' if short-term moving average crosses above long-term moving average.
-        - 'sell' if short-term moving average crosses below long-term moving average.
-        - 'hold' otherwise.
-
-        :param historical_data: List of MovingAverageData objects containing historical price data with a 'close' attribute.
-        :return: A list of trading signals: 'buy', 'sell', 'hold'.
+        Generate signals with identical logic to original version.
+        
+        Args:
+            df: DataFrame containing at least:
+                - A column with close prices (default 'close')
+                - Enough rows for the longest window
+            
+        Returns:
+            List of signals: 'buy', 'sell', or 'hold'
         """
-        # Convert historical data to DataFrame
-        df = MovingAverageData.to_dataframe(historical_data)
-
-        # Ensure that 'df' contains 'close' prices
-        if 'close' not in df.columns:
-            raise ValueError("Historical data must contain 'close' price column.")
+        # Validation
+        if self.close_col not in df.columns:
+            raise ValueError(f"DataFrame must contain '{self.close_col}' column")
+            
+        if len(df) < max(self.short_window, self.long_window):
+            raise ValueError(f"Need at least {max(self.short_window, self.long_window)} data points")
         
-        # Log the raw close prices for debugging
-        logger.debug(f"Raw Close Prices: {df['close'].tolist()}")
-
-        # Calculate the moving averages
-        df['short_ma'] = df['close'].rolling(window=self.short_window).mean()
-        df['long_ma'] = df['close'].rolling(window=self.long_window).mean()
+        closes = df[self.close_col]
         
-        # Print calculated moving averages for debugging
-        logger.debug(f"Short MA:{df['short_ma'].tolist()}")
-        logger.debug(f"Long MA:{df['long_ma'].tolist()}")
-
-        # Initialize signals with 'hold' for the first few periods before both MAs are calculable
-        signals = ['hold'] * (max(self.short_window, self.long_window) - 1)
-
-        # Generate signals starting from the day after both MAs are available
+        # Calculate moving averages
+        df['short_ma'] = closes.rolling(window=self.short_window).mean()
+        df['long_ma'] = closes.rolling(window=self.long_window).mean()
+        
+        logger.debug(f"Close prices: {closes.tolist()}")
+        logger.debug(f"Short MA: {df['short_ma'].tolist()}")
+        logger.debug(f"Long MA: {df['long_ma'].tolist()}")
+        
+        # Initialize ALL signals with 'hold' first
+        signals = ['hold'] * len(df)
+        
+        # Generate signals with original logic starting from valid point
         for i in range(max(self.short_window, self.long_window), len(df)):
-            logger.debug(f"Short MA at index {i}: {df['short_ma'].iloc[i]}")
-            logger.debug(f"Long MA at index {i}: {df['long_ma'].iloc[i]}")
+            current_short = df['short_ma'].iloc[i]
+            current_long = df['long_ma'].iloc[i]
+            prev_short = df['short_ma'].iloc[i-1]
+            prev_long = df['long_ma'].iloc[i-1]
             
-            # Ensure both MAs are calculated before making decisions
-            if pd.isna(df['short_ma'].iloc[i]) or pd.isna(df['long_ma'].iloc[i]):
-                signals.append('hold')
-                continue
+            logger.debug(f"Index {i}: Short={current_short}, Long={current_long}")
             
-            # Buy when short MA crosses above long MA (Golden Cross)
-            if df['short_ma'].iloc[i] > df['long_ma'].iloc[i] and df['short_ma'].iloc[i-1] <= df['long_ma'].iloc[i-1]:
-                signals.append('buy')
-            # Sell when short MA crosses below long MA (Death Cross)
-            elif df['short_ma'].iloc[i] < df['long_ma'].iloc[i] and df['short_ma'].iloc[i-1] >= df['long_ma'].iloc[i-1]:
-                signals.append('sell')
-            # Adjust this to allow for smoother transitions
-            elif df['short_ma'].iloc[i] > df['long_ma'].iloc[i] and df['short_ma'].iloc[i-1] > df['long_ma'].iloc[i-1]:
-                signals.append('buy')  # Smooth transition to buy if the short MA is still above the long MA
-            elif df['short_ma'].iloc[i] < df['long_ma'].iloc[i] and df['short_ma'].iloc[i-1] < df['long_ma'].iloc[i-1]:
-                signals.append('sell')  # Smooth transition to sell if the short MA is still below the long MA
-            else:
-                signals.append('hold')  # Hold when there's no crossover
-
-        # Print final signals for debugging
-        logger.debug(f"Signals:{signals}")
+            if pd.isna(current_short) or pd.isna(current_long):
+                continue  # Keep as 'hold' since we pre-filled
+            
+            # 1. Golden Cross (buy signal)
+            if current_short > current_long and prev_short <= prev_long:
+                signals[i] = 'buy'
+            
+            # 2. Death Cross (sell signal)
+            elif current_short < current_long and prev_short >= prev_long:
+                signals[i] = 'sell'
+            
+            # 3. Smooth buy transition (already above)
+            elif current_short > current_long and prev_short > prev_long:
+                signals[i] = 'buy'
+            
+            # 4. Smooth sell transition (already below)
+            elif current_short < current_long and prev_short < prev_long:
+                signals[i] = 'sell'
+            
+            # 5. No crossover - remains 'hold'
+        
+        logger.debug(f"Final signals: {signals}")
         return signals

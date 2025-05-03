@@ -1,5 +1,6 @@
 # src/models/alpaca_models/alpaca_bar.py
 
+import pandas as pd
 from pydantic import BaseModel
 from typing import Dict, List, Optional, Union
 from datetime import datetime
@@ -29,29 +30,36 @@ class Bar(BaseModel):
     volume_weighted_price: float
 
     @classmethod
-    def parse_timestamp(cls, raw_ts: Union[int, str]) -> datetime:
-        """Parses a timestamp from int (Unix) or ISO string."""
-        if isinstance(raw_ts, int):
+    def parse_timestamp(cls, raw_ts: Union[int, str, pd.Timestamp, datetime]) -> datetime:
+        """Handle all supported timestamp formats."""
+        if isinstance(raw_ts, (datetime, pd.Timestamp)):
+            return raw_ts if raw_ts.tzinfo is not None else raw_ts.replace(tzinfo=datetime.utc.tzinfo)
+        elif isinstance(raw_ts, int):
             return datetime.fromtimestamp(raw_ts, tz=datetime.utc.tzinfo)
         elif isinstance(raw_ts, str):
             return isoparse(raw_ts)
         raise ValueError(f"Unsupported timestamp type: {type(raw_ts)}")
     
     @classmethod
-    def from_raw(cls, data: dict) -> "Bar":
-        """Create a Bar instance from raw dictionary data (Alpaca format)."""
-        if not isinstance(data, dict):
-            raise TypeError(f"Expected dict but got {type(data)}: {data}")
+    def from_raw(cls, data: Union[dict, pd.Series]) -> "Bar":
+        """Handle both Alpaca and DataFrame formats."""
+        if isinstance(data, pd.Series):
+            data = data.to_dict()
+        
+        # Extract timestamp
+        timestamp = data.get('t') or data.get('timestamp')
+        if timestamp is None:
+            raise ValueError("Missing timestamp in data")
         
         return cls(
-            timestamp=cls.parse_timestamp(data["t"]),
-            open_price=data["o"],
-            high_price=data["h"],
-            low_price=data["l"],
-            close_price=data["c"],
-            volume=data["v"],
-            num_trades=data["n"],
-            volume_weighted_price=data["vw"],
+            timestamp=cls.parse_timestamp(timestamp),
+            open_price=float(data.get('o') or data.get('open_price') or data.get('open')),
+            high_price=float(data.get('h') or data.get('high_price') or data.get('high')),
+            low_price=float(data.get('l') or data.get('low_price') or data.get('low')),
+            close_price=float(data.get('c') or data.get('close_price') or data.get('close')),
+            volume=int(data.get('v') or data.get('volume') or 0),
+            num_trades=int(data.get('n') or data.get('num_trades') or 0),
+            volume_weighted_price=float(data.get('vw') or data.get('volume_weighted_price') or 0)
         )
 
 
