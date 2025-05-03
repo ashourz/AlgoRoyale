@@ -34,8 +34,8 @@ class MovingAverageStrategy(Strategy):
             raise ValueError(f"DataFrame must contain '{self.close_col}' column")
             
         if len(df) < max(self.short_window, self.long_window):
-            raise ValueError(f"Need at least {max(self.short_window, self.long_window)} data points")
-        
+            return ['hold'] * len(df)
+
         closes = df[self.close_col]
         
         # Calculate moving averages
