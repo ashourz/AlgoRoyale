@@ -90,7 +90,7 @@ class BacktestRunner:
 
             # Run backtest
             self.logger.info("Starting backtest...")
-            # self.engine.run_backtest(data)
+            self.engine.run_backtest(data)
             
             self.logger.info("Backtest completed successfully")
             return True
