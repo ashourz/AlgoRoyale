@@ -16,7 +16,7 @@ logger = LoggerSingleton(LoggerType.TRADING, Environment.TEST).get_logger()
 async def alpaca_client(event_loop):
     client = AlpacaNewsClient()
     yield client
-    await client.async_client.aclose()  # Clean up the async client
+    await client.close()  # Clean up the async client
     
 @pytest.mark.asyncio
 class TestAlpacaNewsClientIntegration:

@@ -19,8 +19,7 @@ logger = LoggerSingleton(LoggerType.TRADING, Environment.TEST).get_logger()
 async def alpaca_client():
     client = AlpacaStockClient()
     yield client
-    if hasattr(client, "async_client") and hasattr(client.async_client, "aclose"):
-        await client.async_client.aclose()
+    await client.close()
     
 @pytest.mark.asyncio
 class TestAlpacaStockClientIntegration:

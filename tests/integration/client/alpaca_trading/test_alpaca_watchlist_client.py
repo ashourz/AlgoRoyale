@@ -10,9 +10,11 @@ import pytest
 # Set up logging (prints to console)
 logger = LoggerSingleton(LoggerType.TRADING, Environment.TEST).get_logger()
 
-@pytest.fixture(scope="class")
-def alpaca_client():
-    return AlpacaWatchlistClient()
+@pytest.fixture
+async def alpaca_client():
+    client = AlpacaWatchlistClient()
+    yield client
+    await client.close()
 
 @pytest.mark.asyncio
 class TestAlpacaWatchlistClientIntegration:
@@ -59,7 +61,8 @@ class TestAlpacaWatchlistClientIntegration:
 
         # Step 4: Fetch All
         logger.info("🔍 Fetching all watchlists...")
-        all_watchlists = await alpaca_client.get_all_watchlists().watchlists
+        response = await alpaca_client.get_all_watchlists()
+        all_watchlists = response.watchlists
         assert isinstance(all_watchlists, list), "❌ Expected list of watchlists"
         assert any(w.id == watchlist_id for w in all_watchlists), "❌ Created watchlist not found in all watchlists"
         logger.info("✅ Successfully found created watchlist in all watchlists")

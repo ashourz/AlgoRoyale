@@ -11,10 +11,10 @@ import pytest
 logger = LoggerSingleton(LoggerType.TRADING, Environment.TEST).get_logger()
 
 @pytest.fixture
-async def alpaca_client(event_loop):
+async def alpaca_client():
     client = AlpacaPositionsClient()
     yield client
-    await client.async_client.aclose()  # Clean up the async client
+    await client.close()  # Clean up the async client
     
 @pytest.mark.asyncio
 class TestAlpacaPositionsClientIntegration:

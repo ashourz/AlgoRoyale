@@ -12,9 +12,11 @@ from algo_royale.shared.logger.logger_singleton import Environment, LoggerSingle
 logger = LoggerSingleton(LoggerType.TRADING, Environment.TEST).get_logger()
 
 
-@pytest.fixture(scope="class")
-def alpaca_client():
-    return AlpacaScreenerClient()
+@pytest.fixture
+async def alpaca_client():
+    client = AlpacaScreenerClient()
+    yield client
+    await client.close()
 
 @pytest.mark.asyncio
 class TestAlpacaScreenerClientIntegration:

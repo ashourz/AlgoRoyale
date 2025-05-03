@@ -13,19 +13,19 @@ from algo_royale.shared.logger.logger_singleton import Environment, LoggerSingle
 logger = LoggerSingleton(LoggerType.TRADING, Environment.TEST).get_logger()
 
 @pytest.fixture
-async def alpaca_client(event_loop):
+async def alpaca_client():
     client = AlpacaCalendarClient()
     yield client
-    await client.async_client.aclose()  # Clean up the async client
+    await client.close()  # Clean up the async client
 
 @pytest.mark.asyncio
 class TestAlpacaCalendarClientIntegration:
 
-    async def test_fetch_calendar_default(self, alpaca_calendar_client):
+    async def test_fetch_calendar_default(self, alpaca_client):
         """
         Test fetching default calendar data from Alpaca with no parameters.
         """
-        result = await alpaca_calendar_client.fetch_calendar()
+        result = await alpaca_client.fetch_calendar()
 
         assert result is not None
         assert isinstance(result, CalendarList)
@@ -43,14 +43,14 @@ class TestAlpacaCalendarClientIntegration:
 
             logger.debug(f"Calendar: {calendar.trading_day} - Open: {calendar.open} Close: {calendar.close}")
 
-    async def test_fetch_calendar_with_date_range(self, alpaca_calendar_client):
+    async def test_fetch_calendar_with_date_range(self, alpaca_client):
         """
         Test fetching calendar data within a specific date range.
         """
         start = datetime(2024, 1, 1)
         end = datetime(2024, 1, 10)
 
-        result = await alpaca_calendar_client.fetch_calendar(start=start, end=end)
+        result = await alpaca_client.fetch_calendar(start=start, end=end)
 
         assert result is not None
         assert isinstance(result, CalendarList)

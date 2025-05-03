@@ -19,10 +19,12 @@ class TestHandler:
     async def on_bar(cls, data):
         cls.bars.append(data)
     
-@pytest.fixture(scope="function")
+@pytest.fixture
 async def alpaca_client():
-    return AlpacaStreamClient()
-
+    client = AlpacaStreamClient()
+    yield client
+    await client.close()
+    
 @pytest.mark.asyncio
 class TestAlpacaStreamClientIntegration:
 
