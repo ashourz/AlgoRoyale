@@ -122,7 +122,7 @@ class BacktestDataLoader:
             
             self.logger.debug(f"Found {len(pages)} data pages in {symbol_dir}")
 
-            for page in pages:
+            for i, page in enumerate(pages, 1):
                 page_path = os.path.join(symbol_dir, page)
                 try:
                     self.logger.info(f"Streaming {page}")
