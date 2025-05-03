@@ -1,4 +1,4 @@
-from typing import Dict, List
+from typing import Dict, List, Iterator, Tuple
 from algo_royale.shared.models.alpaca_market_data.alpaca_bar import Bar
 from algo_royale.shared.strategies.base_strategy import Strategy
 from algo_royale.trade_another_day.core.engine import BacktestEngine
@@ -26,33 +26,47 @@ class BacktestRunner:
             # Add more strategies as needed
         ]
 
-    def _load_and_prepare_data(self) -> Dict[str, pd.DataFrame]:
-        """Load raw data and prepare DataFrames for strategies."""
+    def _load_and_prepare_data(self) -> Dict[str, Iterator[pd.DataFrame]]:
+        """Load raw data and prepare DataFrames for strategies.
+        
+        Returns:
+            Dict[str, Iterator[pd.DataFrame]]: A dictionary mapping symbols to iterators of DataFrames (one per page)
+        """
         self.logger.info("Loading market data...")
-        raw_data = self.data_loader.load_all(fetch_if_missing=True)
+        raw_data = self.data_loader.load_all()
         
         prepared_data = {}
-        for symbol, df in raw_data.items():
+        for symbol, df_iterator in raw_data.items():
             try:
-                # Standardize column names (optional, can be strategy-specific)
-                df = df.rename(columns={
-                    'open_price': 'open',
-                    'high_price': 'high',
-                    'low_price': 'low',
-                    'close_price': 'close'
-                })
+                # Create a generator that will prepare each page as it's yielded
+                def prepare_pages():
+                    for df in df_iterator:
+                        try:
+                            # Standardize column names
+                            df = df.rename(columns={
+                                'open_price': 'open',
+                                'high_price': 'high',
+                                'low_price': 'low',
+                                'close_price': 'close'
+                            })
+                            
+                            # Ensure required columns exist
+                            required_columns = ['timestamp', 'open', 'high', 'low', 'close', 'volume']
+                            if not all(col in df.columns for col in required_columns):
+                                missing = [col for col in required_columns if col not in df.columns]
+                                raise ValueError(f"Missing columns: {missing}")
+                            
+                            yield df
+                            
+                        except Exception as e:
+                            self.logger.error(f"Failed to prepare page for {symbol}: {str(e)}")
+                            continue
                 
-                # Ensure required columns exist
-                required_columns = ['timestamp', 'open', 'high', 'low', 'close', 'volume']
-                if not all(col in df.columns for col in required_columns):
-                    missing = [col for col in required_columns if col not in df.columns]
-                    raise ValueError(f"Missing columns: {missing}")
-                
-                prepared_data[symbol] = df
-                self.logger.info(f"Prepared data for {symbol} with {len(df)} rows")
+                prepared_data[symbol] = prepare_pages()
+                self.logger.info(f"Prepared data iterator for {symbol}")
                 
             except Exception as e:
-                self.logger.error(f"Failed to prepare data for {symbol}: {str(e)}", exc_info=True)
+                self.logger.error(f"Failed to initialize data preparation for {symbol}: {str(e)}")
                 continue
                 
         if not prepared_data:
@@ -76,7 +90,7 @@ class BacktestRunner:
 
             # Run backtest
             self.logger.info("Starting backtest...")
-            self.engine.run_backtest(data)
+            # self.engine.run_backtest(data)
             
             self.logger.info("Backtest completed successfully")
             return True
