@@ -43,7 +43,8 @@ class BacktestDataLoader:
     def load_symbol(self, symbol: str) -> Iterator[pd.DataFrame]:
         """Load data for a single symbol with force_fetch option"""
         symbol_dir = os.path.join(self.data_dir, symbol)
-    
+        self.logger.debug(f"Symbol directory for {symbol}: {symbol_dir}")
+
         # Check for existing data
         if os.path.exists(symbol_dir):
             num_pages = len([f for f in os.listdir(symbol_dir) if f.endswith('.csv')])

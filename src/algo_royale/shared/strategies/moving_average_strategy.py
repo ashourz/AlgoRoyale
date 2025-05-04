@@ -1,5 +1,5 @@
 import pandas as pd
-from typing import List
+from typing import List, Union
 from algo_royale.shared.strategies.base_strategy import Strategy
 from algo_royale.shared.logger.logger_singleton import Environment, LoggerSingleton, LoggerType
 
@@ -8,7 +8,7 @@ logger = LoggerSingleton(LoggerType.TRADING, Environment.PRODUCTION).get_logger(
 class MovingAverageStrategy(Strategy):
     """
     Maintains the exact same signal generation logic as the original,
-    but works directly with DataFrames instead of MovingAverageData objects.
+    but returns a pandas Series instead of List[str]
     """
     
     def __init__(self, short_window: int = 50, long_window: int = 200, 
@@ -17,7 +17,7 @@ class MovingAverageStrategy(Strategy):
         self.long_window = long_window
         self.close_col = close_col
         
-    def generate_signals(self, df: pd.DataFrame) -> List[str]:
+    def generate_signals(self, df: pd.DataFrame) -> pd.Series:
         """
         Generate signals with identical logic to original version.
         
@@ -27,14 +27,17 @@ class MovingAverageStrategy(Strategy):
                 - Enough rows for the longest window
             
         Returns:
-            List of signals: 'buy', 'sell', or 'hold'
+            pd.Series of signals: 'buy', 'sell', or 'hold' with same index as input
         """
         # Validation
         if self.close_col not in df.columns:
             raise ValueError(f"DataFrame must contain '{self.close_col}' column")
             
+        # Initialize Series with 'hold' values and same index as input
+        signals = pd.Series('hold', index=df.index, name='signal')
+        
         if len(df) < max(self.short_window, self.long_window):
-            return ['hold'] * len(df)
+            return signals
 
         closes = df[self.close_col]
         
@@ -46,9 +49,6 @@ class MovingAverageStrategy(Strategy):
         logger.debug(f"Short MA: {df['short_ma'].tolist()}")
         logger.debug(f"Long MA: {df['long_ma'].tolist()}")
         
-        # Initialize ALL signals with 'hold' first
-        signals = ['hold'] * len(df)
-        
         # Generate signals with original logic starting from valid point
         for i in range(max(self.short_window, self.long_window), len(df)):
             current_short = df['short_ma'].iloc[i]
@@ -59,25 +59,25 @@ class MovingAverageStrategy(Strategy):
             logger.debug(f"Index {i}: Short={current_short}, Long={current_long}")
             
             if pd.isna(current_short) or pd.isna(current_long):
-                continue  # Keep as 'hold' since we pre-filled
+                continue  # Keep as 'hold'
             
             # 1. Golden Cross (buy signal)
             if current_short > current_long and prev_short <= prev_long:
-                signals[i] = 'buy'
+                signals.iloc[i] = 'buy'
             
             # 2. Death Cross (sell signal)
             elif current_short < current_long and prev_short >= prev_long:
-                signals[i] = 'sell'
+                signals.iloc[i] = 'sell'
             
             # 3. Smooth buy transition (already above)
             elif current_short > current_long and prev_short > prev_long:
-                signals[i] = 'buy'
+                signals.iloc[i] = 'buy'
             
             # 4. Smooth sell transition (already below)
             elif current_short < current_long and prev_short < prev_long:
-                signals[i] = 'sell'
+                signals.iloc[i] = 'sell'
             
             # 5. No crossover - remains 'hold'
         
-        logger.debug(f"Final signals: {signals}")
+        logger.debug(f"Final signals:\n{signals.value_counts()}")
         return signals

@@ -1,4 +1,4 @@
-from typing import Dict, List, Iterator, Tuple
+from typing import Callable, Dict, List, Iterator, Tuple
 from algo_royale.shared.models.alpaca_market_data.alpaca_bar import Bar
 from algo_royale.shared.strategies.base_strategy import Strategy
 from algo_royale.trade_another_day.core.engine import BacktestEngine
@@ -25,54 +25,54 @@ class BacktestRunner:
             MovingAverageStrategy(short_window=50, long_window=200),
             # Add more strategies as needed
         ]
-
-    def _load_and_prepare_data(self) -> Dict[str, Iterator[pd.DataFrame]]:
-        """Load raw data and prepare DataFrames for strategies.
         
-        Returns:
-            Dict[str, Iterator[pd.DataFrame]]: A dictionary mapping symbols to iterators of DataFrames (one per page)
-        """
+    def _load_and_prepare_data(self) -> Dict[str, Callable[[], Iterator[pd.DataFrame]]]:
         self.logger.info("Loading market data...")
         raw_data = self.data_loader.load_all()
         
         prepared_data = {}
         for symbol, df_iterator in raw_data.items():
             try:
-                # Create a generator that will prepare each page as it's yielded
-                def prepare_pages():
-                    for df in df_iterator:
-                        try:
-                            # Standardize column names
-                            df = df.rename(columns={
-                                'open_price': 'open',
-                                'high_price': 'high',
-                                'low_price': 'low',
-                                'close_price': 'close'
-                            })
-                            
-                            # Ensure required columns exist
-                            required_columns = ['timestamp', 'open', 'high', 'low', 'close', 'volume']
-                            if not all(col in df.columns for col in required_columns):
-                                missing = [col for col in required_columns if col not in df.columns]
-                                raise ValueError(f"Missing columns: {missing}")
-                            
-                            yield df
-                            
-                        except Exception as e:
-                            self.logger.error(f"Failed to prepare page for {symbol}: {str(e)}")
-                            continue
+                # Create a proper generator class to avoid closure issues
+                class PagePreparer:
+                    def __init__(self, iterator, symbol, logger):
+                        self.iterator = iterator
+                        self.symbol = symbol
+                        self.logger = logger
+                    
+                    def __iter__(self):
+                        for df in self.iterator:
+                            try:
+                                df = df.rename(columns={
+                                    'open_price': 'open',
+                                    'high_price': 'high',
+                                    'low_price': 'low',
+                                    'close_price': 'close'
+                                })
+                                
+                                required_columns = ['timestamp', 'open', 'high', 'low', 'close', 'volume']
+                                if not all(col in df.columns for col in required_columns):
+                                    missing = [col for col in required_columns if col not in df.columns]
+                                    self.logger.error(f"Missing columns in {self.symbol} data: {missing}")
+                                    continue
+                                
+                                yield df
+                                
+                            except Exception as e:
+                                self.logger.error(f"Failed to prepare {self.symbol} page: {str(e)}")
+                                continue
                 
-                prepared_data[symbol] = prepare_pages()
+                # Create a factory function that properly instantiates the preparer
+                def create_preparer(sym, it):
+                    return iter(PagePreparer(it, sym, self.logger))
+                    
+                prepared_data[symbol] = lambda s=symbol, i=df_iterator: create_preparer(s, i)
                 self.logger.info(f"Prepared data iterator for {symbol}")
                 
             except Exception as e:
                 self.logger.error(f"Failed to initialize data preparation for {symbol}: {str(e)}")
                 continue
                 
-        if not prepared_data:
-            self.logger.error("No valid data available for backtesting")
-            raise ValueError("No prepared data available")
-        
         return prepared_data
 
     def run(self):

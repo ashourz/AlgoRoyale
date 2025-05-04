@@ -1,7 +1,10 @@
 # strategies/base_strategy.py
 
+import pandas as pd
+
+
 class Strategy:
-    def generate_signals(self, historical_data):
+    def generate_signals(self, df: pd.DataFrame) -> pd.Series:
         """
         Given historical price data (DataFrame), return a list/series of trading signals.
         Each signal should be one of: 'buy', 'sell', or 'hold'.

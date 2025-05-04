@@ -1,9 +1,10 @@
 import glob
-import os
-import pandas as pd
-from datetime import datetime
 from pathlib import Path
+from datetime import datetime
 from typing import Optional, Dict
+import pandas as pd
+from math import ceil
+
 from algo_royale.shared.logger.logger_singleton import Environment, LoggerSingleton, LoggerType
 from algo_royale.trade_another_day.config.config import load_config
 
@@ -11,68 +12,69 @@ class BackTesterResultsSaver:
     """
     Handles saving backtest results with configurable directory structure.
     Results directory is resolved from configuration file.
+    Supports splitting large files by row count.
     """
-    
-    def __init__(self):
+
+    def __init__(self, max_rows_per_file: int = 1_000_000):
         """
         Initialize the results saver with directory from config.
-        
-        Args:
-            config_path: Optional path to config file. If None, uses default config.
         """
         self.config = load_config()
-        self.results_dir = self.config["results_dir"]
-        os.makedirs(self.results_dir, exist_ok=True)
+        self.results_dir = Path(self.config["results_dir"])
+        self.results_dir.mkdir(parents=True, exist_ok=True)
         self.logger = LoggerSingleton(LoggerType.BACKTESTING, Environment.PRODUCTION).get_logger()
-        
+        self.max_rows_per_file = max_rows_per_file
         self.logger.info(f"Results will be saved to: {self.results_dir}")
 
     def has_existing_results(self, strategy_name: str, symbol: str) -> bool:
         """
         Check if results exist for this strategy-symbol pair in current run directory only.
-        Maintains your existing directory structure without checking historical folders.
         """
-        # Match files with pattern: {strategy}_{symbol}_*.csv in current run directory
-        pattern = os.path.join(self.results_dir, f"{strategy_name}_{symbol}_*.csv")
+        search_dir = self.results_dir / strategy_name / symbol
+        pattern = str(search_dir / f"{strategy_name}_{symbol}_*.csv")
         return len(glob.glob(pattern)) > 0
-    
+
     def save_strategy_results(
         self,
         strategy_name: str,
         symbol: str,
         results_df: pd.DataFrame,
         timestamp: Optional[datetime] = None
-    ) -> str:
+    ) -> list[str]:
         """
-        Save backtest results for a single strategy-symbol pair.
-        
-        Args:
-            strategy_name: Name of the strategy
-            symbol: Ticker symbol
-            results_df: DataFrame containing results
-            timestamp: Optional timestamp for filename
-            
-        Returns:
-            Path to the saved file
+        Save backtest results for a single strategy-symbol pair. Splits into multiple files if needed.
+        Returns a list of file paths.
         """
         timestamp = timestamp or datetime.now()
-        filename = f"{strategy_name}_{symbol}_{timestamp.strftime('%H%M%S')}.csv"
-        filepath = os.path.join(self.results_dir, filename)
-        
-        try:
-            # Ensure required columns exist
-            if 'strategy' not in results_df.columns:
-                results_df = results_df.assign(strategy=strategy_name)
-                
-            if 'symbol' not in results_df.columns:
-                results_df = results_df.assign(symbol=symbol)
-                
-            results_df.to_csv(filepath, index=False)
-            self.logger.info(f"Saved results to {filepath}")
-            return filepath
-        except Exception as e:
-            self.logger.error(f"Failed to save results for {strategy_name}/{symbol}: {e}")
-            raise
+        output_dir = self.results_dir / strategy_name / symbol
+        output_dir.mkdir(parents=True, exist_ok=True)
+
+        if 'strategy' not in results_df.columns:
+            results_df = results_df.assign(strategy=strategy_name)
+        if 'symbol' not in results_df.columns:
+            results_df = results_df.assign(symbol=symbol)
+
+        total_rows = len(results_df)
+        num_parts = ceil(total_rows / self.max_rows_per_file)
+        filepaths = []
+
+        for part_idx in range(num_parts):
+            chunk_df = results_df.iloc[
+                part_idx * self.max_rows_per_file : (part_idx + 1) * self.max_rows_per_file
+            ]
+            part_suffix = f"_part{part_idx+1}" if num_parts > 1 else ""
+            filename = f"{strategy_name}_{symbol}_{timestamp.strftime('%H%M%S')}{part_suffix}.csv"
+            filepath = output_dir / filename
+
+            try:
+                chunk_df.to_csv(filepath, index=False)
+                self.logger.info(f"Saved part {part_idx+1}/{num_parts} to {filepath}")
+                filepaths.append(str(filepath))
+            except Exception as e:
+                self.logger.error(f"Failed to save chunk {part_idx+1} for {strategy_name}/{symbol}: {e}")
+                raise
+
+        return filepaths
 
     def save_aggregated_report(
         self,
@@ -84,29 +86,30 @@ class BackTesterResultsSaver:
         """
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         filename = f"{report_name}_{timestamp}.csv"
-        filepath = os.path.join(self.results_dir, filename)
-        
+        output_dir = self.results_dir / report_name
+        output_dir.mkdir(parents=True, exist_ok=True)
+        filepath = output_dir / filename
+
         try:
             combined_dfs = []
             for symbol, strategy_results in all_results.items():
                 for strategy_name, df in strategy_results.items():
                     if df is not None:
-                        # Ensure strategy and symbol columns exist
                         df = df.copy()
                         if 'strategy' not in df.columns:
                             df['strategy'] = strategy_name
                         if 'symbol' not in df.columns:
                             df['symbol'] = symbol
                         combined_dfs.append(df)
-            
+
             if not combined_dfs:
                 self.logger.warning("No results to aggregate")
                 return ""
-                
+
             combined_df = pd.concat(combined_dfs, ignore_index=True)
             combined_df.to_csv(filepath, index=False)
             self.logger.info(f"Saved aggregated report to {filepath}")
-            return filepath
+            return str(filepath)
         except Exception as e:
             self.logger.error(f"Failed to save aggregated report: {e}")
             raise

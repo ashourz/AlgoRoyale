@@ -1,33 +1,22 @@
-from glob import glob
-import os
-from algo_royale.shared.models.alpaca_market_data.alpaca_bar import Bar
-from algo_royale.trade_another_day.utils.results_saver import BackTesterResultsSaver
+from typing import Callable, Dict, List, Iterator
 import pandas as pd
-from datetime import datetime
-from typing import Dict, List, Optional, Iterator
-from pathlib import Path
+from algo_royale.trade_another_day.utils.results_saver import BackTesterResultsSaver
 from algo_royale.shared.strategies.base_strategy import Strategy
 from algo_royale.shared.logger.logger_singleton import Environment, LoggerSingleton, LoggerType
 
 class BacktestEngine:
     def __init__(self, strategies: List[Strategy]):
-        """
-        Initialize the backtest engine with strategy-aware results.
-        
-        Args:
-            strategies: List of strategy objects to test
-        """
         self.strategies = strategies
         self.logger = LoggerSingleton(LoggerType.BACKTESTING, Environment.PRODUCTION).get_logger()
         self.results_saver = BackTesterResultsSaver()
         self._processed_pairs = set()
 
-    def run_backtest(self, data: Dict[str, Iterator[pd.DataFrame]]) -> None:
-        """Run backtest using streaming DataFrame iterators"""
+    def run_backtest(self, data: Dict[str, Callable[[], Iterator[pd.DataFrame]]]) -> None:
         self.logger.info("Starting streaming backtest...")
         
-        for symbol, df_iterator in data.items():
+        for symbol, df_iterator_factory in data.items():
             for strategy in self.strategies:
+                df_iterator = df_iterator_factory()
                 strategy_name = strategy.__class__.__name__
                 pair_key = f"{symbol}_{strategy_name}"
                 
@@ -36,37 +25,63 @@ class BacktestEngine:
                 
                 try:
                     self.logger.info(f"Processing {symbol} with {strategy_name}...")
-                    
-                    # Process each page of data
                     all_results = []
+                    page_count = 0
+                    processed_rows = 0
+                    
                     for page_df in df_iterator:
+                        page_count += 1
                         try:
-                            # Standardize column names if needed
-                            page_df = page_df.rename(columns={
-                                'open_price': 'open',
-                                'high_price': 'high',
-                                'low_price': 'low',
-                                'close_price': 'close'
-                            })
+                            # Skip empty pages
+                            if page_df.empty:
+                                self.logger.debug(f"Empty page {page_count} for {symbol}")
+                                continue
                             
-                            # Generate signals for this page
+                            # Validate data quality
+                            try:
+                                self._validate_data_quality(page_df)
+                            except ValueError as ve:
+                                self.logger.warning(
+                                    f"Data quality issue in page {page_count} for {symbol}: {str(ve)}"
+                                )
+                                continue
+                            
+                            # Generate signals
                             signals = strategy.generate_signals(page_df.copy())
                             
-                            # Prepare results for this page
-                            results_df = page_df.copy()
-                            results_df['signal'] = signals
-                            results_df['strategy'] = strategy_name
-                            all_results.append(results_df)
+                            # Validate strategy output
+                            try:
+                                self._validate_strategy_output(strategy, page_df, signals)
+                            except ValueError as ve:
+                                self.logger.warning(
+                                    f"Strategy validation failed for {symbol} page {page_count}: {str(ve)}"
+                                )
+                                continue
+                                
+                            # Prepare results
+                            result_df = page_df.copy()
+                            result_df['signal'] = signals
+                            result_df['strategy'] = strategy_name
+                            result_df['symbol'] = symbol
+                            
+                            all_results.append(result_df)
+                            processed_rows += len(result_df)
                             
                         except Exception as e:
-                            self.logger.error(f"Error processing page for {symbol}-{strategy_name}: {e}")
+                            self.logger.error(
+                                f"Error processing page {page_count} for {symbol}-{strategy_name}: {e}"
+                            )
                             continue
+                    
+                    self.logger.info(
+                        f"{symbol}-{strategy_name} processed {len(all_results)} pages "
+                        f"({processed_rows} total rows)"
+                    )
                     
                     if not all_results:
                         self.logger.warning(f"No valid data processed for {symbol}-{strategy_name}")
                         continue
                     
-                    # Combine all pages and save results
                     combined_results = pd.concat(all_results, ignore_index=True)
                     self.results_saver.save_strategy_results(
                         strategy_name=strategy_name,
@@ -78,57 +93,44 @@ class BacktestEngine:
                     
                 except Exception as e:
                     self.logger.error(f"Failed to process {symbol}-{strategy_name}: {e}")
-
+                    
     def _should_skip_pair(self, pair_key: str, strategy_name: str, symbol: str) -> bool:
-        """Determine if we should skip processing this symbol-strategy pair."""
         if pair_key in self._processed_pairs:
             self.logger.info(f"Skipping already processed pair: {symbol}-{strategy_name}")
             return True
-            
+
         if self.results_saver.has_existing_results(strategy_name, symbol):
             self.logger.info(f"Found existing results for {symbol}-{strategy_name}, skipping...")
             self._processed_pairs.add(pair_key)
             return True
-            
-        return False
 
-    def _process_pair(self, strategy: Strategy, symbol: str, bars: List[Bar]) -> None:
-        """Process and save results for a single symbol-strategy pair."""
-        strategy_name = strategy.__class__.__name__
-        pair_key = f"{symbol}_{strategy_name}"
-        
-        try:
-            self.logger.info(f"Processing {symbol} with {strategy_name}...")
+        return False
+    
+    def _validate_data_quality(self, df: pd.DataFrame) -> None:
+        """Check for common data issues that might affect strategy processing"""
+        if df.empty:
+            raise ValueError("Empty DataFrame received")
             
-            # Generate signals
-            signals = strategy.generate_signals(bars)
+        if df.isnull().any().any():
+            missing = df.columns[df.isnull().any()].tolist()
+            raise ValueError(f"Data contains null values in columns: {missing}")
             
-            # Create results with strategy column
-            results_df = self._create_results_df(bars, signals, strategy_name)
+        if (df['close'] <= 0).any():
+            raise ValueError("Invalid close prices (<= 0) detected")
             
-            # Save results
-            self.results_saver.save_strategy_results(
-                strategy_name=strategy_name,
-                symbol=symbol,
-                results_df=results_df
+        if not pd.api.types.is_datetime64_any_dtype(df['timestamp']):
+            raise ValueError("Timestamp column must be datetime type")
+
+    def _validate_strategy_output(self, strategy: Strategy, df: pd.DataFrame, signals: pd.Series) -> None:
+        """Validate strategy output matches input dimensions and types"""
+        if len(signals) != len(df):
+            raise ValueError(
+                f"Strategy {strategy.__class__.__name__} returned "
+                f"{len(signals)} signals for {len(df)} rows"
             )
             
-            self._processed_pairs.add(pair_key)
+        if not isinstance(signals, pd.Series):
+            raise ValueError("Strategy must return pandas Series")
             
-        except Exception as e:
-            self.logger.error(f"Failed to process {symbol}-{strategy_name}: {e}")
-
-    def _create_results_df(self, bars: List[Bar], signals: List[str], strategy_name: str) -> pd.DataFrame:
-        """
-        Create results DataFrame with strategy column included.
-        """
-        return pd.DataFrame({
-            'timestamp': [bar.timestamp for bar in bars],
-            'open': [bar.open_price for bar in bars],
-            'high': [bar.high_price for bar in bars],
-            'low': [bar.low_price for bar in bars],
-            'close': [bar.close_price for bar in bars],
-            'volume': [bar.volume for bar in bars],
-            'signal': signals,
-            'strategy': strategy_name  # Include strategy name in results
-        })
+        if signals.isnull().any():
+            raise ValueError("Strategy returned signals containing null values")
