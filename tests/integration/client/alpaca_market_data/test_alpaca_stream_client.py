@@ -23,7 +23,7 @@ class TestHandler:
 async def alpaca_client():
     client = AlpacaStreamClient()
     yield client
-    await client.close()
+    await client.aclose()
     
 @pytest.mark.asyncio
 class TestAlpacaStreamClientIntegration:

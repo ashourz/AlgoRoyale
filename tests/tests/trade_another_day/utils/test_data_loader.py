@@ -62,7 +62,7 @@ def test_fetch_and_save_symbol(mock_watchlist, mock_config, mock_quote_service):
 @patch("algo_royale.trade_another_day.utils.data_loader.os.listdir")
 @patch("algo_royale.trade_another_day.utils.data_loader.load_config")
 @patch("algo_royale.trade_another_day.utils.data_loader.load_watchlist")
-def test_load_symbol_reads_existing_pages(
+async def test_load_symbol_reads_existing_pages(
     mock_watchlist,
     mock_config,
     mock_listdir,
@@ -90,7 +90,7 @@ def test_load_symbol_reads_existing_pages(
     mock_read_csv.return_value = mock_df
 
     loader = BacktestDataLoader()
-    dfs = list(loader.load_symbol("AAPL"))
+    dfs = list(await loader.load_symbol("AAPL"))
 
     assert len(dfs) == 2
     for df in dfs:
@@ -100,7 +100,7 @@ def test_load_symbol_reads_existing_pages(
 @patch("algo_royale.trade_another_day.utils.data_loader.BacktestDataLoader.load_symbol")
 @patch("algo_royale.trade_another_day.utils.data_loader.load_config")
 @patch("algo_royale.trade_another_day.utils.data_loader.load_watchlist")
-def test_load_all_calls_load_symbol(mock_watchlist, mock_config, mock_load_symbol):
+async def test_load_all_calls_load_symbol(mock_watchlist, mock_config, mock_load_symbol):
     mock_watchlist.return_value = ["AAPL", "TSLA"]
     mock_config.return_value = {
         "data_dir": "/tmp",
@@ -114,7 +114,7 @@ def test_load_all_calls_load_symbol(mock_watchlist, mock_config, mock_load_symbo
     mock_load_symbol.side_effect = lambda symbol: iter([mock_df])
 
     loader = BacktestDataLoader()
-    result = loader.load_all()
+    result = await loader.load_all()
 
     assert "AAPL" in result
     assert "TSLA" in result

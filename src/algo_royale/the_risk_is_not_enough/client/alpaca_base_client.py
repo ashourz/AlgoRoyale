@@ -47,8 +47,24 @@ class AlpacaBaseClient(ABC):
 
         self.logger = LoggerSingleton(LoggerType.TRADING, Environment.PRODUCTION).get_logger()
 
-    async def close(self):
-        await self.client.aclose()
+    async def aclose(self):
+        """Proper async cleanup"""
+        if hasattr(self, 'client'):
+            if not self.client.is_closed:
+                await self.client.aclose()
+                self.logger.debug(f"Closed {self.client_name} HTTP client")
+            # Ensure client can't be reused
+            del self.clients
+        
+    async def __aenter__(self):
+        """Support async context manager"""
+        if not hasattr(self, 'client') or self.client.is_closed:
+            self.client = httpx.AsyncClient(timeout=10.0)
+        return self
+
+    async def __aexit__(self, *exc_info):
+        """Auto-close on context exit"""
+        await self.aclose()
         
     @property
     @abstractmethod

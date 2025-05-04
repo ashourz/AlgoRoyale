@@ -9,7 +9,7 @@ from algo_royale.the_risk_is_not_enough.client.alpaca_trading.alpaca_accounts_cl
 async def alpaca_client():
     client = AlpacaAccountClient()
     yield client
-    await client.close()
+    await client.aclose()
 
 
 @pytest.mark.asyncio

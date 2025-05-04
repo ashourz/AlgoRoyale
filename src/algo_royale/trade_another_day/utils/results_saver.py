@@ -45,6 +45,11 @@ class BackTesterResultsSaver:
         Save backtest results for a single strategy-symbol pair. Splits into multiple files if needed.
         Returns a list of file paths.
         """
+        if results_df is None:
+            raise ValueError("None DataFrame provided")
+        if not isinstance(results_df, pd.DataFrame):
+            raise TypeError(f"Expected DataFrame, got {type(results_df)}")
+        
         timestamp = timestamp or datetime.now()
         output_dir = self.results_dir / strategy_name / symbol
         output_dir.mkdir(parents=True, exist_ok=True)

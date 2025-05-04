@@ -14,7 +14,7 @@ logger = LoggerSingleton(LoggerType.TRADING, Environment.TEST).get_logger()
 async def alpaca_client():
     client = AlpacaWatchlistClient()
     yield client
-    await client.close()
+    await client.aclose()
 
 @pytest.mark.asyncio
 class TestAlpacaWatchlistClientIntegration:
