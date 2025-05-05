@@ -54,7 +54,7 @@ class AlpacaBaseClient(ABC):
                 await self.client.aclose()
                 self.logger.debug(f"Closed {self.client_name} HTTP client")
             # Ensure client can't be reused
-            del self.clients
+            del self.client
         
     async def __aenter__(self):
         """Support async context manager"""
