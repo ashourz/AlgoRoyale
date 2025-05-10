@@ -2,7 +2,7 @@
 
 import uuid
 from algo_royale.shared.models.alpaca_trading.alpaca_watchlist import Watchlist
-from algo_royale.the_risk_is_not_enough.client.alpaca_trading.alpaca_watchlist_client import AlpacaWatchlistClient
+from algo_royale.live_trading.client.alpaca_trading.alpaca_watchlist_client import AlpacaWatchlistClient
 from algo_royale.shared.logger.logger_singleton import Environment, LoggerSingleton, LoggerType
 import pytest
 

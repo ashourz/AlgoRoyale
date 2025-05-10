@@ -2,7 +2,7 @@ from unittest.mock import patch, MagicMock, AsyncMock
 from pathlib import Path
 import pandas as pd
 import pytest
-from algo_royale.trade_another_day.utils.data_loader import BacktestDataLoader
+from algo_royale.backtester.utils.data_loader import BacktestDataLoader
 
 # Mock Bar model with model_dump (used in updated version)
 class MockBar:
@@ -25,10 +25,10 @@ class MockBar:
         }
 
 
-@patch("algo_royale.trade_another_day.utils.data_loader.AlpacaQuoteService")
-@patch("algo_royale.trade_another_day.utils.data_loader.load_paths")
-@patch("algo_royale.trade_another_day.utils.data_loader.load_config")
-@patch("algo_royale.trade_another_day.utils.data_loader.load_watchlist")
+@patch("algo_royale.backtester.utils.data_loader.AlpacaQuoteService")
+@patch("algo_royale.backtester.utils.data_loader.load_paths")
+@patch("algo_royale.backtester.utils.data_loader.load_config")
+@patch("algo_royale.backtester.utils.data_loader.load_watchlist")
 @pytest.mark.asyncio
 async def test_fetch_and_save_symbol(mock_watchlist, mock_config, mock_paths, mock_quote_service):
     # Mock configuration and paths
@@ -62,12 +62,12 @@ async def test_fetch_and_save_symbol(mock_watchlist, mock_config, mock_paths, mo
     assert expected_file.exists()
 
 
-@patch("algo_royale.trade_another_day.utils.data_loader.Path.glob")
-@patch("algo_royale.trade_another_day.utils.data_loader.os.path.exists")
-@patch("algo_royale.trade_another_day.utils.data_loader.load_paths")
-@patch("algo_royale.trade_another_day.utils.data_loader.load_config")
-@patch("algo_royale.trade_another_day.utils.data_loader.load_watchlist")
-@patch("algo_royale.trade_another_day.utils.data_loader.pd.read_csv")
+@patch("algo_royale.backtester.utils.data_loader.Path.glob")
+@patch("algo_royale.backtester.utils.data_loader.os.path.exists")
+@patch("algo_royale.backtester.utils.data_loader.load_paths")
+@patch("algo_royale.backtester.utils.data_loader.load_config")
+@patch("algo_royale.backtester.utils.data_loader.load_watchlist")
+@patch("algo_royale.backtester.utils.data_loader.pd.read_csv")
 @pytest.mark.asyncio
 async def test_load_symbol_reads_existing_pages(
     mock_read_csv, mock_watchlist, mock_config, mock_paths, mock_exists, mock_glob
@@ -117,10 +117,10 @@ async def test_load_symbol_reads_existing_pages(
     assert dfs[1].equals(mock_df_page_2)
 
 
-@patch("algo_royale.trade_another_day.utils.data_loader.BacktestDataLoader.load_symbol")
-@patch("algo_royale.trade_another_day.utils.data_loader.load_paths")
-@patch("algo_royale.trade_another_day.utils.data_loader.load_config")
-@patch("algo_royale.trade_another_day.utils.data_loader.load_watchlist")
+@patch("algo_royale.backtester.utils.data_loader.BacktestDataLoader.load_symbol")
+@patch("algo_royale.backtester.utils.data_loader.load_paths")
+@patch("algo_royale.backtester.utils.data_loader.load_config")
+@patch("algo_royale.backtester.utils.data_loader.load_watchlist")
 @pytest.mark.asyncio
 async def test_load_all_calls_load_symbol(mock_watchlist, mock_config, mock_paths, mock_load_symbol):
     # Mock watchlist, configuration, and paths

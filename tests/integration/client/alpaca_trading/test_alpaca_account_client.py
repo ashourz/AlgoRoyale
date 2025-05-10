@@ -2,7 +2,7 @@ import pytest
 from datetime import datetime, timedelta
 from algo_royale.shared.models.alpaca_trading.alpaca_account import Account, AccountActivities, AccountConfiguration
 from algo_royale.shared.models.alpaca_trading.enums import ActivityType, DTBPCheck, TradeConfirmationEmail
-from algo_royale.the_risk_is_not_enough.client.alpaca_trading.alpaca_accounts_client import AlpacaAccountClient
+from algo_royale.live_trading.client.alpaca_trading.alpaca_accounts_client import AlpacaAccountClient
 
 # Async fixture for AlpacaAccountClient
 @pytest.fixture

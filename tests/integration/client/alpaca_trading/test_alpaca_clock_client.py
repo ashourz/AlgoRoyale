@@ -1,7 +1,7 @@
 # src: tests/integration/client/test_alpaca_portfolio_client.py
 
 from algo_royale.shared.models.alpaca_trading.alpaca_clock import Clock
-from algo_royale.the_risk_is_not_enough.client.alpaca_trading.alpaca_clock_client import AlpacaClockClient
+from algo_royale.live_trading.client.alpaca_trading.alpaca_clock_client import AlpacaClockClient
 import pytest
 
 from algo_royale.shared.logger.logger_singleton import Environment, LoggerSingleton, LoggerType

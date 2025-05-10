@@ -4,8 +4,8 @@ from datetime import datetime
 from typing import Optional
 from algo_royale.shared.models.alpaca_trading.alpaca_portfolio import PortfolioPerformance
 from algo_royale.shared.models.alpaca_trading.enums import IntradayReporting, PNLReset
-from algo_royale.the_risk_is_not_enough.client.alpaca_trading.alpaca_portfolio_client import AlpacaPortfolioClient
-from algo_royale.the_risk_is_not_enough.client.exceptions import ParameterConflictError
+from algo_royale.live_trading.client.alpaca_trading.alpaca_portfolio_client import AlpacaPortfolioClient
+from algo_royale.live_trading.client.exceptions import ParameterConflictError
 
 class AlpacaPortfolioService:
     """Service class to manage portfolio data and history for Alpaca API."""

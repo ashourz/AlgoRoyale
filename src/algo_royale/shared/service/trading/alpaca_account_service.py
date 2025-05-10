@@ -1,9 +1,9 @@
 from typing import Optional, List
 from datetime import datetime
-from algo_royale.the_risk_is_not_enough.client.alpaca_trading.alpaca_accounts_client import AlpacaAccountClient
+from algo_royale.live_trading.client.alpaca_trading.alpaca_accounts_client import AlpacaAccountClient
 from algo_royale.shared.models.alpaca_trading.alpaca_account import Account, AccountActivities, AccountConfiguration
 from algo_royale.shared.models.alpaca_trading.enums import ActivityType, SortDirection, TradeConfirmationEmail, DTBPCheck, MarginMultiplier, OptionsTradingLevel, PDTCheck
-from algo_royale.the_risk_is_not_enough.client.exceptions import ParameterConflictError
+from algo_royale.live_trading.client.exceptions import ParameterConflictError
 
 class AlpacaAccountService:
     """Service class to interact with Alpaca account data, leveraging the AlpacaAccountClient."""

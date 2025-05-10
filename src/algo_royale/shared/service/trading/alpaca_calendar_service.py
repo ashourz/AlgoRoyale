@@ -1,8 +1,8 @@
 from typing import Optional
 from datetime import datetime
-from algo_royale.the_risk_is_not_enough.client.alpaca_trading.alpaca_calendar_client import AlpacaCalendarClient
+from algo_royale.live_trading.client.alpaca_trading.alpaca_calendar_client import AlpacaCalendarClient
 from algo_royale.shared.models.alpaca_trading.alpaca_calendar import CalendarList
-from algo_royale.the_risk_is_not_enough.client.exceptions import CalendarNotFoundError
+from algo_royale.live_trading.client.exceptions import CalendarNotFoundError
 
 class AlpacaCalendarService:
     """Service class to interact with Alpaca's corporate action calendar data, leveraging AlpacaCalendarClient."""

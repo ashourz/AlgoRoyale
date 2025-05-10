@@ -1,6 +1,6 @@
 # setup_database.py
 
-from the_risk_is_not_enough.db.migrations.migration_manager import apply_migrations
+from live_trading.db.migrations.migration_manager import apply_migrations
 from config.db_config import get_db_connection, close_connection
 
 def main():

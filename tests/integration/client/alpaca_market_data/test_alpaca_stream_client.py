@@ -1,7 +1,7 @@
 # src/algo_royale/tests/integration/client/test_alpaca_stream_client.py
 import asyncio
 import pytest
-from algo_royale.the_risk_is_not_enough.client.alpaca_market_data.alpaca_stream_client import AlpacaStreamClient, DataFeed
+from algo_royale.live_trading.client.alpaca_market_data.alpaca_stream_client import AlpacaStreamClient, DataFeed
 
 # Refactor TestHandler class without __init__ constructor
 class TestHandler:
