@@ -14,7 +14,7 @@ from alpaca.data.timeframe import TimeFrame, TimeFrameUnit
 from algo_royale.models.alpaca_market_data.alpaca_snapshot import SnapshotsResponse
 from algo_royale.models.alpaca_market_data.alpaca_trade import HistoricalTradesResponse, LatestTradesResponse
 from algo_royale.models.alpaca_market_data.enums import SnapshotFeed, Tape, TickType
-from algo_royale.live_trading.config.config import ALPACA_PARAMS
+from algo_royale.live_trading.config.live_trading_config import ALPACA_PARAMS
 
 
     

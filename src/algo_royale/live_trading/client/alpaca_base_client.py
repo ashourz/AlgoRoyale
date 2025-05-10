@@ -9,8 +9,8 @@ from algo_royale.live_trading.client.exceptions import (
     AlpacaTooManyRequestsException, AlpacaUnauthorizedException,
     AlpacaUnprocessableException
 )
+from algo_royale.live_trading.config.live_trading_config import ALPACA_PARAMS, ALPACA_SECRETS
 import httpx
-from algo_royale.live_trading.config.config import ALPACA_PARAMS, ALPACA_SECRETS
 from algo_royale.logging.logger_singleton import Environment, LoggerSingleton, LoggerType
 import time
 

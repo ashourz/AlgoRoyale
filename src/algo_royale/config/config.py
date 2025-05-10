@@ -1,5 +1,7 @@
+# src/algo_royale/config/config.py
 import os
 import configparser
+from pathlib import Path
 
 class Config:
     def __init__(self, config_file="config.ini", environment=None):
@@ -23,7 +25,8 @@ class Config:
         :return: ConfigParser instance with the loaded file.
         """
         parser = configparser.ConfigParser()
-        parser.read(config_file)
+        path = Path(__file__).parent / config_file
+        parser.read(path)
         return parser
 
     def get(self, section, key, fallback=None):
@@ -75,10 +78,22 @@ class Config:
         if value is None:
             return fallback
         return str(value).lower() in ["true", "1", "yes"]
+    
+    def get_section(self, section):
+        """
+        Get an entire section as a dictionary.
+
+        :param section: The section in the config.ini file.
+        :return: A dictionary of all key-value pairs in the section.
+        """
+        if self.parser.has_section(section):
+            return self.parser[section]
+        else:
+            raise ValueError(f"Section '{section}' not found in the configuration file.")
 
 # Initialize the configuration
 config = Config()
-
+secrets = Config("secrets.ini")
 # Example Usage
 if __name__ == "__main__":
     print("Base Directory:", config.get("global", "base_directory"))

@@ -6,7 +6,7 @@ from typing import Optional
 from algo_royale.live_trading.client.alpaca_base_client import AlpacaBaseClient
 from algo_royale.models.alpaca_trading.alpaca_calendar import CalendarList
 from algo_royale.models.alpaca_trading.enums import CalendarDateType
-from algo_royale.live_trading.config.config import ALPACA_TRADING_URL
+from algo_royale.live_trading.config.live_trading_config import ALPACA_TRADING_URL
 
 class AlpacaCalendarClient(AlpacaBaseClient):
     """Singleton class to interact with Alpaca's API for orders data.""" 

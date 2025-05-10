@@ -1,7 +1,7 @@
 # config/db_config.py
 
 import time
-from algo_royale.live_trading.config.config import DB_PARAMS, DB_SECRETS
+from algo_royale.live_trading.config.live_trading_config import DB_PARAMS, DB_SECRETS
 import psycopg2
 from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
 
