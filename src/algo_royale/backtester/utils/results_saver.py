@@ -2,7 +2,7 @@ import glob
 from pathlib import Path
 from datetime import datetime
 from typing import Optional, Dict
-from algo_royale.shared.config.config import load_paths
+from algo_royale.config.config import config
 import pandas as pd
 from math import ceil
 
@@ -19,8 +19,7 @@ class BackTesterResultsSaver:
         """
         Initialize the results saver with directory from config.
         """
-        self.paths = load_paths()
-        self.backtest_dir = Path(self.paths["backtest_dir"])
+        self.backtest_dir = Path(config.get("path.backtester", "backtest_dir"))
         self.backtest_dir.mkdir(parents=True, exist_ok=True)
         self.logger = LoggerSingleton(LoggerType.BACKTESTING, Environment.PRODUCTION).get_logger()
         self.max_rows_per_file = max_rows_per_file

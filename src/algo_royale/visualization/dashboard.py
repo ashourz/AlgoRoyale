@@ -1,9 +1,8 @@
 from pathlib import Path
-from algo_royale.shared.config.config import load_paths
 from algo_royale.visualization.backtest_visualizer import BacktestVisualizer
 import streamlit as st
 import pandas as pd
-
+from algo_royale.config.config import config
 
 class BacktestDashboard:
     """
@@ -11,8 +10,7 @@ class BacktestDashboard:
     It allows users to select strategies and symbols, load results from CSV files,
     and display various performance metrics and visualizations."""
     def __init__(self):
-        self.config = load_paths()
-        self.results_dir = Path(self.config["backtest_dir"])
+        self.results_dir = Path(config.get("path.backtester", "backtest_dir"))
         self.available_files = self._find_result_files()
         self.visualizer = None
         self.selected_strategies = []

@@ -3,7 +3,7 @@ from pathlib import Path
 from typing import Union, List
 from enum import Enum
 
-from algo_royale.shared.utils.enums import DataExtension, PipelineStage
+from algo_royale.utils.enums import DataExtension, PipelineStage
 
 
 class FileFormatter:

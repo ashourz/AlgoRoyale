@@ -4,7 +4,7 @@ import pandas as pd
 import pytest
 from algo_royale.backtester.utils.data_loader import BacktestDataLoader
 
-# Mock Bar model with model_dump (used in updated version)
+
 class MockBar:
     def __init__(self, timestamp, open, high, low, close, volume):
         self.timestamp = timestamp
@@ -21,26 +21,27 @@ class MockBar:
             "high": self.high,
             "low": self.low,
             "close": self.close,
-            "volume": self.volume
+            "volume": self.volume,
         }
 
 
 @patch("algo_royale.backtester.utils.data_loader.AlpacaQuoteService")
-@patch("algo_royale.backtester.utils.data_loader.load_paths")
-@patch("algo_royale.backtester.utils.data_loader.load_config")
 @patch("algo_royale.backtester.utils.data_loader.load_watchlist")
+@patch("algo_royale.backtester.utils.data_loader.config")
 @pytest.mark.asyncio
-async def test_fetch_and_save_symbol(mock_watchlist, mock_config, mock_paths, mock_quote_service):
-    # Mock configuration and paths
+async def test_fetch_and_save_symbol(mock_config, mock_watchlist, mock_quote_service):
+    # Mock configuration and watchlist
     mock_watchlist.return_value = ["AAPL"]
-    mock_config.return_value = {
-        "start_date": "2023-01-01",
-        "end_date": "2023-01-02",
-    }
-    mock_paths.return_value = {
-        "data_ingest_dir": "/tmp/test_data",
-        "watchlist_path": "mock/path",
-    }
+    mock_config.get.side_effect = lambda section, key: {
+        "path.backtester": {
+            "data_ingest_dir": "/tmp/test_data",
+            "watchlist_path": "mock/path",
+        },
+        "backtest": {
+            "start_date": "2023-01-01",
+            "end_date": "2023-01-02",
+        },
+    }[section][key]
 
     # Mock AlpacaQuoteService response
     mock_response = AsyncMock()
@@ -64,24 +65,25 @@ async def test_fetch_and_save_symbol(mock_watchlist, mock_config, mock_paths, mo
 
 @patch("algo_royale.backtester.utils.data_loader.Path.glob")
 @patch("algo_royale.backtester.utils.data_loader.os.path.exists")
-@patch("algo_royale.backtester.utils.data_loader.load_paths")
-@patch("algo_royale.backtester.utils.data_loader.load_config")
 @patch("algo_royale.backtester.utils.data_loader.load_watchlist")
+@patch("algo_royale.backtester.utils.data_loader.config")
 @patch("algo_royale.backtester.utils.data_loader.pd.read_csv")
 @pytest.mark.asyncio
 async def test_load_symbol_reads_existing_pages(
-    mock_read_csv, mock_watchlist, mock_config, mock_paths, mock_exists, mock_glob
+    mock_read_csv, mock_config, mock_watchlist, mock_exists, mock_glob
 ):
-    # Mock watchlist, configuration, and paths
+    # Mock watchlist and configuration
     mock_watchlist.return_value = ["AAPL"]
-    mock_config.return_value = {
-        "start_date": "2023-01-01",
-        "end_date": "2023-01-10",
-    }
-    mock_paths.return_value = {
-        "data_ingest_dir": "/tmp/test_data",
-        "watchlist_path": "mock/path",
-    }
+    mock_config.get.side_effect = lambda section, key: {
+        "path.backtester": {
+            "data_ingest_dir": "/tmp/test_data",
+            "watchlist_path": "mock/path",
+        },
+        "backtest": {
+            "start_date": "2023-01-01",
+            "end_date": "2023-01-10",
+        },
+    }[section][key]
 
     # Mock file existence
     mock_exists.side_effect = lambda path: path == "/tmp/test_data/AAPL"
@@ -118,21 +120,22 @@ async def test_load_symbol_reads_existing_pages(
 
 
 @patch("algo_royale.backtester.utils.data_loader.BacktestDataLoader.load_symbol")
-@patch("algo_royale.backtester.utils.data_loader.load_paths")
-@patch("algo_royale.backtester.utils.data_loader.load_config")
 @patch("algo_royale.backtester.utils.data_loader.load_watchlist")
+@patch("algo_royale.backtester.utils.data_loader.config")
 @pytest.mark.asyncio
-async def test_load_all_calls_load_symbol(mock_watchlist, mock_config, mock_paths, mock_load_symbol):
-    # Mock watchlist, configuration, and paths
+async def test_load_all_calls_load_symbol(mock_config, mock_watchlist, mock_load_symbol):
+    # Mock watchlist and configuration
     mock_watchlist.return_value = ["AAPL", "TSLA"]
-    mock_config.return_value = {
-        "start_date": "2023-01-01",
-        "end_date": "2023-01-10",
-    }
-    mock_paths.return_value = {
-        "data_ingest_dir": "/tmp/test_data",
-        "watchlist_path": "mock/path",
-    }
+    mock_config.get.side_effect = lambda section, key: {
+        "path.backtester": {
+            "data_ingest_dir": "/tmp/test_data",
+            "watchlist_path": "mock/path",
+        },
+        "backtest": {
+            "start_date": "2023-01-01",
+            "end_date": "2023-01-10",
+        },
+    }[section][key]
 
     # Mock load_symbol to return an async generator
     mock_df = pd.DataFrame([{"timestamp": "2023-01-01", "open": 100}])

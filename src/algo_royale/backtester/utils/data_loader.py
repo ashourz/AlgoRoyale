@@ -2,36 +2,27 @@ import asyncio
 import os
 from pathlib import Path
 from typing import AsyncIterator, Callable, Dict, Optional
-from algo_royale.shared.config.config import load_paths
 import pandas as pd
 from algo_royale.logging.logger_singleton import LoggerSingleton, LoggerType, Environment
 from algo_royale.models.alpaca_market_data.enums import DataFeed
 from algo_royale.services.market_data.alpaca_stock_service import AlpacaQuoteService
-from algo_royale.backtester.config.config import load_config
 from algo_royale.backtester.utils.watchlist import load_watchlist
 import dateutil.parser
 from alpaca.common.enums import SupportedCurrencies
+from algo_royale.config.config import config
 
 class BacktestDataLoader:
     def __init__(self):
         try:
-            # Load configurations
-            self.config = load_config()
-            self.paths = load_paths()
-
-            # Validate configurations
-            self._validate_config()
-            self._validate_paths()
-
             # Initialize directories and services
-            self.data_dir = Path(self.paths["data_ingest_dir"])
+            self.data_dir = Path(config.get("path.backtester", "data_ingest_dir"))
             self.data_dir.mkdir(parents=True, exist_ok=True)
             self.quote_client = AlpacaQuoteService()
-            self.watchlist = load_watchlist(self.paths["watchlist_path"])
+            self.watchlist = load_watchlist(config.get("path.backtester", "watchlist_path"))
 
             # Parse dates
-            self.start_date = dateutil.parser.parse(self.config["start_date"])
-            self.end_date = dateutil.parser.parse(self.config["end_date"])
+            self.start_date = dateutil.parser.parse(config.get("backtest", "start_date"))
+            self.end_date = dateutil.parser.parse(config.get("backtest", "end_date"))
 
             # Initialize logger
             self.logger = LoggerSingleton(
@@ -43,20 +34,6 @@ class BacktestDataLoader:
             raise ValueError(f"Missing required configuration key: {e}")
         except Exception as e:
             raise RuntimeError(f"Failed to initialize BacktestDataLoader: {e}")
-
-    def _validate_config(self):
-        """Ensure required keys are present in the config dictionary."""
-        required_keys = ["start_date", "end_date"]
-        for key in required_keys:
-            if key not in self.config:
-                raise KeyError(f"Config is missing required key: '{key}'")
-
-    def _validate_paths(self):
-        """Ensure required keys are present in the paths dictionary."""
-        required_keys = ["data_ingest_dir", "watchlist_path"]
-        for key in required_keys:
-            if key not in self.paths:
-                raise KeyError(f"Paths is missing required key: '{key}'")
             
     async def load_all(self) -> Dict[str, Callable[[], AsyncIterator[pd.DataFrame]]]:
         """Returns async data generators with automatic data fetching"""

@@ -2,7 +2,6 @@ from typing import Callable, Dict, List, Iterator, Tuple, AsyncIterator
 from algo_royale.models.alpaca_market_data.alpaca_bar import Bar
 from algo_royale.strategies.base_strategy import Strategy
 from algo_royale.backtester.core.engine import BacktestEngine
-from algo_royale.backtester.config.config import load_config
 from algo_royale.backtester.utils.data_loader import BacktestDataLoader
 from algo_royale.strategies.moving_average_strategy import MovingAverageStrategy
 from algo_royale.logging.logger_singleton import Environment, LoggerSingleton, LoggerType
@@ -17,7 +16,7 @@ import asyncio
 class BacktestRunner:
     def __init__(self):
         self.logger = LoggerSingleton(LoggerType.BACKTESTING, Environment.PRODUCTION).get_logger()
-        self.config = self._validate_config(load_config())
+        self.config = self._validate_config({})
         self.strategies = self._initialize_strategies()
         self.data_loader = BacktestDataLoader()
         self.engine = None

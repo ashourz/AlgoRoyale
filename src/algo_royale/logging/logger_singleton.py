@@ -3,7 +3,7 @@ import logging
 from logging.handlers import RotatingFileHandler
 import os
 
-from algo_royale.shared.utils.path_utils import get_project_root
+from algo_royale.utils.path_utils import get_project_root
 
 
 class Environment(Enum):
