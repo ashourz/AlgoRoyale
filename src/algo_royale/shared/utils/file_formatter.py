@@ -1,47 +1,56 @@
-import os
 import shutil
 from pathlib import Path
-from typing import Union
-import uuid
+from typing import Union, List
+from enum import Enum
+
+from algo_royale.shared.utils.enums import DataExtension, PipelineStage
+
 
 class FileFormatter:
     def __init__(self, base_dir: Union[str, Path]):
         self.base_dir = Path(base_dir)
         self.base_dir.mkdir(parents=True, exist_ok=True)
 
-    def get_stage_path(self, stage_name: str) -> Path:
-        path = self.base_dir / stage_name / "data"
+    def get_stage_path(self, stage: PipelineStage) -> Path:
+        path = self.base_dir / stage.value / "data"
         path.mkdir(parents=True, exist_ok=True)
         return path
 
-    def write_temp_file(self, stage: str, filename: str, content: str):
+    def write_unprocessed_file(self, stage: PipelineStage, filename: str, content: str) -> Path:
         stage_path = self.get_stage_path(stage)
-        temp_file = stage_path / f"{filename}.writing"
-        with open(temp_file, "w") as f:
+        file_path = stage_path / f"{filename}{DataExtension.UNPROCESSED}"
+        with open(file_path, "w") as f:
             f.write(content)
-        final_file = temp_file.with_suffix('.csv')
-        temp_file.rename(final_file)
-        return final_file
+        return file_path
 
     def mark_processing(self, file_path: Path) -> Path:
-        if file_path.suffix == ".csv":
-            processing_path = file_path.with_suffix(".processing")
-            file_path.rename(processing_path)
-            return processing_path
-        raise ValueError("File must be a .csv before processing")
+        if file_path.suffix != DataExtension.UNPROCESSED:
+            raise ValueError(f"Expected a {DataExtension.UNPROCESSED} file.")
+        processing_path = file_path.with_suffix(DataExtension.PROCESSING)
+        file_path.rename(processing_path)
+        return processing_path
 
-    def mark_done(self, stage: str):
-        done_file = self.get_stage_path(stage).parent / f"{stage}.done"
+    def mark_processed(self, file_path: Path) -> Path:
+        if file_path.suffix != DataExtension.PROCESSING:
+            raise ValueError(f"Expected a {DataExtension.PROCESSING} file.")
+        processed_path = file_path.with_suffix(DataExtension.PROCESSED)
+        file_path.rename(processed_path)
+        return processed_path
+
+    def mark_done(self, stage: PipelineStage):
+        done_file = self.get_stage_path(stage).parent / f"{stage.value}{DataExtension.DONE}"
         done_file.touch()
 
-    def copy_to_next_stage(self, current_stage: str, next_stage: str):
+    def is_done(self, stage: PipelineStage) -> bool:
+        done_file = self.get_stage_path(stage).parent / f"{stage.value}{DataExtension.DONE}"
+        return done_file.exists()
+
+    def list_files_by_extension(self, stage: PipelineStage, extension: DataExtension) -> List[Path]:
+        return list(self.get_stage_path(stage).glob(f"*{extension}"))
+
+    def copy_to_next_stage(self, current_stage: PipelineStage, next_stage: PipelineStage):
         current_path = self.get_stage_path(current_stage)
         next_path = self.get_stage_path(next_stage)
-        for file in current_path.glob("*.csv"):
-            shutil.copy(file, next_path / file.name)
-
-    def is_done(self, stage: str) -> bool:
-        return (self.get_stage_path(stage).parent / f"{stage}.done").exists()
-
-    def list_csv_files(self, stage: str):
-        return list(self.get_stage_path(stage).glob("*.csv"))
+        for file in current_path.glob(f"*{DataExtension.PROCESSED}"):
+            destination = next_path / file.name.replace(DataExtension.PROCESSED, DataExtension.UNPROCESSED)
+            shutil.copy(file, destination)

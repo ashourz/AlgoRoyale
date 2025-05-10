@@ -1,6 +1,7 @@
 import configparser
 import os
 from pathlib import Path
+from src.algo_royale.shared.config.config import load_paths
 
 # Path to the config.ini file inside the config folder (relative to this file)
 CONFIG_FILE_PATH = os.path.join(os.path.dirname(__file__), 'config', 'config.ini')
@@ -21,7 +22,6 @@ def load_config():
     """
     Loads the configuration from the config.ini file and converts relative paths to absolute paths.
     """
-    PATHS = _get_config("paths")
     PARAMETERS = _get_config("parameters")
     BACKTEST = _get_config("backtest")
 
@@ -32,9 +32,6 @@ def load_config():
     base_path = os.path.dirname(CONFIG_FILE_PATH)
 
     return {
-        'watchlist_path': PATHS["watchlist_path"],
-        'data_dir': PATHS["data_dir"],
-        'results_dir': PATHS["results_dir"],
         'initial_capital': PARAMETERS["initial_capital"],
         'short_window': PARAMETERS["short_window"],
         'long_window': PARAMETERS["long_window"],

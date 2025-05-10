@@ -17,7 +17,7 @@ def _load_ini(section, filename):
 def _get_config(section):
     return _load_ini(section, "config.ini")
 
-def load_config():
+def load_paths():
     """
     Loads the configuration from the config.ini file and converts relative paths to absolute paths.
     """
@@ -30,5 +30,11 @@ def load_config():
     base_path = os.path.dirname(CONFIG_FILE_PATH)
 
     return {
-        'results_dir': PATHS["results_dir"]
+        'watchlist_path': PATHS["watchlist_path"],
+        'data_ingest_dir': PATHS["data_ingest_dir"],
+        'backtest_dir': PATHS["backtest_dir"],
+        'results_analysis_dir': PATHS["results_analysis_dir"],
+        'strategy_metrics_dir': PATHS["strategy_metrics_dir"],
+        'strategy_selection_dir': PATHS["strategy_selection_dir"],
+        'reporting_dir': PATHS["reporting_dir"]
     }

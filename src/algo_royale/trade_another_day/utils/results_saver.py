@@ -2,11 +2,11 @@ import glob
 from pathlib import Path
 from datetime import datetime
 from typing import Optional, Dict
+from algo_royale.shared.config.config import load_paths
 import pandas as pd
 from math import ceil
 
 from algo_royale.shared.logger.logger_singleton import Environment, LoggerSingleton, LoggerType
-from algo_royale.trade_another_day.config.config import load_config
 
 class BackTesterResultsSaver:
     """
@@ -19,18 +19,18 @@ class BackTesterResultsSaver:
         """
         Initialize the results saver with directory from config.
         """
-        self.config = load_config()
-        self.results_dir = Path(self.config["results_dir"])
-        self.results_dir.mkdir(parents=True, exist_ok=True)
+        self.paths = load_paths()
+        self.backtest_dir = Path(self.paths["backtest_dir"])
+        self.backtest_dir.mkdir(parents=True, exist_ok=True)
         self.logger = LoggerSingleton(LoggerType.BACKTESTING, Environment.PRODUCTION).get_logger()
         self.max_rows_per_file = max_rows_per_file
-        self.logger.info(f"Results will be saved to: {self.results_dir}")
+        self.logger.info(f"Results will be saved to: {self.backtest_dir}")
 
     def has_existing_results(self, strategy_name: str, symbol: str) -> bool:
         """
         Check if results exist for this strategy-symbol pair in current run directory only.
         """
-        search_dir = self.results_dir / strategy_name / symbol
+        search_dir = self.backtest_dir / strategy_name / symbol
         pattern = str(search_dir / f"{strategy_name}_{symbol}_*.csv")
         return len(glob.glob(pattern)) > 0
 
@@ -51,7 +51,7 @@ class BackTesterResultsSaver:
             raise TypeError(f"Expected DataFrame, got {type(results_df)}")
         
         timestamp = timestamp or datetime.now()
-        output_dir = self.results_dir / strategy_name / symbol
+        output_dir = self.backtest_dir / strategy_name / symbol
         output_dir.mkdir(parents=True, exist_ok=True)
 
         if 'strategy' not in results_df.columns:
@@ -91,7 +91,7 @@ class BackTesterResultsSaver:
         """
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         filename = f"{report_name}_{timestamp}.csv"
-        output_dir = self.results_dir / report_name
+        output_dir = self.backtest_dir / report_name
         output_dir.mkdir(parents=True, exist_ok=True)
         filepath = output_dir / filename
 
