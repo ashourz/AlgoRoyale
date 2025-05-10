@@ -2,7 +2,7 @@
 import asyncio
 import json
 from algo_royale.live_trading.client.alpaca_base_client import AlpacaBaseClient
-from algo_royale.shared.models.alpaca_market_data.enums import DataFeed
+from algo_royale.models.alpaca_market_data.enums import DataFeed
 from algo_royale.live_trading.config.config import ALPACA_PARAMS
 import websockets
 

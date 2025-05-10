@@ -4,8 +4,8 @@ from datetime import datetime
 from typing import Optional
 from algo_royale.live_trading.client.alpaca_base_client import AlpacaBaseClient
 from algo_royale.live_trading.client.exceptions import ParameterConflictError
-from algo_royale.shared.models.alpaca_trading.alpaca_portfolio import PortfolioPerformance
-from algo_royale.shared.models.alpaca_trading.enums import IntradayReporting, PNLReset
+from algo_royale.models.alpaca_trading.alpaca_portfolio import PortfolioPerformance
+from algo_royale.models.alpaca_trading.enums import IntradayReporting, PNLReset
 from algo_royale.live_trading.config.config import ALPACA_TRADING_URL
 
 class AlpacaPortfolioClient(AlpacaBaseClient):

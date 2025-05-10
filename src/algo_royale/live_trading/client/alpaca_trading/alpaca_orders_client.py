@@ -2,8 +2,8 @@
 
 from datetime import datetime
 from typing import List, Optional
-from algo_royale.shared.models.alpaca_trading.alpaca_order import DeleteOrdersResponse, Order, OrderListResponse, StopLoss, TakeProfit
-from algo_royale.shared.models.alpaca_trading.enums import OrderClass, OrderSide, OrderStatusFilter, OrderType, PositionIntent, SortDirection, TimeInForce
+from algo_royale.models.alpaca_trading.alpaca_order import DeleteOrdersResponse, Order, OrderListResponse, StopLoss, TakeProfit
+from algo_royale.models.alpaca_trading.enums import OrderClass, OrderSide, OrderStatusFilter, OrderType, PositionIntent, SortDirection, TimeInForce
 from algo_royale.live_trading.client.alpaca_base_client import AlpacaBaseClient
 from algo_royale.live_trading.client.exceptions import AlpacaInvalidHeadersException, AlpacaUnprocessableException, InsufficientBuyingPowerOrSharesError, MissingParameterError, ParameterConflictError, UnprocessableOrderException
 from algo_royale.live_trading.config.config import ALPACA_TRADING_URL

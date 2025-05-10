@@ -6,7 +6,7 @@ from algo_royale.shared.config.config import load_paths
 import pandas as pd
 from math import ceil
 
-from algo_royale.shared.logger.logger_singleton import Environment, LoggerSingleton, LoggerType
+from algo_royale.logging.logger_singleton import Environment, LoggerSingleton, LoggerType
 
 class BackTesterResultsSaver:
     """

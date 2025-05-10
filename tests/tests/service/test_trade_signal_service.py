@@ -5,11 +5,11 @@ from unittest import TestCase
 from unittest.mock import patch
 from decimal import Decimal
 from datetime import datetime
-from algo_royale.shared.service.db.trade_signal_service import TradeSignalService
+from algo_royale.services.db.trade_signal_service import TradeSignalService
 
 
 class TestTradeSignalService(TestCase):
-    @patch("algo_royale.shared.service.db.trade_signal_service.TradeSignalsDAO")
+    @patch("algo_royale.services.db.trade_signal_service.TradeSignalsDAO")
     def setUp(self, MockTradeSignalsDAO):
         """Set up mock objects and test data."""
         self.mock_dao = MockTradeSignalsDAO.return_value

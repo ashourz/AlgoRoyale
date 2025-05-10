@@ -1,13 +1,13 @@
 # src: tests/integration/client/test_alpaca_account_client.py
 
 from datetime import datetime
-from algo_royale.shared.models.alpaca_trading.alpaca_order import DeleteOrderStatus, DeleteOrdersResponse, Order, OrderListResponse
-from algo_royale.shared.models.alpaca_trading.enums import OrderSide, OrderStatusFilter, OrderType, SortDirection, TimeInForce
+from algo_royale.models.alpaca_trading.alpaca_order import DeleteOrderStatus, DeleteOrdersResponse, Order, OrderListResponse
+from algo_royale.models.alpaca_trading.enums import OrderSide, OrderStatusFilter, OrderType, SortDirection, TimeInForce
 from algo_royale.live_trading.client.alpaca_trading.alpaca_orders_client import AlpacaOrdersClient
 from algo_royale.live_trading.client.exceptions import InsufficientBuyingPowerOrSharesError, UnprocessableOrderException
 import pytest
 
-from algo_royale.shared.logger.logger_singleton import Environment, LoggerSingleton, LoggerType
+from algo_royale.logging.logger_singleton import Environment, LoggerSingleton, LoggerType
 
 # Set up logging (prints to console)
 logger = LoggerSingleton(LoggerType.TRADING, Environment.TEST).get_logger()

@@ -2,13 +2,13 @@
 import unittest
 from unittest import TestCase
 from unittest.mock import patch
-from algo_royale.shared.service.db.trade_service import TradeService
+from algo_royale.services.db.trade_service import TradeService
 from decimal import Decimal
 from datetime import datetime
 
 class TestTradeService(TestCase):
 
-    @patch("algo_royale.shared.service.db.trade_service.TradesDAO")
+    @patch("algo_royale.services.db.trade_service.TradesDAO")
     def setUp(self, MockTradesDAO):
         self.mock_dao = MockTradesDAO.return_value
         self.service = TradeService()

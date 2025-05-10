@@ -1,7 +1,7 @@
 
 from turtle import pd
 
-from algo_royale.shared.logger.logger_singleton import Environment, LoggerSingleton, LoggerType
+from algo_royale.logging.logger_singleton import Environment, LoggerSingleton, LoggerType
 
 logger = LoggerSingleton(LoggerType.BACKTESTING, Environment.PRODUCTION).get_logger()
 

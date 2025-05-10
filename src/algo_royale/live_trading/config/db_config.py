@@ -5,7 +5,7 @@ from algo_royale.live_trading.config.config import DB_PARAMS, DB_SECRETS
 import psycopg2
 from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
 
-from algo_royale.shared.logger.logger_singleton import Environment, LoggerSingleton, LoggerType
+from algo_royale.logging.logger_singleton import Environment, LoggerSingleton, LoggerType
 
 logger = LoggerSingleton(LoggerType.TRADING, Environment.PRODUCTION)
 

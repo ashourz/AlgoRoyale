@@ -11,7 +11,7 @@ from algo_royale.live_trading.client.exceptions import (
 )
 import httpx
 from algo_royale.live_trading.config.config import ALPACA_PARAMS, ALPACA_SECRETS
-from algo_royale.shared.logger.logger_singleton import Environment, LoggerSingleton, LoggerType
+from algo_royale.logging.logger_singleton import Environment, LoggerSingleton, LoggerType
 import time
 
 

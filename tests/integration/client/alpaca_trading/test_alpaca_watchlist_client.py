@@ -1,9 +1,9 @@
 # src: tests/integration/client/test_alpaca_account_client.py
 
 import uuid
-from algo_royale.shared.models.alpaca_trading.alpaca_watchlist import Watchlist
+from algo_royale.models.alpaca_trading.alpaca_watchlist import Watchlist
 from algo_royale.live_trading.client.alpaca_trading.alpaca_watchlist_client import AlpacaWatchlistClient
-from algo_royale.shared.logger.logger_singleton import Environment, LoggerSingleton, LoggerType
+from algo_royale.logging.logger_singleton import Environment, LoggerSingleton, LoggerType
 import pytest
 
 

@@ -1,11 +1,11 @@
 # src/tests/integration/client/test_alpaca_calendar_client.py
 
 from datetime import datetime
-from algo_royale.shared.models.alpaca_trading.alpaca_calendar import Calendar, CalendarList
+from algo_royale.models.alpaca_trading.alpaca_calendar import Calendar, CalendarList
 from algo_royale.live_trading.client.alpaca_trading.alpaca_calendar_client import AlpacaCalendarClient
 import pytest
 
-from algo_royale.shared.logger.logger_singleton import Environment, LoggerSingleton, LoggerType
+from algo_royale.logging.logger_singleton import Environment, LoggerSingleton, LoggerType
 
 
 

@@ -1,11 +1,11 @@
 # src: tests/integration/client/test_alpaca_screener_client.py
 
 import pytest
-from algo_royale.shared.models.alpaca_market_data.alpaca_active_stock import MostActiveStocksResponse
-from algo_royale.shared.models.alpaca_market_data.alpaca_market_mover import MarketMoversResponse
+from algo_royale.models.alpaca_market_data.alpaca_active_stock import MostActiveStocksResponse
+from algo_royale.models.alpaca_market_data.alpaca_market_mover import MarketMoversResponse
 from algo_royale.live_trading.client.alpaca_market_data.alpaca_screener_client import ActiveStockFilter, AlpacaScreenerClient
 
-from algo_royale.shared.logger.logger_singleton import Environment, LoggerSingleton, LoggerType
+from algo_royale.logging.logger_singleton import Environment, LoggerSingleton, LoggerType
 
 
 # Set up logging (prints to console)

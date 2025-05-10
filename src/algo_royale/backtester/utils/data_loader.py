@@ -4,9 +4,9 @@ from pathlib import Path
 from typing import AsyncIterator, Callable, Dict, Optional
 from algo_royale.shared.config.config import load_paths
 import pandas as pd
-from algo_royale.shared.logger.logger_singleton import LoggerSingleton, LoggerType, Environment
-from algo_royale.shared.models.alpaca_market_data.enums import DataFeed
-from algo_royale.shared.service.market_data.alpaca_stock_service import AlpacaQuoteService
+from algo_royale.logging.logger_singleton import LoggerSingleton, LoggerType, Environment
+from algo_royale.models.alpaca_market_data.enums import DataFeed
+from algo_royale.services.market_data.alpaca_stock_service import AlpacaQuoteService
 from algo_royale.backtester.config.config import load_config
 from algo_royale.backtester.utils.watchlist import load_watchlist
 import dateutil.parser

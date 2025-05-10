@@ -1,7 +1,7 @@
 from algo_royale.live_trading.config.db_config import close_connection, get_db_connection
 from contextlib import contextmanager
 
-from algo_royale.shared.logger.logger_singleton import Environment, LoggerSingleton, LoggerType
+from algo_royale.logging.logger_singleton import Environment, LoggerSingleton, LoggerType
 
 
 logger = LoggerSingleton(LoggerType.TRADING, Environment.PRODUCTION).get_logger()

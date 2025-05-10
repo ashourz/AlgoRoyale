@@ -4,7 +4,7 @@ from typing import Optional
 from algo_royale.live_trading.client.alpaca_base_client import AlpacaBaseClient
 from algo_royale.live_trading.client.exceptions import AlpacaPositionNotFoundException, AlpacaResourceNotFoundException, MissingParameterError, ParameterConflictError
 from algo_royale.live_trading.config.config import ALPACA_TRADING_URL
-from algo_royale.shared.models.alpaca_trading.alpaca_position import ClosedPositionList, PositionList
+from algo_royale.models.alpaca_trading.alpaca_position import ClosedPositionList, PositionList
 
 class AlpacaPositionsClient(AlpacaBaseClient):
     """Singleton class to interact with Alpaca's API for positions data.""" 

@@ -3,8 +3,8 @@ from pathlib import Path
 from typing import Callable, Dict, List, AsyncIterator, Union
 import pandas as pd
 from algo_royale.backtester.utils.results_saver import BackTesterResultsSaver
-from algo_royale.shared.strategies.base_strategy import Strategy
-from algo_royale.shared.logger.logger_singleton import Environment, LoggerSingleton, LoggerType
+from algo_royale.strategies.base_strategy import Strategy
+from algo_royale.logging.logger_singleton import Environment, LoggerSingleton, LoggerType
 
 class BacktestEngine:
     def __init__(self, strategies: List[Strategy]):

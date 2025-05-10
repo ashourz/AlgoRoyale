@@ -3,7 +3,7 @@
 from typing import List, Optional
 from algo_royale.live_trading.client.alpaca_base_client import AlpacaBaseClient
 from algo_royale.live_trading.client.exceptions import AlpacaResourceNotFoundException, AlpacaWatchlistNotFoundException
-from algo_royale.shared.models.alpaca_trading.alpaca_watchlist import Watchlist, WatchlistListResponse
+from algo_royale.models.alpaca_trading.alpaca_watchlist import Watchlist, WatchlistListResponse
 from algo_royale.live_trading.config.config import ALPACA_TRADING_URL
 
 class AlpacaWatchlistClient(AlpacaBaseClient):

@@ -5,10 +5,10 @@ from unittest import TestCase
 from unittest.mock import patch
 from decimal import Decimal
 from datetime import datetime
-from algo_royale.shared.service.db.indicator_service import IndicatorService
+from algo_royale.services.db.indicator_service import IndicatorService
 
 class TestIndicatorsService(TestCase):
-    @patch("algo_royale.shared.service.db.indicator_service.IndicatorDAO")
+    @patch("algo_royale.services.db.indicator_service.IndicatorDAO")
     def setUp(self, MockIndicatorDAO):
         """Set up mock objects and test data."""
         self.mock_dao = MockIndicatorDAO.return_value

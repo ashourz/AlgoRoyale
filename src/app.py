@@ -1,9 +1,9 @@
 # src/app.py
 
 from flask import Flask
-from algo_royale.shared.routes.trade_signal_routes import trade_signal_bp
-from algo_royale.shared.routes.trade_routes import trade_bp
-from algo_royale.shared.routes.indicator_routes import indicator_bp
+from algo_royale.routes.trade_signal_routes import trade_signal_bp
+from algo_royale.routes.trade_routes import trade_bp
+from algo_royale.routes.indicator_routes import indicator_bp
 
 def create_app():
     """
