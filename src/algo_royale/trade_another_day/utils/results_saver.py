@@ -2,11 +2,11 @@ import glob
 from pathlib import Path
 from datetime import datetime
 from typing import Optional, Dict
+from algo_royale.shared.config.config import load_paths
 import pandas as pd
 from math import ceil
 
 from algo_royale.shared.logger.logger_singleton import Environment, LoggerSingleton, LoggerType
-from algo_royale.trade_another_day.config.config import load_config
 
 class BackTesterResultsSaver:
     """
@@ -19,8 +19,8 @@ class BackTesterResultsSaver:
         """
         Initialize the results saver with directory from config.
         """
-        self.config = load_config()
-        self.results_dir = Path(self.config["results_dir"])
+        self.paths = load_paths()
+        self.results_dir = Path(self.paths["results_dir"])
         self.results_dir.mkdir(parents=True, exist_ok=True)
         self.logger = LoggerSingleton(LoggerType.BACKTESTING, Environment.PRODUCTION).get_logger()
         self.max_rows_per_file = max_rows_per_file

@@ -1,41 +1,32 @@
-## client\alpaca_base_client.py
 from abc import ABC, abstractmethod
 import asyncio
 from enum import Enum
 from datetime import date, datetime
 from typing import Any, Dict, Optional
-from algo_royale.the_risk_is_not_enough.client.exceptions import AlpacaAPIException, AlpacaBadRequestException, AlpacaInvalidHeadersException, AlpacaResourceNotFoundException, AlpacaServerErrorException, AlpacaTooManyRequestsException, AlpacaUnauthorizedException, AlpacaUnprocessableException
+from algo_royale.the_risk_is_not_enough.client.exceptions import (
+    AlpacaAPIException, AlpacaBadRequestException, AlpacaInvalidHeadersException,
+    AlpacaResourceNotFoundException, AlpacaServerErrorException,
+    AlpacaTooManyRequestsException, AlpacaUnauthorizedException,
+    AlpacaUnprocessableException
+)
 import httpx
 from algo_royale.the_risk_is_not_enough.config.config import ALPACA_PARAMS, ALPACA_SECRETS
 from algo_royale.shared.logger.logger_singleton import Environment, LoggerSingleton, LoggerType
 import time
 
+
 class AlpacaBaseClient(ABC):
-    """Async-only base client with global rate limiting"""
-    _instance = None
-    _lock = asyncio.Lock()
+    """Async-only base client with global rate limiting across instances"""
+    
+    # Class-level variables for shared rate limiting
     _min_request_interval: float = 60 / 200  # 0.3 seconds between requests
     _last_request_time: float = 0
     _rate_limit_lock: asyncio.Lock = asyncio.Lock()
 
-    def __new__(cls):
-        if cls._instance is None:
-            # If there's no instance, create one
-            cls._instance = super().__new__(cls)
-            cls._instance._initialized = False
-        else:
-            # If instance exists, check if the client is closed and reopen if necessary
-            if hasattr(cls._instance, 'client') and cls._instance.client.is_closed:
-                cls._instance.client = httpx.AsyncClient(timeout=10.0)
-        return cls._instance
-    
     def __init__(self):
-        if getattr(self, "_initialized", False):
-            return
-        self._initialized = True
-        # continue with initialization...
+        # Instance-specific initialization
         self.api_key = ALPACA_SECRETS["api_key"]
-        self.api_secret = ALPACA_SECRETS["api_secret"]        
+        self.api_secret = ALPACA_SECRETS["api_secret"]
         self.api_key_header = ALPACA_PARAMS["api_key_header"]
         self.api_secret_header = ALPACA_PARAMS["api_secret_header"]
         
@@ -49,12 +40,9 @@ class AlpacaBaseClient(ABC):
 
     async def aclose(self):
         """Proper async cleanup"""
-        if hasattr(self, 'client'):
-            if not self.client.is_closed:
-                await self.client.aclose()
-                self.logger.debug(f"Closed {self.client_name} HTTP client")
-            # Ensure client can't be reused
-            del self.client
+        if hasattr(self, 'client') and not self.client.is_closed:
+            await self.client.aclose()
+            self.logger.debug(f"Closed {self.client_name} HTTP client")
         
     async def __aenter__(self):
         """Support async context manager"""
@@ -100,9 +88,9 @@ class AlpacaBaseClient(ABC):
         elif response.status_code == 422:
             raise AlpacaUnprocessableException(response.text)
         elif response.status_code == 429:
-            limit = response.headers["X-RateLimit-Limit"]
-            remaining = response.headers["X-RateLimit-Remaining"]
-            reset = response.headers["X-RateLimit-Reset"]
+            limit = response.headers.get("X-RateLimit-Limit", "unknown")
+            remaining = response.headers.get("X-RateLimit-Remaining", "unknown")
+            reset = response.headers.get("X-RateLimit-Reset", "unknown")
             raise AlpacaTooManyRequestsException(
                 message=response.text,
                 limit=limit, 
@@ -116,10 +104,8 @@ class AlpacaBaseClient(ABC):
     def _format_param(self, param: Any) -> Any:
         """Format parameter for API requests."""
         if isinstance(param, datetime):
-            # Format to ISO 8601 with Zulu time
             return param.strftime("%Y-%m-%dT%H:%M:%SZ")
         elif isinstance(param, date):
-            # Format to ISO 8601 with Zulu time
             return param.strftime("%Y-%m-%d")
         elif isinstance(param, Enum):
             return param.value
@@ -132,25 +118,6 @@ class AlpacaBaseClient(ABC):
         else:
             return str(param)
 
-    def _format_data(self, param: Any) -> Any:
-        """Format parameter for API requests."""
-        if isinstance(param, datetime):
-            # Format to ISO 8601 with Zulu time
-            return param.strftime("%Y-%m-%dT%H:%M:%SZ")
-        elif isinstance(param, date):
-            # Format to ISO 8601 with Zulu time
-            return param.strftime("%Y-%m-%d")
-        elif isinstance(param, Enum):
-            return param.value
-        elif isinstance(param, list):
-            return ",".join(map(str, param))
-        # elif isinstance(param, bool):
-            # return str(param).lower()
-        elif param is None:
-            return None
-        else:
-            return str(param)
-      
     def _safe_json_parse(self, response: httpx.Response) -> Any:
         """Safely parse a JSON response or return None if not applicable."""
         try:
@@ -161,13 +128,14 @@ class AlpacaBaseClient(ABC):
             self.logger.warning(f"Unable to parse JSON from response: {response.text}")
             return None
         
-    async def _enforce_rate_limit(self):
-        """Global rate limiter shared across all clients"""
-        async with self._rate_limit_lock:
-            elapsed = time.time() - self._last_request_time
-            if elapsed < self._min_request_interval:
-                await asyncio.sleep(self._min_request_interval - elapsed)
-            self._last_request_time = time.time()
+    @classmethod
+    async def _enforce_rate_limit(cls):
+        """Global rate limiter shared across all instances"""
+        async with cls._rate_limit_lock:
+            elapsed = time.time() - cls._last_request_time
+            if elapsed < cls._min_request_interval:
+                await asyncio.sleep(cls._min_request_interval - elapsed)
+            cls._last_request_time = time.time()
 
     async def _make_request_async(self, 
                                   method: str, 
@@ -176,18 +144,18 @@ class AlpacaBaseClient(ABC):
                                   data: Optional[Dict] = None) -> Any:
         """Core async request method with rate limiting"""
         await self._enforce_rate_limit()
-        # Format parameters with option to skip
         formatted_params = {key: self._format_param(value) for key, value in (params or {}).items()}
-        formatted_data = {key: self._format_data(value) for key, value in (data or {}).items()}
+        formatted_data = {key: self._format_param(value) for key, value in (data or {}).items()}
         url = f"{self.base_url}/{endpoint}"
         headers = self._get_headers()
 
-        # Logging the request before sending
         self.logger.debug(
             f"sending {method.upper()} request to {url} | headers: {headers} | params: {formatted_params} | data: {formatted_data}"
         )
         
-        response = await self.client.request(method=method, url = url,  headers = headers, params=formatted_params, json=data)
+        response = await self.client.request(
+            method=method, url=url, headers=headers, params=formatted_params, json=data
+        )
 
         self.logger.debug(
             f"received response {response.status_code} | body: {response.text}"
@@ -201,7 +169,7 @@ class AlpacaBaseClient(ABC):
     async def get(self, endpoint: str, params: dict = None) -> Any:
         return await self._make_request_async("GET", endpoint, params=params)
 
-    async def post(self, endpoint: str, params:dict =None, data: dict = None) -> Any:
+    async def post(self, endpoint: str, params: dict = None, data: dict = None) -> Any:
         return await self._make_request_async("POST", endpoint, params=params, data=data)
 
     async def patch(self, endpoint: str, data: dict = None) -> Any:

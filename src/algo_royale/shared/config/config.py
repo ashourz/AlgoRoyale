@@ -17,7 +17,7 @@ def _load_ini(section, filename):
 def _get_config(section):
     return _load_ini(section, "config.ini")
 
-def load_config():
+def load_paths():
     """
     Loads the configuration from the config.ini file and converts relative paths to absolute paths.
     """
@@ -30,5 +30,7 @@ def load_config():
     base_path = os.path.dirname(CONFIG_FILE_PATH)
 
     return {
+        'watchlist_path': PATHS["watchlist_path"],
+        'data_dir': PATHS["data_dir"],
         'results_dir': PATHS["results_dir"]
     }

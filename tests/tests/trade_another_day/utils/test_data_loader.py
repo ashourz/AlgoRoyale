@@ -28,17 +28,19 @@ class MockBar:
 
 @patch("algo_royale.trade_another_day.utils.data_loader.AlpacaQuoteService")
 @patch("algo_royale.trade_another_day.utils.data_loader.load_config")
+@patch("algo_royale.trade_another_day.utils.data_loader.load_paths")
 @patch("algo_royale.trade_another_day.utils.data_loader.load_watchlist")
-def test_fetch_and_save_symbol(mock_watchlist, mock_config, mock_quote_service):
+def test_fetch_and_save_symbol(mock_watchlist, mock_config, mock_paths, mock_quote_service):
     mock_watchlist.return_value = ["AAPL"]
     mock_config.return_value = {
-        "data_dir": "/tmp/test_data",
-        "watchlist_path": "mock/path",
         "start_date": "2023-01-01",
         "end_date": "2023-01-02",
         "interval": "1Day"
     }
-
+    mock_paths.return_value = {
+        "data_dir": "/tmp/test_data",
+        "watchlist_path": "mock/path"
+    }
     mock_response = MagicMock()
     mock_response.symbol_bars = {
         "AAPL": [MockBar("2023-01-01T00:00:00Z", 100, 105, 95, 102, 1000)]
@@ -61,10 +63,12 @@ def test_fetch_and_save_symbol(mock_watchlist, mock_config, mock_quote_service):
 @patch("algo_royale.trade_another_day.utils.data_loader.os.path.exists")
 @patch("algo_royale.trade_another_day.utils.data_loader.os.listdir")
 @patch("algo_royale.trade_another_day.utils.data_loader.load_config")
+@patch("algo_royale.trade_another_day.utils.data_loader.load_paths")
 @patch("algo_royale.trade_another_day.utils.data_loader.load_watchlist")
 async def test_load_symbol_reads_existing_pages(
     mock_watchlist,
     mock_config,
+    mock_paths, 
     mock_listdir,
     mock_exists,
     mock_read_csv,
@@ -72,13 +76,14 @@ async def test_load_symbol_reads_existing_pages(
 ):
     mock_watchlist.return_value = ["AAPL"]
     mock_config.return_value = {
-        "data_dir": "/tmp",
-        "watchlist_path": "mock/path",
         "start_date": "2023-01-01",
         "end_date": "2023-01-10",
         "interval": "1Day"
     }
-
+    mock_paths.return_value = {
+        "data_dir": "/tmp",
+        "watchlist_path": "mock/path"
+    }
     # Return True only when checking if symbol directory exists
     def exists_side_effect(path):
         return path == os.path.join("/tmp", "AAPL")
@@ -99,17 +104,19 @@ async def test_load_symbol_reads_existing_pages(
 
 @patch("algo_royale.trade_another_day.utils.data_loader.BacktestDataLoader.load_symbol")
 @patch("algo_royale.trade_another_day.utils.data_loader.load_config")
+@patch("algo_royale.trade_another_day.utils.data_loader.load_paths")
 @patch("algo_royale.trade_another_day.utils.data_loader.load_watchlist")
-async def test_load_all_calls_load_symbol(mock_watchlist, mock_config, mock_load_symbol):
+async def test_load_all_calls_load_symbol(mock_watchlist, mock_config, mock_paths, mock_load_symbol):
     mock_watchlist.return_value = ["AAPL", "TSLA"]
     mock_config.return_value = {
-        "data_dir": "/tmp",
-        "watchlist_path": "mock/path",
         "start_date": "2023-01-01",
         "end_date": "2023-01-10",
         "interval": "1Day"
     }
-
+    mock_paths.return_value = {
+        "data_dir": "/tmp",
+        "watchlist_path": "mock/path"
+    }
     mock_df = pd.DataFrame([{"timestamp": "2023-01-01", "open": 100}])
     mock_load_symbol.side_effect = lambda symbol: iter([mock_df])
 

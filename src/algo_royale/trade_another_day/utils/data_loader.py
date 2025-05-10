@@ -2,6 +2,7 @@ import asyncio
 import os
 from pathlib import Path
 from typing import AsyncIterator, Callable, Dict, Optional
+from algo_royale.shared.config.config import load_paths
 import pandas as pd
 from algo_royale.shared.logger.logger_singleton import LoggerSingleton, LoggerType, Environment
 from algo_royale.shared.models.alpaca_market_data.enums import DataFeed
@@ -14,10 +15,11 @@ from alpaca.common.enums import SupportedCurrencies
 class BacktestDataLoader:
     def __init__(self):
         self.config = load_config()
-        self.data_dir = Path(self.config["data_dir"])
+        self.paths = load_paths()
+        self.data_dir = Path(self.paths["data_dir"])
         self.data_dir.mkdir(parents=True, exist_ok=True)
         self.quote_client = AlpacaQuoteService()
-        self.watchlist = load_watchlist(self.config["watchlist_path"])
+        self.watchlist = load_watchlist(self.paths["watchlist_path"])
         
         # Validate and parse dates
         self.start_date = dateutil.parser.parse(self.config["start_date"])

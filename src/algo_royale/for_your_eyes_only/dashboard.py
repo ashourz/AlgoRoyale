@@ -1,5 +1,5 @@
 from algo_royale.for_your_eyes_only.backtest_visualizer import BacktestVisualizer
-from algo_royale.for_your_eyes_only.config.config import load_config
+from algo_royale.shared.config.config import load_paths
 import streamlit as st
 from pathlib import Path
 import pandas as pd
@@ -7,8 +7,8 @@ import os
 
 class BacktestDashboard:
     def __init__(self):
-        self.config = load_config()
-        self.results_dir = Path(self.config["results_dir"])
+        self.paths = load_paths()
+        self.results_dir = Path(self.paths["results_dir"])
         self.available_files = self._find_result_files()
         self.visualizer = None
         self.selected_strategies = []

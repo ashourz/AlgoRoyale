@@ -32,9 +32,6 @@ def load_config():
     base_path = os.path.dirname(CONFIG_FILE_PATH)
 
     return {
-        'watchlist_path': PATHS["watchlist_path"],
-        'data_dir': PATHS["data_dir"],
-        'results_dir': PATHS["results_dir"],
         'initial_capital': PARAMETERS["initial_capital"],
         'short_window': PARAMETERS["short_window"],
         'long_window': PARAMETERS["long_window"],
