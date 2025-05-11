@@ -1,5 +1,3 @@
-from re import A
-from venv import logger
 from algo_royale.backtester.main import BacktestRunner
 from algo_royale.backtester.utils.data_loader import BacktestDataLoader
 from algo_royale.backtester.utils.results_saver import BacktestResultsSaver
@@ -18,9 +16,6 @@ from algo_royale.clients.alpaca.alpaca_trading.alpaca_orders_client import Alpac
 from algo_royale.clients.alpaca.alpaca_trading.alpaca_portfolio_client import AlpacaPortfolioClient
 from algo_royale.clients.alpaca.alpaca_trading.alpaca_watchlist_client import AlpacaWatchlistClient
 from algo_royale.logging.logger_singleton import Environment, LoggerSingleton, LoggerType
-from algo_royale.models.alpaca_market_data import alpaca_news
-from algo_royale.models.alpaca_trading import alpaca_account, alpaca_asset, alpaca_calendar, alpaca_clock, alpaca_order, alpaca_portfolio, alpaca_position, alpaca_watchlist
-from algo_royale.services import trading
 from algo_royale.services.market_data.alpaca_stock_service import AlpacaQuoteService
 from algo_royale.visualization.dashboard import BacktestDashboard
 from dependency_injector import containers, providers
