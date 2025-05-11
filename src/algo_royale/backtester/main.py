@@ -14,12 +14,12 @@ import pandas as pd
 import asyncio
 
 class BacktestRunner:
-    def __init__(self, backtest_data_loader: BacktestDataLoader, logger: LoggerSingleton):
+    def __init__(self, data_loader: BacktestDataLoader, engine: BacktestEngine, logger: LoggerSingleton):
         self.logger = logger.get_logger()
         self.config = self._validate_config({})
         self.strategies = self._initialize_strategies()
-        self.data_loader = backtest_data_loader
-        self.engine = None
+        self.data_loader = data_loader
+        self.engine = engine
 
     def _validate_config(self, config: dict) -> dict:
         """Validate and normalize configuration"""
@@ -117,13 +117,14 @@ class BacktestRunner:
     async def run_async(self):
         """Pure async entry point"""
         try:
-            self.engine = BacktestEngine(self.strategies)
             data = await self._load_and_prepare_data()
             if not data:
                 self.logger.error("No valid data available")
                 return False
             
-            await self.engine.run_backtest(data)
+            await self.engine.run_backtest(
+                strategies=self.strategies, 
+                data=data)
             self.logger.info("Backtest completed successfully")
             return True
         except Exception as e:

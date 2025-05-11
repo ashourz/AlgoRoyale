@@ -1,3 +1,4 @@
+from algo_royale.backtester.core.engine import BacktestEngine
 from algo_royale.backtester.main import BacktestRunner
 from algo_royale.backtester.utils.data_loader import BacktestDataLoader
 from algo_royale.backtester.utils.results_saver import BacktestResultsSaver
@@ -124,12 +125,20 @@ class DIContainer(containers.DeclarativeContainer):
         logger=logger_backtest_prod,
     )
     
+    backtest_engine = providers.Singleton(
+        BacktestEngine,
+        results_saver=backtest_results_saver,
+        logger= logger_backtest_prod
+    )
+     
     backtest_runner = providers.Singleton(
         BacktestRunner,
-        backtest_data_loader=backtest_data_loader,
+        data_loader=backtest_data_loader,
+        engine = backtest_engine,
         logger= logger_backtest_prod
     )
     
+   
     backtest_dashboard = providers.Singleton(
         BacktestDashboard,
         config=config,

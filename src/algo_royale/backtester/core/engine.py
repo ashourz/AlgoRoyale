@@ -7,13 +7,12 @@ from algo_royale.strategies.base_strategy import Strategy
 from algo_royale.logging.logger_singleton import Environment, LoggerSingleton, LoggerType
 
 class BacktestEngine:
-    def __init__(self, strategies: List[Strategy]):
-        self.strategies = strategies
-        self.logger = LoggerSingleton(LoggerType.BACKTESTING, Environment.PRODUCTION).get_logger()
-        self.results_saver = BacktestResultsSaver()
+    def __init__(self, results_saver: BacktestResultsSaver, logger: LoggerSingleton):
+        self.logger = logger.get_logger()
+        self.results_saver = results_saver
         self._processed_pairs = set()
 
-    async def run_backtest(self, data: Dict[str, Callable[[], AsyncIterator[pd.DataFrame]]]) -> None:
+    async def run_backtest(self, strategies: List[Strategy], data: Dict[str, Callable[[], AsyncIterator[pd.DataFrame]]]) -> None:
         """Pure async implementation for processing streaming data"""
         if not data:
             self.logger.error("No data available - check your data paths and files")
@@ -31,7 +30,7 @@ class BacktestEngine:
             self.logger.info("Starting async backtest...")
             
             for symbol, async_iterator_factory in data.items():
-                for strategy in self.strategies:
+                for strategy in strategies:
                     strategy_name = strategy.__class__.__name__
                     pair_key = f"{symbol}_{strategy_name}"
                     
