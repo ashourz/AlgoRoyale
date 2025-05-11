@@ -41,6 +41,7 @@ tensorflow-io-gcs-filesystem = [
     { version = ">= 0.23.1", markers = "platform_machine!='arm64' or platform_system!='Darwin'" },
     { version = "< 0.32.0", markers = "platform_system == 'Windows'" }
 ]
+dependency_injector = "^4.46.0"      # For dependency injection in Python applications.
 
 # Development dependencies (tools you need for development, not production).
 # These are optional and can be installed separately if needed.

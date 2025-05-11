@@ -3,6 +3,8 @@ import os
 import configparser
 from pathlib import Path
 
+from algo_royale import di
+
 class Config:
     def __init__(self, config_file="config.ini", environment=None):
         """
@@ -91,9 +93,10 @@ class Config:
         else:
             raise ValueError(f"Section '{section}' not found in the configuration file.")
 
+##TODO: get rid of this and use the DI container
 # Initialize the configuration
-config = Config()
-secrets = Config("secrets.ini")
+config = di.config()
+secrets = di.secrets()
 # Example Usage
 if __name__ == "__main__":
     print("Base Directory:", config.get("global", "base_directory"))
