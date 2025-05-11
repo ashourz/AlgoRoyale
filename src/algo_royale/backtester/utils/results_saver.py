@@ -1,12 +1,11 @@
 import glob
+from logging import Logger
 from pathlib import Path
 from datetime import datetime
 from typing import Optional, Dict
 from algo_royale.config.config import Config
 import pandas as pd
 from math import ceil
-
-from algo_royale.logging.logger_singleton import LoggerSingleton
 
 class BacktestResultsSaver:
     """
@@ -15,7 +14,7 @@ class BacktestResultsSaver:
     Supports splitting large files by row count.
     """
 
-    def __init__(self, config: Config, logger: LoggerSingleton, max_rows_per_file: int = 1_000_000):
+    def __init__(self, config: Config, logger: Logger, max_rows_per_file: int = 1_000_000):
         """
         Initialize the results saver with directory from config.
         """
@@ -24,7 +23,7 @@ class BacktestResultsSaver:
             raise ValueError("Backtester directory not specified in config")
         self.backtest_dir = Path(backtester_dir_string)
         self.backtest_dir.mkdir(parents=True, exist_ok=True)
-        self.logger = logger.get_logger()
+        self.logger = logger
         self.max_rows_per_file = max_rows_per_file
         self.logger.info(f"Results will be saved to: {self.backtest_dir}")
 

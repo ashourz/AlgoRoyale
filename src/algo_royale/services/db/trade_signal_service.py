@@ -1,11 +1,11 @@
 ## service\trade_signal_service.py
 from datetime import datetime
 from decimal import Decimal
-from algo_royale.clients.db.dao.trade_signals_dao import TradeSignalsDAO
+from algo_royale.clients.db.dao.trade_signal_dao import TradeSignalDAO
 
 class TradeSignalService:
-    def __init__(self):
-        self.trade_signals_dao = TradeSignalsDAO()
+    def __init__(self, dao: TradeSignalDAO):
+        self.dao = dao
 
     def create_signal(self, symbol: str, signal: str, price: Decimal, created_at: datetime) -> None:
         """Insert a new trade signal."""

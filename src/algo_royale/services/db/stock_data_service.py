@@ -6,8 +6,8 @@ from typing import List, Tuple
 from algo_royale.clients.db.dao.stock_data_dao import StockDataDAO
 
 class StockDataService:
-    def __init__(self):
-        self.stock_data_dao = StockDataDAO()
+    def __init__(self, dao: StockDataDAO):
+        self.dao = dao
 
     def create_stock_data(self, symbol: str, timestamp: datetime, open_price: Decimal, high: Decimal, 
                           low: Decimal, close: Decimal, volume: int) -> None:

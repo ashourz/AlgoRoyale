@@ -4,9 +4,19 @@ from decimal import Decimal as Decimal
 from datetime import datetime
 from typing import List, Tuple
 
+from algo_royale.logging.logger_singleton import LoggerSingleton
+import psycopg2
+
 class NewsSentimentDAO(BaseDAO):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, 
+                 connection: psycopg2.extensions.connection, 
+                 sql_dir: str,
+                 logger: LoggerSingleton):
+        super().__init__(
+            connection=connection,
+            sql_dir=sql_dir,
+            logger = logger
+            )
 
     def fetch_sentiment_by_trade_id(self, trade_id: int) -> List[Tuple[int, int, str, Decimal, str, str, datetime]]:
         """Fetch sentiment data by trade ID."""

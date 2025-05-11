@@ -10,11 +10,13 @@ from algo_royale.logging.logger_singleton import Environment, LoggerSingleton, L
 
 logger = LoggerSingleton(LoggerType.TRADING, Environment.PRODUCTION)
 
-DB_PARAMS = config.get_section("database")
-DB_SECRETS = secrets.get_section("database")
+DB_PARAMS = config.get_section("db.connection")
+DB_SECRETS = secrets.get_section("db.connection")
 
-DB_USER_PARAMS = config.get_section("dbuser")
-DB_USER_SECRETS = secrets.get_section("dbuser")
+DB_USER_PARAMS = config.get_section("db.user")
+DB_USER_SECRETS = secrets.get_section("db.user")
+
+SQL_DIR = config.get("paths.db", "sql_dir")
 
 def get_db_connection(retries=3, delay=2, create_if_not_exists=False):
     """

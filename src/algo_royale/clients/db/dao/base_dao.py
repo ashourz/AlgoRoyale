@@ -1,22 +1,26 @@
 ## db\dao\base_dao.py
+from logging import Logger
 import os
-
-from algo_royale.logging.logger_singleton import Environment, LoggerSingleton, LoggerType
+import psycopg2
 
 
 class BaseDAO:
-    def __init__(self, connection):
+    def __init__(self, 
+                 connection: psycopg2.extensions.connection, 
+                 sql_dir: str,
+                 logger: Logger):
         self.conn = connection
-        self.logger = LoggerSingleton(LoggerType.TRADING, Environment.PRODUCTION).get_logger()
+        self.sql_dir = sql_dir
+        self.logger = logger
 
-    def _load_sql(self, filename):
-        sql_path = os.path.join(os.path.dirname(__file__), '..', 'sql', filename)
+    def _load_sql(self, sql_file: str):
+        sql_path = os.path.join(self.sql_dir, sql_file)
         with open(sql_path, 'r') as f:
             return f.read()
 
-    def fetch(self, sql_file, params=None, log_name="fetch"):
+    def fetch(self, sql_file: str, params=None, log_name="fetch"):
         try:
-            query = self._load_sql(sql_file)
+            query = self._load_sql(sql_file = sql_file)
             with self.conn.cursor() as cur:
                 cur.execute(query, params)
                 return cur.fetchall()
@@ -25,9 +29,9 @@ class BaseDAO:
             self.conn.rollback()
             raise
 
-    def fetchone(self, sql_file, params=None, log_name="fetchone"):
+    def fetchone(self, sql_file: str, params=None, log_name="fetchone"):
         try:
-            query = self._load_sql(sql_file)
+            query = self._load_sql(sql_file = sql_file)
             with self.conn.cursor() as cur:
                 cur.execute(query, params)
                 return cur.fetchone()
@@ -36,9 +40,9 @@ class BaseDAO:
             self.conn.rollback()
             raise
 
-    def insert(self, sql_file, params=None, log_name="insert"):
+    def insert(self, sql_file: str, params=None, log_name="insert"):
         try:
-            query = self._load_sql(sql_file)
+            query = self._load_sql(sql_file = sql_file)
             with self.conn.cursor() as cur:
                 cur.execute(query, params)
             self.conn.commit()
@@ -47,9 +51,9 @@ class BaseDAO:
             self.conn.rollback()
             raise
 
-    def update(self, sql_file, params=None, log_name="update"):
+    def update(self, sql_file: str, params=None, log_name="update"):
         try:
-            query = self._load_sql(sql_file)
+            query = self._load_sql(sql_file = sql_file)
             with self.conn.cursor() as cur:
                 cur.execute(query, params)
             self.conn.commit()
@@ -58,9 +62,9 @@ class BaseDAO:
             self.conn.rollback()
             raise
 
-    def delete(self, sql_file, params=None, log_name="delete"):
+    def delete(self, sql_file: str, params=None, log_name="delete"):
         try:
-            query = self._load_sql(sql_file)
+            query = self._load_sql(sql_file = sql_file)
             with self.conn.cursor() as cur:
                 cur.execute(query, params)
             self.conn.commit()

@@ -4,9 +4,19 @@ from decimal import Decimal as Decimal
 from datetime import datetime
 from typing import List, Optional, Tuple
 
+from algo_royale.logging.logger_singleton import LoggerSingleton
+import psycopg2
+
 class StockDataDAO(BaseDAO):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, 
+                 connection: psycopg2.extensions.connection, 
+                 sql_dir: str,
+                 logger: LoggerSingleton):
+        super().__init__(
+            connection=connection,
+            sql_dir=sql_dir,
+            logger = logger
+            )
 
     def fetch_all_stock_data(self) -> List[Tuple[int, str, datetime, Decimal, Decimal, Decimal, Decimal, int]]:
         """Fetch all stock data."""

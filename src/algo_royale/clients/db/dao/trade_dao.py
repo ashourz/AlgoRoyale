@@ -1,12 +1,21 @@
-## db\dao\trades_dao.py
+# src/algo_royale/clients/db/dao/trade_dao.py
 from decimal import Decimal
 from datetime import datetime
 from typing import List, Tuple
 from algo_royale.clients.db.dao.base_dao import BaseDAO
+from algo_royale.logging.logger_singleton import LoggerSingleton
+import psycopg2
 
-class TradesDAO(BaseDAO):
-    def __init__(self):
-        super().__init__()
+class TradeDAO(BaseDAO):
+    def __init__(self, 
+                 connection: psycopg2.extensions.connection, 
+                 sql_dir: str,
+                 logger: LoggerSingleton):
+        super().__init__(
+            connection=connection,
+            sql_dir=sql_dir,
+            logger = logger
+            )
 
     def fetch_trades(self, limit:int = 10, offset: int = 0) -> List[Tuple[int, str, str, Decimal, Decimal, int, datetime, datetime, str, Decimal, str]]:
         """Fetch all trades with pagination."""

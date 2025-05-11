@@ -1,17 +1,17 @@
 import asyncio
+from logging import Logger
 from pathlib import Path
 from typing import AsyncIterator, Callable, Dict, Optional
 from algo_royale.config.config import Config
 from alpaca.data.enums import DataFeed
 import pandas as pd
-from algo_royale.logging.logger_singleton import LoggerSingleton
 from algo_royale.services.market_data.alpaca_stock_service import AlpacaQuoteService
 from algo_royale.backtester.utils.watchlist import load_watchlist
 import dateutil.parser
 from alpaca.common.enums import SupportedCurrencies
 
 class BacktestDataLoader:
-    def __init__(self, config: Config, logger: LoggerSingleton, quote_service: AlpacaQuoteService):
+    def __init__(self, config: Config, logger: Logger, quote_service: AlpacaQuoteService):
         try:
             # Initialize directories and services
             data_ingest_dir = config.get("paths.backtester", "data_ingest_dir")

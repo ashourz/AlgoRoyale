@@ -1,12 +1,22 @@
 ## db\dao\indicators_dao.py
+from logging import Logger
 from algo_royale.clients.db.dao.base_dao import BaseDAO
 from decimal import Decimal
 from datetime import datetime
 from typing import List, Tuple
 
+import psycopg2
+
 class IndicatorDAO(BaseDAO):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, 
+                 connection: psycopg2.extensions.connection, 
+                 sql_dir: str,
+                 logger: Logger):
+        super().__init__(
+            connection=connection,
+            sql_dir=sql_dir,
+            logger = logger
+            )
 
     def fetch_indicators_by_trade_id(self, trade_id: int) -> List[Tuple[int, int, Decimal, Decimal, Decimal, Decimal, Decimal, Decimal, Decimal, Decimal, Decimal, Decimal, datetime]]:
         """Fetch indicators by trade ID."""

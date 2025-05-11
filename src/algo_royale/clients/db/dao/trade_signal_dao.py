@@ -4,9 +4,19 @@ from decimal import Decimal
 from datetime import datetime
 from typing import List, Optional, Tuple
 
-class TradeSignalsDAO(BaseDAO):
-    def __init__(self):
-        super().__init__()
+from algo_royale.logging.logger_singleton import LoggerSingleton
+import psycopg2
+
+class TradeSignalDAO(BaseDAO):
+    def __init__(self, 
+                 connection: psycopg2.extensions.connection, 
+                 sql_dir: str,
+                 logger: LoggerSingleton):
+        super().__init__(
+            connection=connection,
+            sql_dir=sql_dir,
+            logger = logger
+            )
 
     def fetch_all_signals(self) -> List[Tuple[int, str, str, Decimal, datetime]]:
         """Fetch all trade signals."""

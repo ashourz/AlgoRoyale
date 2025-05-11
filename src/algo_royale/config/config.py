@@ -79,7 +79,7 @@ class Config:
             return fallback
         return str(value).lower() in ["true", "1", "yes"]
     
-    def get_section(self, section):
+    def get_section(self, section) -> dict:
         """
         Get an entire section as a dictionary.
 

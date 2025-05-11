@@ -16,7 +16,18 @@ from algo_royale.clients.alpaca.alpaca_trading.alpaca_clock_client import Alpaca
 from algo_royale.clients.alpaca.alpaca_trading.alpaca_orders_client import AlpacaOrdersClient
 from algo_royale.clients.alpaca.alpaca_trading.alpaca_portfolio_client import AlpacaPortfolioClient
 from algo_royale.clients.alpaca.alpaca_trading.alpaca_watchlist_client import AlpacaWatchlistClient
+from algo_royale.clients.db.dao.indicator_dao import IndicatorDAO
+from algo_royale.clients.db.dao.news_sentiment_dao import NewsSentimentDAO
+from algo_royale.clients.db.dao.stock_data_dao import StockDataDAO
+from algo_royale.clients.db.dao.trade_dao import TradeDAO
+from algo_royale.clients.db.dao.trade_signal_dao import TradeSignalDAO
+from algo_royale.clients.db.database import Database
 from algo_royale.logging.logger_singleton import Environment, LoggerSingleton, LoggerType
+from algo_royale.services.db.indicator_service import IndicatorService
+from algo_royale.services.db.news_sentiment_service import NewsSentimentService
+from algo_royale.services.db.stock_data_service import StockDataService
+from algo_royale.services.db.trade_service import TradeService
+from algo_royale.services.db.trade_signal_service import TradeSignalService
 from algo_royale.services.market_data.alpaca_stock_service import AlpacaQuoteService
 from algo_royale.visualization.dashboard import BacktestDashboard
 from dependency_injector import containers, providers
@@ -28,7 +39,8 @@ class DIContainer(containers.DeclarativeContainer):
     # Load configuration
     config = providers.Singleton(Config, config_file="config.ini")
     secrets = providers.Singleton(Config, config_file="secrets.ini")
-
+    dao_sql_dir=config.get("paths.db", "sql_dir")
+    
     trading_config = providers.Singleton(
         TradingConfig,
         config=config,
@@ -39,6 +51,79 @@ class DIContainer(containers.DeclarativeContainer):
         LoggerSingleton,
         logger_type=LoggerType.BACKTESTING,
         environment=Environment.PRODUCTION
+    )
+    
+    logger_trading_prod = providers.Singleton(
+        LoggerSingleton,
+        logger_type=LoggerType.TRADING,
+        environment=Environment.PRODUCTION
+    )
+    
+    database = providers.Singleton(
+        Database,
+        logger=logger_trading_prod.provided.get_logger(),
+        config=config,
+        secrets=secrets
+    )
+    
+    indicator_dao = providers.Singleton(
+        IndicatorDAO,
+        connection=database.connection_context(),
+        sql_dir=dao_sql_dir,
+        logger=logger_trading_prod.provided.get_logger()
+    )
+    
+    news_sentiment_dao = providers.Singleton(
+        NewsSentimentDAO, 
+        connection=database.connection_context(),
+        sql_dir=dao_sql_dir,
+        logger=logger_trading_prod.provided.get_logger()
+    )
+    
+    stock_data_dao = providers.Singleton(
+        StockDataDAO,
+        connection=database.connection_context(),
+        sql_dir=dao_sql_dir,
+        logger=logger_trading_prod.provided.get_logger()
+    )
+        
+    trade_dao = providers.Singleton(
+        TradeDAO,
+        connection=database.connection_context(),
+        sql_dir=dao_sql_dir,
+        logger=logger_trading_prod.provided.get_logger()
+    )
+    
+    trade_signal_dao = providers.Singleton(
+        TradeSignalDAO,
+        connection=database.connection_context(),
+        sql_dir=dao_sql_dir,
+        logger=logger_trading_prod.provided.get_logger()
+    )
+    
+    indicator_service = providers.Singleton(
+        IndicatorService,
+        dao=indicator_dao
+    )
+    
+    news_sentiment_service = providers.Singleton(
+        NewsSentimentService, 
+        dao = news_sentiment_dao
+    )
+    
+    stock_data_Service = providers.Singleton(
+        StockDataService,
+        dao = stock_data_dao
+    )
+    
+    trade_service = providers.Singleton(
+        TradeService, 
+        dao = trade_dao
+    )
+    
+    trade_signal_service = providers.Singleton(
+        TradeSignalService,
+        dao = trade_signal_dao
     )
     
     alpaca_corporate_action_client = providers.Factory(
@@ -111,34 +196,32 @@ class DIContainer(containers.DeclarativeContainer):
         alpaca_stock_client = alpaca_stock_client
     )
     
-    #Backtest Data Loader
     backtest_data_loader = providers.Singleton(
         BacktestDataLoader,
         config=config,
-        logger=logger_backtest_prod,
+        logger=logger_backtest_prod.provided.get_logger(),
         quote_service = alpaca_quote_service
     )
     
     backtest_results_saver = providers.Singleton(
         BacktestResultsSaver,
         config=config,
-        logger=logger_backtest_prod,
+        logger=logger_backtest_prod.provided.get_logger(),
     )
     
     backtest_engine = providers.Singleton(
         BacktestEngine,
         results_saver=backtest_results_saver,
-        logger= logger_backtest_prod
+        logger= logger_backtest_prod.provided.get_logger()
     )
      
     backtest_runner = providers.Singleton(
         BacktestRunner,
         data_loader=backtest_data_loader,
         engine = backtest_engine,
-        logger= logger_backtest_prod
+        logger= logger_backtest_prod.provided.get_logger()
     )
     
-   
     backtest_dashboard = providers.Singleton(
         BacktestDashboard,
         config=config,

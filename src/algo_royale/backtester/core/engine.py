@@ -1,14 +1,14 @@
 import asyncio
+from logging import Logger
 from pathlib import Path
 from typing import Callable, Dict, List, AsyncIterator, Union
 import pandas as pd
 from algo_royale.backtester.utils.results_saver import BacktestResultsSaver
 from algo_royale.strategies.base_strategy import Strategy
-from algo_royale.logging.logger_singleton import Environment, LoggerSingleton, LoggerType
 
 class BacktestEngine:
-    def __init__(self, results_saver: BacktestResultsSaver, logger: LoggerSingleton):
-        self.logger = logger.get_logger()
+    def __init__(self, results_saver: BacktestResultsSaver, logger: Logger):
+        self.logger = logger
         self.results_saver = results_saver
         self._processed_pairs = set()
 

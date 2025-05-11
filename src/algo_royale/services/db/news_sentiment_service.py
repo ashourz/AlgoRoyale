@@ -5,8 +5,8 @@ from typing import List, Tuple
 from algo_royale.clients.db.dao.news_sentiment_dao import NewsSentimentDAO
 
 class NewsSentimentService:
-    def __init__(self):
-        self.news_sentiment_dao = NewsSentimentDAO()
+    def __init__(self, dao: NewsSentimentDAO):
+        self.dao = dao
 
     def insert_sentiment(self, trade_id: int, symbol: str, sentiment_score: Decimal, headline: str, 
                          source: str, published_at: datetime) -> None:

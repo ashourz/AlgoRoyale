@@ -13,7 +13,7 @@ class TestIndicatorsService(TestCase):
         """Set up mock objects and test data."""
         self.mock_dao = MockIndicatorDAO.return_value
         self.service = IndicatorService()
-        self.service.indicators_dao = self.mock_dao
+        self.service.dao = self.mock_dao
         
     def test_create_indicator(self):
         self.service.create_indicator(
