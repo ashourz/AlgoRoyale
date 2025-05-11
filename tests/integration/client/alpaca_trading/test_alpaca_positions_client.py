@@ -1,5 +1,6 @@
 # src: tests/integration/client/test_alpaca_account_client.py
 
+from algo_royale.di.container import DIContainer
 from algo_royale.models.alpaca_trading.alpaca_position import ClosedPosition, ClosedPositionList, Position, PositionList, PositionSide
 from algo_royale.clients.alpaca.alpaca_trading.alpaca_positions_client import AlpacaPositionsClient
 from algo_royale.clients.alpaca.exceptions import AlpacaPositionNotFoundException
@@ -12,7 +13,9 @@ logger = LoggerSingleton(LoggerType.TRADING, Environment.TEST).get_logger()
 
 @pytest.fixture
 async def alpaca_client():
-    client = AlpacaPositionsClient()
+    client = AlpacaPositionsClient(
+        trading_config=DIContainer.trading_config(),
+    )
     yield client
     await client.aclose()  # Clean up the async client
     

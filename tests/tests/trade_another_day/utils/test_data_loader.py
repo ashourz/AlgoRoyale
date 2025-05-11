@@ -1,8 +1,8 @@
-from unittest.mock import patch, MagicMock, AsyncMock
+from unittest.mock import patch, AsyncMock
 from pathlib import Path
+from algo_royale.di.container import di_container
 import pandas as pd
 import pytest
-from algo_royale.backtester.utils.data_loader import BacktestDataLoader
 
 
 class MockBar:
@@ -24,16 +24,17 @@ class MockBar:
             "volume": self.volume,
         }
 
-
+loader = di_container.backtest_data_loader()
+ 
 @patch("algo_royale.backtester.utils.data_loader.AlpacaQuoteService")
 @patch("algo_royale.backtester.utils.data_loader.load_watchlist")
-@patch("algo_royale.backtester.utils.data_loader.config")
+@patch("algo_royale.backtester.utils.data_loader.Config")  # Corrected target
 @pytest.mark.asyncio
 async def test_fetch_and_save_symbol(mock_config, mock_watchlist, mock_quote_service):
     # Mock configuration and watchlist
     mock_watchlist.return_value = ["AAPL"]
     mock_config.get.side_effect = lambda section, key: {
-        "path.backtester": {
+        "paths.backtester": {
             "data_ingest_dir": "/tmp/test_data",
             "watchlist_path": "mock/path",
         },
@@ -55,7 +56,6 @@ async def test_fetch_and_save_symbol(mock_config, mock_watchlist, mock_quote_ser
     mock_quote_service.return_value = mock_service
 
     # Create the loader and test the method
-    loader = BacktestDataLoader()
     result = await loader._fetch_and_save_symbol("AAPL")
 
     assert result is True
@@ -64,9 +64,9 @@ async def test_fetch_and_save_symbol(mock_config, mock_watchlist, mock_quote_ser
 
 
 @patch("algo_royale.backtester.utils.data_loader.Path.glob")
-@patch("algo_royale.backtester.utils.data_loader.os.path.exists")
+@patch("algo_royale.backtester.utils.data_loader.Path.exists")  # Corrected target
 @patch("algo_royale.backtester.utils.data_loader.load_watchlist")
-@patch("algo_royale.backtester.utils.data_loader.config")
+@patch("algo_royale.backtester.utils.data_loader.Config")  # Corrected target
 @patch("algo_royale.backtester.utils.data_loader.pd.read_csv")
 @pytest.mark.asyncio
 async def test_load_symbol_reads_existing_pages(
@@ -74,8 +74,8 @@ async def test_load_symbol_reads_existing_pages(
 ):
     # Mock watchlist and configuration
     mock_watchlist.return_value = ["AAPL"]
-    mock_config.get.side_effect = lambda section, key: {
-        "path.backtester": {
+    mock_config.return_value.get.side_effect = lambda section, key: {
+        "paths.backtester": {
             "data_ingest_dir": "/tmp/test_data",
             "watchlist_path": "mock/path",
         },
@@ -86,7 +86,7 @@ async def test_load_symbol_reads_existing_pages(
     }[section][key]
 
     # Mock file existence
-    mock_exists.side_effect = lambda path: path == "/tmp/test_data/AAPL"
+    mock_exists.side_effect = lambda: True if str(mock_exists._mock_parent).endswith("AAPL") else False
 
     # Mock Path.glob to simulate existing CSV files
     mock_glob.return_value = [
@@ -108,7 +108,6 @@ async def test_load_symbol_reads_existing_pages(
     mock_read_csv.side_effect = read_csv_side_effect
 
     # Create the loader and test the method
-    loader = BacktestDataLoader()
     dfs = []
     async for df in loader.load_symbol("AAPL"):
         dfs.append(df)
@@ -121,13 +120,13 @@ async def test_load_symbol_reads_existing_pages(
 
 @patch("algo_royale.backtester.utils.data_loader.BacktestDataLoader.load_symbol")
 @patch("algo_royale.backtester.utils.data_loader.load_watchlist")
-@patch("algo_royale.backtester.utils.data_loader.config")
+@patch("algo_royale.backtester.utils.data_loader.Config")  # Corrected target
 @pytest.mark.asyncio
 async def test_load_all_calls_load_symbol(mock_config, mock_watchlist, mock_load_symbol):
     # Mock watchlist and configuration
     mock_watchlist.return_value = ["AAPL", "TSLA"]
     mock_config.get.side_effect = lambda section, key: {
-        "path.backtester": {
+        "paths.backtester": {
             "data_ingest_dir": "/tmp/test_data",
             "watchlist_path": "mock/path",
         },
@@ -142,7 +141,6 @@ async def test_load_all_calls_load_symbol(mock_config, mock_watchlist, mock_load
     mock_load_symbol.side_effect = lambda symbol: iter([mock_df])
 
     # Create the loader and test the method
-    loader = BacktestDataLoader()
     result = await loader.load_all()
 
     # Assertions

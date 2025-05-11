@@ -1,16 +1,19 @@
 from pathlib import Path
+from algo_royale.config.config import Config
 from algo_royale.visualization.backtest_visualizer import BacktestVisualizer
 import streamlit as st
 import pandas as pd
-from algo_royale.config.config import config
 
 class BacktestDashboard:
     """
     BacktestDashboard is a Streamlit-based dashboard for visualizing backtest results.
     It allows users to select strategies and symbols, load results from CSV files,
     and display various performance metrics and visualizations."""
-    def __init__(self):
-        self.results_dir = Path(config.get("path.backtester", "backtest_dir"))
+    def __init__(self, config: Config):
+        restults_dir_string = config.get("paths.backtester", "backtest_dir")
+        if not restults_dir_string:
+            raise ValueError("Backtester directory not specified in config")
+        self.results_dir = Path(restults_dir_string)
         self.available_files = self._find_result_files()
         self.visualizer = None
         self.selected_strategies = []
@@ -165,17 +168,18 @@ class BacktestDashboard:
         with col2:
             st.metric("Symbols Loaded", len(self.selected_symbols))
         with col3:
-            total_trades = (
-                self.visualizer.data["signal"].count()
-                if hasattr(self.visualizer, "data")
-                else 0
-            )
-            st.metric("Total Trades", total_trades)
+            if self.visualizer and hasattr(self.visualizer, "data"):
+                total_trades = (
+                    self.visualizer.data["signal"].count()
+                    if hasattr(self.visualizer, "data")
+                    else 0
+                )
+                st.metric("Total Trades", total_trades)
 
     def _show_performance(self):
         st.header("Performance Analysis")
 
-        if hasattr(self.visualizer, "data"):
+        if self.visualizer:
             fig = self.visualizer.plot_equity_curve(
                 strategies=self.selected_strategies, symbols=self.selected_symbols
             )
@@ -191,7 +195,7 @@ class BacktestDashboard:
     def _show_trade_analysis(self):
         st.header("Trade Analysis")
 
-        if hasattr(self.visualizer, "data"):
+        if self.visualizer and hasattr(self.visualizer, "data"):
             strategy = st.selectbox(
                 "Select Strategy", self.selected_strategies, key="trade_strategy"
             )
@@ -210,12 +214,14 @@ def main():
     Main function to run the Streamlit dashboard.
     This function sets up the command-line arguments and starts the Streamlit server.
     """
+    from algo_royale.di.container import di_container
+
     st.set_page_config(
         layout="wide",
         page_title="AlgoRoyale Backtest Analyzer",
         initial_sidebar_state="expanded",
     )
-    dashboard = BacktestDashboard()
+    dashboard = di_container.backtest_dashboard()
     dashboard.run()
 
 

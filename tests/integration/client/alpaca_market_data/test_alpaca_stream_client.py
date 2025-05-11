@@ -1,11 +1,14 @@
 # src/algo_royale/tests/integration/client/test_alpaca_stream_client.py
 import asyncio
+from algo_royale.di.container import DIContainer
 import pytest
 from algo_royale.clients.alpaca.alpaca_market_data.alpaca_stream_client import AlpacaStreamClient, DataFeed
 
 # Refactor TestHandler class without __init__ constructor
 class TestHandler:
     quotes = []  # Class attribute instead of initializing in __init__
+    bars = []  # Class attribute to store bar data
+    trades = []  # Class attribute to store trades data
 
     @classmethod
     async def on_quote(cls, data):
@@ -21,7 +24,9 @@ class TestHandler:
     
 @pytest.fixture
 async def alpaca_client():
-    client = AlpacaStreamClient()
+    client = AlpacaStreamClient(
+        trading_config=DIContainer.trading_config(),
+    )
     yield client
     await client.aclose()
     

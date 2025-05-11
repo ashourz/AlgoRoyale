@@ -6,12 +6,16 @@ from algo_royale.clients.alpaca.alpaca_base_client import AlpacaBaseClient
 from algo_royale.clients.alpaca.exceptions import ParameterConflictError
 from algo_royale.models.alpaca_trading.alpaca_portfolio import PortfolioPerformance
 from algo_royale.models.alpaca_trading.enums import IntradayReporting, PNLReset
-from algo_royale.clients.alpaca.alpaca_client_config import ALPACA_TRADING_URL
+from algo_royale.clients.alpaca.alpaca_client_config import TradingConfig
 
 class AlpacaPortfolioClient(AlpacaBaseClient):
     """Singleton class to interact with Alpaca's API for portfolio data.""" 
     
-
+    def __init__(self, trading_config: TradingConfig):
+        """Initialize the AlpacaStockClient with trading configuration."""
+        super().__init__(trading_config)
+        self.trading_config = trading_config
+        
     @property
     def client_name(self) -> str:
         """Subclasses must define a name for logging and ID purposes"""
@@ -20,7 +24,7 @@ class AlpacaPortfolioClient(AlpacaBaseClient):
     @property
     def base_url(self) -> str:
         """Subclasses must define a name for logging and ID purposes"""
-        return ALPACA_TRADING_URL
+        return self.trading_config.get_base_url()
     
     async def fetch_portfolio_history(
             self,

@@ -14,13 +14,17 @@ from alpaca.data.timeframe import TimeFrame, TimeFrameUnit
 from algo_royale.models.alpaca_market_data.alpaca_snapshot import SnapshotsResponse
 from algo_royale.models.alpaca_market_data.alpaca_trade import HistoricalTradesResponse, LatestTradesResponse
 from algo_royale.models.alpaca_market_data.enums import SnapshotFeed, Tape, TickType
-from algo_royale.clients.alpaca.alpaca_client_config import ALPACA_PARAMS
+from algo_royale.clients.alpaca.alpaca_client_config import TradingConfig
 
 
-    
 class AlpacaStockClient(AlpacaBaseClient):
     """Singleton class to interact with Alpaca's API for stock data."""
         
+    def __init__(self, trading_config: TradingConfig):
+        """Initialize the AlpacaStockClient with trading configuration."""
+        super().__init__(trading_config)
+        self.trading_config = trading_config
+          
     @property
     def client_name(self) -> str:
         """Subclasses must define a name for logging and ID purposes"""
@@ -29,7 +33,7 @@ class AlpacaStockClient(AlpacaBaseClient):
     @property
     def base_url(self) -> str:
         """Subclasses must define a name for logging and ID purposes"""
-        return ALPACA_PARAMS["base_url_data_v2"] 
+        return self.trading_config.alpaca_params["base_url_data_v2"] 
     
     async def fetch_historical_quotes(
         self,
@@ -40,7 +44,7 @@ class AlpacaStockClient(AlpacaBaseClient):
         sort_order: Sort = Sort.DESC,
         feed: DataFeed = DataFeed.IEX,
         page_limit: int = 1000,
-        page_token: str = None,
+        page_token: Optional[str] = None,
     ) -> Optional[QuotesResponse]:
         """Fetch historical stock data from Alpaca."""
 
@@ -102,7 +106,7 @@ class AlpacaStockClient(AlpacaBaseClient):
         currency=SupportedCurrencies.USD,
         sort_order: Sort = Sort.DESC,
         page_limit: int = 1000,
-        page_token: str = None,
+        page_token: Optional[str] = None,
     ) -> Optional[AuctionResponse]:
         """Fetch historical auction data from Alpaca."""
 
@@ -143,7 +147,7 @@ class AlpacaStockClient(AlpacaBaseClient):
         adjustment: Adjustment = Adjustment.RAW,
         sort_order: Sort = Sort.DESC,
         page_limit: int = 1000,
-        page_token: str = None,
+        page_token: Optional[str] = None,
     ) -> Optional[BarsResponse]:
         """Fetch historical auction data from Alpaca."""
 

@@ -1,5 +1,6 @@
 # src: tests/integration/client/test_alpaca_account_client.py
 
+from algo_royale.di.container import DIContainer
 from algo_royale.models.alpaca_trading.alpaca_asset import Asset
 from algo_royale.clients.alpaca.exceptions import AlpacaAssetNotFoundException
 import pytest
@@ -14,7 +15,9 @@ logger = LoggerSingleton(LoggerType.TRADING, Environment.TEST).get_logger()
 
 @pytest.fixture
 async def alpaca_client():
-    client = AlpacaAssetsClient()
+    client = AlpacaAssetsClient(
+        trading_config=DIContainer.trading_config(),
+    )
     yield client
     await client.aclose()  # Clean up the async client
     

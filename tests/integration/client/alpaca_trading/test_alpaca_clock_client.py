@@ -1,9 +1,11 @@
 # src: tests/integration/client/test_alpaca_portfolio_client.py
 
+from algo_royale import di
+from algo_royale.di.container import DIContainer
 from algo_royale.models.alpaca_trading.alpaca_clock import Clock
 from algo_royale.clients.alpaca.alpaca_trading.alpaca_clock_client import AlpacaClockClient
 import pytest
-
+from algo_royale.di.container import di_container
 from algo_royale.logging.logger_singleton import Environment, LoggerSingleton, LoggerType
 
 
@@ -13,7 +15,7 @@ logger = LoggerSingleton(LoggerType.TRADING, Environment.TEST).get_logger()
 
 @pytest.fixture
 async def alpaca_client():
-    client = AlpacaClockClient()
+    client = di_container.alpaca_clock_client()
     yield client
     await client.aclose()  # Clean up the async client
     

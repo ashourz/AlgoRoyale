@@ -14,11 +14,11 @@ import pandas as pd
 import asyncio
 
 class BacktestRunner:
-    def __init__(self):
-        self.logger = LoggerSingleton(LoggerType.BACKTESTING, Environment.PRODUCTION).get_logger()
+    def __init__(self, backtest_data_loader: BacktestDataLoader, logger: LoggerSingleton):
+        self.logger = logger.get_logger()
         self.config = self._validate_config({})
         self.strategies = self._initialize_strategies()
-        self.data_loader = BacktestDataLoader()
+        self.data_loader = backtest_data_loader
         self.engine = None
 
     def _validate_config(self, config: dict) -> dict:
@@ -134,15 +134,16 @@ class BacktestRunner:
         """Synchronous wrapper"""
         return asyncio.run(self.run_async())
 
-async def async_cli():
+async def async_cli(runner: BacktestRunner):
     """Async command line interface entry point"""
-    runner = BacktestRunner()
     success = await runner.run_async()
     exit(0 if success else 1)
 
 def cli():
     """Synchronous CLI wrapper"""
-    asyncio.run(async_cli())
+    from algo_royale.di.container import di_container  # Import here to avoid circular dependency
+    runner = di_container.backtest_runner()
+    asyncio.run(async_cli(runner))
 
 if __name__ == "__main__":
     cli()

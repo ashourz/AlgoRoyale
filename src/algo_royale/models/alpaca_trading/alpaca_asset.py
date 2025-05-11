@@ -65,6 +65,7 @@ class Asset(BaseModel):
             attributes=data.get("attributes") or []
         )
 
+    @staticmethod
     def parse_assets(raw_data: List[dict]) -> List["Asset"]:
         """
         Parses a list of raw asset dictionaries into a list of Asset model instances.

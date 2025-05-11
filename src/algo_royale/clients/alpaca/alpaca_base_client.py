@@ -3,13 +3,13 @@ import asyncio
 from enum import Enum
 from datetime import date, datetime
 from typing import Any, Dict, Optional
+from algo_royale.clients.alpaca.alpaca_client_config import TradingConfig
 from algo_royale.clients.alpaca.exceptions import (
     AlpacaAPIException, AlpacaBadRequestException, AlpacaInvalidHeadersException,
     AlpacaResourceNotFoundException, AlpacaServerErrorException,
     AlpacaTooManyRequestsException, AlpacaUnauthorizedException,
     AlpacaUnprocessableException
 )
-from algo_royale.clients.alpaca.alpaca_client_config import ALPACA_PARAMS, ALPACA_SECRETS
 import httpx
 from algo_royale.logging.logger_singleton import Environment, LoggerSingleton, LoggerType
 import time
@@ -23,18 +23,18 @@ class AlpacaBaseClient(ABC):
     _last_request_time: float = 0
     _rate_limit_lock: asyncio.Lock = asyncio.Lock()
 
-    def __init__(self):
+    def __init__(self, trading_config: TradingConfig):
         # Instance-specific initialization
-        self.api_key = ALPACA_SECRETS["api_key"]
-        self.api_secret = ALPACA_SECRETS["api_secret"]
-        self.api_key_header = ALPACA_PARAMS["api_key_header"]
-        self.api_secret_header = ALPACA_PARAMS["api_secret_header"]
+        self.api_key = trading_config.alpaca_secrets["api_key"]
+        self.api_secret = trading_config.alpaca_secrets["api_secret"]
+        self.api_key_header = trading_config.alpaca_params["api_key_header"]
+        self.api_secret_header = trading_config.alpaca_params["api_secret_header"]
         
         self.client = httpx.AsyncClient(timeout=10.0)
 
         # Configurable reconnect delay and keep-alive timeout
-        self.reconnect_delay = ALPACA_PARAMS.get("reconnect_delay", 5)
-        self.keep_alive_timeout = ALPACA_PARAMS.get("keep_alive_timeout", 20)
+        self.reconnect_delay = trading_config.alpaca_params.get("reconnect_delay", 5)
+        self.keep_alive_timeout = trading_config.alpaca_params.get("keep_alive_timeout", 20)
 
         self.logger = LoggerSingleton(LoggerType.TRADING, Environment.PRODUCTION).get_logger()
 
@@ -166,17 +166,17 @@ class AlpacaBaseClient(ABC):
         return self._safe_json_parse(response)
 
     ## ASYNC
-    async def get(self, endpoint: str, params: dict = None) -> Any:
+    async def get(self, endpoint: str, params: Optional[Dict] = None) -> Any:
         return await self._make_request_async("GET", endpoint, params=params)
 
-    async def post(self, endpoint: str, params: dict = None, data: dict = None) -> Any:
+    async def post(self, endpoint: str, params: Optional[Dict] = None, data: Optional[Dict] = None) -> Any:
         return await self._make_request_async("POST", endpoint, params=params, data=data)
 
-    async def patch(self, endpoint: str, data: dict = None) -> Any:
+    async def patch(self, endpoint: str, data: Optional[Dict] = None) -> Any:
         return await self._make_request_async("PATCH", endpoint, data=data)
     
-    async def put(self, endpoint: str, params: dict = None, data: dict = None) -> Any:
+    async def put(self, endpoint: str, params: Optional[Dict] = None, data: Optional[Dict] = None) -> Any:
         return await self._make_request_async("PUT", endpoint, params=params, data=data)
 
-    async def delete(self, endpoint: str, params: dict = None) -> Any:
+    async def delete(self, endpoint: str, params: Optional[Dict] = None) -> Any:
         return await self._make_request_async("DELETE", endpoint, params=params)

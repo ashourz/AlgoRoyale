@@ -2,7 +2,7 @@ import asyncio
 from pathlib import Path
 from typing import Callable, Dict, List, AsyncIterator, Union
 import pandas as pd
-from algo_royale.backtester.utils.results_saver import BackTesterResultsSaver
+from algo_royale.backtester.utils.results_saver import BacktestResultsSaver
 from algo_royale.strategies.base_strategy import Strategy
 from algo_royale.logging.logger_singleton import Environment, LoggerSingleton, LoggerType
 
@@ -10,7 +10,7 @@ class BacktestEngine:
     def __init__(self, strategies: List[Strategy]):
         self.strategies = strategies
         self.logger = LoggerSingleton(LoggerType.BACKTESTING, Environment.PRODUCTION).get_logger()
-        self.results_saver = BackTesterResultsSaver()
+        self.results_saver = BacktestResultsSaver()
         self._processed_pairs = set()
 
     async def run_backtest(self, data: Dict[str, Callable[[], AsyncIterator[pd.DataFrame]]]) -> None:

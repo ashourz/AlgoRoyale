@@ -379,7 +379,7 @@ class BacktestVisualizer:
             labels=dict(x="Symbol", y="Strategy", color=metric),
             x=heatmap_data.columns,
             y=heatmap_data.index,
-            text_auto=".2f",
+            text_auto=True,
             aspect="auto",
             color_continuous_scale="RdYlGn",
         )

@@ -1,6 +1,7 @@
 # src: tests/integration/client/test_alpaca_account_client.py
 
 from datetime import datetime
+from algo_royale.di.container import DIContainer
 from algo_royale.models.alpaca_trading.alpaca_order import DeleteOrderStatus, DeleteOrdersResponse, Order, OrderListResponse
 from algo_royale.models.alpaca_trading.enums import OrderSide, OrderStatusFilter, OrderType, SortDirection, TimeInForce
 from algo_royale.clients.alpaca.alpaca_trading.alpaca_orders_client import AlpacaOrdersClient
@@ -15,7 +16,9 @@ logger = LoggerSingleton(LoggerType.TRADING, Environment.TEST).get_logger()
 
 @pytest.fixture
 async def alpaca_client():
-    client = AlpacaOrdersClient()
+    client = AlpacaOrdersClient(
+        trading_config=DIContainer.trading_config(),
+    )
     yield client
     await client.aclose()  # Clean up the async client
     

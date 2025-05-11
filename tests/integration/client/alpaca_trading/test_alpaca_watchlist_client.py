@@ -1,6 +1,7 @@
 # src: tests/integration/client/test_alpaca_account_client.py
 
 import uuid
+from algo_royale.di.container import DIContainer
 from algo_royale.models.alpaca_trading.alpaca_watchlist import Watchlist
 from algo_royale.clients.alpaca.alpaca_trading.alpaca_watchlist_client import AlpacaWatchlistClient
 from algo_royale.logging.logger_singleton import Environment, LoggerSingleton, LoggerType
@@ -12,7 +13,9 @@ logger = LoggerSingleton(LoggerType.TRADING, Environment.TEST).get_logger()
 
 @pytest.fixture
 async def alpaca_client():
-    client = AlpacaWatchlistClient()
+    client = AlpacaWatchlistClient(
+        trading_config=DIContainer.trading_config(),   
+    )
     yield client
     await client.aclose()
 

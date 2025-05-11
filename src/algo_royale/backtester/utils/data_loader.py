@@ -1,34 +1,49 @@
 import asyncio
-import os
 from pathlib import Path
 from typing import AsyncIterator, Callable, Dict, Optional
+from algo_royale.config.config import Config
+from alpaca.data.enums import DataFeed
 import pandas as pd
-from algo_royale.logging.logger_singleton import LoggerSingleton, LoggerType, Environment
-from algo_royale.models.alpaca_market_data.enums import DataFeed
+from algo_royale.logging.logger_singleton import LoggerSingleton
 from algo_royale.services.market_data.alpaca_stock_service import AlpacaQuoteService
 from algo_royale.backtester.utils.watchlist import load_watchlist
 import dateutil.parser
 from alpaca.common.enums import SupportedCurrencies
-from algo_royale.config.config import config
 
 class BacktestDataLoader:
-    def __init__(self):
+    def __init__(self, config: Config, logger: LoggerSingleton, quote_service: AlpacaQuoteService):
         try:
             # Initialize directories and services
-            self.data_dir = Path(config.get("path.backtester", "data_ingest_dir"))
-            self.data_dir.mkdir(parents=True, exist_ok=True)
-            self.quote_client = AlpacaQuoteService()
-            self.watchlist = load_watchlist(config.get("path.backtester", "watchlist_path"))
+            data_ingest_dir = config.get("paths.backtester", "data_ingest_dir")
+            watchlist_path_string = config.get("paths.backtester", "watchlist_path")
+            start_date = config.get("backtest", "start_date")
+            end_date = config.get("backtest", "end_date")
+            
+            if not start_date or not end_date:
+                raise ValueError("Start date or end date not specified in config")
+            if not watchlist_path_string:
+                raise ValueError("Watchlist path not specified in config")
+            if not data_ingest_dir:
+                raise ValueError("Data ingest directory not specified in config")
+            
+            self.data_dir = Path(data_ingest_dir)
+            self.watchlist = load_watchlist(watchlist_path_string)
+            self.start_date = dateutil.parser.parse(start_date)
+            self.end_date = dateutil.parser.parse(end_date)
 
-            # Parse dates
-            self.start_date = dateutil.parser.parse(config.get("backtest", "start_date"))
-            self.end_date = dateutil.parser.parse(config.get("backtest", "end_date"))
+            #Ensure watchlist is not empty
+            if not self.watchlist:
+                raise ValueError("Watchlist is empty")
+            # Ensure data directory exists
+            if not self.data_dir.exists():
+                raise FileNotFoundError(f"Data directory {self.data_dir} does not exist")
+            
+            self.data_dir.mkdir(parents=True, exist_ok=True)
+            self.quote_service = quote_service
 
             # Initialize logger
-            self.logger = LoggerSingleton(
-                LoggerType.BACKTESTING,
-                Environment.PRODUCTION
-            ).get_logger()
+            self.logger = logger.get_logger()
+            self.logger.info(f"BacktestDataLoader initialized with data directory: {self.data_dir}")
 
         except KeyError as e:
             raise ValueError(f"Missing required configuration key: {e}")
@@ -126,9 +141,10 @@ class BacktestDataLoader:
         symbol_dir = self.data_dir / symbol
         symbol_dir.mkdir(exist_ok=True)
         
+        page_count = 0  # Initialize page_count to avoid unbound error
+        page_path: Optional[Path] = None  # Initialize page_path to avoid unbound error
         try:
             page_token = None
-            page_count = 0
             total_rows = 0
             
             self.logger.info(f"Fetching data for {symbol} from {self.start_date} to {self.end_date}")
@@ -138,7 +154,7 @@ class BacktestDataLoader:
                 page_path = symbol_dir / f"{symbol}_page_{page_count}.csv"
                 
                 # Fetch data from API
-                response = await self.quote_client.fetch_historical_bars(
+                response = await self.quote_service.fetch_historical_bars(
                     symbols=[symbol],
                     start_date=self.start_date,
                     end_date=self.end_date,
@@ -179,8 +195,8 @@ class BacktestDataLoader:
         except Exception as e:
             self.logger.error(f"Error fetching {symbol}: {str(e)}")
             # Clean up partial data
-            if page_count == 1 and page_path.exists():
+            if page_count == 1 and page_path and page_path.exists():
                 page_path.unlink()
             return False
         finally:
-            await self.quote_client.client.aclose()
+            await self.quote_service.client.aclose()

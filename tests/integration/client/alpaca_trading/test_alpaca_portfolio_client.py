@@ -1,6 +1,7 @@
 # src: tests/integration/client/test_alpaca_portfolio_client.py
 
 from datetime import datetime
+from algo_royale.di.container import DIContainer
 from algo_royale.models.alpaca_trading.alpaca_portfolio import PortfolioPerformance
 from algo_royale.clients.alpaca.alpaca_trading.alpaca_portfolio_client import AlpacaPortfolioClient
 import pytest
@@ -13,7 +14,9 @@ logger = LoggerSingleton(LoggerType.TRADING, Environment.TEST).get_logger()
 
 @pytest.fixture
 async def alpaca_client():
-    client = AlpacaPortfolioClient()
+    client = AlpacaPortfolioClient(
+        trading_config=DIContainer.trading_config(),
+    )
     yield client
     await client.aclose()  # Clean up the async client
     

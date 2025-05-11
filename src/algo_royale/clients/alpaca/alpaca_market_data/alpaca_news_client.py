@@ -4,12 +4,17 @@ from typing import List, Optional, Union
 from algo_royale.clients.alpaca.alpaca_base_client import AlpacaBaseClient
 from algo_royale.models.alpaca_market_data.alpaca_news import NewsResponse
 from datetime import datetime
-from algo_royale.clients.alpaca.alpaca_client_config import ALPACA_PARAMS
+from algo_royale.clients.alpaca.alpaca_client_config import TradingConfig
 from alpaca.common.enums import Sort
 
 class AlpacaNewsClient(AlpacaBaseClient):
     """Singleton class to interact with Alpaca's API for news data.""" 
 
+    def __init__(self, trading_config: TradingConfig):
+        """Initialize the AlpacaStockClient with trading configuration."""
+        super().__init__(trading_config)
+        self.trading_config = trading_config
+        
     @property
     def client_name(self) -> str:
         """Subclasses must define a name for logging and ID purposes"""
@@ -18,7 +23,7 @@ class AlpacaNewsClient(AlpacaBaseClient):
     @property
     def base_url(self) -> str:
         """Subclasses must define a name for logging and ID purposes"""
-        return ALPACA_PARAMS["base_url_data_v1beta1"] 
+        return self.trading_config.alpaca_params["base_url_data_v1beta1"]
     
     async def fetch_news(
         self,

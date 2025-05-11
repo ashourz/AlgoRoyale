@@ -1,5 +1,6 @@
 # src: tests/integration/client/test_alpaca_screener_client.py
 
+from algo_royale.di.container import DIContainer
 import pytest
 from algo_royale.models.alpaca_market_data.alpaca_active_stock import MostActiveStocksResponse
 from algo_royale.models.alpaca_market_data.alpaca_market_mover import MarketMoversResponse
@@ -14,7 +15,9 @@ logger = LoggerSingleton(LoggerType.TRADING, Environment.TEST).get_logger()
 
 @pytest.fixture
 async def alpaca_client():
-    client = AlpacaScreenerClient()
+    client = AlpacaScreenerClient(
+        trading_config=DIContainer.trading_config()
+    )
     yield client
     await client.aclose()
 

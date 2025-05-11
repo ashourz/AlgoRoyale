@@ -1,10 +1,13 @@
 ## client\alpaca_market_data\alpaca_stream_client.py
 import asyncio
 import json
+from typing import Optional, Callable
 from algo_royale.clients.alpaca.alpaca_base_client import AlpacaBaseClient
 from algo_royale.models.alpaca_market_data.enums import DataFeed
-from algo_royale.clients.alpaca.alpaca_client_config import ALPACA_PARAMS
+from algo_royale.clients.alpaca.alpaca_client_config import TradingConfig
+from websockets.client import connect
 import websockets
+from websockets.exceptions import ConnectionClosed
 
 
 class AlpacaStreamClient(AlpacaBaseClient):
@@ -18,8 +21,9 @@ class AlpacaStreamClient(AlpacaBaseClient):
     - Asynchronous event handling
     """
 
-    def __init__(self):
-        super().__init__()
+    def __init__(self, trading_config: TradingConfig):
+        super().__init__(trading_config)
+        self.trading_config = trading_config
 
         # Sets to track what you're subscribed to
         self.quote_symbols = set()
@@ -36,15 +40,15 @@ class AlpacaStreamClient(AlpacaBaseClient):
     @property
     def base_url(self) -> str:
         """Subclasses must define a name for logging and ID purposes"""
-        return ALPACA_PARAMS["base_url_data_stream_v2"] 
+        return self.trading_config.alpaca_params["base_url_data_stream_v2"] 
     
     async def stream(
         self,
         symbols: list[str],
         feed: DataFeed = DataFeed.IEX,
-        on_quote: callable = None,
-        on_trade: callable = None,
-        on_bar: callable = None,
+        on_quote: Optional[Callable] = None,
+        on_trade: Optional[Callable] = None,
+        on_bar: Optional[Callable] = None,
     ):
         """
         Start the stream for given symbols and handlers.
@@ -68,7 +72,7 @@ class AlpacaStreamClient(AlpacaBaseClient):
 
         while not self.stop_stream:
             try:
-                async with websockets.connect(url, ping_interval=self.keep_alive_timeout) as ws:
+                async with connect(url, ping_interval=self.keep_alive_timeout) as ws:
                     self.websocket = ws
                     await self._authenticate(ws)
                     await self._send_subscription(ws)
@@ -144,8 +148,7 @@ class AlpacaStreamClient(AlpacaBaseClient):
                         await on_trade(item)
                     elif msg_type == "b" and on_bar: # Bar message
                         await on_bar(item)
-
-        except websockets.ConnectionClosed as e:
+        except ConnectionClosed as e:
             self.logger.warning(f"WebSocket closed: {e}")
         except Exception as e:
             self.logger.error(f"Receive error: {e}")

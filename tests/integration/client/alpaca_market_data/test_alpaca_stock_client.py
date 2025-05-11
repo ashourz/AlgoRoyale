@@ -1,5 +1,6 @@
 # src: tests/integration/client/test_alpaca_client.py
 
+from algo_royale.di.container import DIContainer
 import pytest
 from datetime import datetime, timezone
 from algo_royale.models.alpaca_market_data.alpaca_auction import AuctionResponse
@@ -17,7 +18,9 @@ logger = LoggerSingleton(LoggerType.TRADING, Environment.TEST).get_logger()
 
 @pytest.fixture
 async def alpaca_client():
-    client = AlpacaStockClient()
+    client = AlpacaStockClient(
+        trading_config=DIContainer.trading_config(),
+    )
     yield client
     await client.aclose()
     
@@ -267,8 +270,8 @@ class TestAlpacaStockClientIntegration:
             assert isinstance(daily.volume, int)
 
         # Previous Daily Bar
-        if hasattr(snapshot, 'prev_daily_bar') and snapshot.prev_daily_bar:
-            prev_daily = snapshot.prev_daily_bar
+        if hasattr(snapshot, 'prev_daily_bar') and snapshot.previous_daily_bar:
+            prev_daily = snapshot.previous_daily_bar
             assert prev_daily.high_price >= prev_daily.low_price
             assert isinstance(prev_daily.volume, int)
     

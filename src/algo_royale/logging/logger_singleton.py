@@ -32,11 +32,11 @@ class LoggerSingleton:
     """
     _instances = {}
 
-    def __new__(cls, module: LoggerType, env: Environment = Environment.PRODUCTION):
-        key = (module, env)
+    def __new__(cls, logger_type: LoggerType, environment: Environment = Environment.PRODUCTION):
+        key = (logger_type, environment)
         if key not in cls._instances:
             instance = super().__new__(cls)
-            instance._initialize_logger(module, env)
+            instance._initialize_logger(logger_type, environment)
             cls._instances[key] = instance
         return cls._instances[key]
 

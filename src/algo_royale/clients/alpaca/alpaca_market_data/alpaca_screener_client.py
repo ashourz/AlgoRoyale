@@ -5,12 +5,17 @@ from algo_royale.clients.alpaca.alpaca_base_client import AlpacaBaseClient
 from algo_royale.models.alpaca_market_data.alpaca_active_stock import MostActiveStocksResponse
 from algo_royale.models.alpaca_market_data.alpaca_market_mover import MarketMoversResponse
 from algo_royale.models.alpaca_market_data.enums import ActiveStockFilter
-from algo_royale.clients.alpaca.alpaca_client_config import ALPACA_PARAMS
+from algo_royale.clients.alpaca.alpaca_client_config import TradingConfig
    
 
 class AlpacaScreenerClient(AlpacaBaseClient):
     """Singleton class to interact with Alpaca's API for stock screener data.""" 
 
+    def __init__(self, trading_config: TradingConfig):
+        """Initialize the AlpacaStockClient with trading configuration."""
+        super().__init__(trading_config)
+        self.trading_config = trading_config
+        
     @property
     def client_name(self) -> str:
         """Subclasses must define a name for logging and ID purposes"""
@@ -19,7 +24,7 @@ class AlpacaScreenerClient(AlpacaBaseClient):
     @property
     def base_url(self) -> str:
         """Subclasses must define a name for logging and ID purposes"""
-        return ALPACA_PARAMS["base_url_data_v1beta1"] 
+        return self.trading_config.alpaca_params["base_url_data_v1beta1"] 
     
     async def fetch_active_stocks(
         self,

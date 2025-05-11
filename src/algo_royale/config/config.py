@@ -3,8 +3,6 @@ import os
 import configparser
 from pathlib import Path
 
-from algo_royale import di
-
 class Config:
     def __init__(self, config_file="config.ini", environment=None):
         """
@@ -92,14 +90,3 @@ class Config:
             return self.parser[section]
         else:
             raise ValueError(f"Section '{section}' not found in the configuration file.")
-
-##TODO: get rid of this and use the DI container
-# Initialize the configuration
-config = di.config()
-secrets = di.secrets()
-# Example Usage
-if __name__ == "__main__":
-    print("Base Directory:", config.get("global", "base_directory"))
-    print("Log Level:", config.get("global", "log_level", fallback="INFO"))
-    print("Backtesting Data Source:", config.get("backtesting", "data_source"))
-    print("Dashboard Refresh Rate (int):", config.get_int("visualization", "dashboard_refresh_rate"))

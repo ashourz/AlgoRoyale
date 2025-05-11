@@ -1,13 +1,14 @@
+from algo_royale.clients.alpaca.alpaca_trading.alpaca_accounts_client import AlpacaAccountClient
 import pytest
 from datetime import datetime, timedelta
 from algo_royale.models.alpaca_trading.alpaca_account import Account, AccountActivities, AccountConfiguration
 from algo_royale.models.alpaca_trading.enums import ActivityType, DTBPCheck, TradeConfirmationEmail
-from algo_royale.clients.alpaca.alpaca_trading.alpaca_accounts_client import AlpacaAccountClient
+from algo_royale.di.container import di_container
 
 # Async fixture for AlpacaAccountClient
 @pytest.fixture
 async def alpaca_client():
-    client = AlpacaAccountClient()
+    client = di_container.alpaca_account_client()
     yield client
     await client.aclose()
 

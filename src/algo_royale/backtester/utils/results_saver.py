@@ -2,26 +2,29 @@ import glob
 from pathlib import Path
 from datetime import datetime
 from typing import Optional, Dict
-from algo_royale.config.config import config
+from algo_royale.config.config import Config
 import pandas as pd
 from math import ceil
 
 from algo_royale.logging.logger_singleton import Environment, LoggerSingleton, LoggerType
 
-class BackTesterResultsSaver:
+class BacktestResultsSaver:
     """
     Handles saving backtest results with configurable directory structure.
     Results directory is resolved from configuration file.
     Supports splitting large files by row count.
     """
 
-    def __init__(self, max_rows_per_file: int = 1_000_000):
+    def __init__(self, config: Config, logger: LoggerSingleton, max_rows_per_file: int = 1_000_000):
         """
         Initialize the results saver with directory from config.
         """
-        self.backtest_dir = Path(config.get("path.backtester", "backtest_dir"))
+        backtester_dir_string = config.get("paths.backtester", "backtest_dir")
+        if not backtester_dir_string:
+            raise ValueError("Backtester directory not specified in config")
+        self.backtest_dir = Path(backtester_dir_string)
         self.backtest_dir.mkdir(parents=True, exist_ok=True)
-        self.logger = LoggerSingleton(LoggerType.BACKTESTING, Environment.PRODUCTION).get_logger()
+        self.logger = logger.get_logger()
         self.max_rows_per_file = max_rows_per_file
         self.logger.info(f"Results will be saved to: {self.backtest_dir}")
 

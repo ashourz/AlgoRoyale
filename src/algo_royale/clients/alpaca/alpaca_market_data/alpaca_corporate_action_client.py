@@ -2,10 +2,10 @@
 
 from typing import List, Optional
 
+from algo_royale.clients.alpaca.alpaca_client_config import TradingConfig
 from algo_royale.models.alpaca_market_data.alpaca_corporate_action import CorporateActionResponse
 from algo_royale.models.alpaca_market_data.enums import CorporateActions
 from algo_royale.clients.alpaca.alpaca_base_client import AlpacaBaseClient
-from algo_royale.clients.alpaca.alpaca_client_config import ALPACA_PARAMS
 from datetime import datetime
 from alpaca.common.enums import Sort
 
@@ -13,6 +13,11 @@ from alpaca.common.enums import Sort
 class AlpacaCorporateActionClient(AlpacaBaseClient):
     """Singleton class to interact with Alpaca's API for market data corporate action data.""" 
 
+    def __init__(self, trading_config: TradingConfig):
+        """Initialize the AlpacaStockClient with trading configuration."""
+        super().__init__(trading_config)
+        self.trading_config = trading_config
+        
     @property
     def client_name(self) -> str:
         """Subclasses must define a name for logging and ID purposes"""
@@ -21,7 +26,7 @@ class AlpacaCorporateActionClient(AlpacaBaseClient):
     @property
     def base_url(self) -> str:
         """Subclasses must define a name for logging and ID purposes"""
-        return ALPACA_PARAMS["base_url_data_v1"] 
+        return self.trading_config.alpaca_params["base_url_data_v1"] 
         
     async def fetch_corporate_actions(
         self,
@@ -33,7 +38,7 @@ class AlpacaCorporateActionClient(AlpacaBaseClient):
         ids: List[str] = [],
         sort_order: Sort = Sort.DESC,
         page_limit: int = 1000,
-        page_token: str = None,
+        page_token: Optional[str] = None,
     ) -> Optional[CorporateActionResponse]:
         """Fetch news data from Alpaca.
         

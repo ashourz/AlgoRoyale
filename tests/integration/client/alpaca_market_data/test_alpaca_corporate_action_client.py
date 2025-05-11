@@ -1,5 +1,6 @@
 # src: tests/integration/client/test_alpaca_corporate_action_client.py
 
+from algo_royale.di.container import DIContainer
 import pytest
 from datetime import datetime, timezone
 from algo_royale.models.alpaca_market_data.alpaca_corporate_action import CorporateAction, CorporateActionResponse
@@ -13,7 +14,9 @@ logger = LoggerSingleton(LoggerType.TRADING, Environment.TEST).get_logger()
 
 @pytest.fixture
 async def alpaca_client(event_loop):
-    client = AlpacaCorporateActionClient()
+    client = AlpacaCorporateActionClient(
+        trading_config=DIContainer.trading_config(),
+    )
     yield client
     await client.aclose()  # Clean up the async cli    ent
     

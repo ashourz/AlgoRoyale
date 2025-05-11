@@ -22,8 +22,8 @@ class AlpacaQuoteService:
     This class abstracts the AlpacaStockClient and provides higher-level methods to fetch data.
     """
 
-    def __init__(self):
-        self.client = AlpacaStockClient()
+    def __init__(self, alpaca_stock_client: AlpacaStockClient):
+        self.client = alpaca_stock_client
 
     async def fetch_historical_quotes(
         self,
