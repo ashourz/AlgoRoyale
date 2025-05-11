@@ -1,14 +1,18 @@
-# tests/db/dao/test_base_dao.py
 from unittest import TestCase
 from unittest.mock import MagicMock, patch
+from logging import Logger
+
 from algo_royale.clients.db.dao.base_dao import BaseDAO
+
 
 class TestBaseDAO(TestCase):
 
     def setUp(self):
-        """Set up the mock connection and BaseDAO instance for testing."""
+        """Set up the mock connection, logger, and BaseDAO instance for testing."""
         self.mock_conn = MagicMock()  # Mock the DB connection
-        self.dao = BaseDAO(self.mock_conn)  # Instantiate BaseDAO with the mock connection
+        self.mock_logger = MagicMock(spec=Logger)  # Mock the logger
+        self.mock_sql_dir = "mock/sql/dir"  # Mock SQL directory path
+        self.dao = BaseDAO(self.mock_conn, self.mock_sql_dir, self.mock_logger)  # Instantiate BaseDAO with mocks
 
     @patch("builtins.open", create=True)
     @patch("os.path.join")
@@ -16,7 +20,7 @@ class TestBaseDAO(TestCase):
         """Test the fetch operation (SELECT)"""
         
         # Mock the behavior of os.path.join to return a path to the SQL file
-        mock_join.return_value = "fake_path.sql"
+        mock_join.return_value = "mock/sql/dir/get_signals_by_symbol.sql"
         # Mock the reading of the SQL file to simulate an actual SQL SELECT query
         mock_open.return_value.__enter__.return_value.read.return_value = "SELECT * FROM signals WHERE symbol = %s"
 
@@ -29,9 +33,7 @@ class TestBaseDAO(TestCase):
 
         # Assertions to verify behavior
         self.assertEqual(result, [("AAPL",)])  # Verify that the result matches the mock data
-        # Check that the cursor's execute method was called with the correct SQL and parameters
         mock_cursor.execute.assert_called_once_with("SELECT * FROM signals WHERE symbol = %s", ("AAPL",))
-        # Verify that no commit was called (since fetch doesn't modify the database)
         self.mock_conn.commit.assert_not_called()
 
     @patch("builtins.open", create=True)
@@ -40,7 +42,7 @@ class TestBaseDAO(TestCase):
         """Test the insert operation (INSERT INTO)"""
         
         # Mock the behavior of os.path.join to return a path to the SQL file
-        mock_join.return_value = "fake_insert.sql"
+        mock_join.return_value = "mock/sql/dir/insert_signal.sql"
         # Mock the reading of the SQL file to simulate an actual SQL INSERT query
         mock_open.return_value.__enter__.return_value.read.return_value = "INSERT INTO signals (symbol, signal, price, created_at) VALUES (%s, %s, %s, %s)"
 
@@ -51,12 +53,10 @@ class TestBaseDAO(TestCase):
         self.dao.insert("insert_signal.sql", ("AAPL", "Positive news", 0.85, "2023-04-05 09:00:00"), log_name="test_insert")
 
         # Assertions to verify behavior
-        # Check that the cursor's execute method was called with the correct SQL and parameters
         mock_cursor.execute.assert_called_once_with(
             "INSERT INTO signals (symbol, signal, price, created_at) VALUES (%s, %s, %s, %s)",
             ("AAPL", "Positive news", 0.85, "2023-04-05 09:00:00")
         )
-        # Verify that the connection's commit method was called (since insert modifies the database)
         self.mock_conn.commit.assert_called_once()
 
     @patch("builtins.open", create=True)
@@ -65,7 +65,7 @@ class TestBaseDAO(TestCase):
         """Test the update operation (UPDATE)"""
         
         # Mock the behavior of os.path.join to return a path to the SQL file
-        mock_join.return_value = "fake_update.sql"
+        mock_join.return_value = "mock/sql/dir/update_signal.sql"
         # Mock the reading of the SQL file to simulate an actual SQL UPDATE query
         mock_open.return_value.__enter__.return_value.read.return_value = "UPDATE signals SET signal = %s WHERE symbol = %s"
 
@@ -76,12 +76,10 @@ class TestBaseDAO(TestCase):
         self.dao.update("update_signal.sql", ("New signal", "AAPL"), log_name="test_update")
 
         # Assertions to verify behavior
-        # Check that the cursor's execute method was called with the correct SQL and parameters
         mock_cursor.execute.assert_called_once_with(
             "UPDATE signals SET signal = %s WHERE symbol = %s", 
             ("New signal", "AAPL")
         )
-        # Verify that the connection's commit method was called (since update modifies the database)
         self.mock_conn.commit.assert_called_once()
 
     @patch("builtins.open", create=True)
@@ -90,7 +88,7 @@ class TestBaseDAO(TestCase):
         """Test the delete operation (DELETE)"""
         
         # Mock the behavior of os.path.join to return a path to the SQL file
-        mock_join.return_value = "fake_delete.sql"
+        mock_join.return_value = "mock/sql/dir/delete_signal.sql"
         # Mock the reading of the SQL file to simulate an actual SQL DELETE query
         mock_open.return_value.__enter__.return_value.read.return_value = "DELETE FROM signals WHERE symbol = %s"
 
@@ -101,9 +99,7 @@ class TestBaseDAO(TestCase):
         self.dao.delete("delete_signal.sql", ("AAPL",), log_name="test_delete")
 
         # Assertions to verify behavior
-        # Check that the cursor's execute method was called with the correct SQL and parameters
         mock_cursor.execute.assert_called_once_with("DELETE FROM signals WHERE symbol = %s", ("AAPL",))
-        # Verify that the connection's commit method was called (since delete modifies the database)
         self.mock_conn.commit.assert_called_once()
 
     def test_error_handling(self):
