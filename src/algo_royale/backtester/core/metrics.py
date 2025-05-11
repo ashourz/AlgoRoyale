@@ -3,7 +3,7 @@ from turtle import pd
 
 from algo_royale.logging.logger_singleton import Environment, LoggerSingleton, LoggerType
 
-logger = LoggerSingleton(LoggerType.BACKTESTING, Environment.PRODUCTION).get_logger()
+logger = LoggerSingleton.get_instance(LoggerType.BACKTESTING, Environment.PRODUCTION)
 
 def evaluate_performance(portfolio):
     returns = pd.Series(portfolio.history).pct_change().fillna(0)

@@ -9,7 +9,7 @@ import pytest
 from algo_royale.logging.logger_singleton import Environment, LoggerSingleton, LoggerType
 
 # Set up logging (prints to console)
-logger = LoggerSingleton(LoggerType.TRADING, Environment.TEST).get_logger()
+logger = LoggerSingleton.get_instance(LoggerType.TRADING, Environment.TEST)
 
 
 @pytest.fixture

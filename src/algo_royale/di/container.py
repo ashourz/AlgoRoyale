@@ -39,66 +39,74 @@ class DIContainer(containers.DeclarativeContainer):
     # Load configuration
     config = providers.Singleton(Config, config_file="config.ini")
     secrets = providers.Singleton(Config, config_file="secrets.ini")
-    dao_sql_dir=config.get("paths.db", "sql_dir")
-    
+    dao_sql_dir = providers.Callable(
+        lambda config: config.get("paths.db", "sql_dir"),
+        config=config
+    )
+   
     trading_config = providers.Singleton(
         TradingConfig,
         config=config,
         secrets=secrets,
     )
     
-    logger_backtest_prod = providers.Singleton(
-        LoggerSingleton,
+    logger_backtest_prod = providers.Callable(
+        LoggerSingleton.get_instance,
         logger_type=LoggerType.BACKTESTING,
         environment=Environment.PRODUCTION
     )
     
-    logger_trading_prod = providers.Singleton(
-        LoggerSingleton,
+    logger_trading_prod = providers.Callable(
+        LoggerSingleton.get_instance,
         logger_type=LoggerType.TRADING,
         environment=Environment.PRODUCTION
     )
     
     database = providers.Singleton(
         Database,
-        logger=logger_trading_prod.provided.get_logger(),
+        logger=logger_trading_prod,
         config=config,
         secrets=secrets
     )
     
+    db_connection = providers.Callable(
+        lambda db: db.connection_context(),
+        db=database
+    )
+    
     indicator_dao = providers.Singleton(
         IndicatorDAO,
-        connection=database.connection_context(),
+        connection=db_connection,
         sql_dir=dao_sql_dir,
-        logger=logger_trading_prod.provided.get_logger()
+        logger=logger_trading_prod,
     )
     
     news_sentiment_dao = providers.Singleton(
         NewsSentimentDAO, 
-        connection=database.connection_context(),
+        connection=db_connection,
         sql_dir=dao_sql_dir,
-        logger=logger_trading_prod.provided.get_logger()
+        logger=logger_trading_prod,
     )
     
     stock_data_dao = providers.Singleton(
         StockDataDAO,
-        connection=database.connection_context(),
+        connection=db_connection,
         sql_dir=dao_sql_dir,
-        logger=logger_trading_prod.provided.get_logger()
+        logger=logger_trading_prod,
     )
         
     trade_dao = providers.Singleton(
         TradeDAO,
-        connection=database.connection_context(),
+        connection=db_connection,
         sql_dir=dao_sql_dir,
-        logger=logger_trading_prod.provided.get_logger()
+        logger=logger_trading_prod
     )
     
     trade_signal_dao = providers.Singleton(
         TradeSignalDAO,
-        connection=database.connection_context(),
+        connection=db_connection,
         sql_dir=dao_sql_dir,
-        logger=logger_trading_prod.provided.get_logger()
+        logger=logger_trading_prod
     )
     
     indicator_service = providers.Singleton(
@@ -199,27 +207,27 @@ class DIContainer(containers.DeclarativeContainer):
     backtest_data_loader = providers.Singleton(
         BacktestDataLoader,
         config=config,
-        logger=logger_backtest_prod.provided.get_logger(),
+        logger=logger_backtest_prod,
         quote_service = alpaca_quote_service
     )
     
     backtest_results_saver = providers.Singleton(
         BacktestResultsSaver,
         config=config,
-        logger=logger_backtest_prod.provided.get_logger(),
+        logger=logger_backtest_prod,
     )
     
     backtest_engine = providers.Singleton(
         BacktestEngine,
         results_saver=backtest_results_saver,
-        logger= logger_backtest_prod.provided.get_logger()
+        logger= logger_backtest_prod
     )
      
     backtest_runner = providers.Singleton(
         BacktestRunner,
         data_loader=backtest_data_loader,
         engine = backtest_engine,
-        logger= logger_backtest_prod.provided.get_logger()
+        logger= logger_backtest_prod
     )
     
     backtest_dashboard = providers.Singleton(

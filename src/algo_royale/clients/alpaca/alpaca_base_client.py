@@ -36,7 +36,7 @@ class AlpacaBaseClient(ABC):
         self.reconnect_delay = trading_config.alpaca_params.get("reconnect_delay", 5)
         self.keep_alive_timeout = trading_config.alpaca_params.get("keep_alive_timeout", 20)
 
-        self.logger = LoggerSingleton(LoggerType.TRADING, Environment.PRODUCTION).get_logger()
+        self.logger = LoggerSingleton.get_instance(LoggerType.TRADING, Environment.PRODUCTION)
 
     async def aclose(self):
         """Proper async cleanup"""

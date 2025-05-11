@@ -39,7 +39,7 @@ import os
 from algo_royale.logging.logger_singleton import Environment, LoggerSingleton, LoggerType
 from src.app import app
 
-logger = LoggerSingleton(LoggerType.TRADING, Environment.PROD).get_logger()
+logger = LoggerSingleton.get_instance(LoggerType.TRADING, Environment.PROD)
 
 def set_environment_variables():
     """Sets Flask app and environment variables."""

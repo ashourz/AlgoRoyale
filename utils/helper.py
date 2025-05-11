@@ -3,7 +3,7 @@ from pathlib import Path
 
 from algo_royale.logging.logger_singleton import Environment, LoggerSingleton, LoggerType
 
-logger = LoggerSingleton(LoggerType.TRADING, Environment.PROD).get_logger()
+logger = LoggerSingleton.get_instance(LoggerType.TRADING, Environment.PROD)
 
 def find_project_root(starting_directory, target_folder_name="AlgoRoyale"):
     """Keep going up one level until we find the target folder (AlgoRoyale)."""

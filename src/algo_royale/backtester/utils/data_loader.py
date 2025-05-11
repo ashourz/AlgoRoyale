@@ -42,7 +42,7 @@ class BacktestDataLoader:
             self.quote_service = quote_service
 
             # Initialize logger
-            self.logger = logger.get_logger()
+            self.logger = logger
             self.logger.info(f"BacktestDataLoader initialized with data directory: {self.data_dir}")
 
         except KeyError as e:

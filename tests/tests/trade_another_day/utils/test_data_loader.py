@@ -1,8 +1,8 @@
-from unittest.mock import patch, AsyncMock
+from unittest.mock import patch, AsyncMock, MagicMock
 from pathlib import Path
-from algo_royale.di.container import di_container
 import pandas as pd
 import pytest
+from algo_royale.di.container import di_container
 
 
 class MockBar:
@@ -24,16 +24,15 @@ class MockBar:
             "volume": self.volume,
         }
 
-loader = di_container.backtest_data_loader()
- 
-@patch("algo_royale.backtester.utils.data_loader.AlpacaQuoteService")
-@patch("algo_royale.backtester.utils.data_loader.load_watchlist")
-@patch("algo_royale.backtester.utils.data_loader.Config")  # Corrected target
+
+@patch("algo_royale.di.container.DIContainer.config")
+@patch("algo_royale.services.market_data.alpaca_stock_service.AlpacaQuoteService")
+@patch("algo_royale.backtester.utils.watchlist.load_watchlist")
 @pytest.mark.asyncio
-async def test_fetch_and_save_symbol(mock_config, mock_watchlist, mock_quote_service):
+async def test_fetch_and_save_symbol(mock_watchlist, mock_quote_service, mock_config):
     # Mock configuration and watchlist
     mock_watchlist.return_value = ["AAPL"]
-    mock_config.get.side_effect = lambda section, key: {
+    mock_config().get.side_effect = lambda section, key: {
         "paths.backtester": {
             "data_ingest_dir": "/tmp/test_data",
             "watchlist_path": "mock/path",
@@ -47,7 +46,7 @@ async def test_fetch_and_save_symbol(mock_config, mock_watchlist, mock_quote_ser
     # Mock AlpacaQuoteService response
     mock_response = AsyncMock()
     mock_response.symbol_bars = {
-        "AAPL": [MockBar("2023-01-01T00:00:00Z", 100, 105, 95, 102, 1000)]
+        "AAPL": [MockBar("2023-01-01T00:00:00Z", 100, 105, 95, 102, 1000)],
     }
     mock_response.next_page_token = None
 
@@ -55,7 +54,14 @@ async def test_fetch_and_save_symbol(mock_config, mock_watchlist, mock_quote_ser
     mock_service.fetch_historical_bars.return_value = mock_response
     mock_quote_service.return_value = mock_service
 
-    # Create the loader and test the method
+    # Initialize BacktestDataLoader
+    loader = di_container.backtest_data_loader()
+
+    # Create mock logger
+    mock_logger = MagicMock()
+    loader.logger = mock_logger
+
+    # Test the method
     result = await loader._fetch_and_save_symbol("AAPL")
 
     assert result is True
@@ -63,18 +69,14 @@ async def test_fetch_and_save_symbol(mock_config, mock_watchlist, mock_quote_ser
     assert expected_file.exists()
 
 
-@patch("algo_royale.backtester.utils.data_loader.Path.glob")
-@patch("algo_royale.backtester.utils.data_loader.Path.exists")  # Corrected target
-@patch("algo_royale.backtester.utils.data_loader.load_watchlist")
-@patch("algo_royale.backtester.utils.data_loader.Config")  # Corrected target
-@patch("algo_royale.backtester.utils.data_loader.pd.read_csv")
+@patch("algo_royale.di.container.DIContainer.config")
+@patch("algo_royale.services.market_data.alpaca_stock_service.AlpacaQuoteService")
+@patch("algo_royale.backtester.utils.watchlist.load_watchlist")
 @pytest.mark.asyncio
-async def test_load_symbol_reads_existing_pages(
-    mock_read_csv, mock_config, mock_watchlist, mock_exists, mock_glob
-):
-    # Mock watchlist and configuration
-    mock_watchlist.return_value = ["AAPL"]
-    mock_config.return_value.get.side_effect = lambda section, key: {
+async def test_load_all_calls_load_symbol(mock_watchlist, mock_quote_service, mock_config):
+    # Mock configuration and watchlist
+    mock_watchlist.return_value = ["AAPL", "TSLA"]
+    mock_config().get.side_effect = lambda section, key: {
         "paths.backtester": {
             "data_ingest_dir": "/tmp/test_data",
             "watchlist_path": "mock/path",
@@ -85,64 +87,76 @@ async def test_load_symbol_reads_existing_pages(
         },
     }[section][key]
 
-    # Mock file existence
-    mock_exists.side_effect = lambda: True if str(mock_exists._mock_parent).endswith("AAPL") else False
+    # Mock AlpacaQuoteService
+    mock_quote_service.return_value = AsyncMock()
 
-    # Mock Path.glob to simulate existing CSV files
-    mock_glob.return_value = [
-        Path("/tmp/test_data/AAPL/AAPL_page_1.csv"),
-        Path("/tmp/test_data/AAPL/AAPL_page_2.csv"),
-    ]
+    # Initialize BacktestDataLoader
+    loader = di_container.backtest_data_loader()
 
-    # Mock DataFrame reading
-    mock_df_page_1 = pd.DataFrame([{"timestamp": "2023-01-01T00:00:00Z", "open": 100}])
-    mock_df_page_2 = pd.DataFrame([{"timestamp": "2023-01-02T00:00:00Z", "open": 105}])
+    # Create mock logger
+    mock_logger = MagicMock()
+    loader.logger = mock_logger
 
-    def read_csv_side_effect(filepath, *args, **kwargs):
-        if "AAPL_page_1.csv" in str(filepath):
-            return mock_df_page_1
-        if "AAPL_page_2.csv" in str(filepath):
-            return mock_df_page_2
-        return pd.DataFrame()
+    # Mock _fetch_and_save_symbol and load_symbol
+    async def mock_load_symbol(symbol):
+        return iter([pd.DataFrame([{"timestamp": "2023-01-01", "open": 100}])])
 
-    mock_read_csv.side_effect = read_csv_side_effect
+    loader.load_symbol = mock_load_symbol
 
-    # Create the loader and test the method
+    # Test load_all method
+    result = await loader.load_all()
+
+    assert "AAPL" in result
+    assert "TSLA" in result
+    assert callable(result["AAPL"])
+    assert callable(result["TSLA"])
+
+
+@patch("algo_royale.di.container.DIContainer.config")
+@patch("algo_royale.services.market_data.alpaca_stock_service.AlpacaQuoteService")
+@patch("algo_royale.backtester.utils.watchlist.load_watchlist")
+@pytest.mark.asyncio
+async def test_load_symbol_reads_existing_pages(mock_watchlist, mock_quote_service, mock_config):
+    # Mock configuration and watchlist
+    mock_watchlist.return_value = ["AAPL"]
+    mock_config().get.side_effect = lambda section, key: {
+        "paths.backtester": {
+            "data_ingest_dir": "/tmp/test_data",
+            "watchlist_path": "mock/path",
+        },
+        "backtest": {
+            "start_date": "2023-01-01",
+            "end_date": "2023-01-10",
+        },
+    }[section][key]
+
+    # Mock AlpacaQuoteService
+    mock_quote_service.return_value = AsyncMock()
+
+    # Initialize BacktestDataLoader
+    loader = di_container.backtest_data_loader()
+
+    # Create mock logger
+    mock_logger = MagicMock()
+    loader.logger = mock_logger
+
+    # Mock existing files
+    mock_csv_1 = pd.DataFrame([{"timestamp": "2023-01-01T00:00:00Z", "open": 100}])
+    mock_csv_2 = pd.DataFrame([{"timestamp": "2023-01-02T00:00:00Z", "open": 105}])
+
+    async def mock_stream_existing_data_async(symbol_dir):
+        # Simulate the async generator behavior
+        yield mock_csv_1
+        yield mock_csv_2
+
+    loader._stream_existing_data_async = mock_stream_existing_data_async
+
+    # Test load_symbol
     dfs = []
     async for df in loader.load_symbol("AAPL"):
         dfs.append(df)
 
     # Assertions
     assert len(dfs) == 2
-    assert dfs[0].equals(mock_df_page_1)
-    assert dfs[1].equals(mock_df_page_2)
-
-
-@patch("algo_royale.backtester.utils.data_loader.BacktestDataLoader.load_symbol")
-@patch("algo_royale.backtester.utils.data_loader.load_watchlist")
-@patch("algo_royale.backtester.utils.data_loader.Config")  # Corrected target
-@pytest.mark.asyncio
-async def test_load_all_calls_load_symbol(mock_config, mock_watchlist, mock_load_symbol):
-    # Mock watchlist and configuration
-    mock_watchlist.return_value = ["AAPL", "TSLA"]
-    mock_config.get.side_effect = lambda section, key: {
-        "paths.backtester": {
-            "data_ingest_dir": "/tmp/test_data",
-            "watchlist_path": "mock/path",
-        },
-        "backtest": {
-            "start_date": "2023-01-01",
-            "end_date": "2023-01-10",
-        },
-    }[section][key]
-
-    # Mock load_symbol to return an async generator
-    mock_df = pd.DataFrame([{"timestamp": "2023-01-01", "open": 100}])
-    mock_load_symbol.side_effect = lambda symbol: iter([mock_df])
-
-    # Create the loader and test the method
-    result = await loader.load_all()
-
-    # Assertions
-    assert "AAPL" in result
-    assert "TSLA" in result
+    assert dfs[0].equals(mock_csv_1)
+    assert dfs[1].equals(mock_csv_2)

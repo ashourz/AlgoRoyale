@@ -4,7 +4,7 @@ from contextlib import contextmanager
 from algo_royale.logging.logger_singleton import Environment, LoggerSingleton, LoggerType
 
 
-logger = LoggerSingleton(LoggerType.TRADING, Environment.PRODUCTION).get_logger()
+logger = LoggerSingleton.get_instance(LoggerType.TRADING, Environment.PRODUCTION)
 
 @contextmanager
 def connect_db(create_if_not_exists=False):

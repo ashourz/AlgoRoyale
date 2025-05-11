@@ -5,7 +5,7 @@ import numpy as np
 from algo_royale.strategies.base_strategy import Strategy
 from algo_royale.logging.logger_singleton import Environment, LoggerSingleton, LoggerType
 
-logger = LoggerSingleton(LoggerType.TRADING, Environment.PRODUCTION).get_logger()
+logger = LoggerSingleton.get_instance(LoggerType.TRADING, Environment.PRODUCTION)
 
 class MovingAverageStrategy(Strategy):
     """
