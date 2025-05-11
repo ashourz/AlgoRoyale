@@ -9,13 +9,11 @@ from algo_royale.services.db.trade_signal_service import TradeSignalService
 
 
 class TestTradeSignalService(TestCase):
-    @patch("algo_royale.services.db.trade_signal_service.TradeSignalsDAO")
+    @patch("algo_royale.services.db.trade_signal_service.TradeSignalDAO")
     def setUp(self, MockTradeSignalsDAO):
         """Set up mock objects and test data."""
         self.mock_dao = MockTradeSignalsDAO.return_value
-        self.service = TradeSignalService()
-        self.service.trade_signals_dao = self.mock_dao
-
+        self.service = TradeSignalService(dao=self.mock_dao)
 
     def test_create_signal(self):
         """Test the create_signal method."""

@@ -8,10 +8,10 @@ from datetime import datetime
 
 class TestTradeService(TestCase):
 
-    @patch("algo_royale.services.db.trade_service.TradesDAO")
+    @patch("algo_royale.services.db.trade_service.TradeDAO")
     def setUp(self, MockTradesDAO):
         self.mock_dao = MockTradesDAO.return_value
-        self.service = TradeService()
+        self.service = TradeService(dao=self.mock_dao)
 
     def test_create_trade(self):
         self.service.create_trade(

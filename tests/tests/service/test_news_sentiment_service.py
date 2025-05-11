@@ -12,8 +12,7 @@ class TestNewsSentimentService(TestCase):
     def setUp(self, MockNewsSentimentDAO):
         """Set up mock objects and test data."""
         self.mock_dao = MockNewsSentimentDAO.return_value
-        self.service = NewsSentimentService()
-        self.service.news_sentiment_dao = self.mock_dao
+        self.service = NewsSentimentService(dao=self.mock_dao)
 
     def test_insert_sentiment(self):
         """Test the insert_sentiment method."""
