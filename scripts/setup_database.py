@@ -1,6 +1,6 @@
 # setup_database.py
 
-from live_trading.db.migrations.migration_manager import apply_migrations
+from db.migrations.migration_manager import apply_migrations
 from config.db_config import get_db_connection, close_connection
 
 def main():

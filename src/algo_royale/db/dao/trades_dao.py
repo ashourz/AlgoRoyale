@@ -2,7 +2,7 @@
 from decimal import Decimal
 from datetime import datetime
 from typing import List, Tuple
-from algo_royale.live_trading.db.dao.base_dao import BaseDAO
+from algo_royale.db.dao.base_dao import BaseDAO
 
 class TradesDAO(BaseDAO):
     def __init__(self):

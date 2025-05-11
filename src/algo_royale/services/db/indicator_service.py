@@ -1,7 +1,7 @@
 ## service\indicator_service.py
 from datetime import datetime
 from decimal import Decimal
-from algo_royale.live_trading.db.dao.indicators_dao import IndicatorDAO
+from algo_royale.db.dao.indicators_dao import IndicatorDAO
 
 class IndicatorService:
     def __init__(self):

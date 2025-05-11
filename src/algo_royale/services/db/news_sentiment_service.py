@@ -2,7 +2,7 @@
 from decimal import Decimal
 from datetime import datetime
 from typing import List, Tuple
-from algo_royale.live_trading.db.dao.news_sentiment_dao import NewsSentimentDAO
+from algo_royale.db.dao.news_sentiment_dao import NewsSentimentDAO
 
 class NewsSentimentService:
     def __init__(self):
