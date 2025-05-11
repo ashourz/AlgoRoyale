@@ -1,7 +1,7 @@
 ## client\alpaca_market_data\alpaca_stock_client.py
 
 from typing import List, Optional
-from algo_royale.live_trading.client.alpaca_base_client import AlpacaBaseClient
+from algo_royale.clients.alpaca.alpaca_base_client import AlpacaBaseClient
 from algo_royale.models.alpaca_market_data.alpaca_auction import AuctionResponse
 from algo_royale.models.alpaca_market_data.alpaca_bar import BarsResponse, LatestBarsResponse
 from algo_royale.models.alpaca_market_data.alpaca_condition_code import ConditionCodeMap
@@ -14,7 +14,7 @@ from alpaca.data.timeframe import TimeFrame, TimeFrameUnit
 from algo_royale.models.alpaca_market_data.alpaca_snapshot import SnapshotsResponse
 from algo_royale.models.alpaca_market_data.alpaca_trade import HistoricalTradesResponse, LatestTradesResponse
 from algo_royale.models.alpaca_market_data.enums import SnapshotFeed, Tape, TickType
-from algo_royale.live_trading.config.live_trading_config import ALPACA_PARAMS
+from algo_royale.clients.alpaca.alpaca_client_config import ALPACA_PARAMS
 
 
     

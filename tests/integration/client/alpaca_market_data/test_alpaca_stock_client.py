@@ -8,7 +8,7 @@ from algo_royale.models.alpaca_market_data.alpaca_condition_code import Conditio
 from algo_royale.models.alpaca_market_data.alpaca_quote import Quote, QuotesResponse
 from algo_royale.models.alpaca_market_data.alpaca_snapshot import SnapshotsResponse
 from algo_royale.models.alpaca_market_data.alpaca_trade import HistoricalTradesResponse, LatestTradesResponse, Trade
-from algo_royale.live_trading.client.alpaca_market_data.alpaca_stock_client import AlpacaStockClient, Tape, TickType
+from algo_royale.clients.alpaca.alpaca_market_data.alpaca_stock_client import AlpacaStockClient, Tape, TickType
 
 from algo_royale.logging.logger_singleton import Environment, LoggerSingleton, LoggerType
 

@@ -1,7 +1,7 @@
 from typing import Optional
-from algo_royale.live_trading.client.alpaca_trading.alpaca_clock_client import AlpacaClockClient
+from algo_royale.clients.alpaca.alpaca_trading.alpaca_clock_client import AlpacaClockClient
 from algo_royale.models.alpaca_trading.alpaca_clock import Clock
-from algo_royale.live_trading.client.exceptions import ClockNotFoundError
+from algo_royale.clients.alpaca.exceptions import ClockNotFoundError
 
 class AlpacaClockService:
     """Service class to interact with Alpaca's clock data, leveraging AlpacaClockClient."""

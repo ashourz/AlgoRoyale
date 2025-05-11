@@ -5,7 +5,7 @@ from algo_royale.models.alpaca_market_data.enums import ActiveStockFilter
 from algo_royale.models.alpaca_market_data.alpaca_active_stock import MostActiveStocksResponse
 from algo_royale.models.alpaca_market_data.alpaca_market_mover import MarketMoversResponse
 
-from algo_royale.live_trading.client.alpaca_market_data.alpaca_screener_client import AlpacaScreenerClient
+from algo_royale.clients.alpaca.alpaca_market_data.alpaca_screener_client import AlpacaScreenerClient
 
 
 class AlpacaScreenerService:

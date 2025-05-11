@@ -4,8 +4,8 @@ from typing import List, Optional
 
 from algo_royale.models.alpaca_market_data.alpaca_corporate_action import CorporateActionResponse
 from algo_royale.models.alpaca_market_data.enums import CorporateActions
-from algo_royale.live_trading.client.alpaca_base_client import AlpacaBaseClient
-from algo_royale.live_trading.config.live_trading_config import ALPACA_PARAMS
+from algo_royale.clients.alpaca.alpaca_base_client import AlpacaBaseClient
+from algo_royale.clients.alpaca.alpaca_client_config import ALPACA_PARAMS
 from datetime import datetime
 from alpaca.common.enums import Sort
 

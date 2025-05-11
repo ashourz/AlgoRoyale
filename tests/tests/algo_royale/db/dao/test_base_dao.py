@@ -1,7 +1,7 @@
 # tests/db/dao/test_base_dao.py
 from unittest import TestCase
 from unittest.mock import MagicMock, patch
-from algo_royale.db.dao.base_dao import BaseDAO
+from algo_royale.clients.db.dao.base_dao import BaseDAO
 
 class TestBaseDAO(TestCase):
 

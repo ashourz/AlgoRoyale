@@ -1,9 +1,9 @@
 ## client\alpaca_market_data\alpaca_stream_client.py
 import asyncio
 import json
-from algo_royale.live_trading.client.alpaca_base_client import AlpacaBaseClient
+from algo_royale.clients.alpaca.alpaca_base_client import AlpacaBaseClient
 from algo_royale.models.alpaca_market_data.enums import DataFeed
-from algo_royale.live_trading.config.live_trading_config import ALPACA_PARAMS
+from algo_royale.clients.alpaca.alpaca_client_config import ALPACA_PARAMS
 import websockets
 
 

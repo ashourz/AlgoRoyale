@@ -3,7 +3,7 @@
 import pytest
 from datetime import datetime, timezone
 from algo_royale.models.alpaca_market_data.alpaca_news import News, NewsResponse
-from algo_royale.live_trading.client.alpaca_market_data.alpaca_news_client import AlpacaNewsClient
+from algo_royale.clients.alpaca.alpaca_market_data.alpaca_news_client import AlpacaNewsClient
 
 from algo_royale.logging.logger_singleton import Environment, LoggerSingleton, LoggerType
 

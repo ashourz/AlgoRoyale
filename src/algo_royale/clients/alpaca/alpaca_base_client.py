@@ -3,13 +3,13 @@ import asyncio
 from enum import Enum
 from datetime import date, datetime
 from typing import Any, Dict, Optional
-from algo_royale.live_trading.client.exceptions import (
+from algo_royale.clients.alpaca.exceptions import (
     AlpacaAPIException, AlpacaBadRequestException, AlpacaInvalidHeadersException,
     AlpacaResourceNotFoundException, AlpacaServerErrorException,
     AlpacaTooManyRequestsException, AlpacaUnauthorizedException,
     AlpacaUnprocessableException
 )
-from algo_royale.live_trading.config.live_trading_config import ALPACA_PARAMS, ALPACA_SECRETS
+from algo_royale.clients.alpaca.alpaca_client_config import ALPACA_PARAMS, ALPACA_SECRETS
 import httpx
 from algo_royale.logging.logger_singleton import Environment, LoggerSingleton, LoggerType
 import time

@@ -1,7 +1,7 @@
 from typing import Optional, List
-from algo_royale.live_trading.client.alpaca_trading.alpaca_assets_client import AlpacaAssetsClient
+from algo_royale.clients.alpaca.alpaca_trading.alpaca_assets_client import AlpacaAssetsClient
 from algo_royale.models.alpaca_trading.alpaca_asset import Asset
-from algo_royale.live_trading.client.exceptions import AssetNotFoundError
+from algo_royale.clients.alpaca.exceptions import AssetNotFoundError
 
 class AlpacaAssetService:
     """Service class to interact with Alpaca's assets data, leveraging AlpacaAssetsClient."""

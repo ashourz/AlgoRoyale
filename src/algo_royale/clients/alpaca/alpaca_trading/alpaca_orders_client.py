@@ -4,9 +4,9 @@ from datetime import datetime
 from typing import List, Optional
 from algo_royale.models.alpaca_trading.alpaca_order import DeleteOrdersResponse, Order, OrderListResponse, StopLoss, TakeProfit
 from algo_royale.models.alpaca_trading.enums import OrderClass, OrderSide, OrderStatusFilter, OrderType, PositionIntent, SortDirection, TimeInForce
-from algo_royale.live_trading.client.alpaca_base_client import AlpacaBaseClient
-from algo_royale.live_trading.client.exceptions import AlpacaInvalidHeadersException, AlpacaUnprocessableException, InsufficientBuyingPowerOrSharesError, MissingParameterError, ParameterConflictError, UnprocessableOrderException
-from algo_royale.live_trading.config.live_trading_config import ALPACA_TRADING_URL
+from algo_royale.clients.alpaca.alpaca_base_client import AlpacaBaseClient
+from algo_royale.clients.alpaca.exceptions import AlpacaInvalidHeadersException, AlpacaUnprocessableException, InsufficientBuyingPowerOrSharesError, MissingParameterError, ParameterConflictError, UnprocessableOrderException
+from algo_royale.clients.alpaca.alpaca_client_config import ALPACA_TRADING_URL
 
 class AlpacaOrdersClient(AlpacaBaseClient):
     """Singleton class to interact with Alpaca's API for orders data.""" 

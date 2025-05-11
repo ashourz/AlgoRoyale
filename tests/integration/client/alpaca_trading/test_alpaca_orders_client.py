@@ -3,8 +3,8 @@
 from datetime import datetime
 from algo_royale.models.alpaca_trading.alpaca_order import DeleteOrderStatus, DeleteOrdersResponse, Order, OrderListResponse
 from algo_royale.models.alpaca_trading.enums import OrderSide, OrderStatusFilter, OrderType, SortDirection, TimeInForce
-from algo_royale.live_trading.client.alpaca_trading.alpaca_orders_client import AlpacaOrdersClient
-from algo_royale.live_trading.client.exceptions import InsufficientBuyingPowerOrSharesError, UnprocessableOrderException
+from algo_royale.clients.alpaca.alpaca_trading.alpaca_orders_client import AlpacaOrdersClient
+from algo_royale.clients.alpaca.exceptions import InsufficientBuyingPowerOrSharesError, UnprocessableOrderException
 import pytest
 
 from algo_royale.logging.logger_singleton import Environment, LoggerSingleton, LoggerType

@@ -1,5 +1,5 @@
 from typing import Callable, List
-from live_trading.client.alpaca_market_data.alpaca_stream_client import AlpacaStreamClient
+from clients.alpaca.alpaca_market_data.alpaca_stream_client import AlpacaStreamClient
 from models.alpaca_market_data.enums import DataFeed
 
 

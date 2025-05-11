@@ -1,5 +1,5 @@
 ## db\dao\stock_data_dao.py
-from algo_royale.db.dao.base_dao import BaseDAO
+from algo_royale.clients.db.dao.base_dao import BaseDAO
 from decimal import Decimal as Decimal
 from datetime import datetime
 from typing import List, Optional, Tuple

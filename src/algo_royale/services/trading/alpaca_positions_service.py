@@ -2,8 +2,8 @@
 
 from typing import Optional
 from algo_royale.models.alpaca_trading.alpaca_position import ClosedPositionList, PositionList
-from algo_royale.live_trading.client.alpaca_trading.alpaca_positions_client import AlpacaPositionsClient
-from algo_royale.live_trading.client.exceptions import MissingParameterError, ParameterConflictError
+from algo_royale.clients.alpaca.alpaca_trading.alpaca_positions_client import AlpacaPositionsClient
+from algo_royale.clients.alpaca.exceptions import MissingParameterError, ParameterConflictError
 
 class AlpacaPositionsService:
     """Service class to manage positions data and actions on Alpaca API."""

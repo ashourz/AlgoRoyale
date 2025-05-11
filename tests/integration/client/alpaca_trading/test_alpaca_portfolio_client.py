@@ -2,7 +2,7 @@
 
 from datetime import datetime
 from algo_royale.models.alpaca_trading.alpaca_portfolio import PortfolioPerformance
-from algo_royale.live_trading.client.alpaca_trading.alpaca_portfolio_client import AlpacaPortfolioClient
+from algo_royale.clients.alpaca.alpaca_trading.alpaca_portfolio_client import AlpacaPortfolioClient
 import pytest
 
 from algo_royale.logging.logger_singleton import Environment, LoggerSingleton, LoggerType

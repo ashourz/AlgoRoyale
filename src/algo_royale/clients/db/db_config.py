@@ -1,13 +1,20 @@
 # config/db_config.py
 
 import time
-from algo_royale.live_trading.config.live_trading_config import DB_PARAMS, DB_SECRETS
+from algo_royale.config import config, secrets
+from algo_royale.clients.alpaca.alpaca_client_config import DB_PARAMS, DB_SECRETS
 import psycopg2
 from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
 
 from algo_royale.logging.logger_singleton import Environment, LoggerSingleton, LoggerType
 
 logger = LoggerSingleton(LoggerType.TRADING, Environment.PRODUCTION)
+
+DB_PARAMS = config.get_section("database")
+DB_SECRETS = secrets.get_section("database")
+
+DB_USER_PARAMS = config.get_section("dbuser")
+DB_USER_SECRETS = secrets.get_section("dbuser")
 
 def get_db_connection(retries=3, delay=2, create_if_not_exists=False):
     """

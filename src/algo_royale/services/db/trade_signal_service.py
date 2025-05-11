@@ -1,7 +1,7 @@
 ## service\trade_signal_service.py
 from datetime import datetime
 from decimal import Decimal
-from algo_royale.db.dao.trade_signals_dao import TradeSignalsDAO
+from algo_royale.clients.db.dao.trade_signals_dao import TradeSignalsDAO
 
 class TradeSignalService:
     def __init__(self):

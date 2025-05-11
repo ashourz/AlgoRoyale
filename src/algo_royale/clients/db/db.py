@@ -1,4 +1,4 @@
-from algo_royale.live_trading.config.db_config import close_connection, get_db_connection
+from algo_royale.clients.db.db_config import close_connection, get_db_connection
 from contextlib import contextmanager
 
 from algo_royale.logging.logger_singleton import Environment, LoggerSingleton, LoggerType

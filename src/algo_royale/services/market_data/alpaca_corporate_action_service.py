@@ -4,7 +4,7 @@ from datetime import datetime
 from typing import List, Optional
 from alpaca.common.enums import Sort
 
-from algo_royale.live_trading.client.alpaca_market_data.alpaca_corporate_action_client import AlpacaCorporateActionClient
+from algo_royale.clients.alpaca.alpaca_market_data.alpaca_corporate_action_client import AlpacaCorporateActionClient
 from algo_royale.models.alpaca_market_data.alpaca_corporate_action import CorporateActionResponse
 from algo_royale.models.alpaca_market_data.enums import CorporateActions
 

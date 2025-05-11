@@ -1,6 +1,6 @@
 from typing import List, Optional
 from datetime import datetime
-from algo_royale.live_trading.client.alpaca_trading.alpaca_orders_client import AlpacaOrdersClient
+from algo_royale.clients.alpaca.alpaca_trading.alpaca_orders_client import AlpacaOrdersClient
 from algo_royale.models.alpaca_trading.alpaca_order import DeleteOrdersResponse, OrderListResponse, Order, StopLoss, TakeProfit
 from algo_royale.models.alpaca_trading.enums import OrderClass, OrderSide, OrderStatusFilter, OrderType, PositionIntent, SortDirection, TimeInForce
 

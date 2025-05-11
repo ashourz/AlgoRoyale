@@ -2,7 +2,7 @@
 
 from datetime import datetime
 from typing import List, Optional, Union
-from algo_royale.live_trading.client.alpaca_market_data.alpaca_news_client import AlpacaNewsClient
+from algo_royale.clients.alpaca.alpaca_market_data.alpaca_news_client import AlpacaNewsClient
 from alpaca.common.enums import Sort
 
 from algo_royale.models.alpaca_market_data.alpaca_news import NewsResponse
