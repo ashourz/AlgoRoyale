@@ -6,7 +6,7 @@ from algo_royale.config.config import Config
 from alpaca.data.enums import DataFeed
 import pandas as pd
 from algo_royale.services.market_data.alpaca_stock_service import AlpacaQuoteService
-from algo_royale.backtester.utils.watchlist import load_watchlist
+from algo_royale.backtester.i_data_injest.watchlist import load_watchlist
 import dateutil.parser
 from alpaca.common.enums import SupportedCurrencies
 
