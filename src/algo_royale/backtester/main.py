@@ -11,7 +11,7 @@ async def async_cli(coordinator: PipelineCoordinator):
 def cli():
     """Synchronous CLI wrapper"""
     from algo_royale.di.container import di_container  # Import here to avoid circular dependency
-    coordinator = di_container.backtest_runner() //TODO: fix this to coordinator
+    coordinator = di_container.pipeline_coordinator() 
     asyncio.run(async_cli(coordinator))
 
 if __name__ == "__main__":

@@ -1,8 +1,8 @@
 class ConfigValidator:
-    def __init__(self, default_config=None):
+    def __init__(self):
         """Initialize the ConfigValidator with a default configuration."""
         # Default configuration for data columns
-        self.default_config = default_config or {
+        self.default_config ={
             'data_columns': {
                 'open_price': 'open',
                 'high_price': 'high',

@@ -1,6 +1,13 @@
 from algo_royale.backtester.iv_backtest.strategy_backtest_executor import StrategyBacktestExecutor
+from algo_royale.backtester.pipeline.config_validator import ConfigValidator
+from algo_royale.backtester.pipeline.data_preparer.async_data_preparer import AsyncDataPreparer
+from algo_royale.backtester.pipeline.data_preparer.data_preparer import DataPreparer
+from algo_royale.backtester.pipeline.data_stream.normalized_data_stream_factory import NormalizedDataStreamFactory
+from algo_royale.backtester.pipeline.pipeline_coordinator import PipelineCoordinator
+from algo_royale.backtester.pipeline.strategy_factory import StrategyFactory
 from algo_royale.backtester.trash.main import BacktestRunner
 from algo_royale.backtester.i_data_injest.market_data_loader import MarketDataLoader
+from algo_royale.backtester.utils.file_formatter import FileFormatter
 from algo_royale.backtester.utils.strategy_results_write import StrategyResultsWriter
 from algo_royale.clients.alpaca.alpaca_client_config import TradingConfig
 from algo_royale.clients.alpaca.alpaca_market_data.alpaca_stream_client import AlpacaStreamClient
@@ -204,6 +211,26 @@ class DIContainer(containers.DeclarativeContainer):
         alpaca_stock_client = alpaca_stock_client
     )
     
+    ## Backtester
+    file_formatter = providers.Singleton(FileFormatter)
+        
+    data_preparer = providers.Singleton(
+        DataPreparer,
+        logger=logger_backtest_prod
+    )
+    
+    async_data_preparer = providers.Singleton(
+        AsyncDataPreparer,
+        logger=logger_backtest_prod
+    )
+    
+    normalized_data_stream_factory = providers.Singleton(
+        NormalizedDataStreamFactory,
+        data_preparer=data_preparer,
+        logger=logger_backtest_prod
+    )
+        
+
     market_data_loader = providers.Singleton(
         MarketDataLoader,
         config=config,
@@ -214,7 +241,7 @@ class DIContainer(containers.DeclarativeContainer):
     strategy_results_writer = providers.Singleton(
         StrategyResultsWriter,
         config=config,
-        logger=logger_backtest_prod,
+        logger=logger_backtest_prod
     )
     
     strategy_backtest_executor = providers.Singleton(
@@ -233,6 +260,20 @@ class DIContainer(containers.DeclarativeContainer):
     backtest_dashboard = providers.Singleton(
         BacktestDashboard,
         config=config,
+    )
+    
+    config_validator = providers.Singleton(ConfigValidator)
+    
+    strategy_factory = providers.Singleton(StrategyFactory)
+        
+    pipeline_coordinator = providers.Singleton(
+        PipelineCoordinator,
+        data_loader=market_data_loader,
+        backtest_executor=strategy_backtest_executor,
+        data_preparer=async_data_preparer,
+        logger=logger_backtest_prod,
+        config_validator=config_validator,
+        strategy_factory=strategy_factory
     )
     
     

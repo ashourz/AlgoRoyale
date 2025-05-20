@@ -3,12 +3,14 @@ from pathlib import Path
 from typing import Union, List
 from enum import Enum
 
-from algo_royale.backtester.a_pipeline.enums import DataExtension, PipelineStage
+from algo_royale.backtester.pipeline.enums.data_extension import DataExtension
+from algo_royale.backtester.pipeline.enums.pipeline_stage import PipelineStage
+from algo_royale.utils.path_utils import get_project_root
 
 
 class FileFormatter:
-    def __init__(self, base_dir: Union[str, Path]):
-        self.base_dir = Path(base_dir)
+    def __init__(self):
+        self.base_dir = get_project_root()
         self.base_dir.mkdir(parents=True, exist_ok=True)
 
     def get_stage_path(self, stage: PipelineStage) -> Path:

@@ -1,7 +1,6 @@
 import json
 import itertools
 from algo_royale.strategies.moving_average_strategy import MovingAverageStrategy
-# from algo_royale.strategies.momentum_strategy import MomentumStrategy
 
 class StrategyFactory:
     """
