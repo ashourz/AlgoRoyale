@@ -10,7 +10,7 @@ from algo_royale.backtester.utils.watchlist import load_watchlist
 import dateutil.parser
 from alpaca.common.enums import SupportedCurrencies
 
-class BacktestDataLoader:
+class MarketDataLoader:
     def __init__(self, config: Config, logger: Logger, quote_service: AlpacaQuoteService):
         try:
             # Initialize directories and services

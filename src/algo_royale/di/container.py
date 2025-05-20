@@ -1,7 +1,7 @@
-from algo_royale.backtester.core.engine import BacktestEngine
+from algo_royale.backtester.utils.strategy_backtest_executor import StrategyBacktestExecutor
 from algo_royale.backtester.main import BacktestRunner
-from algo_royale.backtester.utils.data_loader import BacktestDataLoader
-from algo_royale.backtester.utils.results_saver import BacktestResultsSaver
+from algo_royale.backtester.utils.market_data_loader import MarketDataLoader
+from algo_royale.backtester.utils.strategy_results_write import StrategyResultsWriter
 from algo_royale.clients.alpaca.alpaca_client_config import TradingConfig
 from algo_royale.clients.alpaca.alpaca_market_data.alpaca_stream_client import AlpacaStreamClient
 from algo_royale.clients.alpaca.alpaca_market_data.alpaca_screener_client import AlpacaScreenerClient
@@ -204,29 +204,29 @@ class DIContainer(containers.DeclarativeContainer):
         alpaca_stock_client = alpaca_stock_client
     )
     
-    backtest_data_loader = providers.Singleton(
-        BacktestDataLoader,
+    market_data_loader = providers.Singleton(
+        MarketDataLoader,
         config=config,
         logger=logger_backtest_prod,
         quote_service = alpaca_quote_service
     )
     
-    backtest_results_saver = providers.Singleton(
-        BacktestResultsSaver,
+    strategy_results_writer = providers.Singleton(
+        StrategyResultsWriter,
         config=config,
         logger=logger_backtest_prod,
     )
     
-    backtest_engine = providers.Singleton(
-        BacktestEngine,
-        results_saver=backtest_results_saver,
+    strategy_backtest_executor = providers.Singleton(
+        StrategyBacktestExecutor,
+        results_saver=strategy_results_writer,
         logger= logger_backtest_prod
     )
      
     backtest_runner = providers.Singleton(
         BacktestRunner,
-        data_loader=backtest_data_loader,
-        engine = backtest_engine,
+        data_loader=market_data_loader,
+        engine = strategy_backtest_executor,
         logger= logger_backtest_prod
     )
     

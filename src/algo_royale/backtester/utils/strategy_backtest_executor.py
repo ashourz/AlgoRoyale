@@ -3,11 +3,11 @@ from logging import Logger
 from pathlib import Path
 from typing import Callable, Dict, List, AsyncIterator, Union
 import pandas as pd
-from algo_royale.backtester.utils.results_saver import BacktestResultsSaver
+from algo_royale.backtester.utils.strategy_results_write import StrategyResultsWriter
 from algo_royale.strategies.base_strategy import Strategy
 
-class BacktestEngine:
-    def __init__(self, results_saver: BacktestResultsSaver, logger: Logger):
+class StrategyBacktestExecutor:
+    def __init__(self, results_saver: StrategyResultsWriter, logger: Logger):
         self.logger = logger
         self.results_saver = results_saver
         self._processed_pairs = set()

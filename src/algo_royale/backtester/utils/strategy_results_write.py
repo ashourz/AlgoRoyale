@@ -7,7 +7,7 @@ from algo_royale.config.config import Config
 import pandas as pd
 from math import ceil
 
-class BacktestResultsSaver:
+class StrategyResultsWriter:
     """
     Handles saving backtest results with configurable directory structure.
     Results directory is resolved from configuration file.
