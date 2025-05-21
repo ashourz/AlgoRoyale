@@ -238,7 +238,8 @@ class DIContainer(containers.DeclarativeContainer):
         MarketDataLoader,
         config=config,
         logger=logger_backtest_prod,
-        quote_service = alpaca_quote_service
+        quote_service = alpaca_quote_service,
+        pipeline_data_manager = pipeline_data_manager
     )
     
     strategy_results_writer = providers.Singleton(

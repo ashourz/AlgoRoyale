@@ -45,15 +45,29 @@ class PipelineDataManager:
         return done_file.exists()
     
     def mark_stage(self, stage: PipelineStage, statusExtension: DataExtension) -> None:
-        status_file = self.get_stage_path(stage) / f"{stage.value}{statusExtension.value}"
+        stage_path = self.get_stage_path(stage)
+        # Remove any existing marker files for this stage
+        for ext in DataExtension:
+            marker_file = stage_path / f"{stage.value}{ext.value}"
+            if marker_file.exists():
+                marker_file.unlink()
+        # Create the new marker file
+        status_file = stage_path / f"{stage.value}{statusExtension.value}"
         status_file.touch()
         
     def mark_symbol_stage(self, stage: PipelineStage, strategy_name: Optional[str], symbol: str, statusExtension: DataExtension) -> None:
         if strategy_name:
-            status_file = self.get_directory_path(stage, strategy_name, symbol) / f"{stage.value}{statusExtension.value}"
+            stage_path = self.get_directory_path(stage, strategy_name, symbol)
         else:
             # If no strategy name is provided, use the symbol as the directory
-            status_file = self.get_directory_path(stage, None, symbol) / f"{stage.value}{statusExtension.value}"
+            stage_path = self.get_directory_path(stage, None, symbol)
+        # Remove any existing marker files for this stage
+        for ext in DataExtension:
+            marker_file = stage_path / f"{stage.value}{ext.value}"
+            if marker_file.exists():
+                marker_file.unlink()
+        # Create the new marker file
+        status_file = stage_path / f"{stage.value}{statusExtension.value}"  
         status_file.touch()
         
     def file_exists(self, stage: PipelineStage, strategy_name: Optional[str], symbol: str, filename: str, extension: DataExtension) -> bool:

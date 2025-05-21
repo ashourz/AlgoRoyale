@@ -2,6 +2,8 @@ import asyncio
 from logging import Logger
 from pathlib import Path
 from typing import AsyncIterator, Callable, Dict, Optional
+from algo_royale.backtester.pipeline.data_manage.data_extension import DataExtension
+from algo_royale.backtester.pipeline.data_manage.pipeline_stage import PipelineStage
 from algo_royale.config.config import Config
 from alpaca.data.enums import DataFeed
 import pandas as pd
@@ -9,12 +11,12 @@ from algo_royale.services.market_data.alpaca_stock_service import AlpacaQuoteSer
 from algo_royale.backtester.i_data_injest.watchlist import load_watchlist
 import dateutil.parser
 from alpaca.common.enums import SupportedCurrencies
+from algo_royale.backtester.pipeline.data_manage import PipelineDataManager
 
 class MarketDataLoader:
-    def __init__(self, config: Config, logger: Logger, quote_service: AlpacaQuoteService):
+    def __init__(self, config: Config, logger: Logger, quote_service: AlpacaQuoteService, pipeline_data_manager: PipelineDataManager):
         try:
             # Initialize directories and services
-            data_ingest_dir = config.get("paths.backtester", "data_ingest_dir")
             watchlist_path_string = config.get("paths.backtester", "watchlist_path")
             start_date = config.get("backtest", "start_date")
             end_date = config.get("backtest", "end_date")
@@ -23,10 +25,7 @@ class MarketDataLoader:
                 raise ValueError("Start date or end date not specified in config")
             if not watchlist_path_string:
                 raise ValueError("Watchlist path not specified in config")
-            if not data_ingest_dir:
-                raise ValueError("Data ingest directory not specified in config")
-            
-            self.data_dir = Path(data_ingest_dir)
+
             self.watchlist = load_watchlist(watchlist_path_string)
             self.start_date = dateutil.parser.parse(start_date)
             self.end_date = dateutil.parser.parse(end_date)
@@ -34,22 +33,26 @@ class MarketDataLoader:
             #Ensure watchlist is not empty
             if not self.watchlist:
                 raise ValueError("Watchlist is empty")
-            # Ensure data directory exists
-            if not self.data_dir.exists():
-                raise FileNotFoundError(f"Data directory {self.data_dir} does not exist")
-            
-            self.data_dir.mkdir(parents=True, exist_ok=True)
+
             self.quote_service = quote_service
 
+            self.pipeline_data_manager = pipeline_data_manager
+            self.pipeline_stage = PipelineStage.DATA_INGEST
+            
             # Initialize logger
             self.logger = logger
-            self.logger.info(f"BacktestDataLoader initialized with data directory: {self.data_dir}")
+            self.logger.info(f"BacktestDataLoader initialized")
+
 
         except KeyError as e:
             raise ValueError(f"Missing required configuration key: {e}")
         except Exception as e:
             raise RuntimeError(f"Failed to initialize BacktestDataLoader: {e}")
             
+    def _get_data_ingest_symbol_dir(self, symbol: str) -> Path:
+        """Get the directory for a symbol in the data ingest stage"""
+        return self.pipeline_data_manager.get_directory_path(stage=self.pipeline_stage, symbol=symbol)
+    
     async def load_all(self) -> Dict[str, Callable[[], AsyncIterator[pd.DataFrame]]]:
         """Returns async data generators with automatic data fetching"""
         self.logger.info("Starting async data loading")
@@ -73,7 +76,7 @@ class MarketDataLoader:
         """Ensure we have data for all symbols in watchlist"""
         tasks = []
         for symbol in self.watchlist:
-            symbol_dir = self.data_dir / symbol
+            symbol_dir = self._get_data_ingest_symbol_dir(symbol = symbol)
             if not self._has_existing_data(symbol_dir):
                 tasks.append(self._fetch_and_save_symbol(symbol))
         
@@ -91,14 +94,19 @@ class MarketDataLoader:
         """Check if valid data exists for a symbol"""
         if not symbol_dir.exists():
             return False
-        return any(symbol_dir.glob("*.csv"))
+        return any(symbol_dir.iterdir())
 
     async def load_symbol(self, symbol: str) -> AsyncIterator[pd.DataFrame]:
         """Async generator yielding DataFrames, fetching data if needed"""
-        symbol_dir = self.data_dir / symbol
+        symbol_dir = self._get_data_ingest_symbol_dir(symbol = symbol)
         
         # First ensure we have data
         if not await self._ensure_symbol_data_exists(symbol):
+            self.pipeline_data_manager.mark_symbol_stage(
+                stage=self.pipeline_stage,
+                symbol=symbol,
+                statusExtension=DataExtension.ERROR
+            )
             raise ValueError(f"No data available for {symbol}")
         
         # Then stream the data
@@ -107,14 +115,14 @@ class MarketDataLoader:
 
     async def _ensure_symbol_data_exists(self, symbol: str) -> bool:
         """Ensure data exists for a specific symbol"""
-        symbol_dir = self.data_dir / symbol
+        symbol_dir = self._get_data_ingest_symbol_dir(symbol = symbol)
         if not self._has_existing_data(symbol_dir):
             self.logger.info(f"No existing data for {symbol}, fetching...")
             return await self._fetch_and_save_symbol(symbol)
         return True
 
     async def _stream_existing_data_async(self, symbol_dir: Path) -> AsyncIterator[pd.DataFrame]:
-        """Async version of streaming existing data"""
+        """Async generator to stream existing data pages for a symbol"""
         pages = sorted(
             symbol_dir.glob("*.csv"),
             key=lambda x: int(x.stem.split('_')[-1])
@@ -138,7 +146,7 @@ class MarketDataLoader:
 
     async def _fetch_and_save_symbol(self, symbol: str) -> bool:
         """Fetch and save data for a symbol, returning success status"""
-        symbol_dir = self.data_dir / symbol
+        symbol_dir = self._get_data_ingest_symbol_dir(symbol = symbol)
         symbol_dir.mkdir(exist_ok=True)
         
         page_count = 0  # Initialize page_count to avoid unbound error
@@ -190,6 +198,12 @@ class MarketDataLoader:
                     break
             
             self.logger.info(f"Finished fetching {symbol}: {page_count} pages, {total_rows} rows")
+            # Mark the symbol stage as done
+            self.pipeline_data_manager.mark_symbol_stage(
+                stage=self.pipeline_stage,
+                symbol=symbol,
+                statusExtension=DataExtension.DONE
+            )
             return True
             
         except Exception as e:
