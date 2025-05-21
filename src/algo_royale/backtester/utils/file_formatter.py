@@ -3,8 +3,8 @@ from pathlib import Path
 from typing import Union, List
 from enum import Enum
 
-from algo_royale.backtester.pipeline.enums.data_extension import DataExtension
-from algo_royale.backtester.pipeline.enums.pipeline_stage import PipelineStage
+from algo_royale.backtester.pipeline.data_manage.data_extension import DataExtension
+from algo_royale.backtester.pipeline.data_manage.pipeline_stage import PipelineStage
 from algo_royale.utils.path_utils import get_project_root
 
 

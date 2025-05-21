@@ -10,3 +10,7 @@ def get_project_root() -> Path:
         if current.parent == current:  # Reached filesystem root
             raise FileNotFoundError("Could not find pyproject.toml in any parent directory!")
         current = current.parent  # Go up one level
+        
+def get_data_dir() -> Path:
+    """Get the data directory path."""
+    return get_project_root() / "data"
