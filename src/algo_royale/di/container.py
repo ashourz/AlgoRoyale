@@ -1,6 +1,7 @@
 from algo_royale.backtester.iv_backtest.strategy_backtest_executor import StrategyBacktestExecutor
 from algo_royale.backtester.pipeline.config_validator import ConfigValidator
 from algo_royale.backtester.pipeline.data_preparer.async_data_preparer import AsyncDataPreparer
+from algo_royale.backtester.pipeline.data_manage.pipeline_data_manager import PipelineDataManager
 from algo_royale.backtester.pipeline.data_preparer.data_preparer import DataPreparer
 from algo_royale.backtester.pipeline.data_stream.normalized_data_stream_factory import NormalizedDataStreamFactory
 from algo_royale.backtester.pipeline.pipeline_coordinator import PipelineCoordinator
@@ -212,8 +213,12 @@ class DIContainer(containers.DeclarativeContainer):
     )
     
     ## Backtester
+    pipeline_data_manager = providers.Singleton(
+        PipelineDataManager,
+    )
+    
     file_formatter = providers.Singleton(FileFormatter)
-        
+    
     data_preparer = providers.Singleton(
         DataPreparer,
         logger=logger_backtest_prod
