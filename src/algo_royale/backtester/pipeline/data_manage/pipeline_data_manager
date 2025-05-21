@@ -2,8 +2,8 @@ import os
 from pathlib import Path
 from typing import Any, Optional
 
-from algo_royale.backtester.pipeline.enums.pipeline_stage import PipelineStage
-from algo_royale.backtester.pipeline.enums.data_extension import DataExtension
+from algo_royale.backtester.pipeline.data_manage.data_extension import DataExtension
+from algo_royale.backtester.pipeline.data_manage.pipeline_stage import PipelineStage
 from algo_royale.utils.path_utils import get_data_dir
 
 class PipelineDataManager:
@@ -21,6 +21,12 @@ class PipelineDataManager:
         # If no strategy name is provided, use the symbol as the directory
         return self.base_dir / stage.value / symbol / f"{filename}{extension.value}"
 
+    def get_directory_path(self, stage: PipelineStage, strategy_name: Optional[str], symbol: str) -> Path:
+        if strategy_name:
+            return self.base_dir / stage.value / strategy_name / symbol
+        # If no strategy name is provided, use the symbol as the directory
+        return self.base_dir / stage.value / symbol
+    
     def file_exists(self, stage: PipelineStage, strategy_name: Optional[str], symbol: str, filename: str, extension: DataExtension) -> bool:
         if strategy_name:
             return self.get_file_path(stage, strategy_name, symbol, filename, extension).exists()
@@ -68,20 +74,12 @@ class PipelineDataManager:
             os.remove(path)
             
     def list_files(self, stage: PipelineStage, strategy_name: Optional[str], symbol: str) -> list:
-        if strategy_name:
-            path = self.get_file_path(stage, strategy_name, symbol, "", DataExtension.CSV)
-        else:
-            # If no strategy name is provided, use the symbol as the directory
-            path = self.get_file_path(stage, symbol, "", DataExtension.CSV)
+        path = self.get_directory_path(stage, strategy_name, symbol)
         # List all files in the directory
         return [f for f in path.parent.iterdir() if f.is_file()]    
     
     def clear_directory(self, stage: PipelineStage, strategy_name: Optional[str], symbol: str) -> None:
-        if strategy_name:
-            path = self.base_dir / stage.value / strategy_name / symbol
-        else:
-            # If no strategy name is provided, use the symbol as the directory
-            path = self.base_dir / stage.value / symbol
+        path = self.get_directory_path(stage, strategy_name, symbol)
         # Check if the directory exists before trying to clear it
         if not path.exists():
             return
