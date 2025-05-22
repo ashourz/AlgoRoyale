@@ -1,16 +1,11 @@
 import asyncio
 from logging import Logger
 from pathlib import Path
-from typing import AsyncIterator, Callable, Dict, Optional
-from algo_royale.backtester.pipeline.data_manage.data_extension import DataExtension
+from typing import AsyncIterator, Callable, Dict
 from algo_royale.backtester.pipeline.data_manage.pipeline_stage import PipelineStage
 from algo_royale.config.config import Config
-from alpaca.data.enums import DataFeed
 import pandas as pd
-from algo_royale.services.market_data.alpaca_stock_service import AlpacaQuoteService
 from algo_royale.backtester.i_data_injest.watchlist import load_watchlist
-import dateutil.parser
-from alpaca.common.enums import SupportedCurrencies
 from algo_royale.backtester.pipeline.data_manage import PipelineDataManager
 
 class MarketDataLoader:

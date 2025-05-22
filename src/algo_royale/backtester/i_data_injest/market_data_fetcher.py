@@ -1,7 +1,7 @@
 import asyncio
 from logging import Logger
 from pathlib import Path
-from typing import AsyncIterator, Callable, Dict, Optional
+from typing import Optional
 from algo_royale.backtester.pipeline.data_manage.data_extension import DataExtension
 from algo_royale.backtester.pipeline.data_manage.pipeline_stage import PipelineStage
 from algo_royale.config.config import Config
