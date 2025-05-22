@@ -25,34 +25,3 @@ class PipelineStage(str, Enum):
     STRATEGY_SELECTION = "strategy_selection" #Selecting the best strategy based on performance metrics
     REPORTING = "reporting" #Generating reports and visualizations for analysis
     DEPLOYMENT = "deployment" #Deploying the selected strategy for live trading
-    
-    
-class StageMarker(str, Enum):
-    """Markers for directory status at each pipeline stage."""
-    INGESTED = ".ingested"
-    PREPARED = ".prepared"
-    BACKTESTED = ".backtested"
-    OPTIMIZED = ".optimized"
-    SELECTED = ".selected"
-    DEPLOYED = ".deployed"
-    DONE = ".done"
-    # Error markers for each stage
-    ERROR_INGEST = ".error.ingest"
-    ERROR_PREPARE = ".error.prepare"
-    ERROR_BACKTEST = ".error.backtest"
-    ERROR_OPTIMIZE = ".error.optimize"
-    ERROR_SELECT = ".error.select"
-    ERROR_DEPLOY = ".error.deploy"
-    ERROR_UNKNOWN = ".error.unknown"
-
-class DataFileExtension(str, Enum):
-    """Extensions for files at each pipeline stage."""
-    RAW = ".raw.csv"
-    CLEANED = ".cleaned.csv"
-    BACKTEST = ".backtest.csv"
-    OPTIMIZED = ".optimized.csv"
-    FINAL = ".final.csv"
-    # Error markers for files
-    ERROR_CORRUPT = ".error.corrupt"
-    ERROR_MISSING = ".error.missing"
-    ERROR_FORMAT = ".error.format"

@@ -106,6 +106,19 @@ class PipelineDataManager:
     def update_file(self, stage: PipelineStage, strategy_name: Optional[str], symbol: str, filename: str, extension: DataExtension, data: Any, mode: str = "a") -> None:
         self.write_file(stage, strategy_name, symbol, filename, extension, data, mode=mode)
 
+    def write_error_file(self, stage: PipelineStage, strategy_name: Optional[str], symbol: str, filename: str, error_message: str) -> None:
+        """
+        Write an error message to a .error.txt file for the given stage, strategy, symbol, and filename.
+        """
+        if strategy_name:
+            dir_path = self.get_directory_path(stage, strategy_name, symbol)
+        else:
+            dir_path = self.get_directory_path(stage, None, symbol)
+        dir_path.mkdir(parents=True, exist_ok=True)
+        error_file = dir_path / f"{filename}.{DataExtension.ERROR.value}.txt"
+        with open(error_file, "w") as f:
+            f.write(error_message)
+
     def delete_file(self, stage: PipelineStage, strategy_name: Optional[str], symbol: str, filename: str, extension: DataExtension) -> None:
         if strategy_name:
             path = self.get_file_path(stage, strategy_name, symbol, filename, extension)
