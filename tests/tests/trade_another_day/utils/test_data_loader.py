@@ -55,7 +55,7 @@ async def test_fetch_and_save_symbol(mock_watchlist, mock_quote_service, mock_co
     mock_quote_service.return_value = mock_service
 
     # Initialize BacktestDataLoader
-    loader = di_container.market_data_loader()
+    loader = di_container.stage_data_loader()
 
     # Create mock logger
     mock_logger = MagicMock()
@@ -91,7 +91,7 @@ async def test_load_all_calls_load_symbol(mock_watchlist, mock_quote_service, mo
     mock_quote_service.return_value = AsyncMock()
 
     # Initialize BacktestDataLoader
-    loader = di_container.market_data_loader()
+    loader = di_container.stage_data_loader()
 
     # Create mock logger
     mock_logger = MagicMock()
@@ -134,7 +134,7 @@ async def test_load_symbol_reads_existing_pages(mock_watchlist, mock_quote_servi
     mock_quote_service.return_value = AsyncMock()
 
     # Initialize BacktestDataLoader
-    loader = di_container.market_data_loader()
+    loader = di_container.stage_data_loader()
 
     # Create mock logger
     mock_logger = MagicMock()
