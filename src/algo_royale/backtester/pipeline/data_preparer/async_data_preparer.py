@@ -2,7 +2,7 @@ from algo_royale.backtester.pipeline.data_preparer.data_preparer import DataPrep
 
 
 class AsyncDataPreparer(DataPreparer):
-    async def normalized_stream(self, symbol, iterator_factory, config):
+    async def normalized_stream(self, symbol: str, iterator_factory, config: dict):
         iterator = iterator_factory()
         try:
             async for df in iterator:
@@ -11,5 +11,5 @@ class AsyncDataPreparer(DataPreparer):
                 except Exception as e:
                     self.logger.error(f"Error processing {symbol} data: {e}")
         finally:
-            if hasattr(iterator, 'aclose'):
+            if hasattr(iterator, "aclose"):
                 await iterator.aclose()

@@ -6,6 +6,7 @@ from pathlib import Path
 from typing import Optional
 
 import pandas as pd
+
 from algo_royale.backtester.pipeline.data_manage import PipelineDataManager
 from algo_royale.backtester.pipeline.data_manage.pipeline_stage import PipelineStage
 
@@ -29,6 +30,7 @@ class StageDataWriter:
         self.max_rows_per_file = max_rows_per_file
         self.logger = logger
 
+    ##TODO MAKE STRATEGY_NAME OPTIONAL
     def has_existing_results(
         self, stage: PipelineStage, strategy_name: str, symbol: str
     ) -> bool:
@@ -40,6 +42,7 @@ class StageDataWriter:
         pattern = str(search_dir / f"{strategy_name}_{symbol}_*.csv")
         return len(glob.glob(pattern)) > 0
 
+    ##TODO MAKE STRATEGY_NAME OPTIONAL
     def save_stage_data(
         self,
         stage: PipelineStage,
@@ -74,22 +77,23 @@ class StageDataWriter:
                 part_idx * self.max_rows_per_file : (part_idx + 1)
                 * self.max_rows_per_file
             ]
-            part_suffix = f"_part{part_idx+1}" if num_parts > 1 else ""
+            part_suffix = f"_part{part_idx + 1}" if num_parts > 1 else ""
             filename = f"{strategy_name}_{symbol}_{timestamp.strftime('%H%M%S')}{part_suffix}.csv"
             filepath = output_dir / filename
 
             try:
                 chunk_df.to_csv(filepath, index=False)
-                self.logger.info(f"Saved part {part_idx+1}/{num_parts} to {filepath}")
+                self.logger.info(f"Saved part {part_idx + 1}/{num_parts} to {filepath}")
                 filepaths.append(str(filepath))
             except Exception as e:
                 self.logger.error(
-                    f"Failed to save chunk {part_idx+1} for {strategy_name}/{symbol}: {e}"
+                    f"Failed to save chunk {part_idx + 1} for {strategy_name}/{symbol}: {e}"
                 )
                 raise
 
         return filepaths
 
+    ##TODO ADD OPTIONAL STRATEGY_NAME
     def _get_stage_symbol_dir(self, stage: PipelineStage, symbol: str) -> Path:
         """Get the directory for a symbol in the stage"""
         return self.pipeline_data_manager.get_directory_path(stage=stage, symbol=symbol)
