@@ -2,6 +2,9 @@ import asyncio
 from logging import Logger
 
 from algo_royale.backtester.i_data_injest.market_data_fetcher import MarketDataFetcher
+from algo_royale.backtester.iii_feature_engineering.feature_engineering_coordinator import (
+    FeatureEngineeringCoordinator,
+)
 from algo_royale.backtester.iv_backtest.strategy_backtest_executor import (
     StrategyBacktestExecutor,
 )
@@ -21,6 +24,7 @@ class PipelineCoordinator:
         self,
         data_fetcher: MarketDataFetcher,
         data_loader: StageDataLoader,
+        feature_engineering_coordinator: FeatureEngineeringCoordinator,
         backtest_executor: StrategyBacktestExecutor,
         data_preparer: AsyncDataPreparer,
         logger: Logger,
@@ -32,45 +36,50 @@ class PipelineCoordinator:
         self.strategy_factory = strategy_factory
         self.data_fetcher = data_fetcher
         self.data_loader = data_loader
+        self.feature_engineering_coordinator = feature_engineering_coordinator
         self.data_preparer = data_preparer
         self.backtest_executor = backtest_executor
 
     async def run_async(self, config=None):
         try:
-            # 1. Validate and normalize configuration
+            # Validate and normalize configuration
             self.logger.info("Validating configuration...")
             config = self._validate_config(config)
             if not config:
                 self.logger.error("Invalid configuration")
                 return False
 
-            # 2. Initialize strategies
+            # Initialize strategies
             self.logger.info("Initializing strategies...")
             strategies = self._initialize_strategies(config)
             if not strategies:
                 self.logger.error("No strategies initialized")
                 return False
 
-            # 3. Fetch market data
+            # Fetch market data
             self.logger.info("Fetching market data...")
             await self.data_fetcher.fetch_all()
 
-            # 4. Load data
-            self.stage = PipelineStage.DATA_INGEST
+            # Feature engineering
+            self.logger.info("Running feature engineering...")
+            await self.feature_engineering_coordinator.run()
+
+            # Load data
+            self.stage = PipelineStage.FEATURE_ENGINEERING
             self.logger.info(f"Loading {self.stage} data...")
             raw_data = await self._load_data(stage=self.stage)
             if not raw_data:
-                self.logger.error("No data loaded")
+                self.logger.error(f"No {self.stage} data loaded")
                 return False
 
-            # 5. Prepare data
-            self.logger.info("Preparing data...")
+            # Prepare data for backtesting
+            self.logger.info("Preparing data for backtesting...")
             prepared_data = self._prepare_data(config, raw_data)
             if not prepared_data:
-                self.logger.error("No valid data available for backtesting")
+                self.logger.error(f"No valid data available for {self.stage}")
                 return False
 
-            # 6. Run backtest
+            # Run backtest
             self.logger.info("Starting backtest...")
             backtest_result = await self._run_backtest(strategies, prepared_data)
             if not backtest_result:
