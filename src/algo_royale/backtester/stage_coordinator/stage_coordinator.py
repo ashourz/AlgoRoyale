@@ -22,7 +22,8 @@ from algo_royale.backtester.pipeline.data_preparer.async_data_preparer import (
 class StageCoordinator(ABC):
     def __init__(
         self,
-        stage: PipelineStage,
+        input_stage: PipelineStage,
+        output_stage: PipelineStage,
         config: dict,
         data_loader: StageDataLoader,
         data_preparer: AsyncDataPreparer,
@@ -30,14 +31,17 @@ class StageCoordinator(ABC):
         pipeline_data_manager: PipelineDataManager,
         logger: Logger,
     ):
-        self.stage = stage
+        self.input_stage = input_stage
+        self.output_stage = output_stage
         self.config = config
         self.data_loader = data_loader
         self.data_preparer = data_preparer
         self.data_writer = data_writer
         self.logger = logger
         self.pipeline_data_manager = pipeline_data_manager
-        self.logger.info(f"StageCoordinator for {self.stage} initialized")
+        self.logger.info(
+            f"{self.input_stage} -> {self.output_stage} StageCoordinator initialized"
+        )
 
     @abstractmethod
     async def process(
@@ -53,52 +57,67 @@ class StageCoordinator(ABC):
         """
         Orchestrate the stage: load, prepare, process, write.
         """
-        data = await self._load_data(strategy_name=strategy_name)
+        data = await self._load_data(
+            stage=self.input_stage, strategy_name=strategy_name
+        )
         if not data:
-            self.logger.error("No data loaded")
+            self.logger.error(
+                f"No data loaded from stage:{self.input_stage} | strategy:{strategy_name}"
+            )
             return False
 
-        prepared_data = self._prepare_data(data=data, strategy_name=strategy_name)
+        prepared_data = self._prepare_data(
+            stage=self.output_stage, data=data, strategy_name=strategy_name
+        )
         if not prepared_data:
-            self.logger.error("No data prepared")
+            self.logger.error(
+                f"No data prepared for stage:{self.output_stage} | strategy:{strategy_name}"
+            )
             return False
 
         processed_data = await self.process(prepared_data)
         if not processed_data:
-            self.logger.error("Processing failed")
+            self.logger.error(
+                f"Processing failed for stage:{self.output_stage} | strategy:{strategy_name}"
+            )
             return False
 
-        await self._write(processed_data=processed_data, strategy_name=strategy_name)
+        await self._write(
+            stage=self.output_stage,
+            processed_data=processed_data,
+            strategy_name=strategy_name,
+        )
         self.logger.info(
-            f"stage:{self.stage} | strategy:{strategy_name} completed and files saved."
+            f"stage:{self.output_stage} | strategy:{strategy_name} completed and files saved."
         )
         return True
 
     async def _load_data(
-        self, strategy_name: Optional[str] = None
+        self, stage: PipelineStage, strategy_name: Optional[str] = None
     ) -> Dict[str, Callable[[], AsyncIterator[pd.DataFrame]]]:
         """Load data based on the configuration"""
         try:
             data = await self.data_loader.load_all_stage_data(
-                stage=self.stage, strategy_name=strategy_name
+                stage=stage, strategy_name=strategy_name
             )
             return data
         except Exception as e:
             self.logger.error(
-                f"stage:{self.stage} | strategy:{strategy_name} data loading failed: {e}"
+                f"stage:{stage} | strategy:{strategy_name} data loading failed: {e}"
             )
             self.pipeline_data_manager.write_error_file(
-                stage=self.stage,
+                stage=stage,
                 strategy_name=strategy_name,
                 symbol="",
                 filename="load_data",
-                error_message=f"stage:{self.stage} | strategy:{strategy_name} data loading failed: {e}",
+                error_message=f"stage:{stage} | strategy:{strategy_name} data loading failed: {e}",
             )
             return {}
 
     def _prepare_data(
         self,
-        data: Dict[str, Callable[[], AsyncIterator]],
+        stage: PipelineStage,
+        data: Dict[str, Callable[[], AsyncIterator[pd.DataFrame]]],
         strategy_name: Optional[str] = None,
     ) -> Dict[str, Callable[[], AsyncIterator[pd.DataFrame]]]:
         """Prepare data for processing"""
@@ -114,19 +133,20 @@ class StageCoordinator(ABC):
             return prepared_data
         except Exception as e:
             self.logger.error(
-                f"stage:{self.stage} | strategy:{strategy_name} data preparation failed: {e}"
+                f"stage:{stage} | strategy:{strategy_name} data preparation failed: {e}"
             )
             self.pipeline_data_manager.write_error_file(
-                stage=self.stage,
+                stage=stage,
                 strategy_name=strategy_name,
                 symbol=symbol,
                 filename="prepare_data",
-                error_message=f"stage:{self.stage} | strategy:{strategy_name} data preparation failed: {e}",
+                error_message=f"stage:{stage} | strategy:{strategy_name} data preparation failed: {e}",
             )
             return {}
 
     async def _write(
         self,
+        stage: PipelineStage,
         processed_data: Dict[str, Callable[[], AsyncIterator[pd.DataFrame]]],
         strategy_name: Optional[str] = None,
     ):
@@ -135,20 +155,20 @@ class StageCoordinator(ABC):
             for symbol, df_iter_factory in processed_data.items():
                 async for df in df_iter_factory():
                     self.data_writer.save_stage_data(
-                        stage=self.stage,
+                        stage=stage,
                         strategy_name=strategy_name,
                         symbol=symbol,
                         results_df=df,
                     )
         except Exception as e:
             self.logger.error(
-                f"stage:{self.stage} | strategy:{strategy_name} data writing failed: {e}"
+                f"stage:{stage} | strategy:{strategy_name} data writing failed: {e}"
             )
             self.pipeline_data_manager.write_error_file(
-                stage=self.stage,
+                stage=stage,
                 strategy_name=strategy_name,
                 symbol=symbol,
                 filename="write",
-                error_message=f"stage:{self.stage} | strategy:{strategy_name} data writing failed: {e}",
+                error_message=f"stage:{stage} | strategy:{strategy_name} data writing failed: {e}",
             )
             return False
