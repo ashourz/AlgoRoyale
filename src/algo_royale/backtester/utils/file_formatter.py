@@ -1,7 +1,6 @@
 import shutil
 from pathlib import Path
-from typing import Union, List
-from enum import Enum
+from typing import List
 
 from algo_royale.backtester.pipeline.data_manage.data_extension import DataExtension
 from algo_royale.backtester.pipeline.data_manage.pipeline_stage import PipelineStage
@@ -18,7 +17,9 @@ class FileFormatter:
         path.mkdir(parents=True, exist_ok=True)
         return path
 
-    def write_unprocessed_file(self, stage: PipelineStage, filename: str, content: str) -> Path:
+    def write_unprocessed_file(
+        self, stage: PipelineStage, filename: str, content: str
+    ) -> Path:
         stage_path = self.get_stage_path(stage)
         file_path = stage_path / f"{filename}{DataExtension.UNPROCESSED}"
         with open(file_path, "w") as f:
@@ -40,19 +41,29 @@ class FileFormatter:
         return processed_path
 
     def mark_done(self, stage: PipelineStage):
-        done_file = self.get_stage_path(stage).parent / f"{stage.value}{DataExtension.DONE}"
+        done_file = (
+            self.get_stage_path(stage).parent / f"{stage.value}{DataExtension.DONE}"
+        )
         done_file.touch()
 
     def is_done(self, stage: PipelineStage) -> bool:
-        done_file = self.get_stage_path(stage).parent / f"{stage.value}{DataExtension.DONE}"
+        done_file = (
+            self.get_stage_path(stage).parent / f"{stage.value}{DataExtension.DONE}"
+        )
         return done_file.exists()
 
-    def list_files_by_extension(self, stage: PipelineStage, extension: DataExtension) -> List[Path]:
+    def list_files_by_extension(
+        self, stage: PipelineStage, extension: DataExtension
+    ) -> List[Path]:
         return list(self.get_stage_path(stage).glob(f"*{extension}"))
 
-    def copy_to_next_stage(self, current_stage: PipelineStage, next_stage: PipelineStage):
+    def copy_to_next_stage(
+        self, current_stage: PipelineStage, next_stage: PipelineStage
+    ):
         current_path = self.get_stage_path(current_stage)
         next_path = self.get_stage_path(next_stage)
         for file in current_path.glob(f"*{DataExtension.PROCESSED}"):
-            destination = next_path / file.name.replace(DataExtension.PROCESSED, DataExtension.UNPROCESSED)
+            destination = next_path / file.name.replace(
+                DataExtension.PROCESSED, DataExtension.UNPROCESSED
+            )
             shutil.copy(file, destination)

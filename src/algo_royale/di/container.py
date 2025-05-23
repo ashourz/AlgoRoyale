@@ -7,6 +7,9 @@ from algo_royale.backtester.pipeline.data_manage import PipelineDataManager
 from algo_royale.backtester.pipeline.data_manage.stage_data_loader import (
     StageDataLoader,
 )
+from algo_royale.backtester.pipeline.data_manage.stage_data_writer import (
+    StageDataWriter,
+)
 from algo_royale.backtester.pipeline.data_preparer.async_data_preparer import (
     AsyncDataPreparer,
 )
@@ -16,8 +19,6 @@ from algo_royale.backtester.pipeline.data_stream.normalized_data_stream_factory 
 )
 from algo_royale.backtester.pipeline.pipeline_coordinator import PipelineCoordinator
 from algo_royale.backtester.pipeline.strategy_factory import StrategyFactory
-from algo_royale.backtester.utils.file_formatter import FileFormatter
-from algo_royale.backtester.utils.strategy_results_write import StrategyResultsWriter
 from algo_royale.clients.alpaca.alpaca_client_config import TradingConfig
 from algo_royale.clients.alpaca.alpaca_market_data.alpaca_corporate_action_client import (
     AlpacaCorporateActionClient,
@@ -220,8 +221,6 @@ class DIContainer(containers.DeclarativeContainer):
     ## Backtester
     pipeline_data_manager = providers.Singleton(PipelineDataManager)
 
-    file_formatter = providers.Singleton(FileFormatter)
-
     data_preparer = providers.Singleton(DataPreparer, logger=logger_backtest_prod)
 
     async_data_preparer = providers.Singleton(
@@ -250,13 +249,13 @@ class DIContainer(containers.DeclarativeContainer):
         pipeline_data_manager=pipeline_data_manager,
     )
 
-    strategy_results_writer = providers.Singleton(
-        StrategyResultsWriter, config=config, logger=logger_backtest_prod
+    stage_data_writer = providers.Singleton(
+        StageDataWriter, config=config, logger=logger_backtest_prod
     )
 
     strategy_backtest_executor = providers.Singleton(
         StrategyBacktestExecutor,
-        results_saver=strategy_results_writer,
+        stage_data_writer=stage_data_writer,
         logger=logger_backtest_prod,
     )
 
