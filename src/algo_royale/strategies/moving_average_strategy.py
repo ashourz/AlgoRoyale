@@ -1,6 +1,7 @@
 from typing import List
 
 import pandas as pd
+
 from algo_royale.logging.logger_singleton import (
     Environment,
     LoggerSingleton,

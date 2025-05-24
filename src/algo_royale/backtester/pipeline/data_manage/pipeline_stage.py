@@ -30,20 +30,15 @@ class PipelineStage(Enum):
         "Loading and staging raw/unprocessed data (from API, files, DB, etc.)",
         [
             "timestamp",
-            "open",
-            "high",
-            "low",
-            "close",
+            "open_price",
+            "high_price",
+            "low_price",
+            "close_price",
             "volume",
+            "num_trades",
+            "volume_weighted_price",
         ],
-        {
-            "timestamp": "timestamp",
-            "open": "open",
-            "high": "high",
-            "low": "low",
-            "close": "close",
-            "volume": "volume",
-        },
+        {},
     )
     FEATURE_ENGINEERING = (
         "feature_engineering",
@@ -65,12 +60,43 @@ class PipelineStage(Enum):
             "volume": "volume",
         },
     )
-    BACKTEST = ("backtest", "Backtesting strategies on historical data", [], {})
+    BACKTEST = (
+        "backtest",
+        "Backtesting strategies on historical data",
+        [
+            "timestamp",
+            "open",
+            "high",
+            "low",
+            "close",
+            "volume",
+            "signal",
+            "strategy",
+            "symbol",
+        ],
+        {},
+    )
     STRATEGY_OPTIMIZATION = (
         "strategy_optimization",
         "Optimizing strategies using historical data",
-        [],
-        {},
+        [
+            "timestamp",
+            "open",
+            "high",
+            "low",
+            "close",
+            "volume",
+        ],
+        {
+            "timestamp": "timestamp",
+            "open_price": "open",
+            "high_price": "high",
+            "low_price": "low",
+            "close_price": "close",
+            "volume": "volume",
+            "num_trades": "num_trades",
+            "volume_weighted_price": "volume_weighted_price",
+        },
     )
     RESULTS_ANALYSIS = (
         "results_analysis",
