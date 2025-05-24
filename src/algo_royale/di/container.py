@@ -1,8 +1,9 @@
+from dependency_injector import containers, providers
+
 from algo_royale.backtester.i_data_injest.market_data_fetcher import MarketDataFetcher
 from algo_royale.backtester.iv_backtest.strategy_backtest_executor import (
     StrategyBacktestExecutor,
 )
-from algo_royale.backtester.pipeline.config_validator import ConfigValidator
 from algo_royale.backtester.pipeline.data_manage import PipelineDataManager
 from algo_royale.backtester.pipeline.data_manage.stage_data_loader import (
     StageDataLoader,
@@ -78,7 +79,6 @@ from algo_royale.services.db.trade_service import TradeService
 from algo_royale.services.db.trade_signal_service import TradeSignalService
 from algo_royale.services.market_data.alpaca_stock_service import AlpacaQuoteService
 from algo_royale.visualization.dashboard import BacktestDashboard
-from dependency_injector import containers, providers
 
 
 class DIContainer(containers.DeclarativeContainer):
@@ -264,8 +264,6 @@ class DIContainer(containers.DeclarativeContainer):
         config=config,
     )
 
-    config_validator = providers.Singleton(ConfigValidator)
-
     strategy_factory = providers.Singleton(StrategyFactory)
 
     pipeline_coordinator = providers.Singleton(
@@ -275,7 +273,6 @@ class DIContainer(containers.DeclarativeContainer):
         backtest_executor=strategy_backtest_executor,
         data_preparer=async_data_preparer,
         logger=logger_backtest_prod,
-        config_validator=config_validator,
         strategy_factory=strategy_factory,
     )
 

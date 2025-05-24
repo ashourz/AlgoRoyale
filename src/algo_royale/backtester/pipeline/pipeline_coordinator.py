@@ -8,7 +8,6 @@ from algo_royale.backtester.iii_feature_engineering.feature_engineering_coordina
 from algo_royale.backtester.iv_backtest.strategy_backtest_executor import (
     StrategyBacktestExecutor,
 )
-from algo_royale.backtester.pipeline.config_validator import ConfigValidator
 from algo_royale.backtester.pipeline.data_manage.pipeline_stage import PipelineStage
 from algo_royale.backtester.pipeline.data_manage.stage_data_loader import (
     StageDataLoader,
@@ -28,11 +27,9 @@ class PipelineCoordinator:
         backtest_executor: StrategyBacktestExecutor,
         data_preparer: AsyncDataPreparer,
         logger: Logger,
-        config_validator: ConfigValidator,
         strategy_factory: StrategyFactory,
     ):
         self.logger = logger
-        self.config_validator = config_validator
         self.strategy_factory = strategy_factory
         self.data_fetcher = data_fetcher
         self.data_loader = data_loader
@@ -95,15 +92,6 @@ class PipelineCoordinator:
 
     def run(self, config=None):
         return asyncio.run(self.run_async(config=config))
-
-    def _validate_config(self, config: dict) -> dict:
-        """Validate and normalize configuration"""
-        try:
-            config = self.config_validator.validate(config or {})
-            return config
-        except Exception as e:
-            self.logger.error(f"Configuration validation failed: {e}")
-            return False
 
     def _initialize_strategies(self, config: dict) -> list:
         """Initialize strategies based on the configuration"""
