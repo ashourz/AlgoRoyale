@@ -7,7 +7,9 @@ from typing import Optional
 
 import pandas as pd
 
-from algo_royale.backtester.pipeline.data_manage import PipelineDataManager
+from algo_royale.backtester.pipeline.data_manage.pipeline_data_manager import (
+    PipelineDataManager,
+)
 from algo_royale.backtester.pipeline.data_manage.pipeline_stage import PipelineStage
 
 

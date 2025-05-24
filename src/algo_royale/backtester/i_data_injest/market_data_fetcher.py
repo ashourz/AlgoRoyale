@@ -5,14 +5,17 @@ from typing import Optional
 
 import dateutil.parser
 import pandas as pd
-from algo_royale.backtester.i_data_injest.watchlist import load_watchlist
-from algo_royale.backtester.pipeline.data_manage import PipelineDataManager
-from algo_royale.backtester.pipeline.data_manage.data_extension import DataExtension
-from algo_royale.backtester.pipeline.data_manage.pipeline_stage import PipelineStage
-from algo_royale.config.config import Config
-from algo_royale.services.market_data.alpaca_stock_service import AlpacaQuoteService
 from alpaca.common.enums import SupportedCurrencies
 from alpaca.data.enums import DataFeed
+
+from algo_royale.backtester.pipeline.data_manage.data_extension import DataExtension
+from algo_royale.backtester.pipeline.data_manage.pipeline_data_manager import (
+    PipelineDataManager,
+)
+from algo_royale.backtester.pipeline.data_manage.pipeline_stage import PipelineStage
+from algo_royale.backtester.watchlist.watchlist import load_watchlist
+from algo_royale.config.config import Config
+from algo_royale.services.market_data.alpaca_stock_service import AlpacaQuoteService
 
 
 class MarketDataFetcher:

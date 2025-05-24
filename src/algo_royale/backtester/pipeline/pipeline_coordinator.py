@@ -52,7 +52,7 @@ class PipelineCoordinator:
             if not strategies:
                 self.logger.error("No strategies initialized")
                 return False
-
+            ## update to stage coordinator
             # Fetch market data
             self.logger.info("Fetching market data...")
             await self.data_fetcher.fetch_all()

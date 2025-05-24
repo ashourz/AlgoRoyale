@@ -1,7 +1,9 @@
-from unittest.mock import patch, AsyncMock, MagicMock
 from pathlib import Path
+from unittest.mock import AsyncMock, MagicMock, patch
+
 import pandas as pd
 import pytest
+
 from algo_royale.di.container import di_container
 
 
@@ -27,7 +29,7 @@ class MockBar:
 
 @patch("algo_royale.di.container.DIContainer.config")
 @patch("algo_royale.services.market_data.alpaca_stock_service.AlpacaQuoteService")
-@patch("algo_royale.backtester.utils.watchlist.load_watchlist")
+@patch("algo_royale.backtester.watchlist.watchlist.load_watchlist")
 @pytest.mark.asyncio
 async def test_fetch_and_save_symbol(mock_watchlist, mock_quote_service, mock_config):
     # Mock configuration and watchlist
@@ -71,9 +73,11 @@ async def test_fetch_and_save_symbol(mock_watchlist, mock_quote_service, mock_co
 
 @patch("algo_royale.di.container.DIContainer.config")
 @patch("algo_royale.services.market_data.alpaca_stock_service.AlpacaQuoteService")
-@patch("algo_royale.backtester.utils.watchlist.load_watchlist")
+@patch("algo_royale.backtester.watchlist.watchlist.load_watchlist")
 @pytest.mark.asyncio
-async def test_load_all_calls_load_symbol(mock_watchlist, mock_quote_service, mock_config):
+async def test_load_all_calls_load_symbol(
+    mock_watchlist, mock_quote_service, mock_config
+):
     # Mock configuration and watchlist
     mock_watchlist.return_value = ["AAPL", "TSLA"]
     mock_config().get.side_effect = lambda section, key: {
@@ -114,9 +118,11 @@ async def test_load_all_calls_load_symbol(mock_watchlist, mock_quote_service, mo
 
 @patch("algo_royale.di.container.DIContainer.config")
 @patch("algo_royale.services.market_data.alpaca_stock_service.AlpacaQuoteService")
-@patch("algo_royale.backtester.utils.watchlist.load_watchlist")
+@patch("algo_royale.backtester.watchlist.watchlist.load_watchlist")
 @pytest.mark.asyncio
-async def test_load_symbol_reads_existing_pages(mock_watchlist, mock_quote_service, mock_config):
+async def test_load_symbol_reads_existing_pages(
+    mock_watchlist, mock_quote_service, mock_config
+):
     # Mock configuration and watchlist
     mock_watchlist.return_value = ["AAPL"]
     mock_config().get.side_effect = lambda section, key: {

@@ -5,11 +5,11 @@ from typing import AsyncIterator, Callable, Dict, Optional
 
 import pandas as pd
 
-from algo_royale.backtester.i_data_injest.watchlist import load_watchlist
 from algo_royale.backtester.pipeline.data_manage.pipeline_data_manager import (
     PipelineDataManager,
 )
 from algo_royale.backtester.pipeline.data_manage.pipeline_stage import PipelineStage
+from algo_royale.backtester.watchlist.watchlist import load_watchlist
 from algo_royale.config.config import Config
 
 

@@ -4,7 +4,9 @@ from algo_royale.backtester.i_data_injest.market_data_fetcher import MarketDataF
 from algo_royale.backtester.iv_backtest.strategy_backtest_executor import (
     StrategyBacktestExecutor,
 )
-from algo_royale.backtester.pipeline.data_manage import PipelineDataManager
+from algo_royale.backtester.pipeline.data_manage.pipeline_data_manager import (
+    PipelineDataManager,
+)
 from algo_royale.backtester.pipeline.data_manage.stage_data_loader import (
     StageDataLoader,
 )
