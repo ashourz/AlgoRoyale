@@ -1,7 +1,7 @@
 from logging import Logger
 
+from algo_royale.backtester.data_preparer.data_preparer import DataPreparer
 from algo_royale.backtester.enum.backtest_stage import BacktestStage
-from algo_royale.backtester.pipeline.data_preparer.data_preparer import DataPreparer
 
 
 class NormalizedDataStream:

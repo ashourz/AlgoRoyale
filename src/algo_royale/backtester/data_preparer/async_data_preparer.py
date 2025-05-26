@@ -1,4 +1,4 @@
-from algo_royale.backtester.pipeline.data_preparer.data_preparer import DataPreparer
+from algo_royale.backtester.data_preparer.data_preparer import DataPreparer
 
 
 class AsyncDataPreparer(DataPreparer):

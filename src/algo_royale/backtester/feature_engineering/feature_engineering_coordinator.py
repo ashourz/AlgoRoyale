@@ -4,12 +4,8 @@ from algo_royale.backtester.enum.backtest_stage import BacktestStage
 from algo_royale.backtester.feature_engineering.feature_engineer import (
     FeatureEngineer,
 )
-from algo_royale.backtester.pipeline.data_manage.stage_data_loader import (
-    StageDataLoader,
-)
-from algo_royale.backtester.pipeline.data_manage.stage_data_writer import (
-    StageDataWriter,
-)
+from algo_royale.backtester.stage_data.stage_data_loader import StageDataLoader
+from algo_royale.backtester.stage_data.stage_data_writer import StageDataWriter
 
 
 class FeatureEngineeringCoordinator:

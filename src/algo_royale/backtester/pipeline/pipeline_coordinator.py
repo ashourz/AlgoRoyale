@@ -5,16 +5,12 @@ from algo_royale.backtester.backtest.strategy_backtest_executor import (
     StrategyBacktestExecutor,
 )
 from algo_royale.backtester.data_ingest.market_data_fetcher import MarketDataFetcher
+from algo_royale.backtester.data_preparer.async_data_preparer import AsyncDataPreparer
 from algo_royale.backtester.enum.backtest_stage import BacktestStage
 from algo_royale.backtester.feature_engineering.feature_engineering_coordinator import (
     FeatureEngineeringCoordinator,
 )
-from algo_royale.backtester.pipeline.data_manage.stage_data_loader import (
-    StageDataLoader,
-)
-from algo_royale.backtester.pipeline.data_preparer.async_data_preparer import (
-    AsyncDataPreparer,
-)
+from algo_royale.backtester.stage_data.stage_data_loader import StageDataLoader
 from algo_royale.backtester.strategy.strategy_factory import StrategyFactory
 
 

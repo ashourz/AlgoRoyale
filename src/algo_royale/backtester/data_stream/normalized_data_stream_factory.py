@@ -1,9 +1,9 @@
-from algo_royale.backtester.pipeline.data_stream.normalized_data_stream import (
+##TODO: this might be redundant with the data preparer and config validator
+from algo_royale.backtester.data_stream.normalized_data_stream import (
     NormalizedDataStream,
 )
 
 
-##TODO: this might be redundant with the data preparer and config validator
 class NormalizedDataStreamFactory:
     def __init__(self, data_preparer, logger):
         self.data_preparer = data_preparer
