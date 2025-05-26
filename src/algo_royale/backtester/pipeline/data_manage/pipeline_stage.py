@@ -10,6 +10,7 @@ class PipelineStage(Enum):
     - Attributes:
         value (str): The value of the stage.
         description (str): A description of the stage.
+        incoming_stage (Optional[PipelineStage]): The stage that feeds into this stage.
         required_columns (list): A list of required columns for the stage.
         rename_map (dict): A dictionary mapping original column names to new names.
 
@@ -28,7 +29,7 @@ class PipelineStage(Enum):
     DATA_INGEST = (
         "data_ingest",
         "Loading and staging raw/unprocessed data (from API, files, DB, etc.)",
-        [
+        None[
             "timestamp",
             "open_price",
             "high_price",
@@ -37,12 +38,14 @@ class PipelineStage(Enum):
             "volume",
             "num_trades",
             "volume_weighted_price",
+            "symbol",
         ],
         {},
     )
     FEATURE_ENGINEERING = (
         "feature_engineering",
         "Creating new features from existing data (technical indicators, etc.)",
+        DATA_INGEST,
         [
             "timestamp",
             "open",
@@ -52,17 +55,16 @@ class PipelineStage(Enum):
             "volume",
         ],
         {
-            "timestamp": "timestamp",
-            "open": "open",
-            "high": "high",
-            "low": "low",
-            "close": "close",
-            "volume": "volume",
+            "open_price": "open",
+            "high_price": "high",
+            "low_price": "low",
+            "close_price": "close",
         },
     )
     BACKTEST = (
         "backtest",
         "Backtesting strategies on historical data",
+        FEATURE_ENGINEERING,
         [
             "timestamp",
             "open",
@@ -79,6 +81,7 @@ class PipelineStage(Enum):
     STRATEGY_OPTIMIZATION = (
         "strategy_optimization",
         "Optimizing strategies using historical data",
+        BACKTEST,
         [
             "timestamp",
             "open",
@@ -101,30 +104,35 @@ class PipelineStage(Enum):
     RESULTS_ANALYSIS = (
         "results_analysis",
         "Analyzing backtest results and performance metrics",
+        STRATEGY_OPTIMIZATION,
         [],
         {},
     )
     STRATEGY_METRICS = (
         "strategy_metrics",
         "Calculating and reporting strategy performance metrics",
+        RESULTS_ANALYSIS,
         [],
         {},
     )
     STRATEGY_SELECTION = (
         "strategy_selection",
         "Selecting the best strategy based on performance metrics",
+        STRATEGY_METRICS,
         [],
         {},
     )
     REPORTING = (
         "reporting",
         "Generating reports and visualizations for analysis",
+        STRATEGY_SELECTION,
         [],
         {},
     )
     DEPLOYMENT = (
         "deployment",
         "Deploying the selected strategy for live trading",
+        REPORTING,
         [],
         {},
     )
@@ -132,5 +140,6 @@ class PipelineStage(Enum):
     def __init__(self, value, description, required_columns, rename_map):
         self._value_ = value
         self.description = description
+        self.incoming_stage = None
         self.required_columns = required_columns
         self.rename_map = rename_map

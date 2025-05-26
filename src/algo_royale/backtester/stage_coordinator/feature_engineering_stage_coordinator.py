@@ -34,8 +34,7 @@ class FeatureEngineeringStageCoordinator(StageCoordinator):
         feature_engineer: FeatureEngineer,
     ):
         super().__init__(
-            input_stage=PipelineStage.DATA_INGEST,
-            output_stage=PipelineStage.FEATURE_ENGINEERING,
+            stage=PipelineStage.FEATURE_ENGINEERING,
             config=config,
             data_loader=data_loader,
             data_preparer=data_preparer,

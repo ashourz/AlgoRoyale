@@ -22,8 +22,7 @@ from algo_royale.backtester.pipeline.data_preparer.async_data_preparer import (
 class StageCoordinator(ABC):
     def __init__(
         self,
-        input_stage: PipelineStage,
-        output_stage: PipelineStage,
+        stage: PipelineStage,
         config: dict,
         data_loader: StageDataLoader,
         data_preparer: AsyncDataPreparer,
@@ -31,8 +30,7 @@ class StageCoordinator(ABC):
         pipeline_data_manager: PipelineDataManager,
         logger: Logger,
     ):
-        self.input_stage = input_stage
-        self.output_stage = output_stage
+        self.stage = stage
         self.config = config
         self.data_loader = data_loader
         self.data_preparer = data_preparer
@@ -45,7 +43,8 @@ class StageCoordinator(ABC):
 
     @abstractmethod
     async def process(
-        self, prepared_data: Dict[str, Callable[[], AsyncIterator[pd.DataFrame]]]
+        self,
+        prepared_data: Optional[Dict[str, Callable[[], AsyncIterator[pd.DataFrame]]]],
     ) -> Dict[str, Callable[[], AsyncIterator[pd.DataFrame]]]:
         """
         Process the prepared data for this stage.
@@ -57,38 +56,47 @@ class StageCoordinator(ABC):
         """
         Orchestrate the stage: load, prepare, process, write.
         """
-        data = await self._load_data(
-            stage=self.input_stage, strategy_name=strategy_name
-        )
-        if not data:
-            self.logger.error(
-                f"No data loaded from stage:{self.input_stage} | strategy:{strategy_name}"
+        if not self.stage.incoming_stage:
+            """ If no incoming stage is defined, skip loading data """
+            self.logger.error(f"Stage {self.stage} has no incoming stage defined.")
+            prepared_data = None
+        else:
+            """ Load data from the incoming stage """
+            self.logger.info(
+                f"stage:{self.stage} | strategy:{strategy_name} starting data loading."
             )
-            return False
+            data = await self._load_data(
+                stage=self.stage.incoming_stage, strategy_name=strategy_name
+            )
+            if not data:
+                self.logger.error(
+                    f"No data loaded from stage:{self.stage.incoming_stage} | strategy:{strategy_name}"
+                )
+                return False
 
-        prepared_data = self._prepare_data(
-            stage=self.output_stage, data=data, strategy_name=strategy_name
-        )
-        if not prepared_data:
-            self.logger.error(
-                f"No data prepared for stage:{self.output_stage} | strategy:{strategy_name}"
+            prepared_data = self._prepare_data(
+                stage=self.stage, data=data, strategy_name=strategy_name
             )
-            return False
+            if not prepared_data:
+                self.logger.error(
+                    f"No data prepared for stage:{self.stage} | strategy:{strategy_name}"
+                )
+                return False
 
         processed_data = await self.process(prepared_data)
         if not processed_data:
             self.logger.error(
-                f"Processing failed for stage:{self.output_stage} | strategy:{strategy_name}"
+                f"Processing failed for stage:{self.stage} | strategy:{strategy_name}"
             )
             return False
 
         await self._write(
-            stage=self.output_stage,
+            stage=self.stage,
             processed_data=processed_data,
             strategy_name=strategy_name,
         )
         self.logger.info(
-            f"stage:{self.output_stage} | strategy:{strategy_name} completed and files saved."
+            f"stage:{self.stage} | strategy:{strategy_name} completed and files saved."
         )
         return True
 
