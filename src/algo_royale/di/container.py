@@ -213,7 +213,7 @@ class DIContainer(containers.DeclarativeContainer):
     )
 
     ## Backtester
-    pipeline_data_manager = providers.Singleton(StageDataManager)
+    stage_data_manager = providers.Singleton(StageDataManager)
 
     data_preparer = providers.Singleton(DataPreparer, logger=logger_backtest_prod)
 
@@ -232,20 +232,20 @@ class DIContainer(containers.DeclarativeContainer):
         config=config,
         logger=logger_backtest_prod,
         quote_service=alpaca_quote_service,
-        pipeline_data_manager=pipeline_data_manager,
+        stage_data_manager=stage_data_manager,
     )
 
     stage_data_loader = providers.Singleton(
         StageDataLoader,
         config=config,
         logger=logger_backtest_prod,
-        pipeline_data_manager=pipeline_data_manager,
+        stage_data_manager=stage_data_manager,
     )
 
     stage_data_writer = providers.Singleton(
         StageDataWriter,
         logger=logger_backtest_prod,
-        pipeline_data_manager=pipeline_data_manager,
+        stage_data_manager=stage_data_manager,
     )
 
     strategy_backtest_executor = providers.Singleton(

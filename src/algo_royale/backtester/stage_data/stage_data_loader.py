@@ -13,7 +13,7 @@ from algo_royale.config.config import Config
 
 class StageDataLoader:
     def __init__(
-        self, config: Config, logger: Logger, pipeline_data_manager: StageDataManager
+        self, config: Config, logger: Logger, stage_data_manager: StageDataManager
     ):
         try:
             # Initialize directories and services
@@ -25,7 +25,7 @@ class StageDataLoader:
             if not self.watchlist:
                 raise ValueError("Watchlist is empty")
 
-            self.pipeline_data_manager = pipeline_data_manager
+            self.stage_data_manager = stage_data_manager
 
             # Initialize logger
             self.logger = logger
@@ -60,7 +60,7 @@ class StageDataLoader:
                 self.logger.error(
                     f"Failed to prepare loader for {stage} | {symbol}: {str(e)}"
                 )
-                self.pipeline_data_manager.write_error_file(
+                self.stage_data_manager.write_error_file(
                     stage=stage,
                     strategy_name=strategy_name,
                     symbol=symbol,
@@ -80,7 +80,7 @@ class StageDataLoader:
 
         # First ensure we have data
         if not await self._has_existing_data(symbol_dir):
-            self.pipeline_data_manager.write_error_file(
+            self.stage_data_manager.write_error_file(
                 stage=stage,
                 strategy_name=strategy_name,
                 symbol=symbol,
@@ -108,7 +108,7 @@ class StageDataLoader:
                 missing.append(symbol)
         if missing:
             self.logger.warning(f"Missing data for symbols: {missing}")
-            self.pipeline_data_manager.write_error_file(
+            self.stage_data_manager.write_error_file(
                 stage=self.stage,
                 strategy_name=None,
                 symbol=symbol,
@@ -120,7 +120,7 @@ class StageDataLoader:
         self, stage: BacktestStage, symbol: str, strategy_name: Optional[str] = None
     ) -> Path:
         """Get the directory for a symbol in the stage"""
-        return self.pipeline_data_manager.get_directory_path(
+        return self.stage_data_manager.get_directory_path(
             stage=stage, strategy_name=strategy_name, symbol=symbol
         )
 
@@ -150,7 +150,7 @@ class StageDataLoader:
                 yield df
             except Exception as e:
                 self.logger.error(f"Error reading {page_path}: {str(e)}")
-                self.pipeline_data_manager.write_error_file(
+                self.stage_data_manager.write_error_file(
                     stage=stage,
                     strategy_name=None,
                     symbol=page_path.stem.split("_")[0],

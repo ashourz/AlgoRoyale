@@ -22,7 +22,7 @@ class MarketDataFetcher:
         config: Config,
         logger: Logger,
         quote_service: AlpacaQuoteService,
-        pipeline_data_manager: StageDataManager,
+        stage_data_manager: StageDataManager,
     ):
         try:
             # Initialize directories and services
@@ -45,8 +45,8 @@ class MarketDataFetcher:
 
             self.quote_service = quote_service
 
-            self.pipeline_data_manager = pipeline_data_manager
-            self.pipeline_stage = BacktestStage.DATA_INGEST
+            self.stage_data_manager = stage_data_manager
+            self.stage = BacktestStage.DATA_INGEST
 
             # Initialize logger
             self.logger = logger
@@ -59,8 +59,8 @@ class MarketDataFetcher:
 
     def _get_data_ingest_symbol_dir(self, symbol: str) -> Path:
         """Get the directory for a symbol in the data ingest stage"""
-        return self.pipeline_data_manager.get_directory_path(
-            stage=self.pipeline_stage, symbol=symbol
+        return self.stage_data_manager.get_directory_path(
+            stage=self.stage, symbol=symbol
         )
 
     async def fetch_all(self) -> None:
@@ -121,8 +121,8 @@ class MarketDataFetcher:
                 # Check response
                 if not response or not response.symbol_bars.get(symbol):
                     if page_count == 1:
-                        self.pipeline_data_manager.write_error_file(
-                            stage=self.pipeline_stage,
+                        self.stage_data_manager.write_error_file(
+                            stage=self.stage,
                             strategy_name=None,
                             symbol=symbol,
                             filename=f"{page_name}.error",
@@ -153,8 +153,8 @@ class MarketDataFetcher:
                 f"Finished fetching {symbol}: {page_count} pages, {total_rows} rows"
             )
             # Mark the symbol stage as done
-            self.pipeline_data_manager.mark_symbol_stage(
-                stage=self.pipeline_stage,
+            self.stage_data_manager.mark_symbol_stage(
+                stage=self.stage,
                 symbol=symbol,
                 statusExtension=DataExtension.DONE,
             )
@@ -163,8 +163,8 @@ class MarketDataFetcher:
         except Exception as e:
             self.logger.error(f"Error fetching {symbol}: {str(e)}")
             # Handle specific exceptions if needed
-            self.pipeline_data_manager.write_error_file(
-                stage=self.pipeline_stage,
+            self.stage_data_manager.write_error_file(
+                stage=self.stage,
                 strategy_name=None,
                 symbol=symbol,
                 filename="fetch_and_save_symbol",

@@ -20,13 +20,13 @@ class StageDataWriter:
     def __init__(
         self,
         logger: Logger,
-        pipeline_data_manager: StageDataManager,
+        stage_data_manager: StageDataManager,
         max_rows_per_file: int = 1_000_000,
     ):
         """
         Initialize the results saver with directory from config.
         """
-        self.pipeline_data_manager = pipeline_data_manager
+        self.stage_data_manager = stage_data_manager
         self.max_rows_per_file = max_rows_per_file
         self.logger = logger
 
@@ -96,4 +96,4 @@ class StageDataWriter:
     ##TODO ADD OPTIONAL STRATEGY_NAME
     def _get_stage_symbol_dir(self, stage: BacktestStage, symbol: str) -> Path:
         """Get the directory for a symbol in the stage"""
-        return self.pipeline_data_manager.get_directory_path(stage=stage, symbol=symbol)
+        return self.stage_data_manager.get_directory_path(stage=stage, symbol=symbol)

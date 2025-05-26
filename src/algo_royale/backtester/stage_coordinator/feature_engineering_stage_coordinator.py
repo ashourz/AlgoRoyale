@@ -21,7 +21,7 @@ class FeatureEngineeringStageCoordinator(StageCoordinator):
         data_loader: StageDataLoader,
         data_preparer: AsyncDataPreparer,
         data_writer: StageDataWriter,
-        pipeline_data_manager: StageDataManager,
+        stage_data_manager: StageDataManager,
         logger: Logger,
         feature_engineer: FeatureEngineer,
     ):
@@ -31,7 +31,7 @@ class FeatureEngineeringStageCoordinator(StageCoordinator):
             data_loader=data_loader,
             data_preparer=data_preparer,
             data_writer=data_writer,
-            pipeline_data_manager=pipeline_data_manager,
+            stage_data_manager=stage_data_manager,
             logger=logger,
         )
         self.feature_engineer = feature_engineer

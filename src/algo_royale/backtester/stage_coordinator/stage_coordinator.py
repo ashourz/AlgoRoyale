@@ -19,7 +19,7 @@ class StageCoordinator(ABC):
         data_loader: StageDataLoader,
         data_preparer: AsyncDataPreparer,
         data_writer: StageDataWriter,
-        pipeline_data_manager: StageDataManager,
+        stage_data_manager: StageDataManager,
         logger: Logger,
     ):
         self.stage = stage
@@ -28,7 +28,7 @@ class StageCoordinator(ABC):
         self.data_preparer = data_preparer
         self.data_writer = data_writer
         self.logger = logger
-        self.pipeline_data_manager = pipeline_data_manager
+        self.stage_data_manager = stage_data_manager
         self.logger.info(
             f"{self.input_stage} -> {self.output_stage} StageCoordinator initialized"
         )
@@ -105,7 +105,7 @@ class StageCoordinator(ABC):
             self.logger.error(
                 f"stage:{stage} | strategy:{strategy_name} data loading failed: {e}"
             )
-            self.pipeline_data_manager.write_error_file(
+            self.stage_data_manager.write_error_file(
                 stage=stage,
                 strategy_name=strategy_name,
                 symbol="",
@@ -135,7 +135,7 @@ class StageCoordinator(ABC):
             self.logger.error(
                 f"stage:{stage} | strategy:{strategy_name} data preparation failed: {e}"
             )
-            self.pipeline_data_manager.write_error_file(
+            self.stage_data_manager.write_error_file(
                 stage=stage,
                 strategy_name=strategy_name,
                 symbol=symbol,
@@ -164,7 +164,7 @@ class StageCoordinator(ABC):
             self.logger.error(
                 f"stage:{stage} | strategy:{strategy_name} data writing failed: {e}"
             )
-            self.pipeline_data_manager.write_error_file(
+            self.stage_data_manager.write_error_file(
                 stage=stage,
                 strategy_name=strategy_name,
                 symbol=symbol,

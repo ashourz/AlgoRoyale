@@ -17,7 +17,7 @@ def mock_dependencies():
         "data_loader": MagicMock(),
         "data_preparer": MagicMock(),
         "data_writer": MagicMock(),
-        "pipeline_data_manager": MagicMock(),
+        "stage_data_manager": MagicMock(),
         "logger": MagicMock(),
     }
 
