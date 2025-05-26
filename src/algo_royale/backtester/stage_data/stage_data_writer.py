@@ -7,10 +7,10 @@ from typing import Optional
 
 import pandas as pd
 
-from algo_royale.backtester.pipeline.data_manage.pipeline_data_manager import (
-    PipelineDataManager,
+from algo_royale.backtester.enum.backtest_stage import BacktestStage
+from algo_royale.backtester.pipeline.data_manage.stage_data_manager import (
+    StageDataManager,
 )
-from algo_royale.backtester.pipeline.data_manage.pipeline_stage import PipelineStage
 
 
 class StageDataWriter:
@@ -22,7 +22,7 @@ class StageDataWriter:
     def __init__(
         self,
         logger: Logger,
-        pipeline_data_manager: PipelineDataManager,
+        pipeline_data_manager: StageDataManager,
         max_rows_per_file: int = 1_000_000,
     ):
         """
@@ -34,7 +34,7 @@ class StageDataWriter:
 
     ##TODO MAKE STRATEGY_NAME OPTIONAL
     def has_existing_results(
-        self, stage: PipelineStage, strategy_name: str, symbol: str
+        self, stage: BacktestStage, strategy_name: str, symbol: str
     ) -> bool:
         """
         Check if results already exist for the given stage, strategy, and symbol.
@@ -47,7 +47,7 @@ class StageDataWriter:
     ##TODO MAKE STRATEGY_NAME OPTIONAL
     def save_stage_data(
         self,
-        stage: PipelineStage,
+        stage: BacktestStage,
         strategy_name: str,
         symbol: str,
         results_df: pd.DataFrame,
@@ -96,6 +96,6 @@ class StageDataWriter:
         return filepaths
 
     ##TODO ADD OPTIONAL STRATEGY_NAME
-    def _get_stage_symbol_dir(self, stage: PipelineStage, symbol: str) -> Path:
+    def _get_stage_symbol_dir(self, stage: BacktestStage, symbol: str) -> Path:
         """Get the directory for a symbol in the stage"""
         return self.pipeline_data_manager.get_directory_path(stage=stage, symbol=symbol)

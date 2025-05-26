@@ -1,9 +1,9 @@
 from logging import Logger
 
-from algo_royale.backtester.iii_feature_engineering.feature_engineer import (
+from algo_royale.backtester.enum.backtest_stage import BacktestStage
+from algo_royale.backtester.feature_engineering.feature_engineer import (
     FeatureEngineer,
 )
-from algo_royale.backtester.pipeline.data_manage.pipeline_stage import PipelineStage
 from algo_royale.backtester.pipeline.data_manage.stage_data_loader import (
     StageDataLoader,
 )
@@ -48,7 +48,7 @@ class FeatureEngineeringCoordinator:
 
     async def _load_data(self, config):
         return await self.data_loader.load_all_stage_data(
-            stage=PipelineStage.DATA_INGEST
+            stage=BacktestStage.DATA_INGEST
         )
 
     async def _engineer(self, ingest_data, config):
@@ -66,7 +66,7 @@ class FeatureEngineeringCoordinator:
         for symbol, df_iter_factory in engineered_data.items():
             async for df in df_iter_factory():
                 self.data_writer.save_stage_data(
-                    stage=PipelineStage.FEATURE_ENGINEERING,
+                    stage=BacktestStage.FEATURE_ENGINEERING,
                     symbol=symbol,
                     results_df=df,
                 )

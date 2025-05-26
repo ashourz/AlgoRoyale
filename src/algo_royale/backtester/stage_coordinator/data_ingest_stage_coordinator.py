@@ -5,12 +5,12 @@ import dateutil
 import pandas as pd
 from alpaca.common.enums import SupportedCurrencies
 
-from algo_royale.backtester.pipeline.data_manage.pipeline_data_manager import (
-    PipelineDataManager,
-)
-from algo_royale.backtester.pipeline.data_manage.pipeline_stage import PipelineStage
+from algo_royale.backtester.enum.backtest_stage import BacktestStage
 from algo_royale.backtester.pipeline.data_manage.stage_data_loader import (
     StageDataLoader,
+)
+from algo_royale.backtester.pipeline.data_manage.stage_data_manager import (
+    StageDataManager,
 )
 from algo_royale.backtester.pipeline.data_manage.stage_data_writer import (
     StageDataWriter,
@@ -31,12 +31,12 @@ class DataIngestStageCoordinator(StageCoordinator):
         data_loader: StageDataLoader,
         data_preparer: AsyncDataPreparer,
         data_writer: StageDataWriter,
-        pipeline_data_manager: PipelineDataManager,
+        pipeline_data_manager: StageDataManager,
         logger: Logger,
         quote_service: AlpacaQuoteService,
     ):
         super().__init__(
-            stage=PipelineStage.DATA_INGEST,
+            stage=BacktestStage.DATA_INGEST,
             config=config,
             data_loader=data_loader,
             data_preparer=data_preparer,

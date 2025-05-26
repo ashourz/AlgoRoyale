@@ -8,11 +8,11 @@ import pandas as pd
 from alpaca.common.enums import SupportedCurrencies
 from alpaca.data.enums import DataFeed
 
-from algo_royale.backtester.pipeline.data_manage.data_extension import DataExtension
-from algo_royale.backtester.pipeline.data_manage.pipeline_data_manager import (
-    PipelineDataManager,
+from algo_royale.backtester.enum.backtest_stage import BacktestStage
+from algo_royale.backtester.enum.data_extension import DataExtension
+from algo_royale.backtester.pipeline.data_manage.stage_data_manager import (
+    StageDataManager,
 )
-from algo_royale.backtester.pipeline.data_manage.pipeline_stage import PipelineStage
 from algo_royale.backtester.watchlist.watchlist import load_watchlist
 from algo_royale.config.config import Config
 from algo_royale.services.market_data.alpaca_stock_service import AlpacaQuoteService
@@ -24,7 +24,7 @@ class MarketDataFetcher:
         config: Config,
         logger: Logger,
         quote_service: AlpacaQuoteService,
-        pipeline_data_manager: PipelineDataManager,
+        pipeline_data_manager: StageDataManager,
     ):
         try:
             # Initialize directories and services
@@ -48,7 +48,7 @@ class MarketDataFetcher:
             self.quote_service = quote_service
 
             self.pipeline_data_manager = pipeline_data_manager
-            self.pipeline_stage = PipelineStage.DATA_INGEST
+            self.pipeline_stage = BacktestStage.DATA_INGEST
 
             # Initialize logger
             self.logger = logger

@@ -4,7 +4,8 @@ from pathlib import Path
 from typing import AsyncIterator, Callable, Dict, List, Union
 
 import pandas as pd
-from algo_royale.backtester.pipeline.data_manage.pipeline_stage import PipelineStage
+
+from algo_royale.backtester.enum.backtest_stage import BacktestStage
 from algo_royale.backtester.pipeline.data_manage.stage_data_writer import (
     StageDataWriter,
 )
@@ -15,7 +16,7 @@ class StrategyBacktestExecutor:
     def __init__(self, stage_data_writer: StageDataWriter, logger: Logger):
         self.logger = logger
         self.stage_data_writer = stage_data_writer
-        self.stage = PipelineStage.BACKTEST
+        self.stage = BacktestStage.BACKTEST
         self._processed_pairs = set()
 
     async def run_backtest(

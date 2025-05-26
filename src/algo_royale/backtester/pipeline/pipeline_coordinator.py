@@ -1,21 +1,21 @@
 import asyncio
 from logging import Logger
 
-from algo_royale.backtester.i_data_injest.market_data_fetcher import MarketDataFetcher
-from algo_royale.backtester.iii_feature_engineering.feature_engineering_coordinator import (
-    FeatureEngineeringCoordinator,
-)
-from algo_royale.backtester.iv_backtest.strategy_backtest_executor import (
+from algo_royale.backtester.backtest.strategy_backtest_executor import (
     StrategyBacktestExecutor,
 )
-from algo_royale.backtester.pipeline.data_manage.pipeline_stage import PipelineStage
+from algo_royale.backtester.data_ingest.market_data_fetcher import MarketDataFetcher
+from algo_royale.backtester.enum.backtest_stage import BacktestStage
+from algo_royale.backtester.feature_engineering.feature_engineering_coordinator import (
+    FeatureEngineeringCoordinator,
+)
 from algo_royale.backtester.pipeline.data_manage.stage_data_loader import (
     StageDataLoader,
 )
 from algo_royale.backtester.pipeline.data_preparer.async_data_preparer import (
     AsyncDataPreparer,
 )
-from algo_royale.backtester.pipeline.strategy_factory import StrategyFactory
+from algo_royale.backtester.strategy.strategy_factory import StrategyFactory
 
 
 class PipelineCoordinator:
@@ -62,7 +62,7 @@ class PipelineCoordinator:
             await self.feature_engineering_coordinator.run()
 
             # Load data
-            self.stage = PipelineStage.FEATURE_ENGINEERING
+            self.stage = BacktestStage.FEATURE_ENGINEERING
             self.logger.info(f"Loading {self.stage} data...")
             raw_data = await self._load_data(stage=self.stage)
             if not raw_data:
@@ -102,7 +102,7 @@ class PipelineCoordinator:
             self.logger.error(f"Strategy initialization failed: {e}")
             return False
 
-    async def _load_data(self, stage: PipelineStage) -> dict:
+    async def _load_data(self, stage: BacktestStage) -> dict:
         """Load data based on the configuration"""
         try:
             data = await self.data_loader.load_all_stage_data(stage=stage)

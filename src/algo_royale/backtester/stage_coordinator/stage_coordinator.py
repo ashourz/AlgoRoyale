@@ -4,12 +4,12 @@ from typing import AsyncIterator, Callable, Dict, Optional
 
 import pandas as pd
 
-from algo_royale.backtester.pipeline.data_manage.pipeline_data_manager import (
-    PipelineDataManager,
-)
-from algo_royale.backtester.pipeline.data_manage.pipeline_stage import PipelineStage
+from algo_royale.backtester.enum.backtest_stage import BacktestStage
 from algo_royale.backtester.pipeline.data_manage.stage_data_loader import (
     StageDataLoader,
+)
+from algo_royale.backtester.pipeline.data_manage.stage_data_manager import (
+    StageDataManager,
 )
 from algo_royale.backtester.pipeline.data_manage.stage_data_writer import (
     StageDataWriter,
@@ -22,12 +22,12 @@ from algo_royale.backtester.pipeline.data_preparer.async_data_preparer import (
 class StageCoordinator(ABC):
     def __init__(
         self,
-        stage: PipelineStage,
+        stage: BacktestStage,
         config: dict,
         data_loader: StageDataLoader,
         data_preparer: AsyncDataPreparer,
         data_writer: StageDataWriter,
-        pipeline_data_manager: PipelineDataManager,
+        pipeline_data_manager: StageDataManager,
         logger: Logger,
     ):
         self.stage = stage
@@ -101,7 +101,7 @@ class StageCoordinator(ABC):
         return True
 
     async def _load_data(
-        self, stage: PipelineStage, strategy_name: Optional[str] = None
+        self, stage: BacktestStage, strategy_name: Optional[str] = None
     ) -> Dict[str, Callable[[], AsyncIterator[pd.DataFrame]]]:
         """Load data based on the configuration"""
         try:
@@ -124,7 +124,7 @@ class StageCoordinator(ABC):
 
     def _prepare_data(
         self,
-        stage: PipelineStage,
+        stage: BacktestStage,
         data: Dict[str, Callable[[], AsyncIterator[pd.DataFrame]]],
         strategy_name: Optional[str] = None,
     ) -> Dict[str, Callable[[], AsyncIterator[pd.DataFrame]]]:
@@ -154,7 +154,7 @@ class StageCoordinator(ABC):
 
     async def _write(
         self,
-        stage: PipelineStage,
+        stage: BacktestStage,
         processed_data: Dict[str, Callable[[], AsyncIterator[pd.DataFrame]]],
         strategy_name: Optional[str] = None,
     ):

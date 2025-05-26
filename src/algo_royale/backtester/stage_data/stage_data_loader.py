@@ -5,17 +5,17 @@ from typing import AsyncIterator, Callable, Dict, Optional
 
 import pandas as pd
 
-from algo_royale.backtester.pipeline.data_manage.pipeline_data_manager import (
-    PipelineDataManager,
+from algo_royale.backtester.enum.backtest_stage import BacktestStage
+from algo_royale.backtester.pipeline.data_manage.stage_data_manager import (
+    StageDataManager,
 )
-from algo_royale.backtester.pipeline.data_manage.pipeline_stage import PipelineStage
 from algo_royale.backtester.watchlist.watchlist import load_watchlist
 from algo_royale.config.config import Config
 
 
 class StageDataLoader:
     def __init__(
-        self, config: Config, logger: Logger, pipeline_data_manager: PipelineDataManager
+        self, config: Config, logger: Logger, pipeline_data_manager: StageDataManager
     ):
         try:
             # Initialize directories and services
@@ -39,7 +39,7 @@ class StageDataLoader:
             raise RuntimeError(f"Failed to initialize BacktestDataLoader: {e}")
 
     async def load_all_stage_data(
-        self, stage: PipelineStage, strategy_name: Optional[str] = None
+        self, stage: BacktestStage, strategy_name: Optional[str] = None
     ) -> Dict[str, Callable[[], AsyncIterator[pd.DataFrame]]]:
         """Returns async data generators with automatic data fetching"""
         self.logger.info("Starting async data loading")
@@ -73,7 +73,7 @@ class StageDataLoader:
         return data
 
     async def load_symbol(
-        self, stage: PipelineStage, symbol: str, strategy_name: Optional[str] = None
+        self, stage: BacktestStage, symbol: str, strategy_name: Optional[str] = None
     ) -> AsyncIterator[pd.DataFrame]:
         """Async generator yielding DataFrames, fetching data if needed"""
         symbol_dir = self._get_stage_symbol_dir(
@@ -119,7 +119,7 @@ class StageDataLoader:
             )
 
     def _get_stage_symbol_dir(
-        self, stage: PipelineStage, symbol: str, strategy_name: Optional[str] = None
+        self, stage: BacktestStage, symbol: str, strategy_name: Optional[str] = None
     ) -> Path:
         """Get the directory for a symbol in the stage"""
         return self.pipeline_data_manager.get_directory_path(
@@ -133,7 +133,7 @@ class StageDataLoader:
         return any(symbol_dir.iterdir())
 
     async def _stream_existing_data_async(
-        self, stage: PipelineStage, symbol_dir: Path
+        self, stage: BacktestStage, symbol_dir: Path
     ) -> AsyncIterator[pd.DataFrame]:
         """Async generator to stream existing data pages for a symbol"""
         pages = sorted(

@@ -3,7 +3,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pandas as pd
 import pytest
 
-from algo_royale.backtester.pipeline.data_manage.pipeline_stage import PipelineStage
+from algo_royale.backtester.enum.backtest_stage import BacktestStage
 from algo_royale.backtester.stage_coordinator.mock_stage_coordinator import (
     MockStageCoordinator,
 )
@@ -12,7 +12,7 @@ from algo_royale.backtester.stage_coordinator.mock_stage_coordinator import (
 @pytest.fixture
 def mock_dependencies():
     return {
-        "stage": MagicMock(spec=PipelineStage),
+        "stage": MagicMock(spec=BacktestStage),
         "config": {},
         "data_loader": MagicMock(),
         "data_preparer": MagicMock(),

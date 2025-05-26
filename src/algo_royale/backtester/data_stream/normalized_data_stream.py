@@ -1,6 +1,6 @@
 from logging import Logger
 
-from algo_royale.backtester.pipeline.data_manage.pipeline_stage import PipelineStage
+from algo_royale.backtester.enum.backtest_stage import BacktestStage
 from algo_royale.backtester.pipeline.data_preparer.data_preparer import DataPreparer
 
 
@@ -9,7 +9,7 @@ class NormalizedDataStream:
         self,
         symbol,
         iterator_factory,
-        stage: PipelineStage,
+        stage: BacktestStage,
         data_preparer: DataPreparer,
         logger: Logger,
     ):

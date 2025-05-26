@@ -1,8 +1,7 @@
 from enum import Enum
 
 
-##TODO: Fill in remaining stages and their descriptions, required columns, and rename maps
-class PipelineStage(Enum):
+class BacktestStage(Enum):
     """
     Enum representing the different stages of the pipeline.
     Each stage has a value, description, required columns, and a rename map.

@@ -3,15 +3,15 @@ from typing import AsyncIterator, Callable, Dict
 
 import pandas as pd
 
-from algo_royale.backtester.iii_feature_engineering.feature_engineer import (
+from algo_royale.backtester.enum.backtest_stage import BacktestStage
+from algo_royale.backtester.feature_engineering.feature_engineer import (
     FeatureEngineer,
 )
-from algo_royale.backtester.pipeline.data_manage.pipeline_data_manager import (
-    PipelineDataManager,
-)
-from algo_royale.backtester.pipeline.data_manage.pipeline_stage import PipelineStage
 from algo_royale.backtester.pipeline.data_manage.stage_data_loader import (
     StageDataLoader,
+)
+from algo_royale.backtester.pipeline.data_manage.stage_data_manager import (
+    StageDataManager,
 )
 from algo_royale.backtester.pipeline.data_manage.stage_data_writer import (
     StageDataWriter,
@@ -29,12 +29,12 @@ class FeatureEngineeringStageCoordinator(StageCoordinator):
         data_loader: StageDataLoader,
         data_preparer: AsyncDataPreparer,
         data_writer: StageDataWriter,
-        pipeline_data_manager: PipelineDataManager,
+        pipeline_data_manager: StageDataManager,
         logger: Logger,
         feature_engineer: FeatureEngineer,
     ):
         super().__init__(
-            stage=PipelineStage.FEATURE_ENGINEERING,
+            stage=BacktestStage.FEATURE_ENGINEERING,
             config=config,
             data_loader=data_loader,
             data_preparer=data_preparer,

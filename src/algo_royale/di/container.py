@@ -1,14 +1,14 @@
 from dependency_injector import containers, providers
 
-from algo_royale.backtester.i_data_injest.market_data_fetcher import MarketDataFetcher
-from algo_royale.backtester.iv_backtest.strategy_backtest_executor import (
+from algo_royale.backtester.backtest.strategy_backtest_executor import (
     StrategyBacktestExecutor,
 )
-from algo_royale.backtester.pipeline.data_manage.pipeline_data_manager import (
-    PipelineDataManager,
-)
+from algo_royale.backtester.data_ingest.market_data_fetcher import MarketDataFetcher
 from algo_royale.backtester.pipeline.data_manage.stage_data_loader import (
     StageDataLoader,
+)
+from algo_royale.backtester.pipeline.data_manage.stage_data_manager import (
+    StageDataManager,
 )
 from algo_royale.backtester.pipeline.data_manage.stage_data_writer import (
     StageDataWriter,
@@ -21,7 +21,7 @@ from algo_royale.backtester.pipeline.data_stream.normalized_data_stream_factory 
     NormalizedDataStreamFactory,
 )
 from algo_royale.backtester.pipeline.pipeline_coordinator import PipelineCoordinator
-from algo_royale.backtester.pipeline.strategy_factory import StrategyFactory
+from algo_royale.backtester.strategy.strategy_factory import StrategyFactory
 from algo_royale.clients.alpaca.alpaca_client_config import TradingConfig
 from algo_royale.clients.alpaca.alpaca_market_data.alpaca_corporate_action_client import (
     AlpacaCorporateActionClient,
@@ -221,7 +221,7 @@ class DIContainer(containers.DeclarativeContainer):
     )
 
     ## Backtester
-    pipeline_data_manager = providers.Singleton(PipelineDataManager)
+    pipeline_data_manager = providers.Singleton(StageDataManager)
 
     data_preparer = providers.Singleton(DataPreparer, logger=logger_backtest_prod)
 
