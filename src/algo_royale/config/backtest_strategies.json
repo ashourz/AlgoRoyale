@@ -1,0 +1,18 @@
+{
+    "defaults": [
+        {
+            "name": "MovingAverageStrategy", 
+            "param_grid": {
+                "short_window": 10,
+                "long_window": 50   
+            }
+        }
+    ],
+    "symbols": {
+        "AAPL": [],
+        "GOOG": [],
+        "MSFT": [],
+        "TSLA": [],
+        "NVDA": []
+    }
+}

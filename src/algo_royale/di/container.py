@@ -247,12 +247,13 @@ class DIContainer(containers.DeclarativeContainer):
         StageDataLoader,
         config=config,
         logger=logger_backtest_prod,
-        quote_service=alpaca_quote_service,
         pipeline_data_manager=pipeline_data_manager,
     )
 
     stage_data_writer = providers.Singleton(
-        StageDataWriter, config=config, logger=logger_backtest_prod
+        StageDataWriter,
+        logger=logger_backtest_prod,
+        pipeline_data_manager=pipeline_data_manager,
     )
 
     strategy_backtest_executor = providers.Singleton(
@@ -270,8 +271,9 @@ class DIContainer(containers.DeclarativeContainer):
 
     pipeline_coordinator = providers.Singleton(
         PipelineCoordinator,
-        market_data_fetcher=market_data_fetcher,
+        data_fetcher=market_data_fetcher,
         data_loader=stage_data_loader,
+        feature_engineering_coordinator=None,  # TODO: Implement FeatureEngineeringCoordinator
         backtest_executor=strategy_backtest_executor,
         data_preparer=async_data_preparer,
         logger=logger_backtest_prod,

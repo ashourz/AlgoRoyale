@@ -2,6 +2,9 @@ from algo_royale.backtester.pipeline.data_preparer.data_preparer import DataPrep
 
 
 class AsyncDataPreparer(DataPreparer):
+    def __init__(self, logger):
+        super().__init__(logger)
+
     async def normalized_stream(self, symbol: str, iterator_factory, config: dict):
         iterator = iterator_factory()
         try:

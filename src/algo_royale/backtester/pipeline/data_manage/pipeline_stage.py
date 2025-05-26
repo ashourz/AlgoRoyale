@@ -29,7 +29,8 @@ class PipelineStage(Enum):
     DATA_INGEST = (
         "data_ingest",
         "Loading and staging raw/unprocessed data (from API, files, DB, etc.)",
-        None[
+        None,
+        [
             "timestamp",
             "open_price",
             "high_price",
@@ -137,9 +138,9 @@ class PipelineStage(Enum):
         {},
     )
 
-    def __init__(self, value, description, required_columns, rename_map):
+    def __init__(self, value, description, stage, required_columns, rename_map):
         self._value_ = value
         self.description = description
-        self.incoming_stage = None
+        self.incoming_stage = stage
         self.required_columns = required_columns
         self.rename_map = rename_map

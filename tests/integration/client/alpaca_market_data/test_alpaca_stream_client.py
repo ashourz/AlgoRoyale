@@ -1,8 +1,14 @@
 # src/algo_royale/tests/integration/client/test_alpaca_stream_client.py
 import asyncio
-from algo_royale.di.container import DIContainer
+
 import pytest
-from algo_royale.clients.alpaca.alpaca_market_data.alpaca_stream_client import AlpacaStreamClient, DataFeed
+
+from algo_royale.clients.alpaca.alpaca_market_data.alpaca_stream_client import (
+    AlpacaStreamClient,
+    DataFeed,
+)
+from algo_royale.di.container import DIContainer
+
 
 # Refactor TestHandler class without __init__ constructor
 class TestHandler:
@@ -21,7 +27,8 @@ class TestHandler:
     @classmethod
     async def on_bar(cls, data):
         cls.bars.append(data)
-    
+
+
 @pytest.fixture
 async def alpaca_client():
     client = AlpacaStreamClient(
@@ -29,10 +36,10 @@ async def alpaca_client():
     )
     yield client
     await client.aclose()
-    
+
+
 @pytest.mark.asyncio
 class TestAlpacaStreamClientIntegration:
-
     async def test_stream_receives_quote(self, alpaca_client):
         """
         Integration test for the AlpacaStreamClient to check if it receives quote messages.
@@ -41,13 +48,15 @@ class TestAlpacaStreamClientIntegration:
         handler = TestHandler()
 
         # Run the stream in the background
-        task = asyncio.create_task(alpaca_client.stream(
-            symbols=["FAKEPACA"],
-            feed=DataFeed.TEST,
-            on_quote=handler.on_quote,
-            on_trade=handler.on_trade,
-            on_bar=handler.on_bar
-        ))
+        task = asyncio.create_task(
+            alpaca_client.stream(
+                symbols=["FAKEPACA"],
+                feed=DataFeed.TEST,
+                on_quote=handler.on_quote,
+                on_trade=handler.on_trade,
+                on_bar=handler.on_bar,
+            )
+        )
 
         # Let the client run for a few seconds
         await asyncio.sleep(5)
@@ -57,8 +66,12 @@ class TestAlpacaStreamClientIntegration:
         await asyncio.sleep(1)
 
         task.cancel()
-        with pytest.raises(asyncio.CancelledError):
+        try:
             await task
+        except asyncio.CancelledError:
+            pass
 
-        # Assert we received at least one quote
-        assert handler.quotes or handler.trades or handler.bars, "No messages received from WebSocket stream"
+        # Assert we received at least one quote, trade, or bar
+        assert handler.quotes or handler.trades or handler.bars, (
+            "No messages received from WebSocket stream"
+        )
