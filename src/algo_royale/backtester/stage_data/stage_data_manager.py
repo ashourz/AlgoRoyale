@@ -1,4 +1,6 @@
 import os
+import shutil
+from logging import Logger
 from pathlib import Path
 from typing import Any, Optional
 
@@ -14,8 +16,9 @@ class StageDataManager:
     It also provides methods to list files in a directory and clear directories.
     """
 
-    def __init__(self):
+    def __init__(self, logger: Logger):
         self.base_dir = get_data_dir()
+        self.logger = logger
 
     def get_file_path(
         self,
@@ -25,62 +28,70 @@ class StageDataManager:
         filename: str,
         extension: DataExtension,
     ) -> Path:
-        if strategy_name:
-            return (
-                self.base_dir
-                / stage.value
-                / strategy_name
-                / symbol
-                / f"{filename}{extension.value}"
-            )
-        # If no strategy name is provided, use the symbol as the directory
-        return self.base_dir / stage.value / symbol / f"{filename}{extension.value}"
+        path = (
+            self.base_dir
+            / stage.value
+            / strategy_name
+            / symbol
+            / f"{filename}.{extension.value}.csv"
+            if strategy_name
+            else self.base_dir
+            / stage.value
+            / symbol
+            / f"{filename}.{extension.value}.csv"
+        )
+        self.logger.debug(f"Generated file path: {path}")
+        return path
 
     def get_directory_path(
         self, stage: BacktestStage, strategy_name: Optional[str], symbol: str
     ) -> Path:
-        if strategy_name:
-            return self.base_dir / stage.value / strategy_name / symbol
-        # If no strategy name is provided, use the symbol as the directory
-        return self.base_dir / stage.value / symbol
+        path = (
+            self.base_dir / stage.value / strategy_name / symbol
+            if strategy_name
+            else self.base_dir / stage.value / symbol
+        )
+        self.logger.debug(f"Generated directory path: {path}")
+        return path
 
     def get_stage_path(self, stage: BacktestStage) -> Path:
         path = self.base_dir / stage.value
         path.mkdir(parents=True, exist_ok=True)
+        self.logger.debug(f"Ensured stage directory exists: {path}")
         return path
 
     def is_stage_done(self, stage: BacktestStage) -> bool:
         done_file = (
-            self.get_stage_path(stage) / f"{stage.value}{DataExtension.DONE.value}"
+            self.get_stage_path(stage) / f"{stage.value}.{DataExtension.DONE.value}.csv"
         )
-        return done_file.exists()
+        exists = done_file.exists()
+        self.logger.debug(f"Checked if stage done file exists ({done_file}): {exists}")
+        return exists
 
     def is_symbol_stage_done(
         self, stage: BacktestStage, strategy_name: Optional[str], symbol: str
     ) -> bool:
-        if strategy_name:
-            done_file = (
-                self.get_directory_path(stage, strategy_name, symbol)
-                / f"{stage.value}{DataExtension.DONE.value}"
-            )
-        else:
-            # If no strategy name is provided, use the symbol as the directory
-            done_file = (
-                self.get_directory_path(stage, None, symbol)
-                / f"{stage.value}{DataExtension.DONE.value}"
-            )
-        return done_file.exists()
+        done_file = (
+            self.get_directory_path(stage, strategy_name, symbol)
+            / f"{stage.value}.{DataExtension.DONE.value}.csv"
+        )
+        exists = done_file.exists()
+        self.logger.debug(
+            f"Checked if symbol stage done file exists ({done_file}): {exists}"
+        )
+        return exists
 
     def mark_stage(self, stage: BacktestStage, statusExtension: DataExtension) -> None:
         stage_path = self.get_stage_path(stage)
-        # Remove any existing marker files for this stage
+        stage_path.mkdir(parents=True, exist_ok=True)
         for ext in DataExtension:
-            marker_file = stage_path / f"{stage.value}{ext.value}"
+            marker_file = stage_path / f"{stage.value}.{ext.value}.csv"
             if marker_file.exists():
                 marker_file.unlink()
-        # Create the new marker file
-        status_file = stage_path / f"{stage.value}{statusExtension.value}"
+                self.logger.info(f"Removed old marker file: {marker_file}")
+        status_file = stage_path / f"{stage.value}.{statusExtension.value}.csv"
         status_file.touch()
+        self.logger.info(f"Created new marker file: {status_file}")
 
     def mark_symbol_stage(
         self,
@@ -89,19 +100,16 @@ class StageDataManager:
         symbol: str,
         statusExtension: DataExtension,
     ) -> None:
-        if strategy_name:
-            stage_path = self.get_directory_path(stage, strategy_name, symbol)
-        else:
-            # If no strategy name is provided, use the symbol as the directory
-            stage_path = self.get_directory_path(stage, None, symbol)
-        # Remove any existing marker files for this stage
+        stage_path = self.get_directory_path(stage, strategy_name, symbol)
+        stage_path.mkdir(parents=True, exist_ok=True)
         for ext in DataExtension:
-            marker_file = stage_path / f"{stage.value}{ext.value}"
+            marker_file = stage_path / f"{stage.value}.{ext.value}.csv"
             if marker_file.exists():
                 marker_file.unlink()
-        # Create the new marker file
-        status_file = stage_path / f"{stage.value}{statusExtension.value}"
+                self.logger.info(f"Removed old symbol marker file: {marker_file}")
+        status_file = stage_path / f"{stage.value}.{statusExtension.value}.csv"
         status_file.touch()
+        self.logger.info(f"Created new symbol marker file: {status_file}")
 
     def file_exists(
         self,
@@ -111,12 +119,10 @@ class StageDataManager:
         filename: str,
         extension: DataExtension,
     ) -> bool:
-        if strategy_name:
-            return self.get_file_path(
-                stage, strategy_name, symbol, filename, extension
-            ).exists()
-        # If no strategy name is provided, use the symbol as the directory
-        return self.get_file_path(stage, symbol, filename, extension).exists()
+        path = self.get_file_path(stage, strategy_name, symbol, filename, extension)
+        exists = path.exists()
+        self.logger.debug(f"Checked if file exists ({path}): {exists}")
+        return exists
 
     def read_file(
         self,
@@ -127,16 +133,14 @@ class StageDataManager:
         extension: DataExtension,
         mode: str = "r",
     ) -> Optional[str]:
-        if strategy_name:
-            path = self.get_file_path(stage, strategy_name, symbol, filename, extension)
-        else:
-            # If no strategy name is provided, use the symbol as the directory
-            path = self.get_file_path(stage, symbol, filename, extension)
-        # Check if the file exists before trying to read it
+        path = self.get_file_path(stage, strategy_name, symbol, filename, extension)
         if not path.exists():
+            self.logger.warning(f"Tried to read non-existent file: {path}")
             return None
         with open(path, mode) as f:
-            return f.read()
+            data = f.read()
+        self.logger.info(f"Read file: {path}")
+        return data
 
     def write_file(
         self,
@@ -148,19 +152,13 @@ class StageDataManager:
         data: Any,
         mode: str = "w",
     ) -> None:
-        if strategy_name:
-            path = self.get_file_path(stage, strategy_name, symbol, filename, extension)
-        else:
-            # If no strategy name is provided, use the symbol as the directory
-            path = self.get_file_path(stage, symbol, filename, extension)
-        # Ensure the directory exists
+        path = self.get_file_path(stage, strategy_name, symbol, filename, extension)
         if not path.parent.exists():
-            # Create the directory if it doesn't exist
-            # This will create all parent directories as well
             path.parent.mkdir(parents=True, exist_ok=True)
-        # Write the data to the file
+            self.logger.info(f"Created directory for writing file: {path.parent}")
         with open(path, mode) as f:
             f.write(data)
+        self.logger.info(f"Wrote file: {path}")
 
     def update_file(
         self,
@@ -172,6 +170,9 @@ class StageDataManager:
         data: Any,
         mode: str = "a",
     ) -> None:
+        self.logger.info(
+            f"Updating file (append mode): {filename}.{extension.value}.csv"
+        )
         self.write_file(
             stage, strategy_name, symbol, filename, extension, data, mode=mode
         )
@@ -184,17 +185,12 @@ class StageDataManager:
         filename: str,
         error_message: str,
     ) -> None:
-        """
-        Write an error message to a .error.txt file for the given stage, strategy, symbol, and filename.
-        """
-        if strategy_name:
-            dir_path = self.get_directory_path(stage, strategy_name, symbol)
-        else:
-            dir_path = self.get_directory_path(stage, None, symbol)
+        dir_path = self.get_directory_path(stage, strategy_name, symbol)
         dir_path.mkdir(parents=True, exist_ok=True)
-        error_file = dir_path / f"{filename}.{DataExtension.ERROR.value}.txt"
+        error_file = dir_path / f"{filename}.{DataExtension.ERROR.value}.csv"
         with open(error_file, "w") as f:
             f.write(error_message)
+        self.logger.error(f"Wrote error file: {error_file}")
 
     def delete_file(
         self,
@@ -204,47 +200,57 @@ class StageDataManager:
         filename: str,
         extension: DataExtension,
     ) -> None:
-        if strategy_name:
-            path = self.get_file_path(stage, strategy_name, symbol, filename, extension)
-        else:
-            # If no strategy name is provided, use the symbol as the directory
-            path = self.get_file_path(stage, symbol, filename, extension)
-        # Check if the file exists before trying to delete it
+        path = self.get_file_path(stage, strategy_name, symbol, filename, extension)
         if path.exists():
             os.remove(path)
+            self.logger.info(f"Deleted file: {path}")
+        else:
+            self.logger.warning(f"Tried to delete non-existent file: {path}")
 
     def list_files(
         self, stage: BacktestStage, strategy_name: Optional[str], symbol: str
     ) -> list:
-        path = self.get_directory_path(stage, strategy_name, symbol)
-        # List all files in the directory
-        return [f for f in path.parent.iterdir() if f.is_file()]
+        dir_path = self.get_directory_path(stage, strategy_name, symbol)
+        if not dir_path.exists():
+            self.logger.warning(
+                f"Tried to list files in non-existent directory: {dir_path}"
+            )
+            return []
+        files = list(dir_path.glob("*"))
+        self.logger.debug(f"Listed files in {dir_path}: {[f.name for f in files]}")
+        return files
 
     def clear_directory(
         self, stage: BacktestStage, strategy_name: Optional[str], symbol: str
     ) -> None:
         path = self.get_directory_path(stage, strategy_name, symbol)
-        # Check if the directory exists before trying to clear it
         if not path.exists():
+            self.logger.warning(f"Tried to clear non-existent directory: {path}")
             return
-        # Clear all files in the directory
-        for f in path.parent.iterdir():
+        for f in path.iterdir():
             if f.is_file():
                 os.remove(f)
-        # Optionally, remove the directory itself
-        if path.parent.exists():
-            os.rmdir(path.parent)
+                self.logger.info(f"Deleted file in clear_directory: {f}")
+        try:
+            path.rmdir()
+            self.logger.info(f"Removed directory: {path}")
+        except OSError:
+            self.logger.warning(
+                f"Could not remove directory (not empty or error): {path}"
+            )
 
     def clear_all_data(self) -> None:
-        # Clear all data in the base directory
         for item in self.base_dir.iterdir():
             if item.is_file():
                 os.remove(item)
+                self.logger.info(f"Deleted file in clear_all_data: {item}")
             elif item.is_dir():
-                for f in item.iterdir():
-                    if f.is_file():
-                        os.remove(f)
-                os.rmdir(item)
-        # Optionally, remove the base directory itself
-        if self.base_dir.exists():
-            os.rmdir(self.base_dir)
+                shutil.rmtree(item)
+                self.logger.info(f"Removed subdirectory and all contents: {item}")
+        try:
+            self.base_dir.rmdir()
+            self.logger.info(f"Removed base directory: {self.base_dir}")
+        except OSError:
+            self.logger.warning(
+                f"Could not remove base directory (not empty or error): {self.base_dir}"
+            )
