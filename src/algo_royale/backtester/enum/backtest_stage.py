@@ -10,7 +10,7 @@ class BacktestStage(Enum):
     - Attributes:
         value (str): The value of the stage.
         description (str): A description of the stage.
-        incoming_stage (Optional[PipelineStage]): The stage that feeds into this stage.
+        incoming_stage (Optional[str]): The stage that feeds into this stage.
         required_columns (list): A list of required columns for the stage.
         rename_map (dict): A dictionary mapping original column names to new names.
 
@@ -46,7 +46,7 @@ class BacktestStage(Enum):
     FEATURE_ENGINEERING = (
         "feature_engineering",
         "Creating new features from existing data (technical indicators, etc.)",
-        DATA_INGEST,
+        "DATA_INGEST",
         [
             "timestamp",
             "open",
@@ -65,7 +65,7 @@ class BacktestStage(Enum):
     BACKTEST = (
         "backtest",
         "Backtesting strategies on historical data",
-        FEATURE_ENGINEERING,
+        "FEATURE_ENGINEERING",
         [
             "timestamp",
             "open",
@@ -82,7 +82,7 @@ class BacktestStage(Enum):
     STRATEGY_OPTIMIZATION = (
         "strategy_optimization",
         "Optimizing strategies using historical data",
-        BACKTEST,
+        "BACKTEST",
         [
             "timestamp",
             "open",
@@ -105,35 +105,35 @@ class BacktestStage(Enum):
     RESULTS_ANALYSIS = (
         "results_analysis",
         "Analyzing backtest results and performance metrics",
-        STRATEGY_OPTIMIZATION,
+        "STRATEGY_OPTIMIZATION",
         [],
         {},
     )
     STRATEGY_METRICS = (
         "strategy_metrics",
         "Calculating and reporting strategy performance metrics",
-        RESULTS_ANALYSIS,
+        "RESULTS_ANALYSIS",
         [],
         {},
     )
     STRATEGY_SELECTION = (
         "strategy_selection",
         "Selecting the best strategy based on performance metrics",
-        STRATEGY_METRICS,
+        "STRATEGY_METRICS",
         [],
         {},
     )
     REPORTING = (
         "reporting",
         "Generating reports and visualizations for analysis",
-        STRATEGY_SELECTION,
+        "STRATEGY_SELECTION",
         [],
         {},
     )
     DEPLOYMENT = (
         "deployment",
         "Deploying the selected strategy for live trading",
-        REPORTING,
+        "REPORTING",
         [],
         {},
     )
@@ -141,6 +141,15 @@ class BacktestStage(Enum):
     def __init__(self, value, description, stage, required_columns, rename_map):
         self._value_: str = value
         self.description: str = description
-        self.incoming_stage: Optional[BacktestStage] = stage
+        self._incoming_stage_name: Optional[BacktestStage] = stage
+        self.incoming_stage = None  # will be set later
         self.required_columns = required_columns
         self.rename_map = rename_map
+
+
+# After class definition, resolve incoming_stage
+for stage in BacktestStage:
+    if isinstance(stage._incoming_stage_name, str):
+        stage.incoming_stage = BacktestStage[stage._incoming_stage_name]
+    else:
+        stage.incoming_stage = None
