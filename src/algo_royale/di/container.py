@@ -14,6 +14,7 @@ from algo_royale.backtester.stage_data.stage_data_loader import StageDataLoader
 from algo_royale.backtester.stage_data.stage_data_manager import StageDataManager
 from algo_royale.backtester.stage_data.stage_data_writer import StageDataWriter
 from algo_royale.backtester.strategy.strategy_factory import StrategyFactory
+from algo_royale.backtester.watchlist.watchlist import load_watchlist, save_watchlist
 from algo_royale.clients.alpaca.alpaca_client_config import TradingConfig
 from algo_royale.clients.alpaca.alpaca_market_data.alpaca_corporate_action_client import (
     AlpacaCorporateActionClient,
@@ -227,12 +228,16 @@ class DIContainer(containers.DeclarativeContainer):
         logger=logger_backtest_prod,
     )
 
+    load_watchlist_func = providers.Object(load_watchlist)
+    save_watchlist_func = providers.Object(save_watchlist)
+
     market_data_fetcher = providers.Singleton(
         MarketDataFetcher,
         config=config,
         logger=logger_backtest_prod,
         quote_service=alpaca_quote_service,
         stage_data_manager=stage_data_manager,
+        load_watchlist=load_watchlist_func,
     )
 
     stage_data_loader = providers.Singleton(
@@ -240,6 +245,7 @@ class DIContainer(containers.DeclarativeContainer):
         config=config,
         logger=logger_backtest_prod,
         stage_data_manager=stage_data_manager,
+        load_watchlist=load_watchlist_func,
     )
 
     stage_data_writer = providers.Singleton(

@@ -1,5 +1,5 @@
 from logging import Logger
-from typing import AsyncIterator, Callable, Dict, Optional
+from typing import AsyncIterator, Callable, Dict, List, Optional
 
 import dateutil
 import pandas as pd
@@ -11,7 +11,6 @@ from algo_royale.backtester.stage_coordinator.stage_coordinator import StageCoor
 from algo_royale.backtester.stage_data.stage_data_loader import StageDataLoader
 from algo_royale.backtester.stage_data.stage_data_manager import StageDataManager
 from algo_royale.backtester.stage_data.stage_data_writer import StageDataWriter
-from algo_royale.backtester.watchlist.watchlist import load_watchlist
 from algo_royale.models.alpaca_market_data.enums import DataFeed
 from algo_royale.services.market_data.alpaca_stock_service import AlpacaQuoteService
 
@@ -26,6 +25,7 @@ class DataIngestStageCoordinator(StageCoordinator):
         stage_data_manager: StageDataManager,
         logger: Logger,
         quote_service: AlpacaQuoteService,
+        load_watchlist: Callable[[str], List[str]],
     ):
         super().__init__(
             stage=BacktestStage.DATA_INGEST,

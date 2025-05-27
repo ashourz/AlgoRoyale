@@ -1,19 +1,22 @@
 import asyncio
 from logging import Logger
 from pathlib import Path
-from typing import AsyncIterator, Callable, Dict, Optional
+from typing import AsyncIterator, Callable, Dict, List, Optional
 
 import pandas as pd
 
 from algo_royale.backtester.enum.backtest_stage import BacktestStage
 from algo_royale.backtester.stage_data.stage_data_manager import StageDataManager
-from algo_royale.backtester.watchlist.watchlist import load_watchlist
 from algo_royale.config.config import Config
 
 
 class StageDataLoader:
     def __init__(
-        self, config: Config, logger: Logger, stage_data_manager: StageDataManager
+        self,
+        config: Config,
+        logger: Logger,
+        stage_data_manager: StageDataManager,
+        load_watchlist: Callable[[str], List[str]],
     ):
         try:
             # Initialize directories and services

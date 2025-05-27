@@ -1,7 +1,7 @@
 import asyncio
 from logging import Logger
 from pathlib import Path
-from typing import Optional
+from typing import Callable, List, Optional
 
 import dateutil.parser
 import pandas as pd
@@ -11,7 +11,6 @@ from alpaca.data.enums import DataFeed
 from algo_royale.backtester.enum.backtest_stage import BacktestStage
 from algo_royale.backtester.enum.data_extension import DataExtension
 from algo_royale.backtester.stage_data.stage_data_manager import StageDataManager
-from algo_royale.backtester.watchlist.watchlist import load_watchlist
 from algo_royale.config.config import Config
 from algo_royale.services.market_data.alpaca_stock_service import AlpacaQuoteService
 
@@ -23,6 +22,7 @@ class MarketDataFetcher:
         logger: Logger,
         quote_service: AlpacaQuoteService,
         stage_data_manager: StageDataManager,
+        load_watchlist: Callable[[str], List[str]],
     ):
         try:
             # Initialize directories and services
