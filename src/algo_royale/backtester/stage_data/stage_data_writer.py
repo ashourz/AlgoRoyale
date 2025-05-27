@@ -30,23 +30,21 @@ class StageDataWriter:
         self.max_rows_per_file = max_rows_per_file
         self.logger = logger
 
-    ##TODO MAKE STRATEGY_NAME OPTIONAL
     def has_existing_results(
-        self, stage: BacktestStage, strategy_name: str, symbol: str
+        self, stage: BacktestStage, strategy_name: Optional[str], symbol: str
     ) -> bool:
         """
         Check if results already exist for the given stage, strategy, and symbol.
         This is useful to avoid overwriting existing results.
         """
-        search_dir = self._get_stage_symbol_dir(stage, symbol)
+        search_dir = self._get_stage_symbol_dir(stage, strategy_name, symbol)
         pattern = str(search_dir / f"{strategy_name}_{symbol}_*.csv")
         return len(glob.glob(pattern)) > 0
 
-    ##TODO MAKE STRATEGY_NAME OPTIONAL
     def save_stage_data(
         self,
         stage: BacktestStage,
-        strategy_name: str,
+        strategy_name: Optional[str],
         symbol: str,
         results_df: pd.DataFrame,
         timestamp: Optional[datetime] = None,
@@ -60,7 +58,7 @@ class StageDataWriter:
             raise TypeError(f"Expected DataFrame, got {type(results_df)}")
 
         timestamp = timestamp or datetime.now()
-        output_dir = self._get_stage_symbol_dir(stage, symbol)
+        output_dir = self._get_stage_symbol_dir(stage, strategy_name, symbol)
         output_dir.mkdir(parents=True, exist_ok=True)
 
         if "strategy" not in results_df.columns:
@@ -93,7 +91,10 @@ class StageDataWriter:
 
         return filepaths
 
-    ##TODO ADD OPTIONAL STRATEGY_NAME
-    def _get_stage_symbol_dir(self, stage: BacktestStage, symbol: str) -> Path:
-        """Get the directory for a symbol in the stage"""
-        return self.stage_data_manager.get_directory_path(stage=stage, symbol=symbol)
+    def _get_stage_symbol_dir(
+        self, stage: BacktestStage, strategy_name: Optional[str], symbol: str
+    ) -> Path:
+        """Get the directory for a symbol in the stage, optionally with strategy_name."""
+        return self.stage_data_manager.get_directory_path(
+            stage=stage, strategy_name=strategy_name, symbol=symbol
+        )
