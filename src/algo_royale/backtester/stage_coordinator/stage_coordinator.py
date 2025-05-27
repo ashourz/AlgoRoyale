@@ -121,28 +121,29 @@ class StageCoordinator(ABC):
         strategy_name: Optional[str] = None,
     ) -> Dict[str, Callable[[], AsyncIterator[pd.DataFrame]]]:
         """Prepare data for processing"""
-        try:
-            prepared_data = {}
-            for symbol, df_iter_factory in data.items():
-                prepared_data[symbol] = (
-                    lambda symbol=symbol,
-                    df_iter_factory=df_iter_factory: self.data_preparer.normalized_stream(
+        prepared_data = {}
+        for symbol, df_iter_factory in data.items():
+
+            def factory(symbol=symbol, df_iter_factory=df_iter_factory):
+                try:
+                    return self.data_preparer.normalized_stream(
                         symbol, df_iter_factory, self.config
                     )
-                )
-            return prepared_data
-        except Exception as e:
-            self.logger.error(
-                f"stage:{stage} | strategy:{strategy_name} data preparation failed: {e}"
-            )
-            self.stage_data_manager.write_error_file(
-                stage=stage,
-                strategy_name=strategy_name,
-                symbol=symbol,
-                filename="prepare_data",
-                error_message=f"stage:{stage} | strategy:{strategy_name} data preparation failed: {e}",
-            )
-            return {}
+                except Exception as e:
+                    self.logger.error(
+                        f"stage:{stage} | strategy:{strategy_name} data preparation failed: {e}"
+                    )
+                    self.stage_data_manager.write_error_file(
+                        stage=stage,
+                        strategy_name=strategy_name,
+                        symbol=symbol,
+                        filename="prepare_data",
+                        error_message=f"stage:{stage} | strategy:{strategy_name} data preparation failed: {e}",
+                    )
+                    raise
+
+            prepared_data[symbol] = factory
+        return prepared_data
 
     async def _write(
         self,
