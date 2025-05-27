@@ -1,4 +1,5 @@
 from enum import Enum
+from typing import Optional
 
 
 class BacktestStage(Enum):
@@ -138,8 +139,8 @@ class BacktestStage(Enum):
     )
 
     def __init__(self, value, description, stage, required_columns, rename_map):
-        self._value_ = value
-        self.description = description
-        self.incoming_stage = stage
+        self._value_: str = value
+        self.description: str = description
+        self.incoming_stage: Optional[BacktestStage] = stage
         self.required_columns = required_columns
         self.rename_map = rename_map

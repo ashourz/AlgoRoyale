@@ -54,9 +54,6 @@ def coordinator(
     )
 
     class TestCoordinator(StageCoordinator):
-        input_stage = BacktestStage.DATA_INGEST
-        output_stage = BacktestStage.DATA_INGEST
-
         async def process(self, prepared_data):
             return prepared_data
 

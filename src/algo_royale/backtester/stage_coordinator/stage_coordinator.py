@@ -29,9 +29,12 @@ class StageCoordinator(ABC):
         self.data_writer = data_writer
         self.logger = logger
         self.stage_data_manager = stage_data_manager
-        self.logger.info(
-            f"{self.input_stage} -> {self.output_stage} StageCoordinator initialized"
+        incoming = (
+            self.stage.incoming_stage.value if self.stage.incoming_stage else "None"
         )
+        outgoing = self.stage.value
+
+        self.logger.info(f"{incoming} -> {outgoing} StageCoordinator initialized")
 
     @abstractmethod
     async def process(
