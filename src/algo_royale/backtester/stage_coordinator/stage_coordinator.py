@@ -11,11 +11,11 @@ from algo_royale.backtester.stage_data.stage_data_manager import StageDataManage
 from algo_royale.backtester.stage_data.stage_data_writer import StageDataWriter
 
 
+##TODO: Removed config as dependency, need to remove from all coordinators
 class StageCoordinator(ABC):
     def __init__(
         self,
         stage: BacktestStage,
-        config: dict,
         data_loader: StageDataLoader,
         data_preparer: AsyncDataPreparer,
         data_writer: StageDataWriter,
@@ -23,7 +23,6 @@ class StageCoordinator(ABC):
         logger: Logger,
     ):
         self.stage = stage
-        self.config = config
         self.data_loader = data_loader
         self.data_preparer = data_preparer
         self.data_writer = data_writer
@@ -130,7 +129,7 @@ class StageCoordinator(ABC):
             def factory(symbol=symbol, df_iter_factory=df_iter_factory):
                 try:
                     return self.data_preparer.normalized_stream(
-                        symbol, df_iter_factory, self.config
+                        stage=stage, symbol=symbol, iterator_factory=df_iter_factory
                     )
                 except Exception as e:
                     self.logger.error(
