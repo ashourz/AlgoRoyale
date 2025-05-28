@@ -1,11 +1,14 @@
-from typing import AsyncGenerator, AsyncIterator
+from typing import AsyncGenerator, AsyncIterator, Callable
 
 import pandas as pd
 
-from algo_royale.backtester.feature_engineering import feature_engineering
-
 
 class FeatureEngineer:
+    def __init__(
+        self, feature_engineering_func: Callable[[pd.DataFrame], pd.DataFrame]
+    ):
+        self.feature_engineering_func = feature_engineering_func
+
     async def engineer_features(
         self, df_iter: AsyncIterator[pd.DataFrame], symbol: str
     ) -> AsyncGenerator[pd.DataFrame, None]:
@@ -15,7 +18,7 @@ class FeatureEngineer:
         """
         async for df in df_iter:
             try:
-                engineered_df = feature_engineering(df)
+                engineered_df = self.feature_engineering_func(df)
                 yield engineered_df
             except Exception as e:
                 # Optionally log or handle errors per symbol

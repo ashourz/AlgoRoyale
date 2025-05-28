@@ -1,93 +1,65 @@
 import asyncio
 from logging import Logger
 
-from algo_royale.backtester.backtest.strategy_backtest_executor import (
-    StrategyBacktestExecutor,
-)
-from algo_royale.backtester.data_ingest.market_data_fetcher import MarketDataFetcher
-from algo_royale.backtester.data_preparer.async_data_preparer import AsyncDataPreparer
-from algo_royale.backtester.enum.backtest_stage import BacktestStage
-from algo_royale.backtester.feature_engineering.feature_engineering_coordinator import (
-    FeatureEngineeringCoordinator,
-)
-from algo_royale.backtester.stage_data.stage_data_loader import StageDataLoader
-from algo_royale.backtester.strategy.strategy_factory import StrategyFactory
-
 
 class PipelineCoordinator:
     def __init__(
         self,
-        data_fetcher: MarketDataFetcher,
-        data_loader: StageDataLoader,
-        feature_engineering_coordinator: FeatureEngineeringCoordinator,
-        backtest_executor: StrategyBacktestExecutor,
-        data_preparer: AsyncDataPreparer,
+        data_ingest_stage_coordinator,
+        feature_engineering_stage_coordinator,
+        backtest_stage_coordinator,
         logger: Logger,
-        strategy_factory: StrategyFactory,
+        strategy_factory,
     ):
         self.logger = logger
         self.strategy_factory = strategy_factory
-        self.data_fetcher = data_fetcher
-        self.data_loader = data_loader
-        self.feature_engineering_coordinator = feature_engineering_coordinator
-        self.data_preparer = data_preparer
-        self.backtest_executor = backtest_executor
+        self.data_ingest_stage_coordinator = data_ingest_stage_coordinator
+        self.feature_engineering_stage_coordinator = (
+            feature_engineering_stage_coordinator
+        )
+        self.backtest_stage_coordinator = backtest_stage_coordinator
 
     async def run_async(self, config=None):
         try:
-            # Validate and normalize configuration
-            self.logger.info("Validating configuration...")
-            config = self._validate_config(config)
-            if not config:
-                self.logger.error("Invalid configuration")
-                return False
-
             # Initialize strategies
             self.logger.info("Initializing strategies...")
             strategies = self._initialize_strategies(config)
             if not strategies:
                 self.logger.error("No strategies initialized")
                 return False
-            ## update to stage coordinator
-            # Fetch market data
-            self.logger.info("Fetching market data...")
-            await self.data_fetcher.fetch_all()
 
-            # Feature engineering
-            self.logger.info("Running feature engineering...")
-            await self.feature_engineering_coordinator.run()
-
-            # Load data
-            self.stage = BacktestStage.FEATURE_ENGINEERING
-            self.logger.info(f"Loading {self.stage} data...")
-            raw_data = await self._load_data(stage=self.stage)
-            if not raw_data:
-                self.logger.error(f"No {self.stage} data loaded")
+            # Data Ingest Stage
+            self.logger.info("Running data ingest stage...")
+            ingest_success = await self.data_ingest_stage_coordinator.run()
+            if not ingest_success:
+                self.logger.error("Data ingest stage failed")
                 return False
 
-            # Prepare data for backtesting
-            self.logger.info("Preparing data for backtesting...")
-            prepared_data = self._prepare_data(config, raw_data)
-            if not prepared_data:
-                self.logger.error(f"No valid data available for {self.stage}")
+            # Feature Engineering Stage
+            self.logger.info("Running feature engineering stage...")
+            fe_success = await self.feature_engineering_stage_coordinator.run()
+            if not fe_success:
+                self.logger.error("Feature engineering stage failed")
                 return False
 
-            # Run backtest
-            self.logger.info("Starting backtest...")
-            backtest_result = await self._run_backtest(strategies, prepared_data)
-            if not backtest_result:
-                self.logger.error("Backtest failed")
+            # Backtest Stage
+            self.logger.info("Running backtest stage...")
+            self.backtest_stage_coordinator.strategies = (
+                strategies  # Inject strategies if needed
+            )
+            backtest_success = await self.backtest_stage_coordinator.run()
+            if not backtest_success:
+                self.logger.error("Backtest stage failed")
                 return False
 
-            await self.backtest_executor.save_results()
             self.logger.info("Backtest Pipeline completed successfully")
             return True
         except Exception as e:
             self.logger.error(f"Backtest failed: {e}")
             return False
 
-    def run(self, config=None):
-        return asyncio.run(self.run_async(config=config))
+    def run(self):
+        return asyncio.run(self.run_async())
 
     def _initialize_strategies(self, config: dict) -> list:
         """Initialize strategies based on the configuration"""
@@ -96,38 +68,4 @@ class PipelineCoordinator:
             return strategies
         except Exception as e:
             self.logger.error(f"Strategy initialization failed: {e}")
-            return False
-
-    async def _load_data(self, stage: BacktestStage) -> dict:
-        """Load data based on the configuration"""
-        try:
-            data = await self.data_loader.load_all_stage_data(stage=stage)
-            return data
-        except Exception as e:
-            self.logger.error(f"Data loading failed: {e}")
-            return False
-
-    def _prepare_data(self, config: dict, data: dict) -> dict:
-        """Prepare data for backtesting"""
-        try:
-            prepared_data = {}
-            for symbol, df_iter_factory in data.items():
-                prepared_data[symbol] = (
-                    lambda symbol=symbol,
-                    df_iter_factory=df_iter_factory: self.data_preparer.normalized_stream(
-                        symbol, df_iter_factory, config
-                    )
-                )
-            return prepared_data
-        except Exception as e:
-            self.logger.error(f"Data preparation failed: {e}")
-            return False
-
-    async def _run_backtest(self, strategies: list, prepared_data: dict) -> bool:
-        """Run backtest using the prepared data and strategies"""
-        try:
-            await self.backtest_executor.run_backtest(strategies, prepared_data)
-            return True
-        except Exception as e:
-            self.logger.error(f"Backtest execution failed: {e}")
             return False

@@ -9,6 +9,10 @@ from algo_royale.backtester.data_preparer.data_preparer import DataPreparer
 from algo_royale.backtester.data_stream.normalized_data_stream_factory import (
     NormalizedDataStreamFactory,
 )
+from algo_royale.backtester.feature_engineering.feature_engineer import FeatureEngineer
+from algo_royale.backtester.feature_engineering.feature_engineering import (
+    feature_engineering,
+)
 from algo_royale.backtester.pipeline.pipeline_coordinator import PipelineCoordinator
 from algo_royale.backtester.stage_data.stage_data_loader import StageDataLoader
 from algo_royale.backtester.stage_data.stage_data_manager import StageDataManager
@@ -254,6 +258,22 @@ class DIContainer(containers.DeclarativeContainer):
         stage_data_manager=stage_data_manager,
     )
 
+    feature_engineering_func = providers.Object(feature_engineering)
+
+    feature_engineer = providers.Singleton(
+        FeatureEngineer,
+        feature_engineering_func=feature_engineering_func,
+    )
+
+    ##TODO: refacotr to feature engineering stage coordinator
+    feature_engineering_coordinator = providers.Singleton(
+        FeatureEngineeringCoordinator,
+        data_loader=stage_data_loader,
+        feature_engineer=feature_engineer,
+        data_writer=stage_data_writer,
+        logger=logger_backtest_prod,
+    )
+
     strategy_backtest_executor = providers.Singleton(
         StrategyBacktestExecutor,
         stage_data_writer=stage_data_writer,
@@ -265,13 +285,13 @@ class DIContainer(containers.DeclarativeContainer):
         config=config,
     )
 
-    strategy_factory = providers.Singleton(StrategyFactory)
+    strategy_factory = providers.Singleton(StrategyFactory, config=config)
 
     pipeline_coordinator = providers.Singleton(
         PipelineCoordinator,
         data_fetcher=market_data_fetcher,
         data_loader=stage_data_loader,
-        feature_engineering_coordinator=None,  # TODO: Implement FeatureEngineeringCoordinator
+        feature_engineering_coordinator=feature_engineering_coordinator,
         backtest_executor=strategy_backtest_executor,
         data_preparer=async_data_preparer,
         logger=logger_backtest_prod,

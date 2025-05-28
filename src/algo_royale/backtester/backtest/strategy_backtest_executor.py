@@ -1,19 +1,18 @@
 import asyncio
 from logging import Logger
-from pathlib import Path
 from typing import AsyncIterator, Callable, Dict, List, Union
 
 import pandas as pd
 
 from algo_royale.backtester.enum.backtest_stage import BacktestStage
-from algo_royale.backtester.stage_data.stage_data_writer import StageDataWriter
+from algo_royale.backtester.stage_data.stage_data_manager import StageDataManager
 from algo_royale.strategies.base_strategy import Strategy
 
 
 class StrategyBacktestExecutor:
-    def __init__(self, stage_data_writer: StageDataWriter, logger: Logger):
+    def __init__(self, stage_data_manager: StageDataManager, logger: Logger):
         self.logger = logger
-        self.stage_data_writer = stage_data_writer
+        self.stage_data_manager = stage_data_manager
         self.stage = BacktestStage.BACKTEST
         self._processed_pairs = set()
 
@@ -21,15 +20,19 @@ class StrategyBacktestExecutor:
         self,
         strategies: List[Strategy],
         data: Dict[str, Callable[[], AsyncIterator[pd.DataFrame]]],
-    ) -> None:
+    ) -> Dict[str, List[pd.DataFrame]]:
         """Pure async implementation for processing streaming data"""
+        results = {}
+
         if not data:
             self.logger.error("No data available - check your data paths and files")
             return
 
         # Verify at least some files exist
         for symbol in data.keys():
-            data_path = Path(f"data/backtesting/bars/{symbol}")
+            data_path = self.stage_data_manager.get_directory_path(
+                self.stage, None, symbol
+            )
             if not data_path.exists():
                 self.logger.error(f"Data path does not exist: {data_path}")
             elif not any(data_path.glob("*.csv")):
@@ -72,15 +75,13 @@ class StrategyBacktestExecutor:
                                     f"Error processing page {page_count} for {symbol}-{strategy_name}: {str(e)}"
                                 )
                                 continue
-
-                        await self._save_and_finalize(
-                            symbol, strategy_name, all_results, processed_rows
-                        )
+                        results.setdefault(symbol, []).extend(all_results)
 
                     except Exception as e:
                         self.logger.error(
                             f"Failed to process {symbol}-{strategy_name}: {str(e)}"
                         )
+            return results
         except asyncio.CancelledError:
             self.logger.warning("Backtest cancelled")
             raise
@@ -121,34 +122,6 @@ class StrategyBacktestExecutor:
             )
             raise
 
-    async def _save_and_finalize(
-        self,
-        symbol: str,
-        strategy_name: str,
-        all_results: List[pd.DataFrame],
-        processed_rows: int,
-    ) -> None:
-        """Save results and log final output"""
-        self.logger.info(
-            f"{symbol}-{strategy_name} processed {len(all_results)} pages "
-            f"({processed_rows} total rows)"
-        )
-
-        if not all_results:
-            self.logger.warning(f"No valid data processed for {symbol}-{strategy_name}")
-            return
-
-        combined_results = pd.concat(all_results, ignore_index=True)
-        await asyncio.to_thread(
-            self.stage_data_writer.save_stage_data,
-            stage=self.stage,
-            strategy_name=strategy_name,
-            symbol=symbol,
-            results_df=combined_results,
-        )
-
-        self._processed_pairs.add(f"{symbol}_{strategy_name}")
-
     def _should_skip_pair(self, pair_key: str, strategy_name: str, symbol: str) -> bool:
         if pair_key in self._processed_pairs:
             self.logger.info(
@@ -156,8 +129,8 @@ class StrategyBacktestExecutor:
             )
             return True
 
-        if self.stage_data_writer.has_existing_results(
-            stage=self.stage, strategy_name=strategy_name, symbol=symbol
+        if self.stage_data_manager.is_symbol_stage_done(
+            self.stage, strategy_name, symbol
         ):
             self.logger.info(
                 f"Found existing results for {symbol}-{strategy_name}, skipping..."
