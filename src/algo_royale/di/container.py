@@ -75,6 +75,7 @@ from algo_royale.clients.db.dao.trade_dao import TradeDAO
 from algo_royale.clients.db.dao.trade_signal_dao import TradeSignalDAO
 from algo_royale.clients.db.database import Database
 from algo_royale.config.config import Config
+from algo_royale.config.strategy_map import strategy_map
 from algo_royale.logging.logger_singleton import (
     Environment,
     LoggerSingleton,
@@ -227,7 +228,9 @@ class DIContainer(containers.DeclarativeContainer):
     )
 
     ## Backtester
-    stage_data_manager = providers.Singleton(StageDataManager)
+    stage_data_manager = providers.Singleton(
+        StageDataManager, logger=logger_backtest_prod
+    )
 
     data_preparer = providers.Singleton(DataPreparer, logger=logger_backtest_prod)
 
@@ -285,7 +288,7 @@ class DIContainer(containers.DeclarativeContainer):
         config=config,
     )
 
-    strategy_factory = providers.Singleton(StrategyFactory, config=config)
+    strategy_factory = providers.Singleton(StrategyFactory, strategy_map=strategy_map)
 
     data_ingest_stage_coordinator = providers.Singleton(
         DataIngestStageCoordinator,

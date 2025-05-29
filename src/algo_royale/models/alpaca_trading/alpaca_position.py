@@ -1,9 +1,11 @@
 # src/models/alpaca_models/alpaca_trading/alpaca_order.py
 
-from algo_royale.models.alpaca_trading.alpaca_order import Order
-from pydantic import BaseModel
-from typing import List
 from enum import Enum
+from typing import List
+
+from pydantic import BaseModel
+
+from algo_royale.models.alpaca_trading.alpaca_order import Order
 
 
 class PositionSide(str, Enum):
@@ -61,7 +63,7 @@ class Position(BaseModel):
     change_today: float
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
     @classmethod
     def from_raw(cls, data: dict) -> "Position":
@@ -70,9 +72,18 @@ class Position(BaseModel):
         Handles float conversion and enum mapping.
         """
         float_fields = [
-            "qty", "qty_available", "avg_entry_price", "market_value", "cost_basis",
-            "unrealized_pl", "unrealized_plpc", "unrealized_intraday_pl", "unrealized_intraday_plpc",
-            "current_price", "lastday_price", "change_today"
+            "qty",
+            "qty_available",
+            "avg_entry_price",
+            "market_value",
+            "cost_basis",
+            "unrealized_pl",
+            "unrealized_plpc",
+            "unrealized_intraday_pl",
+            "unrealized_intraday_plpc",
+            "current_price",
+            "lastday_price",
+            "change_today",
         ]
 
         for field in float_fields:
@@ -106,7 +117,8 @@ class PositionList(BaseModel):
         """
         parsed_positions = [Position.from_raw(position) for position in data]
         return cls(positions=parsed_positions)
-    
+
+
 class ClosedPosition(BaseModel):
     symbol: str
     status: int
@@ -117,9 +129,10 @@ class ClosedPosition(BaseModel):
         return cls(
             symbol=data["symbol"],
             status=data["status"],
-            order=Order.from_raw(data["body"])
+            order=Order.from_raw(data["body"]),
         )
-        
+
+
 class ClosedPositionList(BaseModel):
     """
     Represents a list of ClosedPosition objects returned from the Alpaca API.
@@ -133,5 +146,7 @@ class ClosedPositionList(BaseModel):
         Factory method to parse a raw list of order dictionaries
         into structured ClosedPosition objects.
         """
-        parsed_closed_position = [ClosedPosition.from_raw(closedPosition) for closedPosition in data]
+        parsed_closed_position = [
+            ClosedPosition.from_raw(closedPosition) for closedPosition in data
+        ]
         return cls(closedPositions=parsed_closed_position)

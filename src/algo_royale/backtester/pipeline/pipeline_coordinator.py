@@ -1,13 +1,23 @@
 import asyncio
 from logging import Logger
 
+from algo_royale.backtester.stage_coordinator.backtest_stage_coordinator import (
+    BacktestStageCoordinator,
+)
+from algo_royale.backtester.stage_coordinator.data_ingest_stage_coordinator import (
+    DataIngestStageCoordinator,
+)
+from algo_royale.backtester.stage_coordinator.feature_engineering_stage_coordinator import (
+    FeatureEngineeringStageCoordinator,
+)
+
 
 class PipelineCoordinator:
     def __init__(
         self,
-        data_ingest_stage_coordinator,
-        feature_engineering_stage_coordinator,
-        backtest_stage_coordinator,
+        data_ingest_stage_coordinator: DataIngestStageCoordinator,
+        feature_engineering_stage_coordinator: FeatureEngineeringStageCoordinator,
+        backtest_stage_coordinator: BacktestStageCoordinator,
         logger: Logger,
     ):
         self.logger = logger
@@ -19,13 +29,7 @@ class PipelineCoordinator:
 
     async def run_async(self, config=None):
         try:
-            # Initialize strategies
-            self.logger.info("Initializing strategies...")
-            strategies = self._initialize_strategies(config)
-            if not strategies:
-                self.logger.error("No strategies initialized")
-                return False
-
+            self.logger.info("Starting Backtest Pipeline...")
             # Data Ingest Stage
             self.logger.info("Running data ingest stage...")
             ingest_success = await self.data_ingest_stage_coordinator.run()
@@ -42,9 +46,6 @@ class PipelineCoordinator:
 
             # Backtest Stage
             self.logger.info("Running backtest stage...")
-            self.backtest_stage_coordinator.strategies = (
-                strategies  # Inject strategies if needed
-            )
             backtest_success = await self.backtest_stage_coordinator.run()
             if not backtest_success:
                 self.logger.error("Backtest stage failed")

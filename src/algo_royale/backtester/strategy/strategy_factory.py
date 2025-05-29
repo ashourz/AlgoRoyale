@@ -2,8 +2,6 @@ import itertools
 import json
 from typing import Dict, List, Optional, Type
 
-# from algo_royale.strategies.momentum_strategy import MomentumStrategy
-
 
 class StrategyFactory:
     """
@@ -20,8 +18,8 @@ class StrategyFactory:
         self.strategy_map = strategy_map
 
     def _get_merged_strategy_defs(self, symbol: str) -> List[dict]:
-        default_strats = self.config.get("defaults", [])
-        symbol_strats = self.config.get("symbols", {}).get(symbol, [])
+        default_strats = self.json_config.get("defaults", [])
+        symbol_strats = self.json_config.get("symbols", {}).get(symbol, [])
         return default_strats + symbol_strats
 
     def create_strategies(
@@ -33,10 +31,10 @@ class StrategyFactory:
         Returns dict: symbol -> list of strategy instances.
         """
         with open(json_path, "r") as f:
-            self.config = json.load(f)
+            self.json_config = json.load(f)
 
         strategies_per_symbol: Dict[str, List[object]] = {}
-        all_symbols = list(self.config.get("symbols", {}).keys())
+        all_symbols = list(self.json_config.get("symbols", {}).keys())
         for symbol in all_symbols:
             strat_defs = self._get_merged_strategy_defs(symbol)
             strategies = []

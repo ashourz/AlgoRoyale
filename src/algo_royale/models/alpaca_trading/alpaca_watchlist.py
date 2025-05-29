@@ -1,7 +1,10 @@
-from algo_royale.models.alpaca_trading.alpaca_asset import Asset
-from pydantic import BaseModel
 from datetime import datetime
 from typing import List
+
+from pydantic import BaseModel
+
+from algo_royale.models.alpaca_trading.alpaca_asset import Asset
+
 
 class Watchlist(BaseModel):
     """
@@ -15,6 +18,7 @@ class Watchlist(BaseModel):
         name (str): The name of the watchlist.
         assets (List[Asset]): List of assets in the watchlist.
     """
+
     id: str
     account_id: str
     created_at: datetime
@@ -23,7 +27,7 @@ class Watchlist(BaseModel):
     assets: List[Asset]
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
     @staticmethod
     def from_raw(data: dict) -> "Watchlist":
@@ -39,12 +43,17 @@ class Watchlist(BaseModel):
         return Watchlist(
             id=data["id"],
             account_id=data["account_id"],
-            created_at=datetime.fromisoformat(data["created_at"].replace("Z", "+00:00")),
-            updated_at=datetime.fromisoformat(data["updated_at"].replace("Z", "+00:00")),
+            created_at=datetime.fromisoformat(
+                data["created_at"].replace("Z", "+00:00")
+            ),
+            updated_at=datetime.fromisoformat(
+                data["updated_at"].replace("Z", "+00:00")
+            ),
             name=data["name"],
             assets=[Asset.from_raw(asset) for asset in data.get("assets", [])],
         )
-        
+
+
 class WatchlistListResponse(BaseModel):
     """
     Represents a list of Watchlist objects returned from the Alpaca API.

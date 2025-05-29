@@ -1,11 +1,17 @@
 # src/models/alpaca_models/alpaca_trading/alpaca_order.py
 
 from datetime import datetime
-
 from typing import List, Optional
 
-from algo_royale.models.alpaca_trading.enums import OrderClass, OrderSide, OrderStatus, OrderType, TimeInForce
 from pydantic import BaseModel, Field
+
+from algo_royale.models.alpaca_trading.enums import (
+    OrderClass,
+    OrderSide,
+    OrderStatus,
+    OrderType,
+    TimeInForce,
+)
 
 
 class TakeProfit(BaseModel):
@@ -15,7 +21,11 @@ class TakeProfit(BaseModel):
     Attributes:
     - limit_price (float): The price at which to take profit.
     """
-    limit_price: float = Field(..., description="The price at which to take profit (required for bracket orders)")
+
+    limit_price: float = Field(
+        ...,
+        description="The price at which to take profit (required for bracket orders)",
+    )
 
 
 class StopLoss(BaseModel):
@@ -26,14 +36,18 @@ class StopLoss(BaseModel):
     - stop_price (float): The stop trigger price (required).
     - limit_price (Optional[float]): If provided, turns this into a stop-limit order.
     """
-    stop_price: float = Field(..., description="Trigger price to activate the stop-loss (required)")
-    limit_price: Optional[float] = Field(None, description="Limit price for stop-limit order (optional)")
 
+    stop_price: float = Field(
+        ..., description="Trigger price to activate the stop-loss (required)"
+    )
+    limit_price: Optional[float] = Field(
+        None, description="Limit price for stop-limit order (optional)"
+    )
 
 
 class Order(BaseModel):
     """
-    Represents an order response from the Alpaca API. 
+    Represents an order response from the Alpaca API.
 
     Attributes:
         id (str): Unique identifier for the order.
@@ -71,7 +85,7 @@ class Order(BaseModel):
         subtag (Optional[str]): Additional tag, if applicable.
         source (Optional[str]): The source of the order, if applicable.
     """
-    
+
     id: str
     client_order_id: str
 
@@ -111,7 +125,7 @@ class Order(BaseModel):
 
     hwm: Optional[float] = None  # high water mark for trailing stops
 
-    status: OrderStatus 
+    status: OrderStatus
 
     extended_hours: bool
     legs: Optional[List[str]] = None
@@ -119,7 +133,7 @@ class Order(BaseModel):
     source: Optional[str] = None
 
     class Config:
-        orm_mode = True
+        from_attributes = True
         use_enum_values = False  # Keep enums in their enum form, not strings
 
     @classmethod
@@ -130,8 +144,14 @@ class Order(BaseModel):
         """
         # Convert ISO datetime strings to datetime objects
         datetime_fields = [
-            'created_at', 'updated_at', 'submitted_at', 'filled_at',
-            'expired_at', 'canceled_at', 'failed_at', 'replaced_at'
+            "created_at",
+            "updated_at",
+            "submitted_at",
+            "filled_at",
+            "expired_at",
+            "canceled_at",
+            "failed_at",
+            "replaced_at",
         ]
         for field in datetime_fields:
             if isinstance(data.get(field), str):
@@ -139,12 +159,12 @@ class Order(BaseModel):
 
         # Convert enum fields
         enum_mappings = {
-            'order_class': OrderClass,
-            'order_type': OrderType,
-            'order_status': OrderStatus,
-            'type': OrderType,
-            'side': OrderSide,
-            'time_in_force': TimeInForce,
+            "order_class": OrderClass,
+            "order_type": OrderType,
+            "order_status": OrderStatus,
+            "type": OrderType,
+            "side": OrderSide,
+            "time_in_force": TimeInForce,
         }
         for key, enum_cls in enum_mappings.items():
             if key in data:
@@ -158,8 +178,15 @@ class Order(BaseModel):
 
         # Convert float fields
         float_fields = [
-            'qty', 'filled_qty', 'notional', 'filled_avg_price',
-            'limit_price', 'stop_price', 'trail_percent', 'trail_price', 'hwm'
+            "qty",
+            "filled_qty",
+            "notional",
+            "filled_avg_price",
+            "limit_price",
+            "stop_price",
+            "trail_percent",
+            "trail_price",
+            "hwm",
         ]
         for field in float_fields:
             if field in data and data[field] is not None:
@@ -169,7 +196,8 @@ class Order(BaseModel):
                     pass  # Ignore conversion error and keep original
 
         return cls(**data)
-    
+
+
 class OrderListResponse(BaseModel):
     """
     Represents a list of OrderResponse objects returned from the Alpaca API.
@@ -185,15 +213,18 @@ class OrderListResponse(BaseModel):
         """
         parsed_orders = [Order.from_raw(order) for order in data]
         return cls(orders=parsed_orders)
-    
+
+
 class DeleteOrderStatus(BaseModel):
     """Represents the status of a single deleted order."""
+
     id: str
     status: int
 
 
 class DeleteOrdersResponse(BaseModel):
     """Represents the multi-status response when deleting multiple orders."""
+
     orders: List[DeleteOrderStatus]
 
     @classmethod
