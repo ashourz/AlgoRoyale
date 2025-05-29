@@ -59,7 +59,6 @@ def coordinator(
 
     return TestCoordinator(
         stage=BacktestStage.DATA_INGEST,
-        config={},
         data_loader=mock_data_loader,
         data_preparer=mock_data_preparer,
         data_writer=mock_data_writer,

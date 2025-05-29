@@ -56,7 +56,6 @@ def coordinator(
     mock_feature_engineer,
 ):
     return FeatureEngineeringStageCoordinator(
-        config={},
         data_loader=mock_data_loader,
         data_preparer=mock_data_preparer,
         data_writer=mock_data_writer,

@@ -31,7 +31,7 @@ async def test_normalized_stream_yields_normalized(preparer):
     # Use DummyStage as config
     results = []
     async for df in preparer.normalized_stream(
-        "AAPL", lambda: async_gen(), DummyStage()
+        DummyStage(), "AAPL", lambda: async_gen()
     ):
         results.append(df)
     assert len(results) == 2
@@ -47,7 +47,7 @@ async def test_normalized_stream_handles_exception(preparer, logger):
 
     results = []
     async for df in preparer.normalized_stream(
-        "AAPL", lambda: async_gen(), DummyStage()
+        DummyStage(), "AAPL", lambda: async_gen()
     ):
         results.append(df)
     assert len(results) == 1  # Only the first yields
@@ -70,6 +70,6 @@ async def test_normalized_stream_aclose_called(preparer):
             closed = True
 
     iterator = Iterator()
-    async for _ in preparer.normalized_stream("AAPL", lambda: iterator, DummyStage()):
+    async for _ in preparer.normalized_stream(DummyStage(), "AAPL", lambda: iterator):
         pass
     assert closed
