@@ -46,7 +46,7 @@ class StageDataLoader:
         self.logger.info("Starting async data loading")
 
         # First ensure we have data for all symbols
-        await self._ensure_all_data_exists()
+        await self._ensure_all_data_exists(stage=stage)
 
         # Then prepare the async iterators
         data = {}
@@ -100,19 +100,19 @@ class StageDataLoader:
         ):
             yield df
 
-    async def _ensure_all_data_exists(self):
+    async def _ensure_all_data_exists(self, stage: BacktestStage) -> None:
         """
         Ensure that data exists for all symbols in the watchlist for the current stage.
         """
         missing = []
         for symbol in self.watchlist:
-            symbol_dir = self._get_stage_symbol_dir(stage=self.stage, symbol=symbol)
+            symbol_dir = self._get_stage_symbol_dir(stage=stage, symbol=symbol)
             if not self._has_existing_data(symbol_dir):
                 missing.append(symbol)
         if missing:
             self.logger.warning(f"Missing data for symbols: {missing}")
             self.stage_data_manager.write_error_file(
-                stage=self.stage,
+                stage=stage,
                 strategy_name=None,
                 symbol=symbol,
                 filename="_ensure_all_data_exists",

@@ -1,23 +1,33 @@
-from abc import ABC, abstractmethod
 import asyncio
-from enum import Enum
+import time
+from abc import ABC, abstractmethod
 from datetime import date, datetime
+from enum import Enum
 from typing import Any, Dict, Optional
+
+import httpx
+
 from algo_royale.clients.alpaca.alpaca_client_config import TradingConfig
 from algo_royale.clients.alpaca.exceptions import (
-    AlpacaAPIException, AlpacaBadRequestException, AlpacaInvalidHeadersException,
-    AlpacaResourceNotFoundException, AlpacaServerErrorException,
-    AlpacaTooManyRequestsException, AlpacaUnauthorizedException,
-    AlpacaUnprocessableException
+    AlpacaAPIException,
+    AlpacaBadRequestException,
+    AlpacaInvalidHeadersException,
+    AlpacaResourceNotFoundException,
+    AlpacaServerErrorException,
+    AlpacaTooManyRequestsException,
+    AlpacaUnauthorizedException,
+    AlpacaUnprocessableException,
 )
-import httpx
-from algo_royale.logging.logger_singleton import Environment, LoggerSingleton, LoggerType
-import time
+from algo_royale.logging.logger_singleton import (
+    Environment,
+    LoggerSingleton,
+    LoggerType,
+)
 
 
 class AlpacaBaseClient(ABC):
     """Async-only base client with global rate limiting across instances"""
-    
+
     # Class-level variables for shared rate limiting
     _min_request_interval: float = 60 / 200  # 0.3 seconds between requests
     _last_request_time: float = 0
@@ -29,43 +39,47 @@ class AlpacaBaseClient(ABC):
         self.api_secret = trading_config.alpaca_secrets["api_secret"]
         self.api_key_header = trading_config.alpaca_params["api_key_header"]
         self.api_secret_header = trading_config.alpaca_params["api_secret_header"]
-        
+
         self.client = httpx.AsyncClient(timeout=10.0)
 
         # Configurable reconnect delay and keep-alive timeout
         self.reconnect_delay = trading_config.alpaca_params.get("reconnect_delay", 5)
-        self.keep_alive_timeout = trading_config.alpaca_params.get("keep_alive_timeout", 20)
+        self.keep_alive_timeout = trading_config.alpaca_params.get(
+            "keep_alive_timeout", 20
+        )
 
-        self.logger = LoggerSingleton.get_instance(LoggerType.TRADING, Environment.PRODUCTION)
+        self.logger = LoggerSingleton.get_instance(
+            LoggerType.TRADING, Environment.PRODUCTION
+        )
 
     async def aclose(self):
         """Proper async cleanup"""
-        if hasattr(self, 'client') and not self.client.is_closed:
+        if hasattr(self, "client") and not self.client.is_closed:
             await self.client.aclose()
             self.logger.debug(f"Closed {self.client_name} HTTP client")
-        
+
     async def __aenter__(self):
         """Support async context manager"""
-        if not hasattr(self, 'client') or self.client.is_closed:
+        if not hasattr(self, "client") or self.client.is_closed:
             self.client = httpx.AsyncClient(timeout=10.0)
         return self
 
     async def __aexit__(self, *exc_info):
         """Auto-close on context exit"""
         await self.aclose()
-        
+
     @property
     @abstractmethod
     def client_name(self) -> str:
         """Subclasses must define a name for logging and ID purposes"""
         pass
-    
+
     @property
     @abstractmethod
     def base_url(self) -> str:
         """Base URL for the Alpaca API (to be defined by subclass)"""
         pass
-    
+
     def _get_headers(self) -> Dict[str, str]:
         """Return headers needed for API requests."""
         return {
@@ -74,7 +88,7 @@ class AlpacaBaseClient(ABC):
             self.api_key_header: self.api_key,
             self.api_secret_header: self.api_secret,
         }
-    
+
     def _handle_http_error(self, response: httpx.Response) -> None:
         """Handle HTTP error responses."""
         if response.status_code == 400:
@@ -92,14 +106,16 @@ class AlpacaBaseClient(ABC):
             remaining = response.headers.get("X-RateLimit-Remaining", "unknown")
             reset = response.headers.get("X-RateLimit-Reset", "unknown")
             raise AlpacaTooManyRequestsException(
-                message=response.text,
-                limit=limit, 
-                remaining=remaining, 
-                reset=reset)
+                message=response.text, limit=limit, remaining=remaining, reset=reset
+            )
         elif response.status_code >= 500:
-            raise AlpacaServerErrorException(f"Server error: {response.text}", response.status_code)
+            raise AlpacaServerErrorException(
+                f"Server error: {response.text}", response.status_code
+            )
         elif not (200 <= response.status_code < 300):
-            raise AlpacaAPIException(f"Unexpected error: {response.text}", response.status_code)
+            raise AlpacaAPIException(
+                f"Unexpected error: {response.text}", response.status_code
+            )
 
     def _format_param(self, param: Any) -> Any:
         """Format parameter for API requests."""
@@ -127,7 +143,7 @@ class AlpacaBaseClient(ABC):
         except ValueError:
             self.logger.warning(f"Unable to parse JSON from response: {response.text}")
             return None
-        
+
     @classmethod
     async def _enforce_rate_limit(cls):
         """Global rate limiter shared across all instances"""
@@ -137,22 +153,28 @@ class AlpacaBaseClient(ABC):
                 await asyncio.sleep(cls._min_request_interval - elapsed)
             cls._last_request_time = time.time()
 
-    async def _make_request_async(self, 
-                                  method: str, 
-                                  endpoint: str, 
-                                  params: Optional[Dict] = None, 
-                                  data: Optional[Dict] = None) -> Any:
+    async def _make_request_async(
+        self,
+        method: str,
+        endpoint: str,
+        params: Optional[Dict] = None,
+        data: Optional[Dict] = None,
+    ) -> Any:
         """Core async request method with rate limiting"""
         await self._enforce_rate_limit()
-        formatted_params = {key: self._format_param(value) for key, value in (params or {}).items()}
-        formatted_data = {key: self._format_param(value) for key, value in (data or {}).items()}
+        formatted_params = {
+            key: self._format_param(value) for key, value in (params or {}).items()
+        }
+        formatted_data = {
+            key: self._format_param(value) for key, value in (data or {}).items()
+        }
         url = f"{self.base_url}/{endpoint}"
         headers = self._get_headers()
 
         self.logger.debug(
             f"sending {method.upper()} request to {url} | headers: {headers} | params: {formatted_params} | data: {formatted_data}"
         )
-        
+
         response = await self.client.request(
             method=method, url=url, headers=headers, params=formatted_params, json=data
         )
@@ -160,23 +182,43 @@ class AlpacaBaseClient(ABC):
         self.logger.debug(
             f"received response {response.status_code} | body: {response.text}"
         )
-        
+
         self._handle_http_error(response)
         response.raise_for_status()  # Will raise HTTPStatusError for 4xx/5xx errors
         return self._safe_json_parse(response)
 
+    def _ensure_client_open(self):
+        if not hasattr(self, "client") or self.client.is_closed:
+            self.client = httpx.AsyncClient(timeout=10.0)
+
     ## ASYNC
     async def get(self, endpoint: str, params: Optional[Dict] = None) -> Any:
+        """Async GET request with rate limiting"""
+        self._ensure_client_open()
         return await self._make_request_async("GET", endpoint, params=params)
 
-    async def post(self, endpoint: str, params: Optional[Dict] = None, data: Optional[Dict] = None) -> Any:
-        return await self._make_request_async("POST", endpoint, params=params, data=data)
+    async def post(
+        self, endpoint: str, params: Optional[Dict] = None, data: Optional[Dict] = None
+    ) -> Any:
+        """Async POST request with rate limiting"""
+        self._ensure_client_open()
+        return await self._make_request_async(
+            "POST", endpoint, params=params, data=data
+        )
 
     async def patch(self, endpoint: str, data: Optional[Dict] = None) -> Any:
+        """Async PATCH request with rate limiting"""
+        self._ensure_client_open()
         return await self._make_request_async("PATCH", endpoint, data=data)
-    
-    async def put(self, endpoint: str, params: Optional[Dict] = None, data: Optional[Dict] = None) -> Any:
+
+    async def put(
+        self, endpoint: str, params: Optional[Dict] = None, data: Optional[Dict] = None
+    ) -> Any:
+        """Async PUT request with rate limiting"""
+        self._ensure_client_open()
         return await self._make_request_async("PUT", endpoint, params=params, data=data)
 
     async def delete(self, endpoint: str, params: Optional[Dict] = None) -> Any:
+        """Async DELETE request with rate limiting"""
+        self._ensure_client_open()
         return await self._make_request_async("DELETE", endpoint, params=params)

@@ -3,7 +3,6 @@ from dependency_injector import containers, providers
 from algo_royale.backtester.backtest.strategy_backtest_executor import (
     StrategyBacktestExecutor,
 )
-from algo_royale.backtester.data_ingest.market_data_fetcher import MarketDataFetcher
 from algo_royale.backtester.data_preparer.async_data_preparer import AsyncDataPreparer
 from algo_royale.backtester.data_preparer.data_preparer import DataPreparer
 from algo_royale.backtester.data_stream.normalized_data_stream_factory import (
@@ -246,15 +245,6 @@ class DIContainer(containers.DeclarativeContainer):
 
     load_watchlist_func = providers.Object(load_watchlist)
     save_watchlist_func = providers.Object(save_watchlist)
-
-    market_data_fetcher = providers.Singleton(
-        MarketDataFetcher,
-        config=config,
-        logger=logger_backtest_prod,
-        quote_service=alpaca_quote_service,
-        stage_data_manager=stage_data_manager,
-        load_watchlist=load_watchlist_func,
-    )
 
     stage_data_loader = providers.Singleton(
         StageDataLoader,
