@@ -29,13 +29,15 @@ class BacktestStageCoordinator(StageCoordinator):
     ):
         super().__init__(
             stage=BacktestStage.BACKTEST,
-            config=config,
             data_loader=data_loader,
             data_preparer=data_preparer,
             data_writer=data_writer,
             stage_data_manager=stage_data_manager,
             logger=logger,
         )
+        self.json_path = config.get("paths.backtester", "strategies_json_path")
+        if not self.json_path:
+            raise ValueError("JSON path for strategies not specified in config")
         self.strategy_factory = strategy_factory
         self.executor = StrategyBacktestExecutor(stage_data_manager, logger)
 
@@ -46,26 +48,47 @@ class BacktestStageCoordinator(StageCoordinator):
         Run the backtest and return a dict mapping symbol to a factory that yields result DataFrames.
         """
         # Derive the list of symbols from the prepared_data keys
-        ##TODO: get json_path from config
-        json_path = self.config.get
         # Use the factory to create strategies for these symbols
         strategies_per_symbol = self.strategy_factory.create_strategies(
-            json_path=self.config["strategies_json_path"],
+            json_path=self.json_path,
         )
+        if not strategies_per_symbol:
+            self.logger.error("No strategies created from the provided JSON path.")
+            return {}
         # Flatten all strategies into a single list for the executor (if needed)
         all_strategies = [
             s for strategies in strategies_per_symbol.values() for s in strategies
         ]
-
+        if not all_strategies:
+            self.logger.error("No strategies found to run backtest.")
+            return {}
         results: Dict[str, list[pd.DataFrame]] = await self.executor.run_backtest(
             all_strategies, prepared_data
         )
+        if not results:
+            self.logger.error("Backtest returned no results.")
+            return {}
 
+        # Convert results to a dict of async generators
+        # where each symbol maps to a generator that yields DataFrames
         def make_factory(dfs):
             async def gen():
                 for df in dfs:
-                    yield df
+                    if isinstance(df, pd.DataFrame):
+                        # Ensure df is a DataFrame before yielding
+                        yield df
+                    else:
+                        self.logger.warning(
+                            f"Expected DataFrame, got {type(df)} for symbol."
+                        )
 
+            # Ensure the generator is async
+            if not isinstance(dfs, list):
+                self.logger.error(
+                    f"Expected a list of DataFrames for symbol, got {type(dfs)}"
+                )
+                return
+            # Return an async generator function for the DataFrame list
             return gen
 
         return {symbol: make_factory(dfs) for symbol, dfs in results.items()}

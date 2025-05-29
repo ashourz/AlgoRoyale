@@ -11,6 +11,7 @@ from algo_royale.backtester.stage_coordinator.stage_coordinator import StageCoor
 from algo_royale.backtester.stage_data.stage_data_loader import StageDataLoader
 from algo_royale.backtester.stage_data.stage_data_manager import StageDataManager
 from algo_royale.backtester.stage_data.stage_data_writer import StageDataWriter
+from algo_royale.config.config import Config
 from algo_royale.models.alpaca_market_data.enums import DataFeed
 from algo_royale.services.market_data.alpaca_stock_service import AlpacaQuoteService
 
@@ -18,7 +19,7 @@ from algo_royale.services.market_data.alpaca_stock_service import AlpacaQuoteSer
 class DataIngestStageCoordinator(StageCoordinator):
     def __init__(
         self,
-        config: dict,
+        config: Config,
         data_loader: StageDataLoader,
         data_preparer: AsyncDataPreparer,
         data_writer: StageDataWriter,
@@ -29,7 +30,6 @@ class DataIngestStageCoordinator(StageCoordinator):
     ):
         super().__init__(
             stage=BacktestStage.DATA_INGEST,
-            config=config,
             data_loader=data_loader,
             data_preparer=data_preparer,
             data_writer=data_writer,
@@ -37,20 +37,23 @@ class DataIngestStageCoordinator(StageCoordinator):
             logger=logger,
         )
         watchlist_path_string = config.get("paths.backtester", "watchlist_path")
-        start_date = config.get("backtest", "start_date")
-        end_date = config.get("backtest", "end_date")
-
-        if not start_date or not end_date:
-            raise ValueError("Start date or end date not specified in config")
         if not watchlist_path_string:
             raise ValueError("Watchlist path not specified in config")
-
+        start_date = config.get("backtest", "start_date")
+        if not start_date:
+            raise ValueError("Start date not specified in config")
+        end_date = config.get("backtest", "end_date")
+        if not end_date:
+            raise ValueError("End date not specified in config")
         self.watchlist = load_watchlist(watchlist_path_string)
-        self.start_date = dateutil.parser.parse(start_date)
-        self.end_date = dateutil.parser.parse(end_date)
-
         if not self.watchlist:
-            raise ValueError("Watchlist is empty")
+            raise ValueError("Watchlist is empty or could not be loaded")
+        self.start_date = dateutil.parser.parse(start_date)
+        if not self.start_date:
+            raise ValueError("Invalid start date format in config")
+        self.end_date = dateutil.parser.parse(end_date)
+        if not self.end_date:
+            raise ValueError("Invalid end date format in config")
 
         self.quote_service = quote_service
 

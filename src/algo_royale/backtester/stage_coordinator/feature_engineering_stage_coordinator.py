@@ -17,7 +17,6 @@ from algo_royale.backtester.stage_data.stage_data_writer import StageDataWriter
 class FeatureEngineeringStageCoordinator(StageCoordinator):
     def __init__(
         self,
-        config: dict,
         data_loader: StageDataLoader,
         data_preparer: AsyncDataPreparer,
         data_writer: StageDataWriter,
@@ -27,7 +26,6 @@ class FeatureEngineeringStageCoordinator(StageCoordinator):
     ):
         super().__init__(
             stage=BacktestStage.FEATURE_ENGINEERING,
-            config=config,
             data_loader=data_loader,
             data_preparer=data_preparer,
             data_writer=data_writer,

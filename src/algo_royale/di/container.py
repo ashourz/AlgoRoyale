@@ -14,6 +14,15 @@ from algo_royale.backtester.feature_engineering.feature_engineering import (
     feature_engineering,
 )
 from algo_royale.backtester.pipeline.pipeline_coordinator import PipelineCoordinator
+from algo_royale.backtester.stage_coordinator.backtest_stage_coordinator import (
+    BacktestStageCoordinator,
+)
+from algo_royale.backtester.stage_coordinator.data_ingest_stage_coordinator import (
+    DataIngestStageCoordinator,
+)
+from algo_royale.backtester.stage_coordinator.feature_engineering_stage_coordinator import (
+    FeatureEngineeringStageCoordinator,
+)
 from algo_royale.backtester.stage_data.stage_data_loader import StageDataLoader
 from algo_royale.backtester.stage_data.stage_data_manager import StageDataManager
 from algo_royale.backtester.stage_data.stage_data_writer import StageDataWriter
@@ -265,15 +274,6 @@ class DIContainer(containers.DeclarativeContainer):
         feature_engineering_func=feature_engineering_func,
     )
 
-    ##TODO: refacotr to feature engineering stage coordinator
-    feature_engineering_coordinator = providers.Singleton(
-        FeatureEngineeringCoordinator,
-        data_loader=stage_data_loader,
-        feature_engineer=feature_engineer,
-        data_writer=stage_data_writer,
-        logger=logger_backtest_prod,
-    )
-
     strategy_backtest_executor = providers.Singleton(
         StrategyBacktestExecutor,
         stage_data_writer=stage_data_writer,
@@ -287,15 +287,45 @@ class DIContainer(containers.DeclarativeContainer):
 
     strategy_factory = providers.Singleton(StrategyFactory, config=config)
 
-    pipeline_coordinator = providers.Singleton(
-        PipelineCoordinator,
-        data_fetcher=market_data_fetcher,
+    data_ingest_stage_coordinator = providers.Singleton(
+        DataIngestStageCoordinator,
+        config=config,
         data_loader=stage_data_loader,
-        feature_engineering_coordinator=feature_engineering_coordinator,
-        backtest_executor=strategy_backtest_executor,
         data_preparer=async_data_preparer,
+        data_writer=stage_data_writer,
+        stage_data_manager=stage_data_manager,
+        logger=logger_backtest_prod,
+        quote_service=alpaca_quote_service,
+        load_watchlist=load_watchlist_func,
+    )
+
+    feature_engineering_stage_coordinator = providers.Singleton(
+        FeatureEngineeringStageCoordinator,
+        data_loader=stage_data_loader,
+        data_preparer=async_data_preparer,
+        data_writer=stage_data_writer,
+        stage_data_manager=stage_data_manager,
+        logger=logger_backtest_prod,
+        feature_engineer=feature_engineer,
+    )
+
+    backtest_stage_coordinator = providers.Singleton(
+        BacktestStageCoordinator,
+        config=config,
+        data_loader=stage_data_loader,
+        data_preparer=async_data_preparer,
+        data_writer=stage_data_writer,
+        stage_data_manager=stage_data_manager,
         logger=logger_backtest_prod,
         strategy_factory=strategy_factory,
+    )
+
+    pipeline_coordinator = providers.Singleton(
+        PipelineCoordinator,
+        data_ingest_stage_coordinator=data_ingest_stage_coordinator,
+        feature_engineering_stage_coordinator=feature_engineering_stage_coordinator,
+        backtest_stage_coordinator=backtest_stage_coordinator,
+        logger=logger_backtest_prod,
     )
 
 

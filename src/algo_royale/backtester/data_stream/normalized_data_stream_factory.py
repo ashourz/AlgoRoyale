@@ -1,4 +1,3 @@
-##TODO: this might be redundant with the data preparer and config validator
 from algo_royale.backtester.data_stream.normalized_data_stream import (
     NormalizedDataStream,
 )

@@ -11,7 +11,6 @@ from algo_royale.backtester.stage_data.stage_data_manager import StageDataManage
 from algo_royale.backtester.stage_data.stage_data_writer import StageDataWriter
 
 
-##TODO: Removed config as dependency, need to remove from all coordinators
 class StageCoordinator(ABC):
     def __init__(
         self,

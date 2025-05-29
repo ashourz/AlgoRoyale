@@ -9,10 +9,8 @@ class PipelineCoordinator:
         feature_engineering_stage_coordinator,
         backtest_stage_coordinator,
         logger: Logger,
-        strategy_factory,
     ):
         self.logger = logger
-        self.strategy_factory = strategy_factory
         self.data_ingest_stage_coordinator = data_ingest_stage_coordinator
         self.feature_engineering_stage_coordinator = (
             feature_engineering_stage_coordinator
@@ -60,12 +58,3 @@ class PipelineCoordinator:
 
     def run(self):
         return asyncio.run(self.run_async())
-
-    def _initialize_strategies(self, config: dict) -> list:
-        """Initialize strategies based on the configuration"""
-        try:
-            strategies = self.strategy_factory.create_strategies(config)
-            return strategies
-        except Exception as e:
-            self.logger.error(f"Strategy initialization failed: {e}")
-            return False
