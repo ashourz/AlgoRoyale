@@ -6,6 +6,7 @@ import pandas as pd
 
 from algo_royale.backtester.data_preparer.async_data_preparer import AsyncDataPreparer
 from algo_royale.backtester.enum.backtest_stage import BacktestStage
+from algo_royale.backtester.enum.data_extension import DataExtension
 from algo_royale.backtester.stage_data.stage_data_loader import StageDataLoader
 from algo_royale.backtester.stage_data.stage_data_manager import StageDataManager
 from algo_royale.backtester.stage_data.stage_data_writer import StageDataWriter
@@ -155,6 +156,28 @@ class StageCoordinator(ABC):
         """Write processed data to the stage"""
         try:
             for symbol, df_iter_factory in processed_data.items():
+                # Check if symbol/stage is already marked as done
+                if self.stage_data_manager.is_symbol_stage_done(
+                    stage, strategy_name, symbol
+                ):
+                    self.logger.info(
+                        f"Skipping {symbol} for stage:{stage} | strategy:{strategy_name} (already marked as done)"
+                    )
+                    continue
+
+                # If folder has data but is not marked as done, clear it
+                out_dir = self.stage_data_manager.get_directory_path(
+                    stage, strategy_name, symbol
+                )
+                if out_dir.exists() and any(out_dir.iterdir()):
+                    self.logger.info(
+                        f"Clearing existing data for {symbol} at stage:{stage} | strategy:{strategy_name} (not marked as done)"
+                    )
+                    self.stage_data_manager.clear_directory(
+                        stage, strategy_name, symbol
+                    )
+
+                # Now write the new data
                 async for df in df_iter_factory():
                     self.data_writer.save_stage_data(
                         stage=stage,
@@ -162,6 +185,12 @@ class StageCoordinator(ABC):
                         symbol=symbol,
                         results_df=df,
                     )
+                self.stage_data_manager.mark_symbol_stage(
+                    stage=stage,
+                    strategy_name=strategy_name,
+                    symbol=symbol,
+                    statusExtension=DataExtension.DONE,
+                )
         except Exception as e:
             self.logger.error(
                 f"stage:{stage} | strategy:{strategy_name} data writing failed: {e}"

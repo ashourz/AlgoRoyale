@@ -52,10 +52,12 @@ class FeatureEngineeringStageCoordinator(StageCoordinator):
     ) -> Dict[str, Callable[[], AsyncIterator[pd.DataFrame]]]:
         engineered = {}
         for symbol, df_iter_factory in ingest_data.items():
-            engineered[symbol] = (
-                lambda symbol=symbol,
-                df_iter_factory=df_iter_factory: self.feature_engineer.engineer_features(
+
+            def factory(symbol=symbol, df_iter_factory=df_iter_factory):
+                return self.feature_engineer.engineer_features(
                     df_iter_factory(), symbol
                 )
-            )
+
+            engineered[symbol] = factory
+
         return engineered
