@@ -44,13 +44,18 @@ class StageDataManager:
         return path
 
     def get_directory_path(
-        self, stage: BacktestStage, strategy_name: Optional[str], symbol: str
+        self, stage: BacktestStage, strategy_name: Optional[str], symbol: Optional[str]
     ) -> Path:
-        path = (
-            self.base_dir / stage.value / strategy_name / symbol
-            if strategy_name
-            else self.base_dir / stage.value / symbol
-        )
+        """Generate the directory path for a given stage, strategy, and symbol.
+        If strategy_name is None, it will not include it in the path.
+        If symbol is None, it will not include it in the path.
+        """
+        path = self.base_dir / stage.value
+        if strategy_name:
+            path = path / strategy_name
+        if symbol:
+            path = path / symbol
+
         self.logger.debug(f"Generated directory path: {path}")
         return path
 
@@ -181,7 +186,7 @@ class StageDataManager:
         self,
         stage: BacktestStage,
         strategy_name: Optional[str],
-        symbol: str,
+        symbol: Optional[str],
         filename: str,
         error_message: str,
     ) -> None:

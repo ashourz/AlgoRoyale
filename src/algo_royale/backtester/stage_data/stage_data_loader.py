@@ -42,19 +42,55 @@ class StageDataLoader:
     async def load_all_stage_data(
         self, stage: BacktestStage, strategy_name: Optional[str] = None
     ) -> Dict[str, Callable[[], AsyncIterator[pd.DataFrame]]]:
-        """Returns async data generators with automatic data fetching"""
+        """Returns async data generators with automatic data fetching
+        for all symbols in the watchlist for the given stage and strategy.
+
+        This method prepares async generators for each symbol in the watchlist
+        that has existing data for the specified stage and strategy.
+        If no data exists for a symbol, it will log an error and skip that symbol.
+
+        Args:
+            stage (BacktestStage): The stage for which to load data.
+            strategy_name (Optional[str]): The name of the strategy, if applicable.
+
+        Returns:
+            Dict[str, Callable[[], AsyncIterator[pd.DataFrame]]]: A dictionary
+            mapping symbols to async generators that yield DataFrames.
+
+        """
         self.logger.info("Starting async data loading")
 
         # First ensure we have data for all symbols
-        await self._ensure_all_data_exists(stage=stage)
-
+        existing_symbols = await self._get_all_existing_data_symbols(
+            stage=stage, strategy_name=strategy_name
+        )
+        if not existing_symbols:
+            self.logger.error(
+                f"No existing data found for stage: {stage} | strategy: {strategy_name}"
+            )
+            self.stage_data_manager.write_error_file(
+                stage=stage,
+                strategy_name=strategy_name,
+                symbol=None,
+                filename="load_all_stage_data",
+                error_message=f"No existing data found for stage: {stage} | strategy: {strategy_name}",
+            )
+            return {}
         # Then prepare the async iterators
         data = {}
-        for symbol in self.watchlist:
+        for symbol in existing_symbols:
+            # Skip if symbol is not in watchlist
+            if symbol not in self.watchlist:
+                self.logger.warning(
+                    f"Symbol {symbol} not in watchlist, skipping for stage: {stage} | strategy: {strategy_name}"
+                )
+                continue
             try:
-                # Use functools.partial to properly bind the symbol
+                # Prepare the async generator for the symbol
                 data[symbol] = (
-                    lambda s=symbol, st=stage, str=strategy_name: self.load_symbol(
+                    lambda s=symbol,
+                    st=stage,
+                    str=strategy_name: self._load_symbol_generator(
                         stage=st, symbol=s, strategy_name=str
                     )
                 )
@@ -72,6 +108,15 @@ class StageDataLoader:
                 )
 
         return data
+
+    def _load_symbol_generator(self, stage, symbol, strategy_name):
+        """Create an async generator for a symbol's data"""
+
+        async def gen():
+            async for df in self.load_symbol(stage, symbol, strategy_name):
+                yield df
+
+        return gen()
 
     async def load_symbol(
         self, stage: BacktestStage, symbol: str, strategy_name: Optional[str] = None
@@ -96,28 +141,62 @@ class StageDataLoader:
 
         # Then stream the data
         async for df in self._stream_existing_data_async(
-            stage=stage, symbol_dir=symbol_dir
+            stage=stage, strategy_name=strategy_name, symbol_dir=symbol_dir
         ):
             yield df
 
-    async def _ensure_all_data_exists(self, stage: BacktestStage) -> None:
+    async def _get_all_existing_data_symbols(
+        self, stage: BacktestStage, strategy_name: str
+    ) -> List[str]:
         """
         Ensure that data exists for all symbols in the watchlist for the current stage.
+        This method checks each symbol in the watchlist and returns a list of symbols
+        that have valid data for the specified stage and strategy.
+        Returns a list of symbols that have valid data.
         """
+        not_done = []
         missing = []
+        done = []
         for symbol in self.watchlist:
-            symbol_dir = self._get_stage_symbol_dir(stage=stage, symbol=symbol)
+            symbol_dir = self._get_stage_symbol_dir(
+                stage=stage, symbol=symbol, strategy_name=strategy_name
+            )
             if not self._has_existing_data(symbol_dir):
                 missing.append(symbol)
+            elif not self.stage_data_manager.is_symbol_stage_done(
+                stage=stage, strategy_name=strategy_name, symbol=symbol
+            ):
+                not_done.append(symbol)
+            else:
+                done.append(symbol)
+
         if missing:
-            self.logger.warning(f"Missing data for symbols: {missing}")
+            # Log and write an error if any symbols are missing data
+            self.logger.warning(
+                f"Missing data for symbols: {missing} in directory. stage: {stage} | strategy: {strategy_name}"
+            )
             self.stage_data_manager.write_error_file(
                 stage=stage,
-                strategy_name=None,
+                strategy_name=strategy_name,
                 symbol=symbol,
                 filename="_ensure_all_data_exists",
-                error_message=f"Missing data for symbols: {missing}",
+                error_message=f"Missing data for symbols: {missing} in directory. stage: {stage} | strategy: {strategy_name}",
             )
+
+        if not_done:
+            # Log and write an error if any symbols are not marked as done
+            self.logger.warning(
+                f"Symbols not marked as done: {not_done} in directory. stage: {stage} | strategy: {strategy_name}"
+            )
+            self.stage_data_manager.write_error_file(
+                stage=stage,
+                strategy_name=strategy_name,
+                symbol=symbol,
+                filename="_ensure_all_data_exists",
+                error_message=f"Symbols not marked as done: {not_done} in directory. stage: {stage} | strategy: {strategy_name}",
+            )
+
+        return done
 
     def _get_stage_symbol_dir(
         self, stage: BacktestStage, symbol: str, strategy_name: Optional[str] = None
@@ -134,7 +213,7 @@ class StageDataLoader:
         return any(symbol_dir.iterdir())
 
     async def _stream_existing_data_async(
-        self, stage: BacktestStage, symbol_dir: Path
+        self, stage: BacktestStage, strategy_name: str, symbol_dir: Path
     ) -> AsyncIterator[pd.DataFrame]:
         """Async generator to stream existing data pages for a symbol"""
         pages = sorted(
@@ -155,7 +234,7 @@ class StageDataLoader:
                 self.logger.error(f"Error reading {page_path}: {str(e)}")
                 self.stage_data_manager.write_error_file(
                     stage=stage,
-                    strategy_name=None,
+                    strategy_name=strategy_name,
                     symbol=page_path.stem.split("_")[0],
                     filename=page_path.name,
                     error_message=f"Error reading {page_path}: {str(e)}",
