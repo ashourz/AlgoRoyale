@@ -6,6 +6,7 @@ from typing import AsyncIterator, Callable, Dict, List, Optional
 import pandas as pd
 
 from algo_royale.backtester.enum.backtest_stage import BacktestStage
+from algo_royale.backtester.enum.data_extension import DataExtension
 from algo_royale.backtester.stage_data.stage_data_manager import StageDataManager
 from algo_royale.config.config import Config
 
@@ -88,12 +89,11 @@ class StageDataLoader:
             try:
                 # Prepare the async generator for the symbol
                 data[symbol] = (
-                    lambda s=symbol,
-                    st=stage,
-                    str=strategy_name: self._load_symbol_generator(
+                    lambda s=symbol, st=stage, str=strategy_name: self._symbol_data_gen(
                         stage=st, symbol=s, strategy_name=str
                     )
                 )
+
                 self.logger.info(f"Prepared async data loader for: {stage} | {symbol}")
             except Exception as e:
                 self.logger.error(
@@ -109,9 +109,7 @@ class StageDataLoader:
 
         return data
 
-    def _load_symbol_generator(self, stage, symbol, strategy_name):
-        """Create an async generator for a symbol's data"""
-
+    def _symbol_data_gen(self, stage, symbol, strategy_name):
         async def gen():
             async for df in self.load_symbol(stage, symbol, strategy_name):
                 yield df
@@ -127,7 +125,7 @@ class StageDataLoader:
         )
 
         # First ensure we have data
-        if not await self._has_existing_data(symbol_dir):
+        if not self._has_existing_data(symbol_dir):
             self.stage_data_manager.write_error_file(
                 stage=stage,
                 strategy_name=strategy_name,
@@ -216,8 +214,16 @@ class StageDataLoader:
         self, stage: BacktestStage, strategy_name: str, symbol_dir: Path
     ) -> AsyncIterator[pd.DataFrame]:
         """Async generator to stream existing data pages for a symbol"""
+        # Only include files that are not status/marker files
         pages = sorted(
-            symbol_dir.glob("*.csv"), key=lambda x: int(x.stem.split("_")[-1])
+            [
+                f
+                for f in symbol_dir.glob("*.csv")
+                if not any(
+                    f.name.endswith(f".{ext.value}.csv") for ext in DataExtension
+                )
+            ],
+            key=lambda x: int(x.stem.split("_")[-1]),
         )
 
         self.logger.debug(f"Found {len(pages)} data pages in {symbol_dir}")

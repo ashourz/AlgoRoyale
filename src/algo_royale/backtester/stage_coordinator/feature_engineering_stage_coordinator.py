@@ -54,10 +54,16 @@ class FeatureEngineeringStageCoordinator(StageCoordinator):
         for symbol, df_iter_factory in ingest_data.items():
 
             def factory(symbol=symbol, df_iter_factory=df_iter_factory):
+                self.logger.info(
+                    f"Calling factory for {symbol}, df_iter_factory={df_iter_factory}"
+                )
                 result = df_iter_factory()
+                self.logger.info(
+                    f"Result from df_iter_factory for {symbol}: {type(result)}"
+                )
                 if not hasattr(result, "__aiter__"):
                     self.logger.error(
-                        f"df_iter_factory for {symbol} did not return an async iterator. Got: {type(result)}"
+                        f"df_iter_factory for {symbol} did not return an async iterator. Got: {type(result)} Value: {result}"
                     )
                     raise TypeError(f"Expected async iterator, got {type(result)}")
                 return self.feature_engineer.engineer_features(result, symbol)

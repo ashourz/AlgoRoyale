@@ -55,12 +55,7 @@ class BacktestStage(Enum):
             "close",
             "volume",
         ],
-        {
-            "open_price": "open",
-            "high_price": "high",
-            "low_price": "low",
-            "close_price": "close",
-        },
+        {},
     )
     BACKTEST = (
         "backtest",

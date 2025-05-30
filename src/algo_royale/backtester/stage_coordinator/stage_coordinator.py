@@ -128,6 +128,9 @@ class StageCoordinator(ABC):
 
             def factory(symbol=symbol, df_iter_factory=df_iter_factory):
                 try:
+                    self.logger.info(
+                        f"Calling factory for {symbol}, df_iter_factory={df_iter_factory}"
+                    )
                     return self.data_preparer.normalized_stream(
                         stage=stage, symbol=symbol, iterator_factory=df_iter_factory
                     )
@@ -177,8 +180,15 @@ class StageCoordinator(ABC):
                         stage, strategy_name, symbol
                     )
 
+                gen = df_iter_factory()
+                if not hasattr(gen, "__aiter__"):
+                    self.logger.error(
+                        f"Factory for {symbol} did not return an async iterator. Got: {type(gen)} Value: {gen}"
+                    )
+                    raise TypeError(f"Expected async iterator, got {type(gen)}")
+
                 # Now write the new data
-                async for df in df_iter_factory():
+                async for df in gen:
                     self.data_writer.save_stage_data(
                         stage=stage,
                         strategy_name=strategy_name,

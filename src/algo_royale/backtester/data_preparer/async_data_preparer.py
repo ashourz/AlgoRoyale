@@ -9,8 +9,16 @@ class AsyncDataPreparer(DataPreparer):
     async def normalized_stream(
         self, stage: BacktestStage, symbol: str, iterator_factory
     ):
-        iterator = iterator_factory()
         try:
+            iterator = iterator_factory()
+            self.logger.info(
+                f"Result from normalized_stream iterator_factory for {symbol}: {type(iterator)}"
+            )
+            if not hasattr(iterator, "__aiter__"):
+                self.logger.error(
+                    f"normalized_stream iterator_factory for {symbol} did not return an async iterator. Got: {type(iterator)} Value: {iterator}"
+                )
+                raise TypeError(f"Expected async iterator, got {type(iterator)}")
             async for df in iterator:
                 try:
                     yield self.normalize_dataframe(df, stage, symbol)
