@@ -185,8 +185,10 @@ def test_prepare_data_exception(coordinator, mock_logger, mock_stage_data_manage
 
 
 @pytest.mark.asyncio
-async def test_write_success(coordinator, mock_data_writer):
-    # Prepare a processed_data dict with an async generator
+async def test_write_success(coordinator, mock_data_writer, mock_stage_data_manager):
+    # Make sure is_symbol_stage_done returns False so writing is not skipped
+    mock_stage_data_manager.is_symbol_stage_done.return_value = False
+
     async def async_gen():
         yield pd.DataFrame({"a": [1]})
 
@@ -204,6 +206,9 @@ async def test_write_success(coordinator, mock_data_writer):
 
 @pytest.mark.asyncio
 async def test_write_exception(coordinator, mock_logger, mock_stage_data_manager):
+    # Make sure is_symbol_stage_done returns False so writing is not skipped
+    mock_stage_data_manager.is_symbol_stage_done.return_value = False
+
     # Patch save_stage_data to raise
     async def async_gen():
         yield pd.DataFrame({"a": [1]})
