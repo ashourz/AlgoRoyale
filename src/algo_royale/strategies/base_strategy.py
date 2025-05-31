@@ -1,9 +1,24 @@
 # strategies/base_strategy.py
 
+from typing import List, Optional
+
 import pandas as pd
+
+from algo_royale.strategies.strategy_filters import StrategyFilter
 
 
 class Strategy:
+    def __init__(self, filters: Optional[List[StrategyFilter]] = None):
+        self.filters = filters or []
+
+    def apply_filters(self, df: pd.DataFrame) -> pd.Series:
+        if not self.filters:
+            return pd.Series(True, index=df.index)
+        mask = pd.Series(True, index=df.index)
+        for f in self.filters:
+            mask &= f.apply(df)
+        return mask
+
     def generate_signals(self, df: pd.DataFrame) -> pd.Series:
         """
         Given historical price data (DataFrame), return a list/series of trading signals.

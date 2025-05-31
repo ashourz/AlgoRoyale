@@ -39,6 +39,9 @@ class MovingAverageStrategy(Strategy):
             sell_signal: Value to use for sell signals
             hold_signal: Value to use for hold signals
         """
+        if short_window >= long_window:
+            raise ValueError("short_window must be less than long_window")
+
         self.short_window = short_window
         self.long_window = long_window
         self.close_col = close_col
@@ -46,12 +49,17 @@ class MovingAverageStrategy(Strategy):
         self.sell_signal = sell_signal
         self.hold_signal = hold_signal
 
-        if short_window >= long_window:
-            raise ValueError("short_window must be less than long_window")
-
     def generate_signals(self, df: pd.DataFrame) -> pd.Series:
-        """Fixed signal generation without bitwise operations on floats"""
-        # Validation
+        """
+        Generate buy/sell/hold signals based on moving average crossover.
+
+        Args:
+            df: DataFrame containing price data with at least `close_col`.
+
+        Returns:
+            pd.Series: Signals indexed same as input df with values in
+                       {buy_signal, sell_signal, hold_signal}.
+        """
         if not isinstance(df, pd.DataFrame):
             raise TypeError("Input must be a pandas DataFrame")
 
@@ -59,32 +67,41 @@ class MovingAverageStrategy(Strategy):
             raise ValueError(f"DataFrame missing required column: {self.close_col}")
 
         if len(df) < max(self.short_window, self.long_window):
-            logger.warning("Not enough data for full windows - returning all holds")
+            logger.info(
+                "Not enough data for full windows "
+                f"(need at least {max(self.short_window, self.long_window)} rows). "
+                "Returning all hold signals."
+            )
             return pd.Series(self.hold_signal, index=df.index, name="signal")
 
-        # Calculate moving averages
         closes = df[self.close_col]
-        df["short_ma"] = closes.rolling(window=self.short_window, min_periods=1).mean()
-        df["long_ma"] = closes.rolling(window=self.long_window, min_periods=1).mean()
+
+        short_ma = closes.rolling(window=self.short_window, min_periods=1).mean()
+        long_ma = closes.rolling(window=self.long_window, min_periods=1).mean()
+
+        # Signal state: 1 if short_ma > long_ma, -1 if short_ma < long_ma, else 0
+        signal_state = pd.Series(0, index=df.index)
+        signal_state.loc[short_ma > long_ma] = 1
+        signal_state.loc[short_ma < long_ma] = -1
 
         # Initialize all signals as hold
         signals = pd.Series(self.hold_signal, index=df.index, name="signal")
 
-        # Calculate conditions using comparison operators instead of bitwise
-        short_above_long = df["short_ma"] > df["long_ma"]
-        prev_short_above_long = short_above_long.shift(1).fillna(False)
+        # Golden Cross (buy): short_ma crosses above long_ma
+        golden_cross = (signal_state == 1) & (signal_state.shift(1) != 1)
+        signals.loc[golden_cross] = self.buy_signal
 
-        # Golden Cross (buy) - when short MA crosses above long MA
-        golden_cross = short_above_long & (~prev_short_above_long)
-        signals[golden_cross] = self.buy_signal
+        # Death Cross (sell): short_ma crosses below long_ma
+        death_cross = (signal_state == -1) & (signal_state.shift(1) != -1)
+        signals.loc[death_cross] = self.sell_signal
 
-        # Death Cross (sell) - when short MA crosses below long MA
-        death_cross = (~short_above_long) & prev_short_above_long
-        signals[death_cross] = self.sell_signal
-
-        # Existing trends
-        signals[short_above_long & (signals == self.hold_signal)] = self.buy_signal
-        signals[(~short_above_long) & (signals == self.hold_signal)] = self.sell_signal
+        # Existing trends - hold buy or sell signals
+        signals.loc[(signal_state == 1) & (signals == self.hold_signal)] = (
+            self.buy_signal
+        )
+        signals.loc[(signal_state == -1) & (signals == self.hold_signal)] = (
+            self.sell_signal
+        )
 
         return signals
 
