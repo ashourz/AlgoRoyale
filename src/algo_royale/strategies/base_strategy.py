@@ -4,7 +4,7 @@ from typing import List, Optional
 
 import pandas as pd
 
-from algo_royale.strategies.strategy_filters import StrategyFilter
+from algo_royale.strategies.strategy_filters.macd_bullish_cross import StrategyFilter
 
 
 class Strategy:
