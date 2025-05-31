@@ -1,3 +1,5 @@
+from functools import partial
+
 from dependency_injector import containers, providers
 
 from algo_royale.backtester.backtest.strategy_backtest_executor import (
@@ -260,11 +262,14 @@ class DIContainer(containers.DeclarativeContainer):
         stage_data_manager=stage_data_manager,
     )
 
-    feature_engineering_func = providers.Object(feature_engineering)
+    feature_engineering_func = providers.Object(
+        partial(feature_engineering, logger=logger_backtest_prod())
+    )
 
     feature_engineer = providers.Singleton(
         FeatureEngineer,
         feature_engineering_func=feature_engineering_func,
+        logger=logger_backtest_prod,
     )
 
     strategy_backtest_executor = providers.Singleton(

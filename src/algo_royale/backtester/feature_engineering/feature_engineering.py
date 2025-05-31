@@ -1,10 +1,14 @@
+from logging import Logger
+
 import numpy as np
 import pandas as pd
 
 from .feature_names import FeatureName
 
 
-def feature_engineering(df: pd.DataFrame) -> pd.DataFrame:
+def feature_engineering(df: pd.DataFrame, logger: Logger) -> pd.DataFrame:
+    logger.info(f"Input DataFrame shape: {df.shape}, columns: {list(df.columns)}")
+
     # Time features
     df["timestamp"] = pd.to_datetime(df["timestamp"])
     df[FeatureName.HOUR.value.value] = df["timestamp"].dt.hour
@@ -44,12 +48,14 @@ def feature_engineering(df: pd.DataFrame) -> pd.DataFrame:
         df["volume_weighted_price"] * df["volume"]
     ).rolling(20).sum() / df["volume"].rolling(20).sum()
 
-    # Drop NaN rows created by rolling calculations
-    df = df.dropna().reset_index(drop=True)
+    logger.info(f"DataFrame shape before dropna: {df.shape}")
+    logger.info(f"DataFrame columns after feature engineering: {list(df.columns)}")
 
     # Validation: ensure all features in FeatureName are present
     missing = [f.value.value for f in FeatureName if f.value.value not in df.columns]
     if missing:
+        logger.error(f"Missing features after engineering: {missing}")
         raise ValueError(f"Missing features after engineering: {missing}")
 
+    logger.info(f"Feature engineering complete. Output shape: {df.shape}")
     return df

@@ -76,7 +76,7 @@ class StageDataWriter:
                 * self.max_rows_per_file
             ]
             part_suffix = f"_part{part_idx + 1}" if num_parts > 1 else ""
-            filename = f"{strategy_name}_{symbol}_{timestamp.strftime('%H%M%S')}{part_suffix}.csv"
+            filename = f"{strategy_name}_{symbol}_{part_suffix}.csv"
             filepath = output_dir / filename
 
             try:

@@ -49,11 +49,14 @@ class BacktestStage(Enum):
         "DATA_INGEST",
         [
             "timestamp",
-            "open",
-            "high",
-            "low",
-            "close",
+            "open_price",
+            "high_price",
+            "low_price",
+            "close_price",
             "volume",
+            "num_trades",
+            "volume_weighted_price",
+            "symbol",
         ],
         {},
     )
@@ -72,7 +75,16 @@ class BacktestStage(Enum):
             "strategy",
             "symbol",
         ],
-        {},
+        {
+            "timestamp": "timestamp",
+            "open_price": "open",
+            "high_price": "high",
+            "low_price": "low",
+            "close_price": "close",
+            "volume": "volume",
+            "num_trades": "num_trades",
+            "volume_weighted_price": "volume_weighted_price",
+        },
     )
     STRATEGY_OPTIMIZATION = (
         "strategy_optimization",
@@ -86,16 +98,7 @@ class BacktestStage(Enum):
             "close",
             "volume",
         ],
-        {
-            "timestamp": "timestamp",
-            "open_price": "open",
-            "high_price": "high",
-            "low_price": "low",
-            "close_price": "close",
-            "volume": "volume",
-            "num_trades": "num_trades",
-            "volume_weighted_price": "volume_weighted_price",
-        },
+        {},
     )
     RESULTS_ANALYSIS = (
         "results_analysis",
