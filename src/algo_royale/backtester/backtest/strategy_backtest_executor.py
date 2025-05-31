@@ -39,48 +39,33 @@ class StrategyBacktestExecutor:
                 self.logger.error(f"No CSV files found in {data_path}")
 
         try:
-            self.logger.info("Starting async backtest...")
+            self.logger.info("Starting async backtest for strategies: %s", strategies)
 
             for symbol, async_iterator_factory in data.items():
-                for strategy in strategies:
-                    strategy_name = strategy.__class__.__name__
-                    pair_key = f"{symbol}_{strategy_name}"
+                self.logger.debug(f"Processing symbol: {symbol} for all strategies")
+                async_df_iterator = async_iterator_factory()
+                page_count = 0
 
-                    if self._should_skip_pair(pair_key, strategy_name, symbol):
-                        continue
+                async for page_df in async_df_iterator:
+                    page_count += 1
+                    for strategy in strategies:
+                        strategy_name = strategy.__class__.__name__
+                        pair_key = f"{symbol}_{strategy_name}"
 
-                    try:
-                        self.logger.info(
-                            f"Processing {symbol} with {strategy_name} (expecting data from {symbol})"
-                        )
-                        all_results = []
-                        page_count = 0
-                        processed_rows = 0
+                        if self._should_skip_pair(pair_key, strategy_name, symbol):
+                            continue
 
-                        # Get the async iterator
-                        async_df_iterator = async_iterator_factory()
-
-                        async for page_df in async_df_iterator:
-                            page_count += 1
-                            try:
-                                result_df = await self._process_single_page(
-                                    symbol, strategy, page_df, page_count
-                                )
-                                if result_df is not None:
-                                    all_results.append(result_df)
-                                    processed_rows += len(result_df)
-
-                            except Exception as e:
-                                self.logger.error(
-                                    f"Error processing page {page_count} for {symbol}-{strategy_name}: {str(e)}"
-                                )
-                                continue
-                        results.setdefault(symbol, []).extend(all_results)
-
-                    except Exception as e:
-                        self.logger.error(
-                            f"Failed to process {symbol}-{strategy_name}: {str(e)}"
-                        )
+                        try:
+                            result_df = await self._process_single_page(
+                                symbol, strategy, page_df, page_count
+                            )
+                            if result_df is not None:
+                                results.setdefault(symbol, []).append(result_df)
+                        except Exception as e:
+                            self.logger.error(
+                                f"Error processing page {page_count} for {symbol}-{strategy_name}: {str(e)}"
+                            )
+                            continue
             return results
         except asyncio.CancelledError:
             self.logger.warning("Backtest cancelled")

@@ -39,14 +39,17 @@ class StageCoordinator(ABC):
     async def process(
         self,
         prepared_data: Optional[Dict[str, Callable[[], AsyncIterator[pd.DataFrame]]]],
-    ) -> Dict[str, Callable[[], AsyncIterator[pd.DataFrame]]]:
+    ) -> Dict[str, Dict[str, Callable[[], AsyncIterator[pd.DataFrame]]]]:
         """
-        Process the prepared data for this stage.
-        Should return a dict: symbol -> async generator or DataFrame.
+        Process the prepared data and return a dict mapping symbol to a factory that yields result DataFrames.
+        This method should be implemented by subclasses to define the specific processing logic.
+        :param prepared_data: Data prepared for processing, typically a dict mapping symbol to an async iterator factory.
+        :return: A dict mapping symbol to a dict of strategy names and their corresponding async iterator factories.
+        :rtype: Dict[str, Dict[str, Callable[[], AsyncIterator[pd.DataFrame]]]]
         """
         pass
 
-    async def run(self, strategy_name: Optional[str] = None) -> bool:
+    async def run(self) -> bool:
         """
         Orchestrate the stage: load, prepare, process, write.
         """
@@ -56,42 +59,30 @@ class StageCoordinator(ABC):
             prepared_data = None
         else:
             """ Load data from the incoming stage """
-            self.logger.info(
-                f"stage:{self.stage} | strategy:{strategy_name} starting data loading."
-            )
-            data = await self._load_data(
-                stage=self.stage.incoming_stage, strategy_name=strategy_name
-            )
+            self.logger.info(f"stage:{self.stage} starting data loading.")
+            data = await self._load_data(stage=self.stage.incoming_stage)
             if not data:
                 self.logger.error(
-                    f"No data loaded from stage:{self.stage.incoming_stage} | strategy:{strategy_name}"
+                    f"No data loaded from stage:{self.stage.incoming_stage}"
                 )
                 return False
 
-            prepared_data = self._prepare_data(
-                stage=self.stage, data=data, strategy_name=strategy_name
-            )
+            prepared_data = self._prepare_data(stage=self.stage, data=data)
             if not prepared_data:
-                self.logger.error(
-                    f"No data prepared for stage:{self.stage} | strategy:{strategy_name}"
-                )
+                self.logger.error(f"No data prepared for stage:{self.stage}")
                 return False
 
         processed_data = await self.process(prepared_data)
+
         if not processed_data:
-            self.logger.error(
-                f"Processing failed for stage:{self.stage} | strategy:{strategy_name}"
-            )
+            self.logger.error(f"Processing failed for stage:{self.stage}")
             return False
 
         await self._write(
             stage=self.stage,
             processed_data=processed_data,
-            strategy_name=strategy_name,
         )
-        self.logger.info(
-            f"stage:{self.stage} | strategy:{strategy_name} completed and files saved."
-        )
+        self.logger.info(f"stage:{self.stage} completed and files saved.")
         return True
 
     async def _load_data(
@@ -153,63 +144,108 @@ class StageCoordinator(ABC):
     async def _write(
         self,
         stage: BacktestStage,
-        processed_data: Dict[str, Callable[[], AsyncIterator[pd.DataFrame]]],
-        strategy_name: Optional[str] = None,
+        processed_data: Dict[
+            str, Dict[str, Callable[[], AsyncIterator[pd.DataFrame]]]
+        ],  # symbol -> strategy_name -> factory
     ):
-        """Write processed data to the stage"""
+        """Write processed data to disk
+        This method iterates through the processed data, checks if the data for each symbol and strategy is already marked as done,
+        and if not, writes the data to the appropriate directory. If the directory already contains data but is not marked as done,
+        it clears the directory before writing the new data. It also handles errors by logging them and writing error files.
+
+        :param stage: The current stage of processing.
+        :param processed_data: A dictionary mapping symbols to strategy factories that yield DataFrames.
+        :type processed_data: Dict[str, Dict[str, Callable[[], AsyncIterator[pd.DataFrame]]]]
+        """
         try:
-            for symbol, df_iter_factory in processed_data.items():
-                # Check if symbol/stage is already marked as done
-                if self.stage_data_manager.is_symbol_stage_done(
-                    stage, strategy_name, symbol
-                ):
+            for symbol, strategy_factories in processed_data.items():
+                try:
                     self.logger.info(
-                        f"Skipping {symbol} for stage:{stage} | strategy:{strategy_name} (already marked as done)"
+                        f"Writing data for symbol: {symbol} at stage: {stage}"
+                    )
+                    for strategy_name, df_iter_factory in strategy_factories.items():
+                        try:
+                            self.logger.info(
+                                f"Processing symbol: {symbol} for strategy: {strategy_name}"
+                            )
+                            # Check if symbol/stage is already marked as done
+                            if self.stage_data_manager.is_symbol_stage_done(
+                                stage, strategy_name, symbol
+                            ):
+                                self.logger.info(
+                                    f"Skipping {symbol} for stage:{stage} | strategy:{strategy_name} (already marked as done)"
+                                )
+                                continue
+
+                            # If folder has data but is not marked as done, clear it
+                            out_dir = self.stage_data_manager.get_directory_path(
+                                stage, strategy_name, symbol
+                            )
+                            if out_dir.exists() and any(out_dir.iterdir()):
+                                self.logger.info(
+                                    f"Clearing existing data for {symbol} at stage:{stage} | strategy:{strategy_name} (not marked as done)"
+                                )
+                                self.stage_data_manager.clear_directory(
+                                    stage, strategy_name, symbol
+                                )
+
+                            gen = df_iter_factory()
+                            if not hasattr(gen, "__aiter__"):
+                                self.logger.error(
+                                    f"Factory for {symbol}/{strategy_name} did not return an async iterator. Got: {type(gen)} Value: {gen}"
+                                )
+                                raise TypeError(
+                                    f"Expected async iterator, got {type(gen)}"
+                                )
+
+                            # Now write the new data
+                            page_idx: int = 1
+                            async for df in gen:
+                                self.data_writer.save_stage_data(
+                                    stage=stage,
+                                    strategy_name=strategy_name,
+                                    symbol=symbol,
+                                    results_df=df,
+                                    page_idx=page_idx,
+                                )
+                                page_idx += 1
+                            self.stage_data_manager.mark_symbol_stage(
+                                stage=stage,
+                                strategy_name=strategy_name,
+                                symbol=symbol,
+                                statusExtension=DataExtension.DONE,
+                            )
+                        except Exception as e:
+                            self.logger.error(
+                                f"stage:{stage} | strategy:{strategy_name} data writing failed for symbol {symbol}: {e}"
+                            )
+                            self.stage_data_manager.write_error_file(
+                                stage=stage,
+                                strategy_name=strategy_name,
+                                symbol=symbol,
+                                filename="write",
+                                error_message=f"stage:{stage} | strategy:{strategy_name} data writing failed for symbol {symbol}: {e}",
+                            )
+                            continue
+                except Exception as e:
+                    self.logger.error(
+                        f"stage:{stage} data writing failed for symbol {symbol}: {e}"
+                    )
+                    self.stage_data_manager.write_error_file(
+                        stage=stage,
+                        strategy_name=None,
+                        symbol=symbol,
+                        filename="write",
+                        error_message=f"stage:{stage} data writing failed for symbol {symbol}: {e}",
                     )
                     continue
-
-                # If folder has data but is not marked as done, clear it
-                out_dir = self.stage_data_manager.get_directory_path(
-                    stage, strategy_name, symbol
-                )
-                if out_dir.exists() and any(out_dir.iterdir()):
-                    self.logger.info(
-                        f"Clearing existing data for {symbol} at stage:{stage} | strategy:{strategy_name} (not marked as done)"
-                    )
-                    self.stage_data_manager.clear_directory(
-                        stage, strategy_name, symbol
-                    )
-
-                gen = df_iter_factory()
-                if not hasattr(gen, "__aiter__"):
-                    self.logger.error(
-                        f"Factory for {symbol} did not return an async iterator. Got: {type(gen)} Value: {gen}"
-                    )
-                    raise TypeError(f"Expected async iterator, got {type(gen)}")
-
-                # Now write the new data
-                async for df in gen:
-                    self.data_writer.save_stage_data(
-                        stage=stage,
-                        strategy_name=strategy_name,
-                        symbol=symbol,
-                        results_df=df,
-                    )
-                self.stage_data_manager.mark_symbol_stage(
-                    stage=stage,
-                    strategy_name=strategy_name,
-                    symbol=symbol,
-                    statusExtension=DataExtension.DONE,
-                )
         except Exception as e:
-            self.logger.error(
-                f"stage:{stage} | strategy:{strategy_name} data writing failed: {e}"
-            )
+            self.logger.error(f"stage:{stage} data writing failed: {e}")
             self.stage_data_manager.write_error_file(
                 stage=stage,
-                strategy_name=strategy_name,
+                strategy_name=None,
                 symbol=symbol,
                 filename="write",
-                error_message=f"stage:{stage} | strategy:{strategy_name} data writing failed: {e}",
+                error_message=f"stage:{stage} data writing failed: {e}",
             )
             return False

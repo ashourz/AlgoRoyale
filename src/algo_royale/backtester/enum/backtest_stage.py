@@ -11,7 +11,7 @@ class BacktestStage(Enum):
         value (str): The value of the stage.
         description (str): A description of the stage.
         incoming_stage (Optional[str]): The stage that feeds into this stage.
-        required_columns (list): A list of required columns for the stage.
+        required_input_columns (list): A list of required columns for the stage.
         rename_map (dict): A dictionary mapping original column names to new names.
 
     - Stages:
@@ -71,8 +71,6 @@ class BacktestStage(Enum):
             "low",
             "close",
             "volume",
-            "signal",
-            "strategy",
             "symbol",
         ],
         {
@@ -136,12 +134,12 @@ class BacktestStage(Enum):
         {},
     )
 
-    def __init__(self, value, description, stage, required_columns, rename_map):
+    def __init__(self, value, description, stage, required_input_columns, rename_map):
         self._value_: str = value
         self.description: str = description
         self._incoming_stage_name: Optional[BacktestStage] = stage
         self.incoming_stage = None  # will be set later
-        self.required_columns = required_columns
+        self.required_input_columns = required_input_columns
         self.rename_map = rename_map
 
 

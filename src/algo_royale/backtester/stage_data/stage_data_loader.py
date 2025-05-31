@@ -1,4 +1,5 @@
 import asyncio
+import re
 from logging import Logger
 from pathlib import Path
 from typing import AsyncIterator, Callable, Dict, List, Optional
@@ -214,7 +215,16 @@ class StageDataLoader:
         self, stage: BacktestStage, strategy_name: str, symbol_dir: Path
     ) -> AsyncIterator[pd.DataFrame]:
         """Async generator to stream existing data pages for a symbol"""
-        # Only include files that are not status/marker files
+
+        def extract_page_chunk(filename):
+            # Example: None_GOOG_page1_chunk2 or None_GOOG_page1
+            m = re.search(r"_page(\d+)(?:_chunk(\d+))?$", filename.stem)
+            if m:
+                page = int(m.group(1))
+                chunk = int(m.group(2)) if m.group(2) else 1
+                return (page, chunk)
+            return (float("inf"), float("inf"))  # Put unparseable files at the end
+
         pages = sorted(
             [
                 f
@@ -223,7 +233,7 @@ class StageDataLoader:
                     f.name.endswith(f".{ext.value}.csv") for ext in DataExtension
                 )
             ],
-            key=lambda x: int(x.stem.split("_")[-1]),
+            key=extract_page_chunk,
         )
 
         self.logger.debug(f"Found {len(pages)} data pages in {symbol_dir}")
@@ -231,7 +241,6 @@ class StageDataLoader:
         for page_path in pages:
             try:
                 self.logger.debug(f"Yielding {page_path}")
-                # Use to_thread for synchronous file operations
                 df = await asyncio.to_thread(
                     pd.read_csv, page_path, parse_dates=["timestamp"]
                 )

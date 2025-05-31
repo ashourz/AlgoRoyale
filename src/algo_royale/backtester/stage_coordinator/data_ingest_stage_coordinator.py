@@ -62,15 +62,18 @@ class DataIngestStageCoordinator(StageCoordinator):
         prepared_data: Optional[
             Dict[str, Callable[[], AsyncIterator[pd.DataFrame]]]
         ] = None,
-    ) -> Dict[str, Callable[[], AsyncIterator[pd.DataFrame]]]:
+    ) -> Dict[str, Dict[None, Callable[[], AsyncIterator[pd.DataFrame]]]]:
         """
         Fetch data for all symbols and return as async iterators of DataFrames.
         The StageCoordinator._write method will handle saving.
         """
-        result: Dict[str, Callable[[], AsyncIterator[pd.DataFrame]]] = {}
+        result: Dict[str, Dict[None, Callable[[], AsyncIterator[pd.DataFrame]]]] = {}
 
         for symbol in self.watchlist:
-            result[symbol] = lambda symbol=symbol: self._fetch_symbol_data(symbol)
+            # Wrap the factory in a dict with None as the strategy name
+            result[symbol] = {
+                None: (lambda symbol=symbol: self._fetch_symbol_data(symbol))
+            }
         return result
 
     async def _fetch_symbol_data(self, symbol: str) -> AsyncIterator[pd.DataFrame]:

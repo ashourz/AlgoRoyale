@@ -36,7 +36,7 @@ class FeatureEngineeringStageCoordinator(StageCoordinator):
 
     async def process(
         self, prepared_data: Dict[str, Callable[[], AsyncIterator[pd.DataFrame]]]
-    ) -> Dict[str, Callable[[], AsyncIterator[pd.DataFrame]]]:
+    ) -> Dict[str, Dict[None, Callable[[], AsyncIterator[pd.DataFrame]]]]:
         """
         Process the prepared data for this stage.
         Should return a dict: symbol -> async generator or DataFrame.
@@ -45,7 +45,8 @@ class FeatureEngineeringStageCoordinator(StageCoordinator):
         if not engineered_data:
             self.logger.error("Feature engineering failed")
             return {}
-        return engineered_data
+        # Wrap each factory in a dict with None as the strategy name
+        return {symbol: {None: factory} for symbol, factory in engineered_data.items()}
 
     async def _engineer(
         self, ingest_data: Dict[str, Callable[[], AsyncIterator[pd.DataFrame]]]

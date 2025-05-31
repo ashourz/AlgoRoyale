@@ -43,28 +43,63 @@ class BacktestStageCoordinator(StageCoordinator):
 
     async def process(
         self, prepared_data: Dict[str, Callable[[], AsyncIterator[pd.DataFrame]]]
-    ) -> Dict[str, Callable[[], AsyncIterator[pd.DataFrame]]]:
+    ) -> Dict[str, Dict[None, Callable[[], AsyncIterator[pd.DataFrame]]]]:
         """
         Run the backtest and return a dict mapping symbol to a factory that yields result DataFrames.
         """
-        # Derive the list of symbols from the prepared_data keys
-        # Use the factory to create strategies for these symbols
         strategies_per_symbol = self.strategy_factory.create_strategies(
             json_path=self.json_path,
         )
         if not strategies_per_symbol:
             self.logger.error("No strategies created from the provided JSON path.")
             return {}
-        # Flatten all strategies into a single list for the executor (if needed)
-        all_strategies = [
-            s for strategies in strategies_per_symbol.values() for s in strategies
-        ]
-        if not all_strategies:
-            self.logger.error("No strategies found to run backtest.")
-            return {}
-        results: Dict[str, list[pd.DataFrame]] = await self.executor.run_backtest(
-            all_strategies, prepared_data
-        )
+
+        results: Dict[str, Dict[str, list[pd.DataFrame]]] = {}
+
+        for symbol, strategies in strategies_per_symbol.items():
+            if not strategies:
+                self.logger.warning(f"No strategies for symbol {symbol}, skipping.")
+                continue
+            if symbol not in prepared_data:
+                self.logger.warning(f"No prepared data for symbol {symbol}, skipping.")
+                continue
+
+            self.logger.info(
+                f"Running backtest for symbol {symbol} with strategies: {', '.join(s.__class__.__name__ for s in strategies)}"
+            )
+            symbol_results = await self.executor.run_backtest(
+                strategies, {symbol: prepared_data[symbol]}
+            )
+            # symbol_results: Dict[str, List[pd.DataFrame]], where key is symbol
+            if symbol_results and symbol in symbol_results:
+                # For each strategy, collect its results
+                for strategy in strategies:
+                    strategy_name = strategy.__class__.__name__
+                    # Filter DataFrames for this strategy
+                    strategy_dfs = (
+                        [
+                            df
+                            for df in symbol_results[symbol]
+                            if (
+                                (
+                                    "strategy" in df.columns
+                                    and (df["strategy"] == strategy_name).any()
+                                )
+                                or (
+                                    "strategy_name" in df.columns
+                                    and (df["strategy_name"] == strategy_name).any()
+                                )
+                            )
+                        ]
+                        if symbol_results[symbol]
+                        else []
+                    )
+                    if symbol not in results:
+                        results[symbol] = {}
+                    results[symbol][strategy_name] = strategy_dfs
+            else:
+                self.logger.warning(f"No results for symbol {symbol}.")
+
         if not results:
             self.logger.error("Backtest returned no results.")
             return {}
@@ -91,4 +126,10 @@ class BacktestStageCoordinator(StageCoordinator):
             # Return an async generator function for the DataFrame list
             return gen
 
-        return {symbol: make_factory(dfs) for symbol, dfs in results.items()}
+        return {
+            symbol: {
+                strategy_name: make_factory(dfs)
+                for strategy_name, dfs in strategy_dict.items()
+            }
+            for symbol, strategy_dict in results.items()
+        }

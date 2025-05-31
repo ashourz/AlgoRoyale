@@ -1,5 +1,4 @@
 import glob
-from datetime import datetime
 from logging import Logger
 from math import ceil
 from pathlib import Path
@@ -47,7 +46,7 @@ class StageDataWriter:
         strategy_name: Optional[str],
         symbol: str,
         results_df: pd.DataFrame,
-        timestamp: Optional[datetime] = None,
+        page_idx: int,
     ) -> list[str]:
         """
         Save the results DataFrame to CSV files, splitting if necessary.
@@ -57,11 +56,9 @@ class StageDataWriter:
         if not isinstance(results_df, pd.DataFrame):
             raise TypeError(f"Expected DataFrame, got {type(results_df)}")
 
-        timestamp = timestamp or datetime.now()
         output_dir = self._get_stage_symbol_dir(stage, strategy_name, symbol)
         output_dir.mkdir(parents=True, exist_ok=True)
-
-        if "strategy" not in results_df.columns:
+        if strategy_name is not None and "strategy" not in results_df.columns:
             results_df = results_df.assign(strategy=strategy_name)
         if "symbol" not in results_df.columns:
             results_df = results_df.assign(symbol=symbol)
@@ -70,22 +67,28 @@ class StageDataWriter:
         num_parts = ceil(total_rows / self.max_rows_per_file)
         filepaths = []
 
-        for part_idx in range(num_parts):
+        for chunk_idx in range(num_parts):
             chunk_df = results_df.iloc[
-                part_idx * self.max_rows_per_file : (part_idx + 1)
+                chunk_idx * self.max_rows_per_file : (chunk_idx + 1)
                 * self.max_rows_per_file
             ]
-            part_suffix = f"_part{part_idx + 1}" if num_parts > 1 else ""
-            filename = f"{strategy_name}_{symbol}_{part_suffix}.csv"
+            if num_parts > 1:
+                filename = (
+                    f"{strategy_name}_{symbol}_page{page_idx}_chunk{chunk_idx + 1}.csv"
+                )
+            else:
+                filename = f"{strategy_name}_{symbol}_page{page_idx}.csv"
             filepath = output_dir / filename
 
             try:
                 chunk_df.to_csv(filepath, index=False)
-                self.logger.info(f"Saved part {part_idx + 1}/{num_parts} to {filepath}")
+                self.logger.info(
+                    f"Saved page{page_idx} chunk{chunk_idx + 1}/{num_parts} to {filepath}"
+                )
                 filepaths.append(str(filepath))
             except Exception as e:
                 self.logger.error(
-                    f"Failed to save chunk {part_idx + 1} for {strategy_name}/{symbol}: {e}"
+                    f"Failed to save page{page_idx} chunk{chunk_idx + 1} for {strategy_name}/{symbol}: {e}"
                 )
                 raise
 

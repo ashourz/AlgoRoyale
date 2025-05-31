@@ -16,7 +16,7 @@ class DataPreparer:
             self.logger.debug(f"Empty dataframe for {symbol}")
             return df
         df = df.rename(columns=stage.rename_map)
-        required = stage.required_columns
+        required = stage.required_input_columns
         missing = [col for col in required if col not in df.columns]
         if missing:
             raise ValueError(f"Missing columns in {symbol} data: {missing}")
