@@ -1,11 +1,18 @@
+from unittest.mock import MagicMock
+
 import pandas as pd
 import pytest
 
 from algo_royale.backtester.feature_engineering.feature_engineer import FeatureEngineer
 
 
+@pytest.fixture
+def mock_logger():
+    return MagicMock()
+
+
 @pytest.mark.asyncio
-async def test_engineer_features_yields_engineered():
+async def test_engineer_features_yields_engineered(mock_logger):
     # Use a simple fake feature engineering function
     def fake_feature_engineering(df):
         df = df.copy()
@@ -16,7 +23,11 @@ async def test_engineer_features_yields_engineered():
         yield pd.DataFrame({"a": [1]})
         yield pd.DataFrame({"a": [2]})
 
-    fe = FeatureEngineer(feature_engineering_func=fake_feature_engineering)
+    fe = FeatureEngineer(
+        feature_engineering_func=fake_feature_engineering,
+        logger=mock_logger,
+        max_lookback=0,
+    )
     results = []
     async for df in fe.engineer_features(df_iter(), "AAPL"):
         results.append(df)
@@ -26,7 +37,7 @@ async def test_engineer_features_yields_engineered():
 
 
 @pytest.mark.asyncio
-async def test_engineer_features_handles_exception(capsys):
+async def test_engineer_features_handles_exception(capsys, mock_logger):
     # Use a feature engineering function that raises
     def bad_feature_engineering(df):
         raise ValueError("bad data")
@@ -34,7 +45,9 @@ async def test_engineer_features_handles_exception(capsys):
     async def df_iter():
         yield pd.DataFrame({"a": [1]})
 
-    fe = FeatureEngineer(feature_engineering_func=bad_feature_engineering)
+    fe = FeatureEngineer(
+        feature_engineering_func=bad_feature_engineering, logger=mock_logger
+    )
     results = []
     async for df in fe.engineer_features(df_iter(), "AAPL"):
         results.append(df)

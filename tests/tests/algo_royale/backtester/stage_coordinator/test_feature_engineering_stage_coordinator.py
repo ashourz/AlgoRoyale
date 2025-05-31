@@ -81,9 +81,10 @@ async def test_process_success(coordinator, mock_feature_engineer, async_gen_fac
 
     # prepared_data: symbol -> factory returning async generator
     prepared_data = {"AAPL": async_gen_factory}
+
     result = await coordinator.process(prepared_data)
     out = []
-    async for df in result["AAPL"]():
+    async for df in result["AAPL"][None]():  # <-- Fix: use [None] to get the factory
         out.append(df)
     assert isinstance(out[0], pd.DataFrame)
 

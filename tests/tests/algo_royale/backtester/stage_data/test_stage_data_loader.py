@@ -84,9 +84,14 @@ async def test_load_all_stage_data(mock_config, mock_logger, mock_stage_data_man
     )
     loader._ensure_all_data_exists = AsyncMock()
     loader.load_symbol = AsyncMock()
+
+    # Mock _get_all_existing_data_symbols to return the expected symbols
+    loader._get_all_existing_data_symbols = AsyncMock(return_value=["AAPL", "GOOG"])
+
     result = await loader.load_all_stage_data(BacktestStage.DATA_INGEST)
     assert "AAPL" in result and "GOOG" in result
     assert callable(result["AAPL"])
+    assert callable(result["GOOG"])
 
 
 @pytest.mark.asyncio
@@ -101,7 +106,8 @@ async def test_load_symbol_no_data(mock_config, mock_logger, mock_stage_data_man
         load_watchlist=lambda path: ["AAPL"],
     )
     loader._get_stage_symbol_dir = MagicMock(return_value=MagicMock())
-    loader._has_existing_data = AsyncMock(return_value=False)
+    loader._has_existing_data = MagicMock(return_value=False)  # <-- Use MagicMock here
+
     with pytest.raises(ValueError):
         async for _ in loader.load_symbol(BacktestStage.DATA_INGEST, "AAPL"):
             pass

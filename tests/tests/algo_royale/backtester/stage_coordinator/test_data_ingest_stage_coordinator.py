@@ -176,7 +176,8 @@ async def test_process_returns_factories(
     )
     result = await coordinator.process()
     assert "AAPL" in result and "GOOG" in result
-    assert callable(result["AAPL"])
+    assert callable(result["AAPL"][None])
+    assert callable(result["GOOG"][None])
 
 
 @pytest.mark.asyncio

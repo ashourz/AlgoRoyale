@@ -80,7 +80,7 @@ async def test_run_success(coordinator, mock_data_loader, mock_data_writer):
     # Patch _write to not actually write
     coordinator._write = AsyncMock(return_value=True)
 
-    result = await coordinator.run(strategy_name="strat")
+    result = await coordinator.run()
     assert result is True
     mock_data_loader.load_all_stage_data.assert_called()
     coordinator._write.assert_called()
@@ -89,7 +89,7 @@ async def test_run_success(coordinator, mock_data_loader, mock_data_writer):
 @pytest.mark.asyncio
 async def test_run_no_incoming_stage(coordinator, mock_logger):
     coordinator.stage.incoming_stage = None
-    result = await coordinator.run(strategy_name="strat")
+    result = await coordinator.run()
     assert result is False
     # Check that the error log contains the expected substring
     assert any(
@@ -102,7 +102,7 @@ async def test_run_no_incoming_stage(coordinator, mock_logger):
 async def test_run_load_data_failure(coordinator, mock_data_loader, mock_logger):
     coordinator.stage.incoming_stage = BacktestStage.DATA_INGEST
     mock_data_loader.load_all_stage_data = AsyncMock(return_value={})
-    result = await coordinator.run(strategy_name="strat")
+    result = await coordinator.run()
     assert result is False
     assert any(
         "No data loaded" in str(call) for call in mock_logger.error.call_args_list
@@ -114,7 +114,7 @@ async def test_run_prepare_data_failure(coordinator, mock_data_loader, mock_logg
     coordinator.stage.incoming_stage = BacktestStage.DATA_INGEST
     # Patch _prepare_data to return {}
     coordinator._prepare_data = MagicMock(return_value={})
-    result = await coordinator.run(strategy_name="strat")
+    result = await coordinator.run()
     assert result is False
     assert any(
         "No data prepared" in str(call) for call in mock_logger.error.call_args_list
@@ -126,7 +126,7 @@ async def test_run_process_failure(coordinator, mock_data_loader, mock_logger):
     coordinator.stage.incoming_stage = BacktestStage.DATA_INGEST
     # Patch process to return {}
     coordinator.process = AsyncMock(return_value={})
-    result = await coordinator.run(strategy_name="strat")
+    result = await coordinator.run()
     assert result is False
     assert any(
         "Processing failed" in str(call) for call in mock_logger.error.call_args_list
@@ -192,15 +192,14 @@ async def test_write_success(coordinator, mock_data_writer, mock_stage_data_mana
     async def async_gen():
         yield pd.DataFrame({"a": [1]})
 
-    processed_data = {"AAPL": lambda: async_gen()}
-    await coordinator._write(
-        BacktestStage.DATA_INGEST, processed_data, strategy_name="strat"
-    )
+    processed_data = {"AAPL": {"strat": lambda: async_gen()}}  # <-- nested dict
+    await coordinator._write(BacktestStage.DATA_INGEST, processed_data)
     mock_data_writer.save_stage_data.assert_called_with(
         stage=BacktestStage.DATA_INGEST,
         strategy_name="strat",
         symbol="AAPL",
         results_df=ANY,
+        page_idx=ANY,
     )
 
 
@@ -215,8 +214,6 @@ async def test_write_exception(coordinator, mock_logger, mock_stage_data_manager
 
     processed_data = {"AAPL": lambda: async_gen()}
     coordinator.data_writer.save_stage_data = MagicMock(side_effect=Exception("fail"))
-    await coordinator._write(
-        BacktestStage.DATA_INGEST, processed_data, strategy_name="strat"
-    )
+    await coordinator._write(BacktestStage.DATA_INGEST, processed_data)
     assert mock_logger.error.called
     assert mock_stage_data_manager.write_error_file.called

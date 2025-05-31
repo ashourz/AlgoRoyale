@@ -10,7 +10,7 @@ from algo_royale.backtester.data_stream.normalized_data_stream import (
 
 class DummyStage:
     rename_map = {"old": "new"}
-    required_columns = ["new"]
+    required_input_columns = ["new"]
 
 
 @pytest.fixture

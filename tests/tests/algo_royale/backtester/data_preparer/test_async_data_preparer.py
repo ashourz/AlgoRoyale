@@ -7,8 +7,8 @@ from algo_royale.backtester.data_preparer.async_data_preparer import AsyncDataPr
 
 
 class DummyStage:
-    rename_map = {"old": "new"}
-    required_columns = ["new"]
+    rename_map = {"old": "new", "foo": "bar"}
+    required_input_columns = ["new", "bar"]
 
 
 @pytest.fixture
@@ -23,26 +23,23 @@ def preparer(logger):
 
 @pytest.mark.asyncio
 async def test_normalized_stream_yields_normalized(preparer):
-    # Async generator yielding two DataFrames
     async def async_gen():
-        yield pd.DataFrame({"old": [1]})
-        yield pd.DataFrame({"old": [2]})
+        yield pd.DataFrame({"old": [1], "foo": [2]})
+        yield pd.DataFrame({"old": [3], "foo": [4]})
 
-    # Use DummyStage as config
     results = []
     async for df in preparer.normalized_stream(
         DummyStage(), "AAPL", lambda: async_gen()
     ):
         results.append(df)
     assert len(results) == 2
-    assert list(results[0].columns) == ["new"]
+    assert list(results[0].columns) == ["new", "bar"]
 
 
 @pytest.mark.asyncio
 async def test_normalized_stream_handles_exception(preparer, logger):
-    # Async generator yields one good, one bad DataFrame
     async def async_gen():
-        yield pd.DataFrame({"old": [1]})
+        yield pd.DataFrame({"old": [1], "foo": [2]})
         yield pd.DataFrame({"bad": [2]})  # Will cause normalize_dataframe to fail
 
     results = []
@@ -50,7 +47,9 @@ async def test_normalized_stream_handles_exception(preparer, logger):
         DummyStage(), "AAPL", lambda: async_gen()
     ):
         results.append(df)
-    assert len(results) == 1  # Only the first yields
+    # Only the first should yield, and it should have the renamed columns
+    assert len(results) == 1
+    assert list(results[0].columns) == ["new", "bar"]
     logger.error.assert_called()
 
 
