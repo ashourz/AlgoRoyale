@@ -1,5 +1,6 @@
 import pandas as pd
 
+from algo_royale.column_names.strategy_columns import StrategyColumns
 from algo_royale.strategies.conditions.base_strategy_condition import StrategyCondition
 
 
@@ -9,10 +10,15 @@ class ReturnVolatilityExitCondition(StrategyCondition):
     Triggers when:
     - The return is below a specified threshold, OR
     - The price range exceeds a specified volatility measure.
+
     """
 
     def __init__(
-        self, return_col: str, range_col: str, volatility_col: str, threshold: float
+        self,
+        threshold: float,
+        return_col=StrategyColumns.PCT_RETURN,  # or LOG_RETURN
+        range_col: StrategyColumns = StrategyColumns.RANGE,
+        volatility_col: StrategyColumns = StrategyColumns.VOLATILITY_20,
     ):
         self.return_col = return_col
         self.range_col = range_col

@@ -1,10 +1,13 @@
 import pandas as pd
 
+from algo_royale.column_names.strategy_columns import StrategyColumns
 from algo_royale.strategies.conditions.base_strategy_condition import StrategyCondition
 
 
 class TimeOfDayEntryCondition(StrategyCondition):
-    def __init__(self, buy_hours={10, 14}, hour_col="hour"):
+    def __init__(
+        self, buy_hours={10, 14}, hour_col: StrategyColumns = StrategyColumns.HOUR
+    ):
         self.buy_hours = set(buy_hours)
         self.hour_col = hour_col
 

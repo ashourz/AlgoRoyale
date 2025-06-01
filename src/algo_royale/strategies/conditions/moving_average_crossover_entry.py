@@ -11,8 +11,8 @@ class MovingAverageCrossoverEntryCondition(StrategyCondition):
     and if the volume is above its moving average, which can confirm the strength of the signal.
     This condition is applied to each row of a DataFrame containing price and volume data.
     Args:
-        close_col (str): Column name for the close price.
-        volume_col (str, optional): Column name for the volume data. Defaults to None.
+        close_col (StrategyColumns): Column name for the close price data.
+        volume_col (StrategyColumns): Column name for the volume data. Defaults to StrategyColumns.VOLUME.
         short_window (int): Window size for the short moving average. Defaults to 10.
         long_window (int): Window size for the long moving average. Defaults to 50.
         trend_window (int): Window size for the trend moving average. Defaults to 200.
@@ -24,8 +24,8 @@ class MovingAverageCrossoverEntryCondition(StrategyCondition):
 
     def __init__(
         self,
-        close_col: str = StrategyColumns.CLOSE_PRICE,
-        volume_col: str = StrategyColumns.VOLUME,
+        close_col: StrategyColumns = StrategyColumns.CLOSE_PRICE,
+        volume_col: StrategyColumns = StrategyColumns.VOLUME,
         short_window=10,
         long_window=50,
         trend_window=200,

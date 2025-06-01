@@ -7,8 +7,8 @@ from algo_royale.strategies.conditions.base_strategy_condition import StrategyCo
 class MovingAverageCrossoverExitCondition(StrategyCondition):
     def __init__(
         self,
-        close_col: str = StrategyColumns.CLOSE_PRICE,
-        volume_col: str = StrategyColumns.VOLUME,
+        close_col: StrategyColumns = StrategyColumns.CLOSE_PRICE,
+        volume_col: StrategyColumns = StrategyColumns.VOLUME,
         short_window=10,
         long_window=50,
         trend_window=200,

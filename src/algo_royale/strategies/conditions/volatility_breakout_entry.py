@@ -8,7 +8,9 @@ class VolatilityBreakoutEntryCondition(StrategyCondition):
     """Condition to identify volatility breakout entry points in a trading strategy.
     This condition checks if the price range exceeds a specified threshold relative to the 20-period volatility,"""
 
-    def __init__(self, threshold=1.5, sma_col=StrategyColumns.SMA_20):
+    def __init__(
+        self, threshold=1.5, sma_col: StrategyColumns = StrategyColumns.SMA_20
+    ):
         self.threshold = threshold
         self.sma_col = sma_col
 

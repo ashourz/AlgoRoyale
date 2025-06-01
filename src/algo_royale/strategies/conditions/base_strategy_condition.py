@@ -9,7 +9,7 @@ class StrategyCondition:
     def __init__(self, *args, **kwargs):
         pass
 
-    def apply(self, df: pd.DataFrame) -> pd.Series:  # noqa: F821
+    def apply(self, df: pd.DataFrame) -> pd.Series:
         """
         Should return a boolean Series where True means the filter passes.
         """

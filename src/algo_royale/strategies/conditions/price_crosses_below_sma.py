@@ -1,10 +1,16 @@
 import pandas as pd
 
+from algo_royale.column_names.strategy_columns import StrategyColumns
 from algo_royale.strategies.conditions.base_strategy_condition import StrategyCondition
 
 
 @staticmethod
-def price_crosses_below_sma(current_row, prev_row, sma_col, close_col):
+def price_crosses_below_sma(
+    current_row,
+    prev_row,
+    close_col: StrategyColumns = StrategyColumns.CLOSE_PRICE,
+    sma_col: StrategyColumns = StrategyColumns.SMA_20,
+):
     """
     Returns True if the price crosses below the SMA between the previous and current rows.
     This indicates a potential shift into a downtrend.
@@ -34,8 +40,8 @@ class PriceCrossesBelowSMACondition(StrategyCondition):
     to enter trades.
 
     Args:
-        close_col (str): Column name for the close price.
-        sma_col (str): Column name for the SMA values.
+        close_col (StrategyColumns): Column name for the close price.
+        sma_col (StrategyColumns): Column name for the SMA values.
 
     Returns:
         pd.Series: Boolean Series where True indicates the price crosses below the SMA.
@@ -45,7 +51,11 @@ class PriceCrossesBelowSMACondition(StrategyCondition):
         df['price_crosses_below_sma'] = filter.apply(df)
     """
 
-    def __init__(self, close_col: str, sma_col: str):
+    def __init__(
+        self,
+        close_col: StrategyColumns = StrategyColumns.CLOSE_PRICE,
+        sma_col: StrategyColumns = StrategyColumns.SMA_20,
+    ):
         self.close_col = close_col
         self.sma_col = sma_col
 
@@ -56,3 +66,7 @@ class PriceCrossesBelowSMACondition(StrategyCondition):
             ),
             axis=1,
         )
+
+    @property
+    def required_columns(self):
+        return [self.close_col, self.sma_col]

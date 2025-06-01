@@ -1,10 +1,11 @@
 import pandas as pd
 
+from algo_royale.column_names.strategy_columns import StrategyColumns
 from algo_royale.strategies.conditions.base_strategy_condition import StrategyCondition
 
 
 class RSIExitCondition(StrategyCondition):
-    def __init__(self, close_col="close", period=14, overbought=70):
+    def __init__(self, close_col=StrategyColumns.CLOSE_PRICE, period=14, overbought=70):
         self.close_col = close_col
         self.period = period
         self.overbought = overbought

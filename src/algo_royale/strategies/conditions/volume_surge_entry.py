@@ -1,10 +1,11 @@
 import pandas as pd
 
+from algo_royale.column_names.strategy_columns import StrategyColumns
 from algo_royale.strategies.conditions.base_strategy_condition import StrategyCondition
 
 
 class VolumeSurgeEntryCondition(StrategyCondition):
-    def __init__(self, vol_col="volume", threshold=2.0, ma_window=20):
+    def __init__(self, vol_col=StrategyColumns.VOLUME, threshold=2.0, ma_window=20):
         self.vol_col = vol_col
         self.threshold = threshold
         self.ma_window = ma_window

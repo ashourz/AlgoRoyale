@@ -1,5 +1,6 @@
 import pandas as pd
 
+from algo_royale.column_names.strategy_columns import StrategyColumns
 from algo_royale.strategies.conditions.base_strategy_condition import StrategyCondition
 
 
@@ -7,8 +8,8 @@ class VWAPReversionEntryCondition(StrategyCondition):
     def __init__(
         self,
         deviation_threshold=0.01,
-        vwap_col="vwap_20",
-        vwp_col="volume_weighted_price",
+        vwap_col: StrategyColumns = StrategyColumns.VWAP_20,
+        vwp_col: StrategyColumns = StrategyColumns.VOLUME_WEIGHTED_PRICE,
     ):
         self.deviation_threshold = deviation_threshold
         self.vwap_col = vwap_col

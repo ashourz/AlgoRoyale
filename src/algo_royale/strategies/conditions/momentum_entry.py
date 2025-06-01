@@ -1,12 +1,13 @@
 import pandas as pd
 
+from algo_royale.column_names.strategy_columns import StrategyColumns
 from algo_royale.strategies.conditions.base_strategy_condition import StrategyCondition
 
 
 class MomentumEntryCondition(StrategyCondition):
     def __init__(
         self,
-        close_col="close",
+        close_col=StrategyColumns.CLOSE_PRICE,
         lookback=10,
         threshold=0.0,
         smooth_window=None,

@@ -26,7 +26,7 @@ class MovingAverageStrategy(Strategy):
         self,
         short_window: int = 50,
         long_window: int = 200,
-        close_col: str = StrategyColumns.CLOSE_PRICE,
+        close_col: StrategyColumns = StrategyColumns.CLOSE_PRICE,
         buy_signal: str = "buy",
         sell_signal: str = "sell",
         hold_signal: str = "hold",

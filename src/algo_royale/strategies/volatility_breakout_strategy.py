@@ -16,7 +16,9 @@ class VolatilityBreakoutStrategy(Strategy):
     - Hold otherwise.
     """
 
-    def __init__(self, threshold: float = 1.5, sma_col: str = StrategyColumns.SMA_20):
+    def __init__(
+        self, threshold: float = 1.5, sma_col: StrategyColumns = StrategyColumns.SMA_20
+    ):
         self.threshold = threshold
         self.sma_col = sma_col
 

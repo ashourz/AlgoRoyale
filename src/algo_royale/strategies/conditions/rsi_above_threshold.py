@@ -1,10 +1,13 @@
 import pandas as pd
 
+from algo_royale.column_names.strategy_columns import StrategyColumns
 from algo_royale.strategies.conditions.base_strategy_condition import StrategyCondition
 
 
 @staticmethod
-def rsi_above_threshold(row, rsi_col, threshold=70):
+def rsi_above_threshold(
+    row, rsi_col: StrategyColumns = StrategyColumns.RSI, threshold=70
+):
     """
     Returns True if the RSI value is above a specified threshold,
     indicating overbought conditions.
@@ -30,7 +33,7 @@ class RSIAboveThresholdCondition(StrategyCondition):
     to enter trades.
 
     Args:
-        rsi_col (str): Column name for the RSI values.
+        rsi_col (StrategyColumns): Column name for the RSI values.
         threshold (float, optional): Threshold value. Default is 70.
 
     Returns:
@@ -41,7 +44,9 @@ class RSIAboveThresholdCondition(StrategyCondition):
         df['rsi_above_threshold'] = filter.apply(df)
     """
 
-    def __init__(self, rsi_col: str, threshold: float = 70):
+    def __init__(
+        self, rsi_col: StrategyColumns = StrategyColumns.RSI, threshold: float = 70
+    ):
         self.rsi_col = rsi_col
         self.threshold = threshold
 
@@ -50,3 +55,7 @@ class RSIAboveThresholdCondition(StrategyCondition):
             lambda row: rsi_above_threshold(row, self.rsi_col, self.threshold),
             axis=1,
         )
+
+    @property
+    def required_columns(self):
+        return [self.rsi_col]

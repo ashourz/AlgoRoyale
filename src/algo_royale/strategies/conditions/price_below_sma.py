@@ -1,12 +1,15 @@
 import pandas as pd
 
-from algo_royale.strategies.strategy_filters.base_strategy_condition import (
-    StrategyCondition,
-)
+from algo_royale.column_names.strategy_columns import StrategyColumns
+from algo_royale.strategies.conditions.base_strategy_condition import StrategyCondition
 
 
 @staticmethod
-def price_below_sma(row, sma_col, close_col):
+def price_below_sma(
+    row,
+    sma_col: StrategyColumns = StrategyColumns.SMA_20,
+    close_col=StrategyColumns.CLOSE_PRICE,
+):
     """
     Returns True if the price is below the SMA (indicating downtrend),
     else False.
@@ -22,7 +25,7 @@ def price_below_sma(row, sma_col, close_col):
     return row[close_col] < row[sma_col]
 
 
-class PriceBelowSMAConditin(StrategyCondition):
+class PriceBelowSMACondition(StrategyCondition):
     """Condition to check if the price is below a Simple Moving Average (SMA).
     This condition checks if the current price is below the SMA,
     indicating a potential bearish trend. It is typically used in trend-following strategies
@@ -43,7 +46,11 @@ class PriceBelowSMAConditin(StrategyCondition):
         df['price_below_sma'] = filter.apply(df)
     """
 
-    def __init__(self, close_col: str, sma_col: str):
+    def __init__(
+        self,
+        close_col: StrategyColumns = StrategyColumns.CLOSE_PRICE,
+        sma_col: StrategyColumns = StrategyColumns.SMA_20,
+    ):
         self.close_col = close_col
         self.sma_col = sma_col
 
@@ -52,3 +59,7 @@ class PriceBelowSMAConditin(StrategyCondition):
             lambda row: price_below_sma(row, self.sma_col, self.close_col),
             axis=1,
         )
+
+    @property
+    def required_columns(self):
+        return [self.close_col, self.sma_col]

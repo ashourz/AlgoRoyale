@@ -12,6 +12,15 @@ class MACDTrailingStopStrategy(Strategy):
 
     Buy when MACD crosses above signal line AND all trend conditions are met.
     Sell when MACD crosses below signal line OR trailing stop triggers.
+
+    Parameters:
+        fast (int): Fast EMA period for MACD.
+        slow (int): Slow EMA period for MACD.
+        signal (int): Signal line period for MACD.
+        stop_pct (float): Percentage for trailing stop loss.
+        close_col (StrategyColumns): Column to use for closing prices.
+        sma_fast_col (StrategyColumns): Column for fast SMA.
+        sma_slow_col (StrategyColumns): Column for slow SMA.
     """
 
     def __init__(

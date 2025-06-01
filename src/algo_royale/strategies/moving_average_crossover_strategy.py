@@ -28,8 +28,8 @@ class MovingAverageCrossoverStrategy(Strategy):
 
     def __init__(
         self,
-        close_col: str = StrategyColumns.CLOSE_PRICE,
-        volume_col: str = StrategyColumns.VOLUME,
+        close_col: StrategyColumns = StrategyColumns.CLOSE_PRICE,
+        volume_col: StrategyColumns = StrategyColumns.VOLUME,
         short_window: int = 10,
         long_window: int = 50,
         trend_window: int = 200,

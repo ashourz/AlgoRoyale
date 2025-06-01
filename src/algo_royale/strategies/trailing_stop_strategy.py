@@ -10,7 +10,9 @@ from algo_royale.strategies.conditions.trend_above_sma import TrendAboveSMACondi
 
 class TrailingStopStrategy(Strategy):
     def __init__(
-        self, close_col: str = StrategyColumns.CLOSE_PRICE, stop_pct: float = 0.02
+        self,
+        close_col: StrategyColumns = StrategyColumns.CLOSE_PRICE,
+        stop_pct: float = 0.02,
     ):
         """
         Parameters:

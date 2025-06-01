@@ -1,10 +1,32 @@
 import pandas as pd
 
+from algo_royale.column_names.strategy_columns import StrategyColumns
+
 from .base_stateful_logic import StatefulLogic
 
 
 class MACDTrailingStatefulLogic(StatefulLogic):
-    def __init__(self, close_col, fast, slow, signal, stop_pct):
+    """
+    Implements a MACD-based trading strategy with a trailing stop loss.
+    This strategy generates buy and sell signals based on MACD crossovers
+    and maintains a trailing stop loss to protect profits.
+
+    Parameters:
+        close_col (StrategyColumns): Column to use for closing prices.
+        fast (int): Fast EMA period for MACD.
+        slow (int): Slow EMA period for MACD.
+        signal (int): Signal line period for MACD.
+        stop_pct (float): Percentage for trailing stop loss.
+    """
+
+    def __init__(
+        self,
+        close_col: StrategyColumns = StrategyColumns.CLOSE_PRICE,
+        fast: int = 12,
+        slow: int = 26,
+        signal: int = 9,
+        stop_pct: float = 0.02,
+    ):
         self.close_col = close_col
         self.fast = fast
         self.slow = slow

@@ -19,7 +19,7 @@ class VolumeSurgeStrategy(Strategy):
         self,
         threshold: float = 2.0,
         ma_window: int = 20,
-        vol_col: str = StrategyColumns.VOLUME,
+        vol_col: StrategyColumns = StrategyColumns.VOLUME,
     ):
         self.vol_col = vol_col
         self.threshold = threshold

@@ -4,7 +4,7 @@ from algo_royale.strategies.conditions.base_strategy_condition import StrategyCo
 from algo_royale.strategies.conditions.pullback_entry import PullbackEntryCondition
 
 
-class PullbackExitCondition(StrategyCondition):  # noqa: F821
+class PullbackExitCondition(StrategyCondition):
     def __init__(self, entry_condition: PullbackEntryCondition):
         self.entry_condition = entry_condition
 

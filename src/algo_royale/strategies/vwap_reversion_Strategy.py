@@ -19,8 +19,8 @@ class VWAPReversionStrategy(Strategy):
     def __init__(
         self,
         deviation_threshold: float = 0.01,
-        vwap_col: str = StrategyColumns.VWAP_20,
-        vwp_col: str = StrategyColumns.VOLUME_WEIGHTED_PRICE,
+        vwap_col: StrategyColumns = StrategyColumns.VWAP_20,
+        vwp_col: StrategyColumns = StrategyColumns.VOLUME_WEIGHTED_PRICE,
     ):
         self.deviation_threshold = deviation_threshold
         self.vwap_col = vwap_col

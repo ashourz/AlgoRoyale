@@ -31,8 +31,8 @@ class MeanReversionStrategy(Strategy):
         stop_pct: float = 0.02,
         profit_target_pct: float = 0.04,
         reentry_cooldown: int = 5,
-        close_col: str = StrategyColumns.CLOSE_PRICE,
-        sma_col: str = StrategyColumns.SMA_200,
+        close_col: StrategyColumns = StrategyColumns.CLOSE_PRICE,
+        sma_col: StrategyColumns = StrategyColumns.SMA_200,
     ):
         self.close_col = close_col
         self.window = window

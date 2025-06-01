@@ -5,7 +5,9 @@ from algo_royale.strategies.conditions.base_strategy_condition import StrategyCo
 
 
 @staticmethod
-def adx_below_threshold(row, adx_col: StrategyColumns, threshold=25):
+def adx_below_threshold(
+    row, adx_col: StrategyColumns = StrategyColumns.ADX, threshold=25
+):
     """
     Returns True if the ADX value is below a specified threshold,
     indicating a weak or no trend environment.

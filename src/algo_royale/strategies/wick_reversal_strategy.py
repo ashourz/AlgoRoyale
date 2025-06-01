@@ -19,9 +19,9 @@ class WickReversalStrategy(Strategy):
     def __init__(
         self,
         wick_body_ratio: float = 2.0,
-        upper_wick_col: str = StrategyColumns.UPPER_WICK,
-        lower_wick_col: str = StrategyColumns.LOWER_WICK,
-        body_col: str = StrategyColumns.BODY,
+        upper_wick_col: StrategyColumns = StrategyColumns.UPPER_WICK,
+        lower_wick_col: StrategyColumns = StrategyColumns.LOWER_WICK,
+        body_col: StrategyColumns = StrategyColumns.BODY,
     ):
         self.wick_body_ratio = wick_body_ratio
         self.upper_wick_col = upper_wick_col

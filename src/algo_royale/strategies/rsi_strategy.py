@@ -17,7 +17,7 @@ class RSIStrategy(Strategy):
         period: int = 14,
         overbought: int = 70,
         oversold: int = 30,
-        close_col: str = StrategyColumns.CLOSE_PRICE,
+        close_col: StrategyColumns = StrategyColumns.CLOSE_PRICE,
     ) -> None:
         self.close_col = close_col
         self.period = period

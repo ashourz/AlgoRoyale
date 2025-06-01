@@ -1,10 +1,15 @@
 import pandas as pd
 
+from algo_royale.column_names.strategy_columns import StrategyColumns
 from algo_royale.strategies.conditions.base_strategy_condition import StrategyCondition
 
 
 class PullbackEntryCondition(StrategyCondition):
-    def __init__(self, ma_col="sma_20", close_col="close_price"):
+    def __init__(
+        self,
+        ma_col: StrategyColumns = StrategyColumns.SMA_20,
+        close_col: StrategyColumns = StrategyColumns.CLOSE_PRICE,
+    ):
         self.ma_col = ma_col
         self.close_col = close_col
 

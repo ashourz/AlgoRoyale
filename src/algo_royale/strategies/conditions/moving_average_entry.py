@@ -1,5 +1,6 @@
 import pandas as pd
 
+from algo_royale.column_names.strategy_columns import StrategyColumns
 from algo_royale.strategies.conditions.base_strategy_condition import StrategyCondition
 
 
@@ -16,8 +17,13 @@ class MovingAverageEntryCondition(StrategyCondition):
         pd.Series: Boolean Series where True indicates a buy signal based on the moving average crossover.
     """
 
-    def __init__(self, close_col="close", short_window=50, long_window=200):
-        self.close_col = close_col
+    def __init__(
+        self,
+        close_col: StrategyColumns = StrategyColumns.CLOSE_PRICE,
+        short_window=50,
+        long_window=200,
+    ):
+        self.close_col: StrategyColumns = close_col
         self.short_window = short_window
         self.long_window = long_window
 

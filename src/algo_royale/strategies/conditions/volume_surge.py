@@ -1,12 +1,16 @@
 import pandas as pd
 
-from algo_royale.strategies.strategy_filters.base_strategy_condition import (
-    StrategyCondition,
-)
+from algo_royale.column_names.strategy_columns import StrategyColumns
+from algo_royale.strategies.conditions.base_strategy_condition import StrategyCondition
 
 
 @staticmethod
-def volume_surge(row, volume_col, vol_ma_col, threshold=2.0):
+def volume_surge(
+    row,
+    volume_col: StrategyColumns = StrategyColumns.VOLUME,
+    vol_ma_col: StrategyColumns = StrategyColumns.VOL_MA_20,
+    threshold=2.0,
+):
     """
     Returns True if the current volume is greater than a multiple of its moving average,
     indicating a volume surge.
@@ -42,7 +46,12 @@ class VolumeSurgeCondition(StrategyCondition):
         df['volume_surge'] = filter.apply(df)
     """
 
-    def __init__(self, volume_col: str, vol_ma_col: str, threshold: float = 2.0):
+    def __init__(
+        self,
+        volume_col: StrategyColumns = StrategyColumns.VOLUME,
+        vol_ma_col: StrategyColumns = StrategyColumns.VOL_MA_20,
+        threshold: float = 2.0,
+    ):
         self.volume_col = volume_col
         self.vol_ma_col = vol_ma_col
         self.threshold = threshold
@@ -54,3 +63,7 @@ class VolumeSurgeCondition(StrategyCondition):
             ),
             axis=1,
         )
+
+    @property
+    def required_columns(self):
+        return [self.volume_col, self.vol_ma_col]

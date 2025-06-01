@@ -1,3 +1,5 @@
+from algo_royale.column_names.strategy_columns import StrategyColumns
+
 from .base_stateful_logic import StatefulLogic
 
 
@@ -9,7 +11,7 @@ class MeanReversionStatefulLogic(StatefulLogic):
         stop_pct=0.02,
         profit_target_pct=0.04,
         reentry_cooldown=5,
-        close_col="close",
+        close_col: StrategyColumns = StrategyColumns.CLOSE_PRICE,
     ):
         self.window = window
         self.threshold = threshold

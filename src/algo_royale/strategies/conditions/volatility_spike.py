@@ -1,10 +1,15 @@
 import pandas as pd
 
+from algo_royale.column_names.strategy_columns import StrategyColumns
 from algo_royale.strategies.conditions.base_strategy_condition import StrategyCondition
 
 
 @staticmethod
-def volatility_spike(row, range_col, volatility_col):
+def volatility_spike(
+    row,
+    range_col: StrategyColumns = StrategyColumns.RANGE,
+    volatility_col: StrategyColumns = StrategyColumns.VOLATILITY,
+):
     """
     Returns True if the current price range is greater than the volatility measure,
     indicating a volatility spike.
@@ -37,7 +42,11 @@ class VolatilitySpikeCondition(StrategyCondition):
         df['volatility_spike'] = filter.apply(df)
     """
 
-    def __init__(self, range_col: str, volatility_col: str):
+    def __init__(
+        self,
+        range_col: StrategyColumns = StrategyColumns.RANGE,
+        volatility_col: StrategyColumns = StrategyColumns.VOLATILITY,
+    ):
         self.range_col = range_col
         self.volatility_col = volatility_col
 
@@ -46,3 +55,7 @@ class VolatilitySpikeCondition(StrategyCondition):
             lambda row: volatility_spike(row, self.range_col, self.volatility_col),
             axis=1,
         )
+
+    @property
+    def required_columns(self):
+        return [self.range_col, self.volatility_col]

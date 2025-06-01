@@ -6,7 +6,10 @@ from algo_royale.strategies.conditions.base_strategy_condition import StrategyCo
 
 @staticmethod
 def adx_above_threshold(
-    row, adx_col: StrategyColumns, close_col: StrategyColumns, threshold=25
+    row,
+    adx_col: StrategyColumns = StrategyColumns.ADX,
+    close_col: StrategyColumns = StrategyColumns.CLOSE_PRICE,
+    threshold=25,
 ):
     """
     Returns True if the ADX value is above a threshold (indicating strong trend).

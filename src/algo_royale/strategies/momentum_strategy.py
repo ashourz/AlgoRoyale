@@ -30,7 +30,7 @@ class MomentumStrategy(Strategy):
         threshold: float = 0.0,
         smooth_window: Optional[int] = None,
         confirmation_periods: int = 1,
-        close_col: str = StrategyColumns.CLOSE_PRICE,
+        close_col: StrategyColumns = StrategyColumns.CLOSE_PRICE,
     ):
         self.close_col = close_col
         self.lookback = lookback

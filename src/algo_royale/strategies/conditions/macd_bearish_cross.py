@@ -1,9 +1,7 @@
 import pandas as pd
 
 from algo_royale.column_names.strategy_columns import StrategyColumns
-from algo_royale.strategies.strategy_filters.base_strategy_condition import (
-    StrategyCondition,
-)
+from algo_royale.strategies.conditions.base_strategy_condition import StrategyCondition
 
 
 @staticmethod

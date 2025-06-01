@@ -1,12 +1,16 @@
 import pandas as pd
 
-from algo_royale.strategies.strategy_filters.base_strategy_condition import (
-    StrategyCondition,
-)
+from algo_royale.column_names.strategy_columns import StrategyColumns
+from algo_royale.strategies.conditions.base_strategy_condition import StrategyCondition
 
 
 @staticmethod
-def rsi_below_threshold(row, rsi_col, close_col, threshold=30):
+def rsi_below_threshold(
+    row,
+    rsi_col: StrategyColumns = StrategyColumns.RSI,
+    close_col: StrategyColumns = StrategyColumns.CLOSE_PRICE,
+    threshold=30,
+):
     """
     Returns True if the RSI value is below a threshold (indicating oversold).
     Can be used as a contrarian filter.
@@ -45,7 +49,12 @@ class RSIBelowThresholdConditin(StrategyCondition):
         df['rsi_below_threshold'] = filter.apply(df)
     """
 
-    def __init__(self, rsi_col: str, close_col: str, threshold: float = 30):
+    def __init__(
+        self,
+        rsi_col: StrategyColumns = StrategyColumns.RSI,
+        close_col: StrategyColumns = StrategyColumns.CLOSE_PRICE,
+        threshold=30,
+    ):
         self.rsi_col = rsi_col
         self.close_col = close_col
         self.threshold = threshold
@@ -57,3 +66,7 @@ class RSIBelowThresholdConditin(StrategyCondition):
             ),
             axis=1,
         )
+
+    @property
+    def required_columns(self):
+        return [self.rsi_col, self.close_col]
