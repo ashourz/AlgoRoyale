@@ -32,10 +32,14 @@ class MovingAverageExitCondition(StrategyCondition):
 
     def apply(self, df: pd.DataFrame) -> pd.Series:
         short_ma = (
-            df[self.close_col].rolling(window=self.short_window, min_periods=1).mean()
+            df[self.close_col]
+            .rolling(window=self.short_window, min_periods=self.short_window)
+            .mean()
         )
         long_ma = (
-            df[self.close_col].rolling(window=self.long_window, min_periods=1).mean()
+            df[self.close_col]
+            .rolling(window=self.long_window, min_periods=self.long_window)
+            .mean()
         )
         # Death Cross: short_ma crosses below long_ma
         signal_state = pd.Series(0, index=df.index)

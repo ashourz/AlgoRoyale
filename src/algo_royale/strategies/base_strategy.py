@@ -39,6 +39,24 @@ class Strategy(ABC):
         self.exit_conditions = exit_conditions or []
         self.stateful_logic = stateful_logic
 
+    @property
+    def required_columns(self) -> List[str]:
+        """
+        Returns a list of required columns for the strategy.
+        This includes columns needed for trend, entry, exit, and filter conditions.
+        """
+        required = set()
+        for func in (
+            self.trend_conditions
+            + self.entry_conditions
+            + self.exit_conditions
+            + ([self.stateful_logic] if self.stateful_logic is not None else [])
+            + self.filter_conditions
+        ):
+            if hasattr(func, "required_columns"):
+                required.update(func.required_columns)
+        return list(required)
+
     def _apply_filters(self, df: pd.DataFrame) -> pd.Series:
         """
         Applies filter conditions to the DataFrame.
@@ -137,15 +155,6 @@ class Strategy(ABC):
         - ValueError: If required columns are missing in the DataFrame.
         """
         required_cols = set(self.required_columns)
-        for func in (
-            self.trend_conditions
-            + self.entry_conditions
-            + self.exit_conditions
-            + self.stateful_logic
-            + self.filter_conditions
-        ):
-            if hasattr(func, "required_columns"):
-                required_cols.update(func.required_columns)
         missing = required_cols - set(df.columns)
         if missing:
             raise ValueError(f"Missing required columns: {missing}")

@@ -6,15 +6,16 @@ import pytest
 from algo_royale.backtester.backtest.strategy_backtest_executor import (
     StrategyBacktestExecutor,
 )
+from algo_royale.column_names.strategy_columns import StrategyColumns
 
 
 @pytest.fixture
 def mock_stage_data_manager(tmp_path):
     mgr = MagicMock()
-    # Always return a valid path for get_directory_path
     mgr.get_directory_path.side_effect = lambda stage, strat, symbol: tmp_path
-    # Always say stage is not done
     mgr.is_symbol_stage_done.return_value = False
+    # Create a dummy CSV file so glob("*.csv") is not empty
+    (tmp_path / "dummy.csv").write_text("a,close_price,timestamp\n1,100,2020-01-01")
     return mgr
 
 
@@ -29,7 +30,7 @@ def mock_strategy():
     strat.__class__.__name__ = "MockStrategy"
     # Always return a valid Series
     strat.generate_signals.side_effect = lambda df: pd.Series(
-        [1] * len(df), index=df.index
+        [1] * len(df), index=df.index, name=StrategyColumns.SIGNAL
     )
     return strat
 
@@ -41,10 +42,18 @@ async def test_run_backtest_success(
     # Prepare async data iterator
     async def df_iter():
         yield pd.DataFrame(
-            {"a": [1], "close": [100], "timestamp": pd.to_datetime(["2020-01-01"])}
+            {
+                "a": [1],
+                StrategyColumns.CLOSE_PRICE: [100],  # Changed from "close_price"
+                StrategyColumns.TIMESTAMP: pd.to_datetime(["2020-01-01"]),
+            }
         )
         yield pd.DataFrame(
-            {"a": [2], "close": [200], "timestamp": pd.to_datetime(["2020-01-02"])}
+            {
+                "a": [2],
+                StrategyColumns.CLOSE_PRICE: [200],  # Changed from "close_price"
+                StrategyColumns.TIMESTAMP: pd.to_datetime(["2020-01-02"]),
+            }
         )
 
     data = {"AAPL": lambda: df_iter()}
@@ -53,9 +62,9 @@ async def test_run_backtest_success(
     assert "AAPL" in results
     assert len(results["AAPL"]) == 2
     for df in results["AAPL"]:
-        assert "signal" in df.columns
-        assert "strategy" in df.columns
-        assert "symbol" in df.columns
+        assert StrategyColumns.SIGNAL in df.columns
+        assert StrategyColumns.STRATEGY_NAME in df.columns
+        assert StrategyColumns.SYMBOL in df.columns
 
 
 @pytest.mark.asyncio
@@ -77,7 +86,11 @@ async def test_run_backtest_skips_done(
 
     async def df_iter():
         yield pd.DataFrame(
-            {"a": [1], "close": [100], "timestamp": pd.to_datetime(["2020-01-01"])}
+            {
+                "a": [1],
+                StrategyColumns.CLOSE_PRICE: [100],
+                StrategyColumns.TIMESTAMP: pd.to_datetime(["2020-01-01"]),
+            }
         )
 
     data = {"AAPL": lambda: df_iter()}
@@ -101,10 +114,18 @@ async def test_run_backtest_handles_page_exception(
 
     async def df_iter():
         yield pd.DataFrame(
-            {"a": [1], "close": [100], "timestamp": pd.to_datetime(["2020-01-01"])}
+            {
+                "a": [1],
+                StrategyColumns.CLOSE_PRICE: [100],  # Changed from "close_price"
+                StrategyColumns.TIMESTAMP: pd.to_datetime(["2020-01-01"]),
+            }
         )
         yield pd.DataFrame(
-            {"a": [2], "close": [200], "timestamp": pd.to_datetime(["2020-01-02"])}
+            {
+                "a": [2],
+                StrategyColumns.CLOSE_PRICE: [200],  # Changed from "close_price"
+                StrategyColumns.TIMESTAMP: pd.to_datetime(["2020-01-02"]),
+            }
         )
 
     data = {"AAPL": lambda: df_iter()}

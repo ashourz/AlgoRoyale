@@ -136,7 +136,7 @@ class StrategyBacktestExecutor:
             missing = df.columns[df.isnull().any()].tolist()
             raise ValueError(f"Data contains null values in columns: {missing}")
 
-        if (df[StrategyColumns.CLOSE] <= 0).any():
+        if (df[StrategyColumns.CLOSE_PRICE] <= 0).any():
             raise ValueError("Invalid close prices (<= 0) detected")
 
         if not pd.api.types.is_datetime64_any_dtype(df[StrategyColumns.TIMESTAMP]):
