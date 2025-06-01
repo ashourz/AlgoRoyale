@@ -1,36 +1,50 @@
-from typing import Callable, List, Optional
-
 import pandas as pd
 
 from algo_royale.strategies.base_strategy import Strategy
+from algo_royale.strategies.conditions.price_above_sma import PriceAboveSMACondition
 
 
 class MeanReversionStrategy(Strategy):
     """
     Mean Reversion Strategy with trailing stop, profit target, trend filter, and re-entry cooldown.
+    This strategy identifies mean reversion opportunities based on the deviation of the price
+    from a Simple Moving Average (SMA). It enters trades when the price deviates significantly
+    from the SMA and exits based on a trailing stop, profit target, or reversion to the mean.
+    The strategy uses a trend condition to filter trades, ensuring that trades are only taken
+    when the price is above a specified SMA, indicating a bullish trend.
+    Args:
+        close_col (str): Column name for the close price.
+        sma_col (str): Column name for the SMA values.
+        window (int): Window size for the SMA.
+        threshold (float): Deviation threshold to trigger buy/sell signals.
+        stop_pct (float): Percentage for trailing stop loss.
+        profit_target_pct (float): Percentage for profit target.
+        reentry_cooldown (int): Number of periods to wait before re-entering after an exit.
     """
 
     def __init__(
         self,
         close_col: str = "close",
+        sma_col: str = "sma_200",
         window: int = 20,
         threshold: float = 0.02,
         stop_pct: float = 0.02,
         profit_target_pct: float = 0.04,
-        trend_filter_func: Optional[Callable[[pd.Series], bool]] = None,
-        trend_filter_col: Optional[str] = None,
-        reentry_cooldown: int = 5,  # bars to wait before re-entry after a sell
+        reentry_cooldown: int = 5,
     ):
         self.close_col = close_col
         self.window = window
         self.threshold = threshold
         self.stop_pct = stop_pct
         self.profit_target_pct = profit_target_pct
-        self.trend_filter_func = trend_filter_func
-        self.trend_filter_col = trend_filter_col
+        self.trend_condition = [
+            PriceAboveSMACondition(price_col=close_col, sma_col=sma_col)
+        ]
         self.reentry_cooldown = reentry_cooldown
 
-    def _strategy(self, df: pd.DataFrame) -> pd.Series:
+        super().__init__(trend_conditions=self.trend_conditions)
+
+    def _apply_strategy(self, df: pd.DataFrame) -> pd.Series:
         ma = df[self.close_col].rolling(window=self.window, min_periods=1).mean()
         deviation = (df[self.close_col] - ma) / ma
         signals = pd.Series("hold", index=df.index, name="signal").copy()
@@ -38,22 +52,17 @@ class MeanReversionStrategy(Strategy):
         in_position = False
         entry_price = None
         trailing_stop = None
-        last_exit_idx = -self.reentry_cooldown - 1  # initialize far in the past
+        last_exit_idx = -self.reentry_cooldown - 1
+
+        # Use modular trend conditions
+        trend_mask = self._apply_trend(df)
 
         for i in range(len(df)):
             price = df.iloc[i][self.close_col]
-            row = df.iloc[i]
-
-            # Check trend filter (if provided)
-            trend_ok = True
-            if self.trend_filter_func is not None and self.trend_filter_col is not None:
-                trend_ok = self.trend_filter_func(row)
-
-            # Calculate deviation at this bar
             dev = deviation.iloc[i]
+            trend_ok = trend_mask.iloc[i]
 
             if not in_position:
-                # Only allow entry if cooldown is over
                 if (i - last_exit_idx) > self.reentry_cooldown:
                     if dev < -self.threshold and trend_ok:
                         signals.iloc[i] = "buy"
@@ -61,10 +70,7 @@ class MeanReversionStrategy(Strategy):
                         entry_price = price
                         trailing_stop = price * (1 - self.stop_pct)
             else:
-                # Update trailing stop (move up only)
                 trailing_stop = max(trailing_stop, price * (1 - self.stop_pct))
-
-                # Check exit conditions
                 hit_stop = price < trailing_stop
                 hit_profit = price >= entry_price * (1 + self.profit_target_pct)
                 sell_signal = dev > self.threshold or hit_stop or hit_profit
@@ -77,15 +83,3 @@ class MeanReversionStrategy(Strategy):
                     last_exit_idx = i
 
         return signals
-
-    def get_required_columns(self) -> List[str]:
-        cols = [self.close_col]
-        if self.trend_filter_col:
-            if isinstance(self.trend_filter_col, list):
-                cols.extend(self.trend_filter_col)
-            else:
-                cols.append(self.trend_filter_col)
-        return list(set(cols))
-
-    def get_min_data_points(self) -> int:
-        return self.window

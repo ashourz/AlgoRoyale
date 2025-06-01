@@ -1,6 +1,10 @@
-import pandas as pd
-
 from algo_royale.strategies.base_strategy import Strategy
+from algo_royale.strategies.conditions.wick_reversal_entry import (
+    WickReversalEntryCondition,
+)
+from algo_royale.strategies.conditions.wick_reversal_exit import (
+    WickReversalExitCondition,
+)
 
 
 class WickReversalStrategy(Strategy):
@@ -9,9 +13,6 @@ class WickReversalStrategy(Strategy):
     - Buy when the lower wick is significantly larger than the body of the candle.
     - Sell when the upper wick is significantly larger than the body of the candle.
     - Hold otherwise.
-
-    Parameters:
-    - wick_body_ratio: minimum ratio of wick to body length to trigger signals.
     """
 
     def __init__(
@@ -26,28 +27,22 @@ class WickReversalStrategy(Strategy):
         self.lower_wick_col = lower_wick_col
         self.body_col = body_col
 
-    def _strategy(self, df: pd.DataFrame) -> pd.Series:
-        """
-        Generate buy/sell/hold signals based on wick to body ratio.
+        self.entry_conditions = [
+            WickReversalEntryCondition(
+                wick_body_ratio=wick_body_ratio,
+                lower_wick_col=lower_wick_col,
+                body_col=body_col,
+            )
+        ]
+        self.exit_conditions = [
+            WickReversalExitCondition(
+                wick_body_ratio=wick_body_ratio,
+                upper_wick_col=upper_wick_col,
+                body_col=body_col,
+            )
+        ]
 
-        Parameters:
-        - df: DataFrame containing candle anatomy columns.
-
-        Returns:
-        - signals: pd.Series with values "buy", "sell", or "hold".
-        """
-        required_cols = [self.upper_wick_col, self.lower_wick_col, self.body_col]
-        if not all(col in df.columns for col in required_cols):
-            raise ValueError(f"Missing required columns: {required_cols}")
-
-        # Avoid division by zero: replace zero body with a small number epsilon
-        body_safe = df[self.body_col].replace(0, 1e-8)
-
-        long_lower_wick = df[self.lower_wick_col] > self.wick_body_ratio * body_safe
-        long_upper_wick = df[self.upper_wick_col] > self.wick_body_ratio * body_safe
-
-        signals = pd.Series("hold", index=df.index, name="signal")
-        signals.loc[long_lower_wick] = "buy"
-        signals.loc[long_upper_wick] = "sell"
-
-        return signals
+        super().__init__(
+            entry_conditions=self.entry_conditions,
+            exit_conditions=self.exit_conditions,
+        )

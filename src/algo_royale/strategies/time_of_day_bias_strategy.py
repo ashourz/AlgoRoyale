@@ -1,4 +1,5 @@
-import pandas as pd
+from algo_royale.strategies.conditions.time_of_day_entry import TimeOfDayEntryCondition
+from algo_royale.strategies.conditions.time_of_day_exit import TimeOfDayExitCondition
 
 from .base_strategy import Strategy
 
@@ -9,7 +10,6 @@ class TimeOfDayBiasStrategy(Strategy):
     - Buy at specific hours of the day.
     - Sell at specific hours of the day.
     - Hold otherwise.
-
     Assumes DataFrame has an 'hour' column with integer hour values (0-23).
     """
 
@@ -18,11 +18,14 @@ class TimeOfDayBiasStrategy(Strategy):
         self.sell_hours = sell_hours
         self.hour_col = hour_col
 
-    def _strategy(self, df: pd.DataFrame) -> pd.Series:
-        if self.hour_col not in df.columns:
-            raise ValueError(f"DataFrame missing required column: {self.hour_col}")
+        self.entry_conditions = [
+            TimeOfDayEntryCondition(buy_hours=buy_hours, hour_col=hour_col)
+        ]
+        self.exit_conditions = [
+            TimeOfDayExitCondition(sell_hours=sell_hours, hour_col=hour_col)
+        ]
 
-        signals = pd.Series("hold", index=df.index, name="signal")
-        signals[df[self.hour_col].isin(self.buy_hours)] = "buy"
-        signals[df[self.hour_col].isin(self.sell_hours)] = "sell"
-        return signals
+        super().__init__(
+            entry_conditions=self.entry_conditions,
+            exit_conditions=self.exit_conditions,
+        )
