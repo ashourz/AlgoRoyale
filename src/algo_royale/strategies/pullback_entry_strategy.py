@@ -13,7 +13,7 @@ class PullbackEntryStrategy(Strategy):
         self.ma_col = ma_col
         self.close_col = close_col
 
-    def generate_signals(self, df: pd.DataFrame) -> pd.Series:
+    def _strategy(self, df: pd.DataFrame) -> pd.Series:
         if self.ma_col not in df.columns or self.close_col not in df.columns:
             raise ValueError(
                 f"DataFrame must contain '{self.ma_col}' and '{self.close_col}' columns"

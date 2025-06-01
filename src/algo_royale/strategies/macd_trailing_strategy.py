@@ -29,7 +29,7 @@ class MACDTrailingStopStrategy(Strategy):
         self.trend_filter_func = trend_filter_func
         self.trend_filter_col = trend_filter_col
 
-    def generate_signals(self, df: pd.DataFrame) -> pd.Series:
+    def _strategy(self, df: pd.DataFrame) -> pd.Series:
         exp1 = df[self.close_col].ewm(span=self.fast, adjust=False).mean()
         exp2 = df[self.close_col].ewm(span=self.slow, adjust=False).mean()
         macd = exp1 - exp2

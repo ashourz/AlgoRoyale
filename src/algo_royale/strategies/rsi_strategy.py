@@ -25,7 +25,7 @@ class RSIStrategy(Strategy):
         self.overbought = overbought
         self.oversold = oversold
 
-    def generate_signals(self, df: pd.DataFrame) -> pd.Series:
+    def _strategy(self, df: pd.DataFrame) -> pd.Series:
         if self.close_col not in df.columns:
             raise ValueError(f"DataFrame missing required column: {self.close_col}")
         if len(df) < self.period:

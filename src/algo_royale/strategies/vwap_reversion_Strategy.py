@@ -26,7 +26,7 @@ class VWAPReversionStrategy(Strategy):
         self.vwap_col = vwap_col
         self.vwp_col = vwp_col
 
-    def generate_signals(self, df: pd.DataFrame) -> pd.Series:
+    def _strategy(self, df: pd.DataFrame) -> pd.Series:
         """
         Generate buy/sell/hold signals based on deviation from VWAP.
 

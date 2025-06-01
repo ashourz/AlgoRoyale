@@ -37,7 +37,7 @@ class MomentumStrategy(Strategy):
         self.smooth_window = smooth_window
         self.confirmation_periods = confirmation_periods
 
-    def generate_signals(self, df: pd.DataFrame) -> pd.Series:
+    def _strategy(self, df: pd.DataFrame) -> pd.Series:
         # Calculate raw momentum as percent change over lookback
         momentum = df[self.close_col].pct_change(periods=self.lookback)
 

@@ -23,7 +23,7 @@ class VolumeSurgeStrategy(Strategy):
         self.threshold = threshold
         self.ma_window = ma_window
 
-    def generate_signals(self, df: pd.DataFrame) -> pd.Series:
+    def _strategy(self, df: pd.DataFrame) -> pd.Series:
         if self.vol_col not in df.columns:
             raise ValueError(f"DataFrame must contain '{self.vol_col}' column.")
 

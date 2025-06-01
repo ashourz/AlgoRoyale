@@ -49,7 +49,7 @@ class MovingAverageStrategy(Strategy):
         self.sell_signal = sell_signal
         self.hold_signal = hold_signal
 
-    def generate_signals(self, df: pd.DataFrame) -> pd.Series:
+    def _strategy(self, df: pd.DataFrame) -> pd.Series:
         """
         Generate buy/sell/hold signals based on moving average crossover.
 

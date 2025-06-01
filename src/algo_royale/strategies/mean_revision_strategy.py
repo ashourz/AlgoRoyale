@@ -30,7 +30,7 @@ class MeanReversionStrategy(Strategy):
         self.trend_filter_col = trend_filter_col
         self.reentry_cooldown = reentry_cooldown
 
-    def generate_signals(self, df: pd.DataFrame) -> pd.Series:
+    def _strategy(self, df: pd.DataFrame) -> pd.Series:
         ma = df[self.close_col].rolling(window=self.window, min_periods=1).mean()
         deviation = (df[self.close_col] - ma) / ma
         signals = pd.Series("hold", index=df.index, name="signal").copy()

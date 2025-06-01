@@ -20,7 +20,7 @@ class BollingerBandsStrategy(Strategy):
         self.window = window
         self.num_std = num_std
 
-    def generate_signals(self, df: pd.DataFrame) -> pd.Series:
+    def _strategy(self, df: pd.DataFrame) -> pd.Series:
         rolling_mean = df[self.close_col].rolling(window=self.window).mean()
         rolling_std = df[self.close_col].rolling(window=self.window).std()
         upper_band = rolling_mean + (rolling_std * self.num_std)

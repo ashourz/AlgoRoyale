@@ -58,7 +58,7 @@ class MovingAverageCrossoverStrategy(Strategy):
         else:  # sma
             return series.rolling(window=window, min_periods=window).mean()
 
-    def generate_signals(self, df: pd.DataFrame) -> pd.Series:
+    def _strategy(self, df: pd.DataFrame) -> pd.Series:
         # Calculate moving averages
         short_ma = self._moving_average(df[self.close_col], self.short_window)
         long_ma = self._moving_average(df[self.close_col], self.long_window)

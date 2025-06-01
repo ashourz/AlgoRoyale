@@ -26,7 +26,7 @@ class WickReversalStrategy(Strategy):
         self.lower_wick_col = lower_wick_col
         self.body_col = body_col
 
-    def generate_signals(self, df: pd.DataFrame) -> pd.Series:
+    def _strategy(self, df: pd.DataFrame) -> pd.Series:
         """
         Generate buy/sell/hold signals based on wick to body ratio.
 

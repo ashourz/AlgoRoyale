@@ -32,7 +32,7 @@ class TrailingStopStrategy(Strategy):
         self.trend_filter_col = trend_filter_col
         self.trend_filter_func = trend_filter_func
 
-    def generate_signals(self, df: pd.DataFrame) -> pd.Series:
+    def _strategy(self, df: pd.DataFrame) -> pd.Series:
         """
         Generate buy/hold/sell signals based on trailing stop logic.
 

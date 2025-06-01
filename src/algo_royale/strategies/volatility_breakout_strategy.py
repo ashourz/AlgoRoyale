@@ -19,7 +19,7 @@ class VolatilityBreakoutStrategy(Strategy):
         self.threshold = threshold
         self.sma_col = sma_col
 
-    def generate_signals(self, df: pd.DataFrame) -> pd.Series:
+    def _strategy(self, df: pd.DataFrame) -> pd.Series:
         signals = pd.Series("hold", index=df.index, name="signal")
 
         required_cols = ["volatility_20", "range", "close_price", self.sma_col]

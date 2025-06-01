@@ -31,7 +31,7 @@ class ComboStrategy(Strategy):
         self.macd_buy_thresh = macd_buy_thresh
         self.macd_sell_thresh = macd_sell_thresh
 
-    def generate_signals(self, df: pd.DataFrame) -> pd.Series:
+    def _strategy(self, df: pd.DataFrame) -> pd.Series:
         signals = pd.Series("hold", index=df.index, name="signal")
 
         # Buy condition
