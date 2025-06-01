@@ -9,6 +9,18 @@ from algo_royale.strategies.conditions.base_strategy_condition import StrategyCo
 
 
 class Strategy(ABC):
+    """
+    Base class for trading strategies.
+    This class provides a framework for implementing trading strategies
+    using modular functions for trend, entry, exit, and filter conditions.
+    It allows for flexible composition of conditions to generate trading signals.
+    Parameters:
+    - filter_conditions: List of conditions to filter the DataFrame before applying the strategy.
+    - trend_conditions: List of conditions to determine the trend direction.
+    - entry_conditions: List of conditions to determine entry points for trades.
+    - exit_conditions: List of conditions to determine exit points for trades.
+    """
+
     def __init__(
         self,
         filter_conditions: Optional[List[StrategyCondition]] = None,
@@ -23,8 +35,8 @@ class Strategy(ABC):
 
     def _apply_filters(self, df: pd.DataFrame) -> pd.Series:
         """
-        Applies all filters to the DataFrame.
-        Returns a boolean Series indicating where all filters are satisfied.
+        Applies filter conditions to the DataFrame.
+        Returns a boolean Series indicating where filter conditions are met.
         """
         if not self.filter_conditions:
             return pd.Series(True, index=df.index)
@@ -35,7 +47,7 @@ class Strategy(ABC):
 
     def _apply_trend(self, df: pd.DataFrame) -> pd.Series:
         """
-        Applies trend confirmation functions to the DataFrame.
+        Applies trend conditions to the DataFrame.
         Returns a boolean Series indicating where trend conditions are met.
         """
         if not self.trend_conditions:
@@ -71,7 +83,8 @@ class Strategy(ABC):
 
     def _apply_strategy(self, df: pd.DataFrame) -> pd.Series:
         """
-        Combines trend, entry, and exit logic to generate signals.
+        Applies the strategy logic to the DataFrame.
+        Returns a Series with 'buy', 'sell', or 'hold' signals.
         """
         signals = pd.Series("hold", index=df.index, name="signal")
         trend_mask = self._apply_trend(df)
@@ -84,7 +97,13 @@ class Strategy(ABC):
 
     def generate_signals(self, df: pd.DataFrame) -> pd.Series:
         """
-        Applies filters and then the strategy, setting 'hold' where filters fail.
+        Generates trading signals based on the strategy's conditions.
+        Parameters:
+        - df: DataFrame containing the price data with required columns.
+        Returns:
+        - signals: Series with 'buy', 'sell', or 'hold' signals.
+        Raises:
+        - ValueError: If required columns are missing in the DataFrame.
         """
         required_cols = set(self.required_columns)
         for func in (
