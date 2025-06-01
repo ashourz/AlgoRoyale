@@ -1,43 +1,29 @@
-import pandas as pd
-
 from algo_royale.strategies.base_strategy import Strategy
+from algo_royale.strategies.conditions.bollinger_bands_entry import (
+    BollingerBandsEntry,
+)
+from algo_royale.strategies.conditions.bollinger_bands_exit import (
+    BollingerBandsExit,
+)
 
 
 class BollingerBandsStrategy(Strategy):
     """
-    Bollinger Bands Strategy
-
-    Generates buy/sell/hold signals based on Bollinger Bands calculated from closing prices.
-    Buy signal when price falls below the lower band,
-    sell signal when price rises above the upper band,
+    Bollinger Bands Strategy using the modular function approach.
+    Buy when price falls below the lower band,
+    sell when price rises above the upper band,
     otherwise hold.
-
-    Signals are strings: "buy", "sell", or "hold".
+    Parameters:
+    - close_col: Column name for the closing prices.
+    - window: Rolling window size for calculating the Bollinger Bands (default is 20).
+    - num_std: Number of standard deviations for the bands (default is 2).
     """
 
     def __init__(self, close_col="close", window=20, num_std=2):
-        self.close_col = close_col
-        self.window = window
-        self.num_std = num_std
-
-    def _strategy(self, df: pd.DataFrame) -> pd.Series:
-        rolling_mean = df[self.close_col].rolling(window=self.window).mean()
-        rolling_std = df[self.close_col].rolling(window=self.window).std()
-        upper_band = rolling_mean + (rolling_std * self.num_std)
-        lower_band = rolling_mean - (rolling_std * self.num_std)
-
-        signals = pd.Series("hold", index=df.index, name="signal")
-
-        # Only generate signals where rolling stats exist (non-NaN)
-        valid_idx = rolling_mean.notna()
-
-        signals.loc[valid_idx & (df[self.close_col] > upper_band)] = "sell"
-        signals.loc[valid_idx & (df[self.close_col] < lower_band)] = "buy"
-
-        return signals
-
-    def get_required_columns(self):
-        return [self.close_col]
-
-    def get_min_data_points(self):
-        return self.window
+        entry_func = BollingerBandsEntry(
+            close_col=close_col, window=window, num_std=num_std
+        )
+        exit_func = BollingerBandsExit(
+            close_col=close_col, window=window, num_std=num_std
+        )
+        super().__init__(entry_funcs=[entry_func], exit_funcs=[exit_func])

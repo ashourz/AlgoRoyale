@@ -1,6 +1,8 @@
 import pandas as pd
 
-from algo_royale.strategies.strategy_filters.base_strategy_filter import StrategyFilter
+from algo_royale.strategies.strategy_filters.base_strategy_condition import (
+    StrategyCondition,
+)
 
 
 @staticmethod
@@ -24,10 +26,13 @@ def macd_bearish_cross(current_row, prev_row, macd_col, signal_col):
     )
 
 
-class MACDBearishCrossFilter(StrategyFilter):
-    """Filter to check for a bearish MACD cross.
-    This filter checks if the MACD line crosses below its signal line, indicating potential bearish momentum.
-
+class MACDBearishCrossCondition(StrategyCondition):
+    """Condition to check for a bearish MACD cross.
+    This condition checks if the MACD line crosses below its signal line,
+    indicating a potential bearish momentum shift in the market.
+    This is typically used in momentum-based strategies to identify potential sell signals.
+    This condition is applied to each row of a DataFrame containing MACD and signal line values.
+    This condition is useful for strategies that require a bearish momentum shift to enter trades.
     Args:
         macd_col (str): Column name for the MACD values.
         signal_col (str): Column name for the MACD signal line values.

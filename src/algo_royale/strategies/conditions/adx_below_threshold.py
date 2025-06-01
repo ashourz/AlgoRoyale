@@ -1,6 +1,8 @@
 import pandas as pd
 
-from algo_royale.strategies.strategy_filters.base_strategy_filter import StrategyFilter
+from algo_royale.strategies.strategy_filters.base_strategy_condition import (
+    StrategyCondition,
+)
 
 
 @staticmethod
@@ -20,8 +22,11 @@ def adx_below_threshold(row, adx_col, threshold=25):
     return row[adx_col] < threshold
 
 
-class ADXBelowThresholdFilter(StrategyFilter):
-    """Filter to check if the ADX value is below a specified threshold.
+class ADXBelowThresholdCondition(StrategyCondition):
+    """Condition to check if ADX is below a specified threshold.
+    This condition checks if the Average Directional Index (ADX) is below a specified threshold,
+    indicating a weak or no trend in the market. This is typically used to filter out periods
+    of low volatility or sideways movement in trend-following strategies.
     This indicates a weak or no trend environment, which may not be suitable for trend-following strategies.
 
     Args:

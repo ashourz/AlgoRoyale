@@ -1,9 +1,10 @@
-from typing import Callable, List, Optional
-
-import pandas as pd
-
 from algo_royale.strategies.base_strategy import Strategy
-from algo_royale.strategies.strategy_filters.base_strategy_filter import StrategyFilter
+from algo_royale.strategies.conditions.ema_above_sma_rolling import (
+    EMAAboveSMARollingTrend,
+)
+from algo_royale.strategies.conditions.return_volatility_exit import (
+    ReturnVolatilityExit,
+)
 
 
 class TrendScraperStrategy(Strategy):
@@ -17,21 +18,32 @@ class TrendScraperStrategy(Strategy):
 
     def __init__(
         self,
-        filters: Optional[List[StrategyFilter]] = None,
-        trend_funcs: Optional[List[Callable[[pd.DataFrame], pd.Series]]] = None,
-        entry_funcs: Optional[List[Callable[[pd.DataFrame], pd.Series]]] = None,
-        exit_funcs: Optional[List[Callable[[pd.DataFrame], pd.Series]]] = None,
+        ema_col="ema_20",
+        sma_col="sma_20",
+        return_col="log_return",
+        range_col="range",
+        volatility_col="volatility_20",
+        window=3,
+        threshold=-0.005,
     ):
         """
         Parameters:
-        - filters: List of StrategyFilter objects for pre-filtering.
-        - trend_funcs: List of trend confirmation functions (should return boolean Series).
-        - entry_funcs: List of entry condition functions (should return boolean Series).
-        - exit_funcs: List of exit condition functions (should return boolean Series).
+        - ema_col: Column name for the Exponential Moving Average.
+        - sma_col: Column name for the Simple Moving Average.
+        - return_col: Column name for the log return.
+        - range_col: Column name for the price range.
+        - volatility_col: Column name for the volatility measure.
+        - window: Rolling window size for trend confirmation.
+        - threshold: Threshold for exit condition based on return.
         """
-        super().__init__(
-            filters=filters,
-            trend_funcs=trend_funcs,
-            entry_funcs=entry_funcs,
-            exit_funcs=exit_funcs,
+        trend_func = EMAAboveSMARollingTrend(
+            ema_col=ema_col, sma_col=sma_col, window=window
         )
+        exit_func = ReturnVolatilityExit(
+            return_col=return_col,
+            range_col=range_col,
+            volatility_col=volatility_col,
+            threshold=threshold,
+        )
+
+        super().__init__(trend_funcs=[trend_func], exit_funcs=[exit_func])

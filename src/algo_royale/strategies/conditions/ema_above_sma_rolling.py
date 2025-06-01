@@ -1,11 +1,14 @@
 import pandas as pd
 
-from algo_royale.strategies.strategy_functions.trend.base_trend_function import (
-    TrendFunction,
-)
+from algo_royale.strategies.conditions.base_strategy_condition import StrategyCondition
 
 
-class EMAAboveSMARollingTrend(TrendFunction):
+class EMAAboveSMARollingCondition(StrategyCondition):
+    """
+    Condition that checks if the EMA is above the SMA and rising for a rolling window.
+    True when EMA > SMA and EMA is increasing for the specified window.
+    """
+
     def __init__(self, ema_col: str, sma_col: str, window: int = 3):
         self.ema_col = ema_col
         self.sma_col = sma_col
@@ -15,7 +18,7 @@ class EMAAboveSMARollingTrend(TrendFunction):
     def required_columns(self):
         return {self.ema_col, self.sma_col}
 
-    def __call__(self, df: pd.DataFrame) -> pd.Series:
+    def apply(self, df: pd.DataFrame) -> pd.Series:
         trend = (df[self.ema_col] > df[self.sma_col]) & (
             df[self.ema_col] > df[self.ema_col].shift(1)
         )

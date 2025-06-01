@@ -1,6 +1,8 @@
 import pandas as pd
 
-from algo_royale.strategies.strategy_filters.base_strategy_filter import StrategyFilter
+from algo_royale.strategies.strategy_filters.base_strategy_condition import (
+    StrategyCondition,
+)
 
 
 @staticmethod
@@ -20,10 +22,10 @@ def volatility_spike(row, range_col, volatility_col):
     return row[range_col] > row[volatility_col]
 
 
-class VolatilitySpikeFilter(StrategyFilter):
-    """Filter to check for a volatility spike.
-    This filter checks if the current price range exceeds a volatility measure,
-    indicating a significant price movement.
+class VolatilitySpikeCondition(StrategyCondition):
+    """Condition to check for a volatility spike.
+    This condition checks if the current price range is greater than a specified volatility measure,
+    indicating a significant price movement or volatility spike.
 
     Args:
         range_col (str): Column name for the price range.

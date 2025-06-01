@@ -1,17 +1,17 @@
 # strategies/base_strategy.py
 
-from abc import ABC, abstractmethod
+from abc import ABC
 from typing import Callable, List, Optional
 
 import pandas as pd
 
-from algo_royale.strategies.strategy_filters.macd_bullish_cross import StrategyFilter
+from algo_royale.strategies.strategy_filters.macd_bullish_cross import StrategyCondition
 
 
 class Strategy(ABC):
     def __init__(
         self,
-        filters: Optional[List[StrategyFilter]] = None,
+        filters: Optional[List[StrategyCondition]] = None,
         trend_funcs: Optional[List[Callable[[pd.DataFrame], pd.Series]]] = None,
         entry_funcs: Optional[List[Callable[[pd.DataFrame], pd.Series]]] = None,
         exit_funcs: Optional[List[Callable[[pd.DataFrame], pd.Series]]] = None,
@@ -20,11 +20,6 @@ class Strategy(ABC):
         self.trend_funcs = trend_funcs or []
         self.entry_funcs = entry_funcs or []
         self.exit_funcs = exit_funcs or []
-
-    @property
-    def required_columns(self):
-        """Override in subclasses to add additional required columns."""
-        return set()
 
     def _apply_filters(self, df: pd.DataFrame) -> pd.Series:
         """
@@ -73,14 +68,6 @@ class Strategy(ABC):
         for func in self.exit_funcs:
             mask |= func(df)
         return mask
-
-    @abstractmethod
-    def _strategy(self, df: pd.DataFrame) -> pd.Series:
-        """
-        Placeholder for the strategy logic.
-        Should be implemented by subclasses to define specific trading logic.
-        """
-        raise NotImplementedError("apply_strategy() must be implemented by subclass.")
 
     def _apply_strategy(self, df: pd.DataFrame) -> pd.Series:
         """

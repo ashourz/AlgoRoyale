@@ -1,6 +1,8 @@
 import pandas as pd
 
-from algo_royale.strategies.strategy_filters.base_strategy_filter import StrategyFilter
+from algo_royale.strategies.strategy_filters.base_strategy_condition import (
+    StrategyCondition,
+)
 
 
 @staticmethod
@@ -21,10 +23,11 @@ def volume_surge(row, volume_col, vol_ma_col, threshold=2.0):
     return row[volume_col] > threshold * row[vol_ma_col]
 
 
-class VolumeSurgeFilter(StrategyFilter):
-    """Filter to check for a volume surge.
-    This filter checks if the current volume is significantly higher than its moving average,
-    indicating increased trading activity.
+class VolumeSurgeCondition(StrategyCondition):
+    """Condition to check for a volume surge.
+    This condition checks if the current volume is greater than a specified multiple of its moving average,
+    indicating a significant increase in trading activity. This is typically used to identify potential
+    breakouts or significant market movements.
 
     Args:
         volume_col (str): Column name for volume.

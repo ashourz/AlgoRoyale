@@ -1,6 +1,8 @@
 import pandas as pd
 
-from algo_royale.strategies.strategy_filters.base_strategy_filter import StrategyFilter
+from algo_royale.strategies.strategy_filters.base_strategy_condition import (
+    StrategyCondition,
+)
 
 
 @staticmethod
@@ -20,10 +22,13 @@ def adx_above_threshold(row, adx_col, close_col, threshold=25):
     return row[adx_col] > threshold
 
 
-class ADXAboveThresholdFilter(StrategyFilter):
-    """Filter to check if the ADX value is above a specified threshold.
-    This indicates a strong trend environment, which may be suitable for trend-following strategies.
-
+class ADXAboveThresholdCondition(StrategyCondition):
+    """Condition to check if ADX is above a specified threshold.
+    This condition checks if the Average Directional Index (ADX) is above a specified threshold,
+    indicating a strong trend in the market.
+    This is typically used in trend-following strategies to filter out periods of low volatility.
+    It is applied to each row of a DataFrame containing ADX values.
+    This condition is useful for strategies that require a strong trend to enter trades.
     Args:
         adx_col (str): Column name for the ADX values.
         close_col (str): Column name for the close price (not used in logic but kept for uniformity).

@@ -1,6 +1,8 @@
 import pandas as pd
 
-from algo_royale.strategies.strategy_filters.base_strategy_filter import StrategyFilter
+from algo_royale.strategies.strategy_filters.base_strategy_condition import (
+    StrategyCondition,
+)
 
 
 @staticmethod
@@ -24,20 +26,23 @@ def price_crosses_above_sma(current_row, prev_row, sma_col, close_col):
     )
 
 
-class PriceCrossesAboveSMAFilter(StrategyFilter):
-    """Filter to check if the price crosses above the Simple Moving Average (SMA).
-    This filter checks if the current price crosses above the SMA, indicating a potential uptrend.
+class PriceAboveSMACondition(StrategyCondition):
+    """Condition to check if the price is above a Simple Moving Average (SMA).
+    This condition checks if the current price crosses above the SMA,
+    indicating a potential bullish trend. It is typically used in trend-following strategies
+    to identify potential buy signals when the price is above the SMA.
+    This condition is applied to each row of a DataFrame containing price and SMA values.
+    This condition is useful for strategies that require the price to be above a certain SMA
+    to enter trades.
 
     Args:
         close_col (str): Column name for the close price.
         sma_col (str): Column name for the SMA values.
-
     Returns:
-        pd.Series: Boolean Series where True indicates the price crosses above the SMA.
-
+        pd.Series: Boolean Series where True indicates the price is above the SMA.
     Usage:
-        filter = PriceCrossesAboveSMAFilter(close_col='Close', sma_col='SMA_50')
-        df['price_crosses_above_sma'] = filter.apply(df)
+        filter = PriceAboveSMAFilter(close_col='Close', sma_col='SMA_50')
+        df['price_above_sma'] = filter.apply(df)
     """
 
     def __init__(self, close_col: str, sma_col: str):

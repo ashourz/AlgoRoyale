@@ -1,6 +1,8 @@
 import pandas as pd
 
-from algo_royale.strategies.strategy_filters.base_strategy_filter import StrategyFilter
+from algo_royale.strategies.strategy_filters.base_strategy_condition import (
+    StrategyCondition,
+)
 
 
 @staticmethod
@@ -20,9 +22,14 @@ def rsi_above_threshold(row, rsi_col, threshold=70):
     return row[rsi_col] > threshold
 
 
-class RSIAboveThresholdFilter(StrategyFilter):
-    """Filter to check if the RSI value is above a specified threshold.
-    This indicates overbought conditions, which may suggest a potential price reversal.
+class RSIAboveThresholdCondition(StrategyCondition):
+    """Condition to check if RSI is above a specified threshold.
+    This condition checks if the Relative Strength Index (RSI) is above a specified threshold,
+    indicating overbought conditions. It is typically used in mean-reversion strategies
+    to identify potential sell signals when the market is overbought.
+    This condition is applied to each row of a DataFrame containing RSI values.
+    This condition is useful for strategies that require the RSI to be above a certain threshold
+    to enter trades.
 
     Args:
         rsi_col (str): Column name for the RSI values.
