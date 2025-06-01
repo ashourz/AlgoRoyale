@@ -1,35 +1,35 @@
 # strategies/base_strategy.py
 
 from abc import ABC
-from typing import Callable, List, Optional
+from typing import List, Optional
 
 import pandas as pd
 
-from algo_royale.strategies.strategy_filters.macd_bullish_cross import StrategyCondition
+from algo_royale.strategies.conditions.base_strategy_condition import StrategyCondition
 
 
 class Strategy(ABC):
     def __init__(
         self,
-        filters: Optional[List[StrategyCondition]] = None,
-        trend_funcs: Optional[List[Callable[[pd.DataFrame], pd.Series]]] = None,
-        entry_funcs: Optional[List[Callable[[pd.DataFrame], pd.Series]]] = None,
-        exit_funcs: Optional[List[Callable[[pd.DataFrame], pd.Series]]] = None,
+        filter_conditions: Optional[List[StrategyCondition]] = None,
+        trend_conditions: Optional[List[StrategyCondition]] = None,
+        entry_conditions: Optional[List[StrategyCondition]] = None,
+        exit_conditions: Optional[List[StrategyCondition]] = None,
     ):
-        self.filters = filters or []
-        self.trend_funcs = trend_funcs or []
-        self.entry_funcs = entry_funcs or []
-        self.exit_funcs = exit_funcs or []
+        self.filter_conditions = filter_conditions or []
+        self.trend_conditions = trend_conditions or []
+        self.entry_conditions = entry_conditions or []
+        self.exit_conditions = exit_conditions or []
 
     def _apply_filters(self, df: pd.DataFrame) -> pd.Series:
         """
         Applies all filters to the DataFrame.
         Returns a boolean Series indicating where all filters are satisfied.
         """
-        if not self.filters:
+        if not self.filter_conditions:
             return pd.Series(True, index=df.index)
         mask = pd.Series(True, index=df.index)
-        for f in self.filters:
+        for f in self.filter_conditions:
             mask &= f.apply(df)
         return mask
 
@@ -38,10 +38,10 @@ class Strategy(ABC):
         Applies trend confirmation functions to the DataFrame.
         Returns a boolean Series indicating where trend conditions are met.
         """
-        if not self.trend_funcs:
+        if not self.trend_conditions:
             return pd.Series(True, index=df.index)
         mask = pd.Series(True, index=df.index)
-        for func in self.trend_funcs:
+        for func in self.trend_conditions:
             mask &= func(df)
         return mask
 
@@ -50,10 +50,10 @@ class Strategy(ABC):
         Applies entry conditions to the DataFrame.
         Returns a boolean Series indicating where entry conditions are met.
         """
-        if not self.entry_funcs:
+        if not self.entry_conditions:
             return pd.Series(True, index=df.index)
         mask = pd.Series(True, index=df.index)
-        for func in self.entry_funcs:
+        for func in self.entry_conditions:
             mask &= func(df)
         return mask
 
@@ -62,10 +62,10 @@ class Strategy(ABC):
         Applies exit conditions to the DataFrame.
         Returns a boolean Series indicating where exit conditions are met.
         """
-        if not self.exit_funcs:
+        if not self.exit_conditions:
             return pd.Series(False, index=df.index)
         mask = pd.Series(False, index=df.index)
-        for func in self.exit_funcs:
+        for func in self.exit_conditions:
             mask |= func(df)
         return mask
 
@@ -87,7 +87,9 @@ class Strategy(ABC):
         Applies filters and then the strategy, setting 'hold' where filters fail.
         """
         required_cols = set(self.required_columns)
-        for func in self.trend_funcs + self.entry_funcs + self.exit_funcs:
+        for func in (
+            self.trend_conditions + self.entry_conditions + self.exit_conditions
+        ):
             if hasattr(func, "required_columns"):
                 required_cols.update(func.required_columns)
         missing = required_cols - set(df.columns)

@@ -46,4 +46,4 @@ class TrendScraperStrategy(Strategy):
             threshold=threshold,
         )
 
-        super().__init__(trend_funcs=[trend_func], exit_funcs=[exit_func])
+        super().__init__(trend_conditions=[trend_func], exit_conditions=[exit_func])

@@ -53,4 +53,4 @@ class ComboStrategy(Strategy):
             rsi_sell_thresh=rsi_sell_thresh,
             macd_sell_thresh=macd_sell_thresh,
         )
-        super().__init__(entry_funcs=[entry_func], exit_funcs=[exit_func])
+        super().__init__(entry_conditions=[entry_func], exit_conditions=[exit_func])

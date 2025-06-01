@@ -26,4 +26,4 @@ class BollingerBandsStrategy(Strategy):
         exit_func = BollingerBandsExit(
             close_col=close_col, window=window, num_std=num_std
         )
-        super().__init__(entry_funcs=[entry_func], exit_funcs=[exit_func])
+        super().__init__(entry_conditions=[entry_func], exit_conditions=[exit_func])

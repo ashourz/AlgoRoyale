@@ -33,7 +33,7 @@ class MACDTrailingStopStrategy(Strategy):
         ]
 
         # Pass to base class
-        super().__init__(trend_funcs=self.trend_conditions)
+        super().__init__(trend_conditions=self.trend_conditions)
 
     def _apply_strategy(self, df: pd.DataFrame) -> pd.Series:
         """
