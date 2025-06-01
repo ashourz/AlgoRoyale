@@ -1,5 +1,6 @@
 import pandas as pd
 
+from algo_royale.column_names.strategy_columns import StrategyColumns
 from algo_royale.strategies.conditions.base_strategy_condition import StrategyCondition
 
 
@@ -14,12 +15,12 @@ class ComboExitCondition(StrategyCondition):
 
     def __init__(
         self,
-        rsi_col,
-        macd_col,
-        volume_col,
-        vol_ma_col,
         rsi_sell_thresh,
         macd_sell_thresh,
+        rsi_col: StrategyColumns = StrategyColumns.RSI,
+        macd_col: StrategyColumns = StrategyColumns.MACD,
+        volume_col: StrategyColumns = StrategyColumns.VOLUME,
+        vol_ma_col: StrategyColumns = StrategyColumns.VOL_MA_20,
     ):
         self.rsi_col = rsi_col
         self.macd_col = macd_col

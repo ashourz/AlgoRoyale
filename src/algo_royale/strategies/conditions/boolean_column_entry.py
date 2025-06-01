@@ -1,10 +1,14 @@
 import pandas as pd
 
+from algo_royale.column_names.strategy_columns import StrategyColumns
 from algo_royale.strategies.conditions.base_strategy_condition import StrategyCondition
 
 
 class BooleanColumnEntryCondition(StrategyCondition):
-    def __init__(self, entry_col: str):
+    def __init__(self, entry_col: StrategyColumns = StrategyColumns.ENTRY_SIGNAL):
+        """
+        Condition based on a boolean column.
+        """
         self.entry_col = entry_col
 
     @property

@@ -9,7 +9,8 @@ class FeatureEngineer:
         self,
         feature_engineering_func: Callable[[pd.DataFrame], pd.DataFrame],
         logger: Logger,
-        max_lookback=20,
+        max_lookback=200,  # Default to 200, can be adjusted based on your needs
+        # This should match the max window/lag you use in your feature engineering function
     ):
         self.feature_engineering_func = feature_engineering_func
         self.logger = logger

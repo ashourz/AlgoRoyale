@@ -6,6 +6,7 @@ import pandas as pd
 
 from algo_royale.backtester.enum.backtest_stage import BacktestStage
 from algo_royale.backtester.stage_data.stage_data_manager import StageDataManager
+from algo_royale.column_names.strategy_columns import StrategyColumns
 from algo_royale.strategies.base_strategy import Strategy
 
 
@@ -95,9 +96,11 @@ class StrategyBacktestExecutor:
 
             # Create result DataFrame
             result_df = page_df.copy()
-            result_df["signal"] = signals.values  # Important: use .values
-            result_df["strategy"] = strategy.__class__.__name__
-            result_df["symbol"] = symbol
+            result_df[StrategyColumns.SIGNAL] = (
+                signals.values
+            )  # Important: use .values to avoid issues with Series alignment
+            result_df[StrategyColumns.STRATEGY_NAME] = strategy.__class__.__name__
+            result_df[StrategyColumns.SYMBOL] = symbol
 
             return result_df
 
@@ -133,10 +136,10 @@ class StrategyBacktestExecutor:
             missing = df.columns[df.isnull().any()].tolist()
             raise ValueError(f"Data contains null values in columns: {missing}")
 
-        if (df["close"] <= 0).any():
+        if (df[StrategyColumns.CLOSE] <= 0).any():
             raise ValueError("Invalid close prices (<= 0) detected")
 
-        if not pd.api.types.is_datetime64_any_dtype(df["timestamp"]):
+        if not pd.api.types.is_datetime64_any_dtype(df[StrategyColumns.TIMESTAMP]):
             raise ValueError("Timestamp column must be datetime type")
 
     def _validate_strategy_output(

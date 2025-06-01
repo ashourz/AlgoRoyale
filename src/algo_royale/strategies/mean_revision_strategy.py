@@ -1,7 +1,9 @@
-import pandas as pd
-
+from algo_royale.column_names.strategy_columns import StrategyColumns
 from algo_royale.strategies.base_strategy import Strategy
 from algo_royale.strategies.conditions.price_above_sma import PriceAboveSMACondition
+from algo_royale.strategies.stateful_logic.mean_reversion_stategul_logic import (
+    MeanReversionStatefulLogic,
+)
 
 
 class MeanReversionStrategy(Strategy):
@@ -24,13 +26,13 @@ class MeanReversionStrategy(Strategy):
 
     def __init__(
         self,
-        close_col: str = "close",
-        sma_col: str = "sma_200",
         window: int = 20,
         threshold: float = 0.02,
         stop_pct: float = 0.02,
         profit_target_pct: float = 0.04,
         reentry_cooldown: int = 5,
+        close_col: str = StrategyColumns.CLOSE_PRICE,
+        sma_col: str = StrategyColumns.SMA_200,
     ):
         self.close_col = close_col
         self.window = window
@@ -40,46 +42,16 @@ class MeanReversionStrategy(Strategy):
         self.trend_condition = [
             PriceAboveSMACondition(price_col=close_col, sma_col=sma_col)
         ]
+        self.stateful_logic = MeanReversionStatefulLogic(
+            window=window,
+            threshold=threshold,
+            stop_pct=stop_pct,
+            profit_target_pct=profit_target_pct,
+            reentry_cooldown=reentry_cooldown,
+            close_col=close_col,
+        )
         self.reentry_cooldown = reentry_cooldown
 
-        super().__init__(trend_conditions=self.trend_conditions)
-
-    def _apply_strategy(self, df: pd.DataFrame) -> pd.Series:
-        ma = df[self.close_col].rolling(window=self.window, min_periods=1).mean()
-        deviation = (df[self.close_col] - ma) / ma
-        signals = pd.Series("hold", index=df.index, name="signal").copy()
-
-        in_position = False
-        entry_price = None
-        trailing_stop = None
-        last_exit_idx = -self.reentry_cooldown - 1
-
-        # Use modular trend conditions
-        trend_mask = self._apply_trend(df)
-
-        for i in range(len(df)):
-            price = df.iloc[i][self.close_col]
-            dev = deviation.iloc[i]
-            trend_ok = trend_mask.iloc[i]
-
-            if not in_position:
-                if (i - last_exit_idx) > self.reentry_cooldown:
-                    if dev < -self.threshold and trend_ok:
-                        signals.iloc[i] = "buy"
-                        in_position = True
-                        entry_price = price
-                        trailing_stop = price * (1 - self.stop_pct)
-            else:
-                trailing_stop = max(trailing_stop, price * (1 - self.stop_pct))
-                hit_stop = price < trailing_stop
-                hit_profit = price >= entry_price * (1 + self.profit_target_pct)
-                sell_signal = dev > self.threshold or hit_stop or hit_profit
-
-                if sell_signal:
-                    signals.iloc[i] = "sell"
-                    in_position = False
-                    entry_price = None
-                    trailing_stop = None
-                    last_exit_idx = i
-
-        return signals
+        super().__init__(
+            trend_conditions=self.trend_conditions, stateful_logic=self.stateful_logic
+        )

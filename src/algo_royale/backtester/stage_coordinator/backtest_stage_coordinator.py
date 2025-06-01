@@ -13,6 +13,7 @@ from algo_royale.backtester.stage_data.stage_data_loader import StageDataLoader
 from algo_royale.backtester.stage_data.stage_data_manager import StageDataManager
 from algo_royale.backtester.stage_data.stage_data_writer import StageDataWriter
 from algo_royale.backtester.strategy.strategy_factory import StrategyFactory
+from algo_royale.column_names.strategy_columns import StrategyColumns
 from algo_royale.config.config import Config
 
 
@@ -81,14 +82,10 @@ class BacktestStageCoordinator(StageCoordinator):
                             df
                             for df in symbol_results[symbol]
                             if (
-                                (
-                                    "strategy" in df.columns
-                                    and (df["strategy"] == strategy_name).any()
-                                )
-                                or (
-                                    "strategy_name" in df.columns
-                                    and (df["strategy_name"] == strategy_name).any()
-                                )
+                                StrategyColumns.STRATEGY_NAME in df.columns
+                                and (
+                                    df[StrategyColumns.STRATEGY_NAME] == strategy_name
+                                ).any()
                             )
                         ]
                         if symbol_results[symbol]

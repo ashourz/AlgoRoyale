@@ -1,5 +1,4 @@
-from typing import Optional
-
+from algo_royale.column_names.strategy_columns import StrategyColumns
 from algo_royale.strategies.base_strategy import Strategy
 from algo_royale.strategies.conditions.moving_average_crossover_entry import (
     MovingAverageCrossoverEntryCondition,
@@ -29,8 +28,8 @@ class MovingAverageCrossoverStrategy(Strategy):
 
     def __init__(
         self,
-        close_col: str = "close",
-        volume_col: Optional[str] = None,
+        close_col: str = StrategyColumns.CLOSE_PRICE,
+        volume_col: str = StrategyColumns.VOLUME,
         short_window: int = 10,
         long_window: int = 50,
         trend_window: int = 200,

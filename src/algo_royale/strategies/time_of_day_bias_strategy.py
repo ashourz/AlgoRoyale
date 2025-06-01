@@ -1,3 +1,4 @@
+from algo_royale.column_names.strategy_columns import StrategyColumns
 from algo_royale.strategies.conditions.time_of_day_entry import TimeOfDayEntryCondition
 from algo_royale.strategies.conditions.time_of_day_exit import TimeOfDayExitCondition
 
@@ -13,7 +14,9 @@ class TimeOfDayBiasStrategy(Strategy):
     Assumes DataFrame has an 'hour' column with integer hour values (0-23).
     """
 
-    def __init__(self, buy_hours={10, 14}, sell_hours={11, 15}, hour_col="hour"):
+    def __init__(
+        self, buy_hours={10, 14}, sell_hours={11, 15}, hour_col=StrategyColumns.HOUR
+    ):
         self.buy_hours = buy_hours
         self.sell_hours = sell_hours
         self.hour_col = hour_col

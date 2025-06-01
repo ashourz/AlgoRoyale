@@ -1,5 +1,6 @@
 import pandas as pd
 
+from algo_royale.column_names.strategy_columns import StrategyColumns
 from algo_royale.strategies.base_strategy import Strategy
 from algo_royale.strategies.conditions.boolean_column_entry import (
     BooleanColumnEntryCondition,
@@ -8,7 +9,9 @@ from algo_royale.strategies.conditions.trend_above_sma import TrendAboveSMACondi
 
 
 class TrailingStopStrategy(Strategy):
-    def __init__(self, close_col: str = "close_price", stop_pct: float = 0.02):
+    def __init__(
+        self, close_col: str = StrategyColumns.CLOSE_PRICE, stop_pct: float = 0.02
+    ):
         """
         Parameters:
         - close_col: column name for price data
@@ -22,9 +25,11 @@ class TrailingStopStrategy(Strategy):
         self.close_col = close_col
         self.stop_pct = stop_pct
         # Define and store condition objects
-        self.entry_conditions = [BooleanColumnEntryCondition(entry_col="entry_signal")]
+        self.entry_conditions = [
+            BooleanColumnEntryCondition(entry_col=StrategyColumns.ENTRY_SIGNAL)
+        ]
         self.trend_conditions = [
-            TrendAboveSMACondition(price_col=close_col, sma_col="sma_200")
+            TrendAboveSMACondition(price_col=close_col, sma_col=StrategyColumns.SMA_200)
         ]
 
         super().__init__(
@@ -33,7 +38,8 @@ class TrailingStopStrategy(Strategy):
         )
 
     def _apply_strategy(self, df: pd.DataFrame) -> pd.Series:
-        signals = pd.Series("hold", index=df.index, name="signal")
+        signals = pd.Series("hold", index=df.index, name=StrategyColumns.SIGNAL)
+        # Initialize variables for tracking position and trailing stop
         in_position = False
         trailing_stop = None
 

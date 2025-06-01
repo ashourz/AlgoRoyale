@@ -1,9 +1,10 @@
+from algo_royale.column_names.strategy_columns import StrategyColumns
 from algo_royale.strategies.base_strategy import Strategy
 from algo_royale.strategies.conditions.ema_above_sma_rolling import (
-    EMAAboveSMARollingTrend,
+    EMAAboveSMARollingCondition,
 )
 from algo_royale.strategies.conditions.return_volatility_exit import (
-    ReturnVolatilityExit,
+    ReturnVolatilityExitCondition,
 )
 
 
@@ -18,13 +19,13 @@ class TrendScraperStrategy(Strategy):
 
     def __init__(
         self,
-        ema_col="ema_20",
-        sma_col="sma_20",
-        return_col="log_return",
-        range_col="range",
-        volatility_col="volatility_20",
         window=3,
         threshold=-0.005,
+        ema_col=StrategyColumns.EMA_20,
+        sma_col=StrategyColumns.SMA_20,
+        return_col=StrategyColumns.LOG_RETURN,
+        range_col=StrategyColumns.RANGE,
+        volatility_col=StrategyColumns.VOLATILITY_20,
     ):
         """
         Parameters:
@@ -36,10 +37,10 @@ class TrendScraperStrategy(Strategy):
         - window: Rolling window size for trend confirmation.
         - threshold: Threshold for exit condition based on return.
         """
-        trend_func = EMAAboveSMARollingTrend(
+        trend_func = EMAAboveSMARollingCondition(
             ema_col=ema_col, sma_col=sma_col, window=window
         )
-        exit_func = ReturnVolatilityExit(
+        exit_func = ReturnVolatilityExitCondition(
             return_col=return_col,
             range_col=range_col,
             volatility_col=volatility_col,

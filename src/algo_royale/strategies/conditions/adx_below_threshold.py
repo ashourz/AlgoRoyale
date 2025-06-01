@@ -1,12 +1,11 @@
 import pandas as pd
 
-from algo_royale.strategies.strategy_filters.base_strategy_condition import (
-    StrategyCondition,
-)
+from algo_royale.column_names.strategy_columns import StrategyColumns
+from algo_royale.strategies.conditions.base_strategy_condition import StrategyCondition
 
 
 @staticmethod
-def adx_below_threshold(row, adx_col, threshold=25):
+def adx_below_threshold(row, adx_col: StrategyColumns, threshold=25):
     """
     Returns True if the ADX value is below a specified threshold,
     indicating a weak or no trend environment.
@@ -30,7 +29,7 @@ class ADXBelowThresholdCondition(StrategyCondition):
     This indicates a weak or no trend environment, which may not be suitable for trend-following strategies.
 
     Args:
-        adx_col (str): Column name for the ADX values.
+        adx_col (StrategyColumns): Column name for the ADX values.
         threshold (float, optional): Threshold value. Default is 25.
 
     Returns:
@@ -41,9 +40,15 @@ class ADXBelowThresholdCondition(StrategyCondition):
         df['adx_below_threshold'] = filter.apply(df)
     """
 
-    def __init__(self, adx_col: str, threshold: float = 25):
+    def __init__(
+        self, adx_col: StrategyColumns = StrategyColumns.ADX, threshold: float = 25
+    ):
         self.adx_col = adx_col
         self.threshold = threshold
 
     def apply(self, df: pd.DataFrame) -> pd.Series:
         return df[self.adx_col] < self.threshold
+
+    @property
+    def required_columns(self):
+        return [self.adx_col]

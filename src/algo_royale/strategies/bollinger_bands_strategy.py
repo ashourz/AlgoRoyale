@@ -1,9 +1,10 @@
+from algo_royale.column_names.strategy_columns import StrategyColumns
 from algo_royale.strategies.base_strategy import Strategy
 from algo_royale.strategies.conditions.bollinger_bands_entry import (
-    BollingerBandsEntry,
+    BollingerBandsEntryCondition,
 )
 from algo_royale.strategies.conditions.bollinger_bands_exit import (
-    BollingerBandsExit,
+    BollingerBandsExitCondition,
 )
 
 
@@ -19,11 +20,16 @@ class BollingerBandsStrategy(Strategy):
     - num_std: Number of standard deviations for the bands (default is 2).
     """
 
-    def __init__(self, close_col="close", window=20, num_std=2):
-        entry_func = BollingerBandsEntry(
+    def __init__(
+        self,
+        window=20,
+        num_std=2,
+        close_col=StrategyColumns.CLOSE_PRICE,
+    ):
+        entry_func = BollingerBandsEntryCondition(
             close_col=close_col, window=window, num_std=num_std
         )
-        exit_func = BollingerBandsExit(
+        exit_func = BollingerBandsExitCondition(
             close_col=close_col, window=window, num_std=num_std
         )
         super().__init__(entry_conditions=[entry_func], exit_conditions=[exit_func])

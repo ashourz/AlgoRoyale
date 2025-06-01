@@ -1,3 +1,4 @@
+from algo_royale.column_names.strategy_columns import StrategyColumns
 from algo_royale.strategies.base_strategy import Strategy
 from algo_royale.strategies.conditions.volatility_breakout_entry import (
     VolatilityBreakoutEntryCondition,
@@ -15,7 +16,7 @@ class VolatilityBreakoutStrategy(Strategy):
     - Hold otherwise.
     """
 
-    def __init__(self, threshold: float = 1.5, sma_col: str = "sma_20"):
+    def __init__(self, threshold: float = 1.5, sma_col: str = StrategyColumns.SMA_20):
         self.threshold = threshold
         self.sma_col = sma_col
 

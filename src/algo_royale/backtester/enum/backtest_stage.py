@@ -1,6 +1,11 @@
 from enum import Enum
 from typing import Optional
 
+from algo_royale.column_names.data_ingest_columns import DataIngestColumns
+from algo_royale.column_names.feature_engineering_columns import (
+    FeatureEngineeringColumns,
+)
+
 
 class BacktestStage(Enum):
     """
@@ -31,15 +36,15 @@ class BacktestStage(Enum):
         "Loading and staging raw/unprocessed data (from API, files, DB, etc.)",
         None,
         [
-            "timestamp",
-            "open_price",
-            "high_price",
-            "low_price",
-            "close_price",
-            "volume",
-            "num_trades",
-            "volume_weighted_price",
-            "symbol",
+            DataIngestColumns.TIMESTAMP,
+            DataIngestColumns.OPEN_PRICE,
+            DataIngestColumns.HIGH_PRICE,
+            DataIngestColumns.LOW_PRICE,
+            DataIngestColumns.CLOSE_PRICE,
+            DataIngestColumns.VOLUME,
+            DataIngestColumns.NUM_TRADES,
+            DataIngestColumns.VOLUME_WEIGHTED_PRICE,
+            DataIngestColumns.SYMBOL,
         ],
         {},
     )
@@ -48,17 +53,27 @@ class BacktestStage(Enum):
         "Creating new features from existing data (technical indicators, etc.)",
         "DATA_INGEST",
         [
-            "timestamp",
-            "open_price",
-            "high_price",
-            "low_price",
-            "close_price",
-            "volume",
-            "num_trades",
-            "volume_weighted_price",
-            "symbol",
+            FeatureEngineeringColumns.TIMESTAMP,
+            FeatureEngineeringColumns.OPEN_PRICE,
+            FeatureEngineeringColumns.HIGH_PRICE,
+            FeatureEngineeringColumns.LOW_PRICE,
+            FeatureEngineeringColumns.CLOSE_PRICE,
+            FeatureEngineeringColumns.VOLUME,
+            FeatureEngineeringColumns.NUM_TRADES,
+            FeatureEngineeringColumns.VOLUME_WEIGHTED_PRICE,
+            FeatureEngineeringColumns.SYMBOL,
         ],
-        {},
+        {
+            DataIngestColumns.TIMESTAMP: FeatureEngineeringColumns.TIMESTAMP,
+            DataIngestColumns.OPEN_PRICE: FeatureEngineeringColumns.OPEN_PRICE,
+            DataIngestColumns.HIGH_PRICE: FeatureEngineeringColumns.HIGH_PRICE,
+            DataIngestColumns.LOW_PRICE: FeatureEngineeringColumns.LOW_PRICE,
+            DataIngestColumns.CLOSE_PRICE: FeatureEngineeringColumns.CLOSE_PRICE,
+            DataIngestColumns.VOLUME: FeatureEngineeringColumns.VOLUME,
+            DataIngestColumns.NUM_TRADES: FeatureEngineeringColumns.NUM_TRADES,
+            DataIngestColumns.VOLUME_WEIGHTED_PRICE: FeatureEngineeringColumns.VOLUME_WEIGHTED_PRICE,
+            DataIngestColumns.SYMBOL: FeatureEngineeringColumns.SYMBOL,
+        },
     )
     BACKTEST = (
         "backtest",

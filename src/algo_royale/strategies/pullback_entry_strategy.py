@@ -1,10 +1,15 @@
+from algo_royale.column_names.strategy_columns import StrategyColumns
 from algo_royale.strategies.base_strategy import Strategy
 from algo_royale.strategies.conditions.pullback_entry import PullbackEntryCondition
 from algo_royale.strategies.conditions.pullback_exit import PullbackExitCondition
 
 
 class PullbackEntryStrategy(Strategy):
-    def __init__(self, ma_col: str = "sma_20", close_col: str = "close_price") -> None:
+    def __init__(
+        self,
+        ma_col: str = StrategyColumns.SMA_20,
+        close_col: str = StrategyColumns.CLOSE_PRICE,
+    ) -> None:
         self.ma_col = ma_col
         self.close_col = close_col
 

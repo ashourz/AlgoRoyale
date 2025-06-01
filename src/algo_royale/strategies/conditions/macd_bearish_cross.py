@@ -1,12 +1,18 @@
 import pandas as pd
 
+from algo_royale.column_names.strategy_columns import StrategyColumns
 from algo_royale.strategies.strategy_filters.base_strategy_condition import (
     StrategyCondition,
 )
 
 
 @staticmethod
-def macd_bearish_cross(current_row, prev_row, macd_col, signal_col):
+def macd_bearish_cross(
+    current_row,
+    prev_row,
+    macd_col: StrategyColumns = StrategyColumns.MACD,
+    signal_col: StrategyColumns = StrategyColumns.SIGNAL,
+):
     """
     Returns True if MACD crosses below its signal line between previous and current rows,
     indicating bearish momentum.
@@ -45,7 +51,11 @@ class MACDBearishCrossCondition(StrategyCondition):
         df['macd_bearish_cross'] = filter.apply(df)
     """
 
-    def __init__(self, macd_col: str, signal_col: str):
+    def __init__(
+        self,
+        macd_col: StrategyColumns = StrategyColumns.MACD,
+        signal_col: StrategyColumns = StrategyColumns.SIGNAL,
+    ):
         self.macd_col = macd_col
         self.signal_col = signal_col
 
@@ -56,3 +66,7 @@ class MACDBearishCrossCondition(StrategyCondition):
             ),
             axis=1,
         )
+
+    @property
+    def required_columns(self):
+        return [self.macd_col, self.signal_col]

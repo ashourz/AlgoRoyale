@@ -1,3 +1,4 @@
+from algo_royale.column_names.strategy_columns import StrategyColumns
 from algo_royale.strategies.base_strategy import Strategy
 from algo_royale.strategies.conditions.rsi_entry import RSIEntryCondition
 from algo_royale.strategies.conditions.rsi_exit import RSIExitCondition
@@ -13,10 +14,10 @@ class RSIStrategy(Strategy):
 
     def __init__(
         self,
-        close_col: str = "close",
         period: int = 14,
         overbought: int = 70,
         oversold: int = 30,
+        close_col: str = StrategyColumns.CLOSE_PRICE,
     ) -> None:
         self.close_col = close_col
         self.period = period

@@ -1,3 +1,4 @@
+from algo_royale.column_names.strategy_columns import StrategyColumns
 from algo_royale.strategies.base_strategy import Strategy
 from algo_royale.strategies.conditions.moving_average_entry import (
     MovingAverageEntryCondition,
@@ -25,7 +26,7 @@ class MovingAverageStrategy(Strategy):
         self,
         short_window: int = 50,
         long_window: int = 200,
-        close_col: str = "close",
+        close_col: str = StrategyColumns.CLOSE_PRICE,
         buy_signal: str = "buy",
         sell_signal: str = "sell",
         hold_signal: str = "hold",

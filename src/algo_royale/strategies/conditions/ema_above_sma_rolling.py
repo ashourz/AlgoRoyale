@@ -1,5 +1,6 @@
 import pandas as pd
 
+from algo_royale.column_names.strategy_columns import StrategyColumns
 from algo_royale.strategies.conditions.base_strategy_condition import StrategyCondition
 
 
@@ -9,7 +10,12 @@ class EMAAboveSMARollingCondition(StrategyCondition):
     True when EMA > SMA and EMA is increasing for the specified window.
     """
 
-    def __init__(self, ema_col: str, sma_col: str, window: int = 3):
+    def __init__(
+        self,
+        ema_col: StrategyColumns = StrategyColumns.EMA_20,
+        sma_col: StrategyColumns = StrategyColumns.SMA_20,
+        window: int = 3,
+    ):
         self.ema_col = ema_col
         self.sma_col = sma_col
         self.window = window

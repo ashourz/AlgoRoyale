@@ -1,12 +1,16 @@
 import pandas as pd
 
-from algo_royale.strategies.strategy_filters.base_strategy_condition import (
-    StrategyCondition,
-)
+from algo_royale.column_names.strategy_columns import StrategyColumns
+from algo_royale.strategies.conditions.base_strategy_condition import StrategyCondition
 
 
 @staticmethod
-def macd_bullish_cross(row, macd_col, signal_col, close_col):
+def macd_bullish_cross(
+    row,
+    macd_col: StrategyColumns = StrategyColumns.MACD,
+    signal_col: StrategyColumns = StrategyColumns.SIGNAL,
+    close_col: StrategyColumns = StrategyColumns.CLOSE_PRICE,
+) -> bool:
     """
     Returns True if MACD is above its signal line (bullish momentum).
     Assumes you have columns 'macd' and 'macd_signal' in your DataFrame.
@@ -44,7 +48,12 @@ class MACDBullishCrossCondition(StrategyCondition):
         df['macd_bullish_cross'] = filter.apply(df)
     """
 
-    def __init__(self, macd_col: str, signal_col: str, close_col: str):
+    def __init__(
+        self,
+        macd_col: StrategyColumns = StrategyColumns.MACD,
+        signal_col: StrategyColumns = StrategyColumns.SIGNAL,
+        close_col: StrategyColumns = StrategyColumns.CLOSE_PRICE,
+    ):
         self.macd_col = macd_col
         self.signal_col = signal_col
         self.close_col = close_col
@@ -56,3 +65,7 @@ class MACDBullishCrossCondition(StrategyCondition):
             ),
             axis=1,
         )
+
+    @property
+    def required_columns(self):
+        return [self.macd_col, self.signal_col, self.close_col]

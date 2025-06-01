@@ -1,3 +1,4 @@
+from algo_royale.column_names.strategy_columns import StrategyColumns
 from algo_royale.strategies.base_strategy import Strategy
 from algo_royale.strategies.conditions.wick_reversal_entry import (
     WickReversalEntryCondition,
@@ -18,9 +19,9 @@ class WickReversalStrategy(Strategy):
     def __init__(
         self,
         wick_body_ratio: float = 2.0,
-        upper_wick_col: str = "upper_wick",
-        lower_wick_col: str = "lower_wick",
-        body_col: str = "body",
+        upper_wick_col: str = StrategyColumns.UPPER_WICK,
+        lower_wick_col: str = StrategyColumns.LOWER_WICK,
+        body_col: str = StrategyColumns.BODY,
     ):
         self.wick_body_ratio = wick_body_ratio
         self.upper_wick_col = upper_wick_col

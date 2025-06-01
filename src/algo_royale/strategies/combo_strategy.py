@@ -1,6 +1,7 @@
+from algo_royale.column_names.strategy_columns import StrategyColumns
 from algo_royale.strategies.base_strategy import Strategy
-from algo_royale.strategies.conditions.combo_entry import ComboEntry
-from algo_royale.strategies.conditions.combo_exit import ComboExit
+from algo_royale.strategies.conditions.combo_entry import ComboEntryCondition
+from algo_royale.strategies.conditions.combo_exit import ComboExitCondition
 
 
 class ComboStrategy(Strategy):
@@ -28,16 +29,16 @@ class ComboStrategy(Strategy):
 
     def __init__(
         self,
-        rsi_col="rsi",
-        macd_col="macd",
-        volume_col="volume",
-        vol_ma_col="vol_ma_20",
         rsi_buy_thresh=30,
         rsi_sell_thresh=70,
         macd_buy_thresh=0,
         macd_sell_thresh=0,
+        rsi_col=StrategyColumns.RSI,
+        macd_col=StrategyColumns.MACD,
+        volume_col=StrategyColumns.VOLUME,
+        vol_ma_col=StrategyColumns.VOL_MA_20,
     ):
-        entry_func = ComboEntry(
+        entry_func = ComboEntryCondition(
             rsi_col=rsi_col,
             macd_col=macd_col,
             volume_col=volume_col,
@@ -45,7 +46,7 @@ class ComboStrategy(Strategy):
             rsi_buy_thresh=rsi_buy_thresh,
             macd_buy_thresh=macd_buy_thresh,
         )
-        exit_func = ComboExit(
+        exit_func = ComboExitCondition(
             rsi_col=rsi_col,
             macd_col=macd_col,
             volume_col=volume_col,

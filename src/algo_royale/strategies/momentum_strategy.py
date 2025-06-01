@@ -1,5 +1,6 @@
 from typing import Optional
 
+from algo_royale.column_names.strategy_columns import StrategyColumns
 from algo_royale.strategies.base_strategy import Strategy
 from algo_royale.strategies.conditions.momentum_entry import MomentumEntryCondition
 from algo_royale.strategies.conditions.momentum_exit import MomentumExitCondition
@@ -25,11 +26,11 @@ class MomentumStrategy(Strategy):
 
     def __init__(
         self,
-        close_col: str = "close",
         lookback: int = 10,
         threshold: float = 0.0,
         smooth_window: Optional[int] = None,
         confirmation_periods: int = 1,
+        close_col: str = StrategyColumns.CLOSE_PRICE,
     ):
         self.close_col = close_col
         self.lookback = lookback

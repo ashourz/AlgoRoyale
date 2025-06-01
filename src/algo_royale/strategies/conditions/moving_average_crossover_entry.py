@@ -1,5 +1,6 @@
 import pandas as pd
 
+from algo_royale.column_names.strategy_columns import StrategyColumns
 from algo_royale.strategies.conditions.base_strategy_condition import StrategyCondition
 
 
@@ -23,8 +24,8 @@ class MovingAverageCrossoverEntryCondition(StrategyCondition):
 
     def __init__(
         self,
-        close_col="close",
-        volume_col=None,
+        close_col: str = StrategyColumns.CLOSE_PRICE,
+        volume_col: str = StrategyColumns.VOLUME,
         short_window=10,
         long_window=50,
         trend_window=200,

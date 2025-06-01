@@ -1,3 +1,4 @@
+from algo_royale.column_names.strategy_columns import StrategyColumns
 from algo_royale.strategies.conditions.volume_surge_entry import (
     VolumeSurgeEntryCondition,
 )
@@ -15,7 +16,10 @@ class VolumeSurgeStrategy(Strategy):
     """
 
     def __init__(
-        self, vol_col: str = "volume", threshold: float = 2.0, ma_window: int = 20
+        self,
+        threshold: float = 2.0,
+        ma_window: int = 20,
+        vol_col: str = StrategyColumns.VOLUME,
     ):
         self.vol_col = vol_col
         self.threshold = threshold

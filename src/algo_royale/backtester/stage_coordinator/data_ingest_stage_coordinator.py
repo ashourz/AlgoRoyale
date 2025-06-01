@@ -11,6 +11,7 @@ from algo_royale.backtester.stage_coordinator.stage_coordinator import StageCoor
 from algo_royale.backtester.stage_data.stage_data_loader import StageDataLoader
 from algo_royale.backtester.stage_data.stage_data_manager import StageDataManager
 from algo_royale.backtester.stage_data.stage_data_writer import StageDataWriter
+from algo_royale.column_names.data_ingest_columns import DataIngestColumns
 from algo_royale.config.config import Config
 from algo_royale.models.alpaca_market_data.enums import DataFeed
 from algo_royale.services.market_data.alpaca_stock_service import AlpacaQuoteService
@@ -109,7 +110,7 @@ class DataIngestStageCoordinator(StageCoordinator):
 
                 bars = response.symbol_bars[symbol]
                 df = pd.DataFrame([bar.model_dump() for bar in bars])
-                df["symbol"] = symbol
+                df[DataIngestColumns.SYMBOL] = symbol
                 total_rows += len(df)
 
                 yield df

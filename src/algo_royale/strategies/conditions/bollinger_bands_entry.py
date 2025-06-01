@@ -1,5 +1,6 @@
 import pandas as pd
 
+from algo_royale.column_names.strategy_columns import StrategyColumns
 from algo_royale.strategies.conditions.base_strategy_condition import StrategyCondition
 
 
@@ -9,7 +10,12 @@ class BollingerBandsEntryCondition(StrategyCondition):
     True when price is below lower band or above upper band.
     """
 
-    def __init__(self, close_col="close", window=20, num_std=2):
+    def __init__(
+        self,
+        close_col: StrategyColumns = StrategyColumns.CLOSE_PRICE,
+        window=20,
+        num_std=2,
+    ):
         self.close_col = close_col
         self.window = window
         self.num_std = num_std

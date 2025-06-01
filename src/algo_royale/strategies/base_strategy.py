@@ -6,6 +6,7 @@ from typing import List, Optional
 import pandas as pd
 
 from algo_royale.strategies.conditions.base_strategy_condition import StrategyCondition
+from algo_royale.strategies.stateful_logic.base_stateful_logic import StatefulLogic
 
 
 class Strategy(ABC):
@@ -14,11 +15,14 @@ class Strategy(ABC):
     This class provides a framework for implementing trading strategies
     using modular functions for trend, entry, exit, and filter conditions.
     It allows for flexible composition of conditions to generate trading signals.
+
     Parameters:
     - filter_conditions: List of conditions to filter the DataFrame before applying the strategy.
     - trend_conditions: List of conditions to determine the trend direction.
     - entry_conditions: List of conditions to determine entry points for trades.
     - exit_conditions: List of conditions to determine exit points for trades.
+    - stateful_logic: Optional stateful logic to maintain state across rows.
+
     """
 
     def __init__(
@@ -27,11 +31,13 @@ class Strategy(ABC):
         trend_conditions: Optional[List[StrategyCondition]] = None,
         entry_conditions: Optional[List[StrategyCondition]] = None,
         exit_conditions: Optional[List[StrategyCondition]] = None,
+        stateful_logic: Optional[StatefulLogic] = None,
     ):
         self.filter_conditions = filter_conditions or []
         self.trend_conditions = trend_conditions or []
         self.entry_conditions = entry_conditions or []
         self.exit_conditions = exit_conditions or []
+        self.stateful_logic = stateful_logic
 
     def _apply_filters(self, df: pd.DataFrame) -> pd.Series:
         """
@@ -84,15 +90,40 @@ class Strategy(ABC):
     def _apply_strategy(self, df: pd.DataFrame) -> pd.Series:
         """
         Applies the strategy logic to the DataFrame.
+        Generates trading signals based on trend, entry, and exit conditions.
         Returns a Series with 'buy', 'sell', or 'hold' signals.
         """
         signals = pd.Series("hold", index=df.index, name="signal")
         trend_mask = self._apply_trend(df)
         entry_mask = self._apply_entry(df)
         exit_mask = self._apply_exit(df)
+        filter_mask = self._apply_filters(df)
 
-        signals[trend_mask & entry_mask] = "buy"
-        signals[exit_mask] = "sell"
+        # Default state object (can be anything, e.g. dict)
+        state = {}
+
+        for i in range(len(df)):
+            if not filter_mask.iloc[i]:
+                continue
+
+            # Default stateless logic
+            if trend_mask.iloc[i] and entry_mask.iloc[i]:
+                signals.iloc[i] = "buy"
+            if exit_mask.iloc[i]:
+                signals.iloc[i] = "sell"
+
+            # Call stateful logic hook if present
+            if self.stateful_logic is not None:
+                signals.iloc[i], state = self.stateful_logic(
+                    i=i,
+                    df=df,
+                    signals=signals,
+                    state=state,
+                    trend_mask=trend_mask,
+                    entry_mask=entry_mask,
+                    exit_mask=exit_mask,
+                )
+
         return signals
 
     def generate_signals(self, df: pd.DataFrame) -> pd.Series:
@@ -107,7 +138,11 @@ class Strategy(ABC):
         """
         required_cols = set(self.required_columns)
         for func in (
-            self.trend_conditions + self.entry_conditions + self.exit_conditions
+            self.trend_conditions
+            + self.entry_conditions
+            + self.exit_conditions
+            + self.stateful_logic
+            + self.filter_conditions
         ):
             if hasattr(func, "required_columns"):
                 required_cols.update(func.required_columns)

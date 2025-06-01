@@ -1,19 +1,20 @@
 import pandas as pd
 
-from algo_royale.strategies.strategy_filters.base_strategy_condition import (
-    StrategyCondition,
-)
+from algo_royale.column_names.strategy_columns import StrategyColumns
+from algo_royale.strategies.conditions.base_strategy_condition import StrategyCondition
 
 
 @staticmethod
-def adx_above_threshold(row, adx_col, close_col, threshold=25):
+def adx_above_threshold(
+    row, adx_col: StrategyColumns, close_col: StrategyColumns, threshold=25
+):
     """
     Returns True if the ADX value is above a threshold (indicating strong trend).
 
     Args:
         row (pd.Series): A row of data.
-        adx_col (str): Column name for ADX.
-        close_col (str): Column name for close price (not used in logic but kept for uniformity).
+        adx_col (StrategyColumns): Column name for the ADX values.
+        close_col (StrategyColumns): Column name for the close price (not used in logic but kept for uniformity).
         threshold (float, optional): Threshold value. Default is 25.
 
     Returns:
@@ -30,8 +31,8 @@ class ADXAboveThresholdCondition(StrategyCondition):
     It is applied to each row of a DataFrame containing ADX values.
     This condition is useful for strategies that require a strong trend to enter trades.
     Args:
-        adx_col (str): Column name for the ADX values.
-        close_col (str): Column name for the close price (not used in logic but kept for uniformity).
+        adx_col (StrategyColumns): Column name for the ADX values.
+        close_col (StrategyColumns): Column name for the close price (not used in logic but kept for uniformity).
         threshold (float, optional): Threshold value. Default is 25.
 
     Returns:
@@ -42,7 +43,12 @@ class ADXAboveThresholdCondition(StrategyCondition):
         df['adx_above_threshold'] = filter.apply(df)
     """
 
-    def __init__(self, adx_col: str, close_col: str, threshold: float = 25):
+    def __init__(
+        self,
+        adx_col: StrategyColumns = StrategyColumns.ADX,
+        close_col: StrategyColumns = StrategyColumns.CLOSE_PRICE,
+        threshold: float = 25,
+    ):
         self.adx_col = adx_col
         self.close_col = close_col
         self.threshold = threshold
@@ -54,3 +60,7 @@ class ADXAboveThresholdCondition(StrategyCondition):
             ),
             axis=1,
         )
+
+    @property
+    def required_columns(self):
+        return [self.adx_col, self.close_col]
