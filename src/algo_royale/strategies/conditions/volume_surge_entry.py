@@ -18,3 +18,11 @@ class VolumeSurgeEntryCondition(StrategyCondition):
         vol_ma = df[self.vol_col].rolling(window=self.ma_window, min_periods=1).mean()
         surge = df[self.vol_col] > (vol_ma * self.threshold)
         return surge
+
+    @classmethod
+    def available_param_grid(cls):
+        return {
+            "vol_col": [StrategyColumns.VOLUME],
+            "threshold": [1.2, 1.5, 1.8, 2.0, 2.5, 3.0, 4.0],
+            "ma_window": [10, 20, 30, 50],
+        }

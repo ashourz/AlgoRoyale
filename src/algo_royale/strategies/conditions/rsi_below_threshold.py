@@ -70,3 +70,11 @@ class RSIBelowThresholdConditin(StrategyCondition):
     @property
     def required_columns(self):
         return [self.rsi_col, self.close_col]
+
+    @classmethod
+    def available_param_grid(cls):
+        return {
+            "rsi_col": [StrategyColumns.RSI],
+            "close_col": [StrategyColumns.CLOSE_PRICE],
+            "threshold": [20, 25, 30, 35, 40, 45, 50],
+        }

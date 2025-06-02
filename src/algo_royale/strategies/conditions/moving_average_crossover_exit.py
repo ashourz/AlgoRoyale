@@ -2,24 +2,30 @@ import pandas as pd
 
 from algo_royale.column_names.strategy_columns import StrategyColumns
 from algo_royale.strategies.conditions.base_strategy_condition import StrategyCondition
+from algo_royale.strategies.enum.ma_type import MA_Type
 
 
 class MovingAverageCrossoverExitCondition(StrategyCondition):
+    """
+    Condition to check for a moving average crossover exit signal.
+    This condition checks if the short-term moving average crosses below the long-term moving average,
+    indicating a potential bearish trend. It also checks if the price is below a longer-term trend moving average
+    and if the volume is below its moving average, which can confirm the strength of the signal.
+    """
+
     def __init__(
         self,
         close_col: StrategyColumns = StrategyColumns.CLOSE_PRICE,
         volume_col: StrategyColumns = StrategyColumns.VOLUME,
-        short_window=10,
-        long_window=50,
-        trend_window=200,
+        short_window_long_window_trend_window: tuple[int, int, int] = (10, 50, 200),
         volume_ma_window=20,
-        ma_type="ema",
+        ma_type: MA_Type = MA_Type.EMA,
     ):
         self.close_col = close_col
         self.volume_col = volume_col
-        self.short_window = short_window
-        self.long_window = long_window
-        self.trend_window = trend_window
+        self.short_window, self.long_window, self.trend_window = (
+            short_window_long_window_trend_window
+        )
         self.volume_ma_window = volume_ma_window
         self.ma_type = ma_type
 
@@ -31,7 +37,7 @@ class MovingAverageCrossoverExitCondition(StrategyCondition):
         return set(cols)
 
     def _moving_average(self, series: pd.Series, window: int) -> pd.Series:
-        if self.ma_type == "ema":
+        if self.ma_type == MA_Type.EMA:
             return series.ewm(span=window, adjust=False).mean()
         else:
             return series.rolling(window=window, min_periods=window).mean()
@@ -47,7 +53,7 @@ class MovingAverageCrossoverExitCondition(StrategyCondition):
                 .rolling(window=self.volume_ma_window, min_periods=1)
                 .mean()
             )
-            volume_condition = df[self.volume_col] > vol_ma
+            volume_condition = df[self.volume_col] < vol_ma
         else:
             volume_condition = pd.Series(True, index=df.index)
 
@@ -62,3 +68,23 @@ class MovingAverageCrossoverExitCondition(StrategyCondition):
             & volume_condition
         )
         return sell_condition
+
+    @classmethod
+    def available_param_grid(cls):
+        short_windows = [5, 10, 15, 20]
+        long_windows = [30, 50, 100, 200]
+        trend_windows = [100, 200, 300]
+        valid_combos = [
+            (short, long, trend)
+            for short in short_windows
+            for long in long_windows
+            for trend in trend_windows
+            if short < long < trend
+        ]
+        return {
+            "close_col": [StrategyColumns.CLOSE_PRICE],
+            "volume_col": [StrategyColumns.VOLUME],
+            "short_window_long_window_trend_window": valid_combos,
+            "volume_ma_window": [10, 20, 30],
+            "ma_type": [MA_Type.EMA, MA_Type.SMA],
+        }

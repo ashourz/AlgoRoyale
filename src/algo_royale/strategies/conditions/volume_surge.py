@@ -67,3 +67,17 @@ class VolumeSurgeCondition(StrategyCondition):
     @property
     def required_columns(self):
         return [self.volume_col, self.vol_ma_col]
+
+    @classmethod
+    def available_param_grid(cls):
+        return {
+            "volume_col": [StrategyColumns.VOLUME],
+            "vol_ma_col": [
+                StrategyColumns.VOL_MA_10,
+                StrategyColumns.VOL_MA_20,
+                StrategyColumns.VOL_MA_50,
+                StrategyColumns.VOL_MA_100,
+                StrategyColumns.VOL_MA_200,
+            ],
+            "threshold": [1.2, 1.5, 1.8, 2.0, 2.5, 3.0, 4.0],
+        }

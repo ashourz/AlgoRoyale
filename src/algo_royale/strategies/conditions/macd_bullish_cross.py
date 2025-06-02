@@ -69,3 +69,11 @@ class MACDBullishCrossCondition(StrategyCondition):
     @property
     def required_columns(self):
         return [self.macd_col, self.signal_col, self.close_col]
+
+    @classmethod
+    def available_param_grid(cls):
+        return {
+            "macd_col": [StrategyColumns.MACD],
+            "signal_col": [StrategyColumns.SIGNAL],
+            "close_col": [StrategyColumns.CLOSE_PRICE],
+        }

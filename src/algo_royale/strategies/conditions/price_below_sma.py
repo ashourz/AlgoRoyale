@@ -63,3 +63,17 @@ class PriceBelowSMACondition(StrategyCondition):
     @property
     def required_columns(self):
         return [self.close_col, self.sma_col]
+
+    @classmethod
+    def available_param_grid(cls):
+        return {
+            "close_col": [StrategyColumns.CLOSE_PRICE],
+            "sma_col": [
+                StrategyColumns.SMA_10,
+                StrategyColumns.SMA_20,
+                StrategyColumns.SMA_50,
+                StrategyColumns.SMA_100,
+                StrategyColumns.SMA_150,
+                StrategyColumns.SMA_200,
+            ],
+        }

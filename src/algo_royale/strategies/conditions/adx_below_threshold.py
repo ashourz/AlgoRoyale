@@ -54,3 +54,10 @@ class ADXBelowThresholdCondition(StrategyCondition):
     @property
     def required_columns(self):
         return [self.adx_col]
+
+    @classmethod
+    def available_param_grid(cls):
+        return {
+            "adx_col": [StrategyColumns.ADX],
+            "threshold": [10, 15, 20, 25, 30, 35, 40],
+        }

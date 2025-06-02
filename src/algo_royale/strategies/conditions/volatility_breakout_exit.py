@@ -27,3 +27,17 @@ class VolatilityBreakoutExitCondition(StrategyCondition):
         breakout = df[StrategyColumns.RANGE] > self.threshold * df[StrategyColumns]
         downtrend = df[StrategyColumns.CLOSE_PRICE] <= df[self.sma_col]
         return breakout & downtrend
+
+    @classmethod
+    def available_param_grid(cls):
+        return {
+            "threshold": [0.8, 1.0, 1.2, 1.5, 2.0, 2.5],
+            "sma_col": [
+                StrategyColumns.SMA_10,
+                StrategyColumns.SMA_20,
+                StrategyColumns.SMA_50,
+                StrategyColumns.SMA_100,
+                StrategyColumns.SMA_150,
+                StrategyColumns.SMA_200,
+            ],
+        }

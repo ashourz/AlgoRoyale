@@ -23,3 +23,11 @@ class WickReversalEntryCondition(StrategyCondition):
         body_safe = df[self.body_col].replace(0, 1e-8)
         long_lower_wick = df[self.lower_wick_col] > self.wick_body_ratio * body_safe
         return long_lower_wick
+
+    @classmethod
+    def available_param_grid(cls):
+        return {
+            "wick_body_ratio": [1.2, 1.5, 1.8, 2.0, 2.2, 2.5, 3.0, 4.0],
+            "lower_wick_col": [StrategyColumns.LOWER_WICK],
+            "body_col": [StrategyColumns.BODY],
+        }

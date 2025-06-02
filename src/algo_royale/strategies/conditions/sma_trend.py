@@ -30,3 +30,17 @@ class SMATrendCondition(StrategyCondition):
 
     def __call__(self, df):
         return self.apply(df)
+
+    @classmethod
+    def available_param_grid(cls):
+        fast_periods = [10, 20, 50, 100]
+        slow_periods = [100, 150, 200, 300]
+        fast_cols = [getattr(StrategyColumns, f"SMA_{p}") for p in fast_periods]
+        slow_cols = [getattr(StrategyColumns, f"SMA_{p}") for p in slow_periods]
+        valid_pairs = [
+            {"sma_fast_col": fast, "sma_slow_col": slow}
+            for fast, fp in zip(fast_cols, fast_periods)
+            for slow, sp in zip(slow_cols, slow_periods)
+            if fp < sp
+        ]
+        return valid_pairs

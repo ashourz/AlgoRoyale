@@ -20,12 +20,10 @@ class MovingAverageEntryCondition(StrategyCondition):
     def __init__(
         self,
         close_col: StrategyColumns = StrategyColumns.CLOSE_PRICE,
-        short_window=50,
-        long_window=200,
+        short_long_window: tuple[int, int] = (50, 200),
     ):
-        self.close_col: StrategyColumns = close_col
-        self.short_window = short_window
-        self.long_window = long_window
+        self.close_col = close_col
+        self.short_window, self.long_window = short_long_window
 
     @property
     def required_columns(self):
@@ -48,3 +46,18 @@ class MovingAverageEntryCondition(StrategyCondition):
         signal_state.loc[short_ma < long_ma] = -1
         golden_cross = (signal_state == 1) & (signal_state.shift(1) != 1)
         return golden_cross
+
+    @classmethod
+    def available_param_grid(cls):
+        short_windows = [5, 10, 15, 20, 50]
+        long_windows = [30, 50, 100, 200]
+        valid_pairs = [
+            (short, long)
+            for short in short_windows
+            for long in long_windows
+            if short < long
+        ]
+        return {
+            "close_col": [StrategyColumns.CLOSE_PRICE],
+            "short_long_window": valid_pairs,
+        }

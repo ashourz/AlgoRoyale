@@ -25,3 +25,11 @@ class BollingerBandsExitCondition(StrategyCondition):
         upper_band = rolling_mean + (rolling_std * self.num_std)
         valid_idx = rolling_mean.notna()
         return valid_idx & (df[self.close_col] > upper_band)
+
+    @classmethod
+    def available_param_grid(cls):
+        return {
+            "close_col": [StrategyColumns.CLOSE_PRICE],
+            "window": [10, 20, 30],
+            "num_std": [1, 2, 3],
+        }

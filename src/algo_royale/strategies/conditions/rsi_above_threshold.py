@@ -59,3 +59,10 @@ class RSIAboveThresholdCondition(StrategyCondition):
     @property
     def required_columns(self):
         return [self.rsi_col]
+
+    @classmethod
+    def available_param_grid(cls):
+        return {
+            "rsi_col": [StrategyColumns.RSI],
+            "threshold": [50, 55, 60, 65, 70, 75, 80, 85],
+        }

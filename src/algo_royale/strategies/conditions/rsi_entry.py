@@ -23,3 +23,11 @@ class RSIEntryCondition(StrategyCondition):
         rs = avg_gain / avg_loss.replace(0, 1e-10)
         rsi = 100 - (100 / (1 + rs))
         return rsi < self.oversold
+
+    @classmethod
+    def available_param_grid(cls):
+        return {
+            "close_col": [StrategyColumns.CLOSE_PRICE],
+            "period": [5, 10, 14, 20, 30],
+            "oversold": [20, 25, 30, 35, 40],
+        }

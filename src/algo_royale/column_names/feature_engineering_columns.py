@@ -191,10 +191,35 @@ class FeatureEngineeringColumns(BaseColumnNames):
         full_name="Volume Change",
         description="The percent change in volume from the previous period, signaling unusual trading activity.",
     )
+    VWAP_10 = ColumnName(
+        value="vwap_10",
+        full_name="Volume Weighted Average Price (10)",
+        description="The rolling 10-period VWAP, reflecting average transaction price weighted by volume.",
+    )
     VWAP_20 = ColumnName(
         value="vwap_20",
         full_name="Volume Weighted Average Price (20)",
         description="The rolling 20-period VWAP, reflecting average transaction price weighted by volume.",
+    )
+    VWAP_50 = ColumnName(
+        value="vwap_50",
+        full_name="Volume Weighted Average Price (50)",
+        description="The rolling 50-period VWAP, reflecting average transaction price weighted by volume.",
+    )
+    VWAP_100 = ColumnName(
+        value="vwap_100",
+        full_name="Volume Weighted Average Price (100)",
+        description="The rolling 100-period VWAP, reflecting average transaction price weighted by volume.",
+    )
+    VWAP_150 = ColumnName(
+        value="vwap_150",
+        full_name="Volume Weighted Average Price (150)",
+        description="The rolling 150-period VWAP, reflecting average transaction price weighted by volume.",
+    )
+    VWAP_200 = ColumnName(
+        value="vwap_200",
+        full_name="Volume Weighted Average Price (200)",
+        description="The rolling 200-period VWAP, reflecting average transaction price weighted by volume.",
     )
     HOUR = ColumnName(
         value="hour",

@@ -39,3 +39,20 @@ class ComboEntryCondition(StrategyCondition):
             & (df[self.macd_col] > self.macd_buy_thresh)
             & (df[self.volume_col] > df[self.vol_ma_col])
         )
+
+    @classmethod
+    def available_param_grid(cls):
+        return {
+            "rsi_col": [StrategyColumns.RSI],
+            "macd_col": [StrategyColumns.MACD],
+            "volume_col": [StrategyColumns.VOLUME],
+            "vol_ma_col": [
+                StrategyColumns.VOL_MA_10,
+                StrategyColumns.VOL_MA_20,
+                StrategyColumns.VOL_MA_50,
+                StrategyColumns.VOL_MA_100,
+                StrategyColumns.VOL_MA_200,
+            ],
+            "rsi_buy_thresh": [20, 30, 35, 40, 45, 50],
+            "macd_buy_thresh": [-0.1, 0, 0.1, 0.2, 0.5],
+        }

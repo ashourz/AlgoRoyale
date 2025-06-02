@@ -17,3 +17,15 @@ class TimeOfDayExitCondition(StrategyCondition):
 
     def apply(self, df: pd.DataFrame) -> pd.Series:
         return df[self.hour_col].isin(self.sell_hours)
+
+    @classmethod
+    def available_param_grid(cls):
+        return {
+            "sell_hours": [
+                {11, 15},
+                {10, 12, 14},
+                {9, 13, 16},
+                {8, 10, 12, 14},
+            ],
+            "hour_col": [StrategyColumns.HOUR],
+        }

@@ -33,3 +33,20 @@ class ReturnVolatilityExitCondition(StrategyCondition):
         weakness = df[self.return_col] < self.threshold
         volatility_spike = df[self.range_col] > df[self.volatility_col]
         return weakness | volatility_spike
+
+    @classmethod
+    def available_param_grid(cls):
+        return {
+            "threshold": [-0.005, -0.01, -0.02, -0.03, -0.04, -0.05, -0.06, -0.1],
+            "return_col": [
+                StrategyColumns.PCT_RETURN,
+                StrategyColumns.LOG_RETURN,
+            ],
+            "range_col": [StrategyColumns.RANGE],
+            "volatility_col": [
+                StrategyColumns.HIST_VOLATILITY_20,
+                StrategyColumns.VOLATILITY_10,
+                StrategyColumns.VOLATILITY_20,
+                StrategyColumns.VOLATILITY_50,
+            ],
+        }

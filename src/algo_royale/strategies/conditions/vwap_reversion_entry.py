@@ -22,3 +22,18 @@ class VWAPReversionEntryCondition(StrategyCondition):
     def apply(self, df: pd.DataFrame) -> pd.Series:
         deviation = (df[self.vwp_col] - df[self.vwap_col]) / df[self.vwap_col]
         return deviation < -self.deviation_threshold
+
+    @classmethod
+    def available_param_grid(cls):
+        return {
+            "deviation_threshold": [0.005, 0.01, 0.015, 0.02],
+            "vwap_col": [
+                StrategyColumns.VWAP_10,
+                StrategyColumns.VWAP_20,
+                StrategyColumns.VWAP_50,
+                StrategyColumns.VWAP_100,
+                StrategyColumns.VWAP_150,
+                StrategyColumns.VWAP_200,
+            ],
+            "vwp_col": [StrategyColumns.VOLUME_WEIGHTED_PRICE],
+        }

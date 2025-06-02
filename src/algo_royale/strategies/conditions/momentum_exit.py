@@ -37,3 +37,13 @@ class MomentumExitCondition(StrategyCondition):
             )
             return sell_confirmed
         return sell_condition
+
+    @classmethod
+    def available_param_grid(cls):
+        return {
+            "close_col": [StrategyColumns.CLOSE_PRICE],
+            "lookback": [2, 3, 5, 10, 15, 20, 30],
+            "threshold": [0.005, 0.01, 0.02, 0.03, 0.05],
+            "smooth_window": [None, 3, 5, 10],
+            "confirmation_periods": [1, 2, 3, 4, 5],
+        }

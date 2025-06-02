@@ -36,3 +36,11 @@ class BollingerBandsEntryCondition(StrategyCondition):
             & ((df[self.close_col] < lower_band) | (df[self.close_col] > upper_band))
         ] = True
         return condition
+
+    @classmethod
+    def available_param_grid(cls):
+        return {
+            "close_col": [StrategyColumns.CLOSE_PRICE],
+            "window": [10, 20, 30],
+            "num_std": [1, 2, 3],
+        }

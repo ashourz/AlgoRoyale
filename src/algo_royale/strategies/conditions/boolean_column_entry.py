@@ -17,3 +17,9 @@ class BooleanColumnEntryCondition(StrategyCondition):
 
     def apply(self, df: pd.DataFrame) -> pd.Series:
         return df[self.entry_col].astype(bool)
+
+    @classmethod
+    def available_param_grid(cls):
+        return {
+            "entry_col": [StrategyColumns.ENTRY_SIGNAL],
+        }

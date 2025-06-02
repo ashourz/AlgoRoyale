@@ -86,10 +86,30 @@ def feature_engineering(df: pd.DataFrame, logger) -> pd.DataFrame:
     ].pct_change()
 
     # VWAP rolling
+    df[FeatureEngineeringColumns.VWAP_10] = (
+        df[FeatureEngineeringColumns.VOLUME_WEIGHTED_PRICE]
+        * df[FeatureEngineeringColumns.VOLUME]
+    ).rolling(10).sum() / df[FeatureEngineeringColumns.VOLUME].rolling(10).sum()
     df[FeatureEngineeringColumns.VWAP_20] = (
         df[FeatureEngineeringColumns.VOLUME_WEIGHTED_PRICE]
         * df[FeatureEngineeringColumns.VOLUME]
     ).rolling(20).sum() / df[FeatureEngineeringColumns.VOLUME].rolling(20).sum()
+    df[FeatureEngineeringColumns.VWAP_50] = (
+        df[FeatureEngineeringColumns.VOLUME_WEIGHTED_PRICE]
+        * df[FeatureEngineeringColumns.VOLUME]
+    ).rolling(50).sum() / df[FeatureEngineeringColumns.VOLUME].rolling(50).sum()
+    df[FeatureEngineeringColumns.VWAP_100] = (
+        df[FeatureEngineeringColumns.VOLUME_WEIGHTED_PRICE]
+        * df[FeatureEngineeringColumns.VOLUME]
+    ).rolling(100).sum() / df[FeatureEngineeringColumns.VOLUME].rolling(100).sum()
+    df[FeatureEngineeringColumns.VWAP_150] = (
+        df[FeatureEngineeringColumns.VOLUME_WEIGHTED_PRICE]
+        * df[FeatureEngineeringColumns.VOLUME]
+    ).rolling(150).sum() / df[FeatureEngineeringColumns.VOLUME].rolling(150).sum()
+    df[FeatureEngineeringColumns.VWAP_200] = (
+        df[FeatureEngineeringColumns.VOLUME_WEIGHTED_PRICE]
+        * df[FeatureEngineeringColumns.VOLUME]
+    ).rolling(200).sum() / df[FeatureEngineeringColumns.VOLUME].rolling(200).sum()
 
     # Time features
     df[FeatureEngineeringColumns.HOUR] = df[FeatureEngineeringColumns.TIMESTAMP].dt.hour
