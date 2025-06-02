@@ -1,4 +1,3 @@
-from algo_royale.column_names.strategy_columns import StrategyColumns
 from algo_royale.strategies.base_strategy import Strategy
 from algo_royale.strategies.conditions.bollinger_bands_entry import (
     BollingerBandsEntryCondition,
@@ -14,22 +13,33 @@ class BollingerBandsStrategy(Strategy):
     Buy when price falls below the lower band,
     sell when price rises above the upper band,
     otherwise hold.
+    This strategy uses Bollinger Bands to determine entry and exit points.
+    It combines entry and exit conditions based on the Bollinger Bands indicators.
     Parameters:
-    - close_col: Column name for the closing prices.
-    - window: Rolling window size for calculating the Bollinger Bands (default is 20).
-    - num_std: Number of standard deviations for the bands (default is 2).
+    - entry_condition: Condition for entering a trade based on Bollinger Bands.
+    - exit_condition: Condition for exiting a trade based on Bollinger Bands.
     """
 
     def __init__(
         self,
-        window=20,
-        num_std=2,
-        close_col=StrategyColumns.CLOSE_PRICE,
+        entry_condition: BollingerBandsEntryCondition,
+        exit_condition: BollingerBandsExitCondition,
     ):
-        entry_func = BollingerBandsEntryCondition(
-            close_col=close_col, window=window, num_std=num_std
+        """Initialize the Bollinger Bands Strategy with entry and exit conditions.
+        Parameters:
+        - entry_condition: Condition for entering a trade based on Bollinger Bands.
+        - exit_condition: Condition for exiting a trade based on Bollinger Bands.
+        """
+        super().__init__(
+            entry_conditions=[entry_condition], exit_conditions=[exit_condition]
         )
-        exit_func = BollingerBandsExitCondition(
-            close_col=close_col, window=window, num_std=num_std
-        )
-        super().__init__(entry_conditions=[entry_func], exit_conditions=[exit_func])
+
+    @classmethod
+    def all_strategy_combinations(cls):
+        entry_variants = BollingerBandsEntryCondition.all_possible_conditions()
+        exit_variants = BollingerBandsExitCondition.all_possible_conditions()
+        strategies = []
+        for entry in entry_variants:
+            for exit in exit_variants:
+                strategies.append(cls(entry_condition=entry, exit_condition=exit))
+        return strategies

@@ -162,3 +162,11 @@ class Strategy(ABC):
         signals = self._apply_strategy(df)
         # Set signals to 'hold' where mask is False
         return signals.where(mask, other="hold")
+
+    @classmethod
+    def all_strategy_combinations(cls):
+        """
+        Returns a list of all available strategy combinations.
+        This method can be overridden in subclasses to provide specific combinations.
+        """
+        return []  # Default implementation returns an empty list
