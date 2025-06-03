@@ -49,3 +49,18 @@ class StrategyCondition:
         keys, values = zip(*grid.items())
         combos = [dict(zip(keys, v)) for v in itertools.product(*values)]
         return [cls(**params) for params in combos]
+
+    def condition_id(self):
+        """
+        Returns a unique string identifier for this condition instance,
+        including the class name and its parameters.
+        If a parameter is itself a StrategyCondition, include its condition_id.
+        """
+        params = {}
+        for k, v in self.__dict__.items():
+            if isinstance(v, StrategyCondition):
+                params[k] = v.condition_id()
+            else:
+                params[k] = v
+        param_str = ",".join(f"{k}={repr(v)}" for k, v in sorted(params.items()))
+        return f"{self.__class__.__name__}({param_str})"

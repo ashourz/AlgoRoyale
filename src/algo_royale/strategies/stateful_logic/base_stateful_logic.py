@@ -16,3 +16,18 @@ class StatefulLogic:
     def required_columns(self):
         """Override in subclasses to add additional required columns."""
         return set()
+
+    def condition_id(self):
+        """
+        Returns a unique string identifier for this condition instance,
+        including the class name and its parameters.
+        If a parameter is itself a StatefulLogic, include its condition_id.
+        """
+        params = {}
+        for k, v in self.__dict__.items():
+            if isinstance(v, StatefulLogic):
+                params[k] = v.condition_id()
+            else:
+                params[k] = v
+        param_str = ",".join(f"{k}={repr(v)}" for k, v in sorted(params.items()))
+        return f"{self.__class__.__name__}({param_str})"
