@@ -50,7 +50,9 @@ class StrategyBacktestExecutor:
                 async for page_df in async_df_iterator:
                     page_count += 1
                     for strategy in strategies:
-                        strategy_name = strategy.__class__.__name__
+                        strategy_name = getattr(
+                            strategy, "name", strategy.__class__.__name__
+                        )
                         pair_key = f"{symbol}_{strategy_name}"
 
                         if self._should_skip_pair(pair_key, strategy_name, symbol):
@@ -79,8 +81,11 @@ class StrategyBacktestExecutor:
         self, symbol: str, strategy: Strategy, page_df: pd.DataFrame, page_num: int
     ) -> Union[pd.DataFrame, None]:
         """Process a single page of data with proper signal handling"""
+        strategy_name = getattr(strategy, "name", strategy.__class__.__name__)
         if page_df.empty:
-            self.logger.debug(f"Empty page {page_num} for {symbol}")
+            self.logger.debug(
+                f"Empty page {page_num} for symbol:{symbol} | strategy:{strategy_name}"
+            )
             return None
 
         try:
@@ -99,14 +104,14 @@ class StrategyBacktestExecutor:
             result_df[StrategyColumns.SIGNAL] = (
                 signals.values
             )  # Important: use .values to avoid issues with Series alignment
-            result_df[StrategyColumns.STRATEGY_NAME] = strategy.__class__.__name__
+            result_df[StrategyColumns.STRATEGY_NAME] = strategy_name
             result_df[StrategyColumns.SYMBOL] = symbol
 
             return result_df
 
         except Exception as e:
             self.logger.error(
-                f"Critical error processing page {page_num} for {symbol}-{strategy.__class__.__name__}: {str(e)}"
+                f"Critical error processing page {page_num} for {symbol}-{strategy_name}: {str(e)}"
             )
             raise
 
@@ -145,14 +150,17 @@ class StrategyBacktestExecutor:
     def _validate_strategy_output(
         self, strategy: Strategy, df: pd.DataFrame, signals: pd.Series
     ) -> None:
+        strategy_name = getattr(strategy, "name", strategy.__class__.__name__)
         if len(signals) != len(df):
             raise ValueError(
-                f"Strategy {strategy.__class__.__name__} returned "
+                f"Strategy {strategy_name} returned "
                 f"{len(signals)} signals for {len(df)} rows"
             )
 
         if not isinstance(signals, pd.Series):
-            raise ValueError("Strategy must return pandas Series")
+            raise ValueError(f"Strategy {strategy_name} must return pandas Series")
 
         if signals.isnull().any():
-            raise ValueError("Strategy returned signals containing null values")
+            raise ValueError(
+                f"Strategy {strategy_name} returned signals containing null values"
+            )
