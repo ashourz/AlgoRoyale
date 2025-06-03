@@ -50,9 +50,7 @@ class StrategyBacktestExecutor:
                 async for page_df in async_df_iterator:
                     page_count += 1
                     for strategy in strategies:
-                        strategy_name = getattr(
-                            strategy, "name", strategy.__class__.__name__
-                        )
+                        strategy_name = strategy.get_directory()
                         pair_key = f"{symbol}_{strategy_name}"
 
                         if self._should_skip_pair(pair_key, strategy_name, symbol):
@@ -81,7 +79,7 @@ class StrategyBacktestExecutor:
         self, symbol: str, strategy: Strategy, page_df: pd.DataFrame, page_num: int
     ) -> Union[pd.DataFrame, None]:
         """Process a single page of data with proper signal handling"""
-        strategy_name = getattr(strategy, "name", strategy.__class__.__name__)
+        strategy_name = strategy.get_directory()
         if page_df.empty:
             self.logger.debug(
                 f"Empty page {page_num} for symbol:{symbol} | strategy:{strategy_name}"
@@ -150,7 +148,7 @@ class StrategyBacktestExecutor:
     def _validate_strategy_output(
         self, strategy: Strategy, df: pd.DataFrame, signals: pd.Series
     ) -> None:
-        strategy_name = getattr(strategy, "name", strategy.__class__.__name__)
+        strategy_name = strategy.get_directory()
         if len(signals) != len(df):
             raise ValueError(
                 f"Strategy {strategy_name} returned "

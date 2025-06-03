@@ -78,9 +78,7 @@ class BacktestStageCoordinator(StageCoordinator):
                 if symbol_results and symbol in symbol_results:
                     # For each strategy, collect its results
                     for strategy in strategies:
-                        strategy_name = getattr(
-                            strategy, "name", strategy.__class__.__name__
-                        )
+                        strategy_name = strategy.get_directory()
                         # Filter DataFrames for this strategy
                         strategy_dfs = (
                             [
