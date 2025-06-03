@@ -7,7 +7,7 @@ import pandas as pd
 from algo_royale.backtester.enum.backtest_stage import BacktestStage
 from algo_royale.backtester.stage_data.stage_data_manager import StageDataManager
 from algo_royale.column_names.strategy_columns import StrategyColumns
-from algo_royale.strategies.base_strategy import Strategy
+from algo_royale.strategy_factory.base_strategy import Strategy
 
 
 class StrategyBacktestExecutor:

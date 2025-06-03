@@ -2,7 +2,7 @@ import json
 
 import pytest
 
-from algo_royale.backtester.strategy.strategy_factory import StrategyFactory
+from algo_royale.strategy_factory.strategy_factory import StrategyFactory
 
 
 class DummyStrategy:

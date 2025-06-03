@@ -12,9 +12,9 @@ from algo_royale.backtester.stage_coordinator.stage_coordinator import StageCoor
 from algo_royale.backtester.stage_data.stage_data_loader import StageDataLoader
 from algo_royale.backtester.stage_data.stage_data_manager import StageDataManager
 from algo_royale.backtester.stage_data.stage_data_writer import StageDataWriter
-from algo_royale.backtester.strategy.strategy_factory import StrategyFactory
 from algo_royale.column_names.strategy_columns import StrategyColumns
 from algo_royale.config.config import Config
+from algo_royale.strategy_factory.strategy_factory import StrategyFactory
 
 
 class BacktestStageCoordinator(StageCoordinator):

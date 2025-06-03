@@ -2,7 +2,7 @@ from unittest import TestCase
 
 import pandas as pd
 
-from algo_royale.strategies.moving_average_strategy import MovingAverageStrategy
+from algo_royale.strategy_factory.moving_average_strategy import MovingAverageStrategy
 
 
 class TestMovingAverageStrategy(TestCase):

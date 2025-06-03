@@ -27,7 +27,6 @@ from algo_royale.backtester.stage_coordinator.feature_engineering_stage_coordina
 from algo_royale.backtester.stage_data.stage_data_loader import StageDataLoader
 from algo_royale.backtester.stage_data.stage_data_manager import StageDataManager
 from algo_royale.backtester.stage_data.stage_data_writer import StageDataWriter
-from algo_royale.backtester.strategy.strategy_factory import StrategyFactory
 from algo_royale.backtester.watchlist.watchlist import load_watchlist, save_watchlist
 from algo_royale.clients.alpaca.alpaca_client_config import TradingConfig
 from algo_royale.clients.alpaca.alpaca_market_data.alpaca_corporate_action_client import (
@@ -88,6 +87,7 @@ from algo_royale.services.db.stock_data_service import StockDataService
 from algo_royale.services.db.trade_service import TradeService
 from algo_royale.services.db.trade_signal_service import TradeSignalService
 from algo_royale.services.market_data.alpaca_stock_service import AlpacaQuoteService
+from algo_royale.strategy_factory.strategy_factory import StrategyFactory
 from algo_royale.visualization.dashboard import BacktestDashboard
 
 
