@@ -22,8 +22,8 @@ class BollingerBandsStrategy(Strategy):
 
     def __init__(
         self,
-        entry_condition: BollingerBandsEntryCondition,
-        exit_condition: BollingerBandsExitCondition,
+        entry_conditions: list[BollingerBandsEntryCondition],
+        exit_conditions: list[BollingerBandsExitCondition],
     ):
         """Initialize the Bollinger Bands Strategy with entry and exit conditions.
         Parameters:
@@ -31,15 +31,5 @@ class BollingerBandsStrategy(Strategy):
         - exit_condition: Condition for exiting a trade based on Bollinger Bands.
         """
         super().__init__(
-            entry_conditions=[entry_condition], exit_conditions=[exit_condition]
+            entry_conditions=entry_conditions, exit_conditions=exit_conditions
         )
-
-    @classmethod
-    def all_strategy_combinations(cls):
-        entry_variants = BollingerBandsEntryCondition.all_possible_conditions()
-        exit_variants = BollingerBandsExitCondition.all_possible_conditions()
-        strategies = []
-        for entry in entry_variants:
-            for exit in exit_variants:
-                strategies.append(cls(entry_condition=entry, exit_condition=exit))
-        return strategies

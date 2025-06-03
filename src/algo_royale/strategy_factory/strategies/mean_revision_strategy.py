@@ -28,32 +28,25 @@ class MeanReversionStrategy(Strategy):
 
     def __init__(
         self,
-        window: int = 20,
-        threshold: float = 0.02,
-        stop_pct: float = 0.02,
-        profit_target_pct: float = 0.04,
-        reentry_cooldown: int = 5,
-        close_col: StrategyColumns = StrategyColumns.CLOSE_PRICE,
-        sma_col: StrategyColumns = StrategyColumns.SMA_200,
+        trend_conditions: list[MeanReversionStatefulLogic] = [
+            PriceAboveSMACondition(
+                price_col=StrategyColumns.CLOSE_PRICE, sma_col=StrategyColumns.SMA_200
+            )
+        ],
+        stateful_logic: MeanReversionStatefulLogic = MeanReversionStatefulLogic(
+            window=20,
+            threshold=0.02,
+            stop_pct=0.02,
+            profit_target_pct=0.04,
+            reentry_cooldown=5,
+            close_col=StrategyColumns.CLOSE_PRICE,
+        ),
     ):
-        self.close_col = close_col
-        self.window = window
-        self.threshold = threshold
-        self.stop_pct = stop_pct
-        self.profit_target_pct = profit_target_pct
-        self.trend_condition = [
-            PriceAboveSMACondition(price_col=close_col, sma_col=sma_col)
-        ]
-        self.stateful_logic = MeanReversionStatefulLogic(
-            window=window,
-            threshold=threshold,
-            stop_pct=stop_pct,
-            profit_target_pct=profit_target_pct,
-            reentry_cooldown=reentry_cooldown,
-            close_col=close_col,
-        )
-        self.reentry_cooldown = reentry_cooldown
-
+        """Initialize the Mean Reversion Strategy with trend conditions and stateful logic.
+        Parameters:
+        - trend_conditions: List of trend conditions to filter trades.
+        - stateful_logic: Stateful logic for managing trades and positions.
+        """
         super().__init__(
-            trend_conditions=self.trend_conditions, stateful_logic=self.stateful_logic
+            trend_conditions=trend_conditions, stateful_logic=stateful_logic
         )

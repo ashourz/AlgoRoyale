@@ -1,11 +1,11 @@
 from algo_royale.column_names.strategy_columns import StrategyColumns
-from algo_royale.strategy_factory.base_strategy import Strategy
 from algo_royale.strategy_factory.conditions.vwap_reversion_entry import (
     VWAPReversionEntryCondition,
 )
 from algo_royale.strategy_factory.conditions.vwap_reversion_exit import (
     VWAPReversionExitCondition,
 )
+from algo_royale.strategy_factory.strategies.base_strategy import Strategy
 
 
 class VWAPReversionStrategy(Strategy):
@@ -18,30 +18,28 @@ class VWAPReversionStrategy(Strategy):
 
     def __init__(
         self,
-        deviation_threshold: float = 0.01,
-        vwap_col: StrategyColumns = StrategyColumns.VWAP_20,
-        vwp_col: StrategyColumns = StrategyColumns.VOLUME_WEIGHTED_PRICE,
-    ):
-        self.deviation_threshold = deviation_threshold
-        self.vwap_col = vwap_col
-        self.vwp_col = vwp_col
-
-        self.entry_conditions = [
+        entry_conditions: list[VWAPReversionEntryCondition] = [
             VWAPReversionEntryCondition(
-                deviation_threshold=deviation_threshold,
-                vwap_col=vwap_col,
-                vwp_col=vwp_col,
+                deviation_threshold=0.01,
+                vwap_col=StrategyColumns.VWAP_20,
+                vwp_col=StrategyColumns.VOLUME_WEIGHTED_PRICE,
             )
-        ]
-        self.exit_conditions = [
+        ],
+        exit_conditions: list[VWAPReversionExitCondition] = [
             VWAPReversionExitCondition(
-                deviation_threshold=deviation_threshold,
-                vwap_col=vwap_col,
-                vwp_col=vwp_col,
+                deviation_threshold=0.01,
+                vwap_col=StrategyColumns.VWAP_20,
+                vwp_col=StrategyColumns.VOLUME_WEIGHTED_PRICE,
             )
-        ]
+        ],
+    ):
+        """Initialize the VWAP Reversion Strategy with entry and exit conditions.
+        Parameters:
+        - entry_conditions: List of entry conditions for the strategy.
+        - exit_conditions: List of exit conditions for the strategy.
+        """
 
         super().__init__(
-            entry_conditions=self.entry_conditions,
-            exit_conditions=self.exit_conditions,
+            entry_conditions=entry_conditions,
+            exit_conditions=exit_conditions,
         )

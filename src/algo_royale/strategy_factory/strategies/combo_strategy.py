@@ -16,18 +16,10 @@ class ComboStrategy(Strategy):
     """
 
     def __init__(
-        self, entry_condition: ComboEntryCondition, exit_condition: ComboExitCondition
+        self,
+        entry_conditions: list[ComboEntryCondition],
+        exit_conditions: list[ComboExitCondition],
     ):
         super().__init__(
-            entry_conditions=[entry_condition], exit_conditions=[exit_condition]
+            entry_conditions=entry_conditions, exit_conditions=exit_conditions
         )
-
-    @classmethod
-    def all_strategy_combinations(cls):
-        entry_variants = ComboEntryCondition.all_possible_conditions()
-        exit_variants = ComboExitCondition.all_possible_conditions()
-        strategies = []
-        for entry in entry_variants:
-            for exit in exit_variants:
-                strategies.append(cls(entry_condition=entry, exit_condition=exit))
-        return strategies

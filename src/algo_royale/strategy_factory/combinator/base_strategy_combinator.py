@@ -9,10 +9,15 @@ class StrategyCombinator:
     """
 
     filter_condition_types = [None]
+    allow_empty_filter = False
     entry_condition_types = [None]
+    allow_empty_entry = False
     trend_condition_types = [None]
+    allow_empty_trend = False
     exit_condition_types = [None]
+    allow_empty_exit = False
     stateful_logic_types = [None]
+    allow_empty_stateful_logic = False
     strategy_class = None
 
     @classmethod
@@ -35,6 +40,8 @@ class StrategyCombinator:
         stateful_logics = []
         for logic_type in cls.stateful_logic_types:
             stateful_logics.extend(list(logic_type.all_possible_conditions()))
+        if cls.allow_empty_stateful_logic and [] not in stateful_logics:
+            stateful_logics.append([])
 
         # Generate all non-empty combinations up to max_* for entry/trend/exit conditions
         def combos(variants, max_n, allow_empty=True):
@@ -46,10 +53,16 @@ class StrategyCombinator:
                 result.append([])
             return result
 
-        filter_combos = combos(filter_variants, max_filter, allow_empty=True)
-        entry_combos = combos(entry_variants, max_entry, allow_empty=True)
-        trend_combos = combos(trend_variants, max_trend, allow_empty=False)
-        exit_combos = combos(exit_variants, max_exit, allow_empty=True)
+        filter_combos = combos(
+            filter_variants, max_filter, allow_empty=cls.allow_empty_filter
+        )
+        entry_combos = combos(
+            entry_variants, max_entry, allow_empty=cls.allow_empty_entry
+        )
+        trend_combos = combos(
+            trend_variants, max_trend, allow_empty=cls.allow_empty_trend
+        )
+        exit_combos = combos(exit_variants, max_exit, allow_empty=cls.allow_empty_exit)
 
         strategies = []
         for filter_ in filter_combos:

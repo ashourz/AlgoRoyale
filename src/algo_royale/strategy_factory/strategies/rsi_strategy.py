@@ -14,24 +14,23 @@ class RSIStrategy(Strategy):
 
     def __init__(
         self,
-        period: int = 14,
-        overbought: int = 70,
-        oversold: int = 30,
-        close_col: StrategyColumns = StrategyColumns.CLOSE_PRICE,
+        entry_conditions: list[RSIEntryCondition] = [
+            RSIEntryCondition(
+                close_col=StrategyColumns.CLOSE_PRICE, period=14, oversold=30
+            )
+        ],
+        exit_conditions: list[RSIExitCondition] = [
+            RSIExitCondition(
+                close_col=StrategyColumns.CLOSE_PRICE, period=14, overbought=70
+            )
+        ],
     ) -> None:
-        self.close_col = close_col
-        self.period = period
-        self.overbought = overbought
-        self.oversold = oversold
-
-        self.entry_conditions = [
-            RSIEntryCondition(close_col=close_col, period=period, oversold=oversold)
-        ]
-        self.exit_conditions = [
-            RSIExitCondition(close_col=close_col, period=period, overbought=overbought)
-        ]
-
+        """Initialize the RSI Strategy with entry and exit conditions.
+        Parameters:
+        - entry_conditions: List of entry conditions for the strategy.
+        - exit_conditions: List of exit conditions for the strategy.
+        """
         super().__init__(
-            entry_conditions=self.entry_conditions,
-            exit_conditions=self.exit_conditions,
+            entry_conditions=entry_conditions,
+            exit_conditions=exit_conditions,
         )

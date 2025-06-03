@@ -19,20 +19,20 @@ class TimeOfDayBiasStrategy(Strategy):
     """
 
     def __init__(
-        self, buy_hours={10, 14}, sell_hours={11, 15}, hour_col=StrategyColumns.HOUR
+        self,
+        entry_conditions: list[TimeOfDayEntryCondition] = [
+            TimeOfDayEntryCondition(buy_hours={10, 14}, hour_col=StrategyColumns.HOUR)
+        ],
+        exit_conditions: list[TimeOfDayExitCondition] = [
+            TimeOfDayExitCondition(sell_hours={11, 15}, hour_col=StrategyColumns.HOUR)
+        ],
     ):
-        self.buy_hours = buy_hours
-        self.sell_hours = sell_hours
-        self.hour_col = hour_col
-
-        self.entry_conditions = [
-            TimeOfDayEntryCondition(buy_hours=buy_hours, hour_col=hour_col)
-        ]
-        self.exit_conditions = [
-            TimeOfDayExitCondition(sell_hours=sell_hours, hour_col=hour_col)
-        ]
-
+        """Initialize the Time of Day Bias Strategy with entry and exit conditions.
+        Parameters:
+        - entry_conditions: List of entry conditions for the strategy.
+        - exit_conditions: List of exit conditions for the strategy.
+        """
         super().__init__(
-            entry_conditions=self.entry_conditions,
-            exit_conditions=self.exit_conditions,
+            entry_conditions=entry_conditions,
+            exit_conditions=exit_conditions,
         )

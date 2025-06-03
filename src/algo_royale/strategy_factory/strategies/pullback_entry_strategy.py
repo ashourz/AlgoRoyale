@@ -9,17 +9,22 @@ from algo_royale.strategy_factory.strategies.base_strategy import Strategy
 class PullbackEntryStrategy(Strategy):
     def __init__(
         self,
-        ma_col: StrategyColumns = StrategyColumns.SMA_20,
-        close_col: StrategyColumns = StrategyColumns.CLOSE_PRICE,
+        entry_conditions: list[PullbackEntryCondition] = [
+            PullbackEntryCondition(
+                ma_col=StrategyColumns.SMA_20, close_col=StrategyColumns.CLOSE_PRICE
+            )
+        ],
     ) -> None:
-        self.ma_col = ma_col
-        self.close_col = close_col
-
-        entry_condition = PullbackEntryCondition(ma_col=ma_col, close_col=close_col)
-        exit_condition = PullbackExitCondition(entry_condition=entry_condition)
-
-        self.entry_conditions = [entry_condition]
-        self.exit_conditions = [exit_condition]
+        """Initialize the Pullback Entry Strategy with entry and exit conditions.
+        Parameters:
+        - entry_conditions: List of entry conditions for the strategy.
+        """
+        self.entry_condition = entry_conditions.first() if entry_conditions else None
+        if not self.entry_condition:
+            raise ValueError("Entry conditions must not be empty.")
+        self.exit_conditions = [
+            PullbackExitCondition(entry_condition=self.entry_condition)
+        ]
 
         super().__init__(
             entry_conditions=self.entry_conditions,

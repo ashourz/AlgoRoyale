@@ -19,32 +19,27 @@ class TrendScraperStrategy(Strategy):
 
     def __init__(
         self,
-        window=3,
-        threshold=-0.005,
-        ema_col=StrategyColumns.EMA_20,
-        sma_col=StrategyColumns.SMA_20,
-        return_col=StrategyColumns.LOG_RETURN,
-        range_col=StrategyColumns.RANGE,
-        volatility_col=StrategyColumns.VOLATILITY_20,
+        trend_conditions: list[EMAAboveSMARollingCondition] = [
+            EMAAboveSMARollingCondition(
+                ema_col=StrategyColumns.EMA_20,
+                sma_col=StrategyColumns.SMA_20,
+                window=3,
+            )
+        ],
+        exit_conditions: list[ReturnVolatilityExitCondition] = [
+            ReturnVolatilityExitCondition(
+                return_col=StrategyColumns.LOG_RETURN,
+                range_col=StrategyColumns.RANGE,
+                volatility_col=StrategyColumns.VOLATILITY_20,
+                threshold=-0.005,
+            )
+        ],
     ):
-        """
+        """Initialize the Trend Scraper Strategy with trend and exit conditions.
         Parameters:
-        - ema_col: Column name for the Exponential Moving Average.
-        - sma_col: Column name for the Simple Moving Average.
-        - return_col: Column name for the log return.
-        - range_col: Column name for the price range.
-        - volatility_col: Column name for the volatility measure.
-        - window: Rolling window size for trend confirmation.
-        - threshold: Threshold for exit condition based on return.
+        - trend_conditions: List of trend conditions for the strategy.
+        - exit_conditions: List of exit conditions for the strategy.
         """
-        trend_func = EMAAboveSMARollingCondition(
-            ema_col=ema_col, sma_col=sma_col, window=window
+        super().__init__(
+            trend_conditions=trend_conditions, exit_conditions=exit_conditions
         )
-        exit_func = ReturnVolatilityExitCondition(
-            return_col=return_col,
-            range_col=range_col,
-            volatility_col=volatility_col,
-            threshold=threshold,
-        )
-
-        super().__init__(trend_conditions=[trend_func], exit_conditions=[exit_func])

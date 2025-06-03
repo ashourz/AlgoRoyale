@@ -19,21 +19,25 @@ class VolumeSurgeStrategy(Strategy):
 
     def __init__(
         self,
-        threshold: float = 2.0,
-        ma_window: int = 20,
-        vol_col: StrategyColumns = StrategyColumns.VOLUME,
+        entry_conditions: list[VolumeSurgeEntryCondition] = [
+            VolumeSurgeEntryCondition(
+                vol_col=StrategyColumns.VOLUME, threshold=2.0, ma_window=20
+            )
+        ],
     ):
-        self.vol_col = vol_col
-        self.threshold = threshold
-        self.ma_window = ma_window
-
-        entry_condition = VolumeSurgeEntryCondition(
-            vol_col=vol_col, threshold=threshold, ma_window=ma_window
+        """Initialize the Volume Surge Strategy with entry and exit conditions.
+        Parameters:
+        - entry_conditions: List of entry conditions for the strategy.
+        """
+        self.entry_condition = entry_conditions.first()
+        if not self.entry_conditions:
+            raise ValueError("At least one entry condition must be provided.")
+        self.exit_condition = VolumeSurgeExitCondition(
+            entry_condition=self.entry_condition
         )
-        exit_condition = VolumeSurgeExitCondition(entry_condition=entry_condition)
 
-        self.entry_conditions = [entry_condition]
-        self.exit_conditions = [exit_condition]
+        self.entry_conditions = [self.entry_condition]
+        self.exit_conditions = [self.exit_condition]
 
         super().__init__(
             entry_conditions=self.entry_conditions,

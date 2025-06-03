@@ -1,5 +1,3 @@
-from typing import Optional
-
 from algo_royale.column_names.strategy_columns import StrategyColumns
 from algo_royale.strategy_factory.conditions.momentum_entry import (
     MomentumEntryCondition,
@@ -28,38 +26,31 @@ class MomentumStrategy(Strategy):
 
     def __init__(
         self,
-        lookback: int = 10,
-        threshold: float = 0.0,
-        smooth_window: Optional[int] = None,
-        confirmation_periods: int = 1,
-        close_col: StrategyColumns = StrategyColumns.CLOSE_PRICE,
-    ):
-        self.close_col = close_col
-        self.lookback = lookback
-        self.threshold = threshold
-        self.smooth_window = smooth_window
-        self.confirmation_periods = confirmation_periods
-
-        self.entry_conditions = [
+        entry_conditions: list[MomentumEntryCondition] = [
             MomentumEntryCondition(
-                close_col=close_col,
-                lookback=lookback,
-                threshold=threshold,
-                smooth_window=smooth_window,
-                confirmation_periods=confirmation_periods,
+                close_col=StrategyColumns.CLOSE_PRICE,
+                lookback=10,
+                threshold=0.0,
+                smooth_window=None,
+                confirmation_periods=1,
             )
-        ]
-        self.exit_conditions = [
+        ],
+        exit_conditions: list[MomentumExitCondition] = [
             MomentumExitCondition(
-                close_col=close_col,
-                lookback=lookback,
-                threshold=threshold,
-                smooth_window=smooth_window,
-                confirmation_periods=confirmation_periods,
+                close_col=StrategyColumns.CLOSE_PRICE,
+                lookback=10,
+                threshold=0.0,
+                smooth_window=None,
+                confirmation_periods=1,
             )
-        ]
-
+        ],
+    ):
+        """Initialize the Momentum Strategy with modular entry and exit conditions.
+        Parameters:
+        - entry_conditions: List of entry conditions for the strategy.
+        - exit_conditions: List of exit conditions for the strategy.
+        """
         super().__init__(
-            entry_conditions=self.entry_conditions,
-            exit_conditions=self.exit_conditions,
+            entry_conditions=entry_conditions,
+            exit_conditions=exit_conditions,
         )

@@ -1,11 +1,11 @@
 from algo_royale.column_names.strategy_columns import StrategyColumns
-from algo_royale.strategy_factory.base_strategy import Strategy
 from algo_royale.strategy_factory.conditions.volatility_breakout_entry import (
     VolatilityBreakoutEntryCondition,
 )
 from algo_royale.strategy_factory.conditions.volatility_breakout_exit import (
     VolatilityBreakoutExitCondition,
 )
+from algo_royale.strategy_factory.strategies.base_strategy import Strategy
 
 
 class VolatilityBreakoutStrategy(Strategy):
@@ -17,19 +17,24 @@ class VolatilityBreakoutStrategy(Strategy):
     """
 
     def __init__(
-        self, threshold: float = 1.5, sma_col: StrategyColumns = StrategyColumns.SMA_20
+        self,
+        entry_conditions: list[VolatilityBreakoutEntryCondition] = [
+            VolatilityBreakoutEntryCondition(
+                threshold=1.5, sma_col=StrategyColumns.SMA_20
+            )
+        ],
+        exit_conditions: list[VolatilityBreakoutExitCondition] = [
+            VolatilityBreakoutExitCondition(
+                threshold=1.5, sma_col=StrategyColumns.SMA_20
+            )
+        ],
     ):
-        self.threshold = threshold
-        self.sma_col = sma_col
-
-        self.entry_conditions = [
-            VolatilityBreakoutEntryCondition(threshold=threshold, sma_col=sma_col)
-        ]
-        self.exit_conditions = [
-            VolatilityBreakoutExitCondition(threshold=threshold, sma_col=sma_col)
-        ]
-
+        """Initialize the Volatility Breakout Strategy with entry and exit conditions.
+        Parameters:
+        - entry_conditions: List of entry conditions for the strategy.
+        - exit_conditions: List of exit conditions for the strategy.
+        """
         super().__init__(
-            entry_conditions=self.entry_conditions,
-            exit_conditions=self.exit_conditions,
+            entry_conditions=entry_conditions,
+            exit_conditions=exit_conditions,
         )

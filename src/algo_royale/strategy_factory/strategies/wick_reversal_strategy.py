@@ -1,11 +1,11 @@
 from algo_royale.column_names.strategy_columns import StrategyColumns
-from algo_royale.strategy_factory.base_strategy import Strategy
 from algo_royale.strategy_factory.conditions.wick_reversal_entry import (
     WickReversalEntryCondition,
 )
 from algo_royale.strategy_factory.conditions.wick_reversal_exit import (
     WickReversalExitCondition,
 )
+from algo_royale.strategy_factory.strategies.base_strategy import Strategy
 
 
 class WickReversalStrategy(Strategy):
@@ -18,32 +18,22 @@ class WickReversalStrategy(Strategy):
 
     def __init__(
         self,
-        wick_body_ratio: float = 2.0,
-        upper_wick_col: StrategyColumns = StrategyColumns.UPPER_WICK,
-        lower_wick_col: StrategyColumns = StrategyColumns.LOWER_WICK,
-        body_col: StrategyColumns = StrategyColumns.BODY,
-    ):
-        self.wick_body_ratio = wick_body_ratio
-        self.upper_wick_col = upper_wick_col
-        self.lower_wick_col = lower_wick_col
-        self.body_col = body_col
-
-        self.entry_conditions = [
+        entry_conditions: list[WickReversalEntryCondition] = [
             WickReversalEntryCondition(
-                wick_body_ratio=wick_body_ratio,
-                lower_wick_col=lower_wick_col,
-                body_col=body_col,
+                wick_body_ratio=2.0,
+                lower_wick_col=StrategyColumns.LOWER_WICK,
+                body_col=StrategyColumns.BODY,
             )
-        ]
-        self.exit_conditions = [
+        ],
+        exit_conditions: list[WickReversalExitCondition] = [
             WickReversalExitCondition(
-                wick_body_ratio=wick_body_ratio,
-                upper_wick_col=upper_wick_col,
-                body_col=body_col,
+                wick_body_ratio=2.0,
+                upper_wick_col=StrategyColumns.UPPER_WICK,
+                body_col=StrategyColumns.BODY,
             )
-        ]
-
+        ],
+    ):
         super().__init__(
-            entry_conditions=self.entry_conditions,
-            exit_conditions=self.exit_conditions,
+            entry_conditions=entry_conditions,
+            exit_conditions=exit_conditions,
         )

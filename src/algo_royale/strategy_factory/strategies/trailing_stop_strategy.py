@@ -1,5 +1,3 @@
-import pandas as pd
-
 from algo_royale.column_names.strategy_columns import StrategyColumns
 from algo_royale.strategy_factory.conditions.boolean_column_entry import (
     BooleanColumnEntryCondition,
@@ -11,62 +9,27 @@ from algo_royale.strategy_factory.strategies.base_strategy import Strategy
 
 
 class TrailingStopStrategy(Strategy):
+    """
+    Combines conditions and logic for a Trailing Stop strategy.
+    This strategy uses a combination of entry conditions based on boolean columns,
+    trend conditions based on price above a simple moving average (SMA),
+    and does not include any filter conditions or exit conditions.
+    It focuses on maintaining a position as long as the price is above the SMA,
+    with the potential for a trailing stop mechanism.
+    """
+
     def __init__(
         self,
-        close_col: StrategyColumns = StrategyColumns.CLOSE_PRICE,
-        stop_pct: float = 0.02,
-    ):
-        """
-        Parameters:
-        - close_col: column name for price data
-        - stop_pct: trailing stop percentage (0 < stop_pct < 1)
-        - entry_conditions: list of entry condition objects
-        - trend_conditions: list of trend condition objects
-        """
-        if not (0 < stop_pct < 1):
-            raise ValueError("stop_pct must be between 0 and 1")
-
-        self.close_col = close_col
-        self.stop_pct = stop_pct
-        # Define and store condition objects
-        self.entry_conditions = [
+        entry_conditions: list[BooleanColumnEntryCondition] = [
             BooleanColumnEntryCondition(entry_col=StrategyColumns.ENTRY_SIGNAL)
-        ]
-        self.trend_conditions = [
-            TrendAboveSMACondition(price_col=close_col, sma_col=StrategyColumns.SMA_200)
-        ]
-
+        ],
+        trend_conditions: list[TrendAboveSMACondition] = [
+            TrendAboveSMACondition(
+                price_col=StrategyColumns.CLOSE_PRICE, sma_col=StrategyColumns.SMA_200
+            )
+        ],
+    ):
         super().__init__(
-            entry_conditions=self.entry_conditions,
-            trend_conditions=self.trend_conditions,
+            entry_conditions=entry_conditions,
+            trend_conditions=trend_conditions,
         )
-
-    def _apply_strategy(self, df: pd.DataFrame) -> pd.Series:
-        signals = pd.Series("hold", index=df.index, name=StrategyColumns.SIGNAL)
-        # Initialize variables for tracking position and trailing stop
-        in_position = False
-        trailing_stop = None
-
-        entry_mask = self._apply_entry(df)
-        trend_mask = self._apply_trend(df)
-
-        for i in range(len(df)):
-            price = df.iloc[i][self.close_col]
-            entry_signal = entry_mask.iloc[i]
-            trend_ok = trend_mask.iloc[i]
-
-            if not in_position:
-                if entry_signal and trend_ok:
-                    signals.iat[i] = "buy"
-                    in_position = True
-                    trailing_stop = price * (1 - self.stop_pct)
-            else:
-                new_stop = price * (1 - self.stop_pct)
-                if new_stop > trailing_stop:
-                    trailing_stop = new_stop
-                if price < trailing_stop:
-                    signals.iat[i] = "sell"
-                    in_position = False
-                    trailing_stop = None
-
-        return signals

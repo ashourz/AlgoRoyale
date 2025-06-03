@@ -5,6 +5,7 @@ from algo_royale.strategy_factory.conditions.moving_average_crossover_entry impo
 from algo_royale.strategy_factory.conditions.moving_average_crossover_exit import (
     MovingAverageCrossoverExitCondition,
 )
+from algo_royale.strategy_factory.enum.ma_type import MA_Type
 from algo_royale.strategy_factory.strategies.base_strategy import Strategy
 
 
@@ -28,46 +29,36 @@ class MovingAverageCrossoverStrategy(Strategy):
 
     def __init__(
         self,
-        close_col: StrategyColumns = StrategyColumns.CLOSE_PRICE,
-        volume_col: StrategyColumns = StrategyColumns.VOLUME,
-        short_window: int = 10,
-        long_window: int = 50,
-        trend_window: int = 200,
-        volume_ma_window: int = 20,
-        ma_type: str = "ema",
-    ):
-        self.close_col = close_col
-        self.volume_col = volume_col
-        self.short_window = short_window
-        self.long_window = long_window
-        self.trend_window = trend_window
-        self.volume_ma_window = volume_ma_window
-        self.ma_type = ma_type
-
-        self.entry_conditions = [
+        entry_conditions: list[MovingAverageCrossoverEntryCondition] = [
             MovingAverageCrossoverEntryCondition(
-                close_col=close_col,
-                volume_col=volume_col,
-                short_window=short_window,
-                long_window=long_window,
-                trend_window=trend_window,
-                volume_ma_window=volume_ma_window,
-                ma_type=ma_type,
+                close_col=StrategyColumns.CLOSE_PRICE,
+                volume_col=StrategyColumns.VOLUME,
+                short_window=10,
+                long_window=50,
+                trend_window=200,
+                volume_ma_window=20,
+                ma_type=MA_Type.EMA,
             )
-        ]
-        self.exit_conditions = [
+        ],
+        exit_conditions: list[MovingAverageCrossoverExitCondition] = [
             MovingAverageCrossoverExitCondition(
-                close_col=close_col,
-                volume_col=volume_col,
-                short_window=short_window,
-                long_window=long_window,
-                trend_window=trend_window,
-                volume_ma_window=volume_ma_window,
-                ma_type=ma_type,
+                close_col=StrategyColumns.CLOSE_PRICE,
+                volume_col=StrategyColumns.VOLUME,
+                short_window=10,
+                long_window=50,
+                trend_window=200,
+                volume_ma_window=20,
+                ma_type=MA_Type.EMA,
             )
-        ]
+        ],
+    ):
+        """Initialize the Moving Average Crossover Strategy with entry and exit conditions.
+        Parameters:
+        - entry_conditions: List of entry conditions for the strategy.
+        - exit_conditions: List of exit conditions for the strategy.
+        """
 
         super().__init__(
-            entry_conditions=self.entry_conditions,
-            exit_conditions=self.exit_conditions,
+            entry_conditions=entry_conditions,
+            exit_conditions=exit_conditions,
         )

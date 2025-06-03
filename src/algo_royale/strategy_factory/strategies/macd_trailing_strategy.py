@@ -1,8 +1,10 @@
+from typing import Optional
+
 from algo_royale.column_names.strategy_columns import StrategyColumns
-from algo_royale.strategy_factory.conditions.sma_trend import SMATrendCondition
-from algo_royale.strategy_factory.conditions.volume_surge_entry import (
-    VolumeSurgeEntryCondition,
+from algo_royale.strategy_factory.conditions.base_strategy_condition import (
+    StrategyCondition,
 )
+from algo_royale.strategy_factory.conditions.sma_trend import SMATrendCondition
 from algo_royale.strategy_factory.stateful_logic.macd_trailing_stateful_logic import (
     MACDTrailingStatefulLogic,
 )
@@ -28,7 +30,7 @@ class MACDTrailingStopStrategy(Strategy):
 
     def __init__(
         self,
-        entry_conditions=None,
+        entry_conditions: Optional[list[StrategyCondition]] = None,
         trend_conditions=[
             SMATrendCondition(
                 sma_fast_col=StrategyColumns.SMA_50,
@@ -53,28 +55,3 @@ class MACDTrailingStopStrategy(Strategy):
             trend_conditions=self.trend_conditions,
             stateful_logic=self.stateful_logic,
         )
-
-    @classmethod
-    def all_strategy_combinations(cls):
-        """
-        Generate all combinations of MACD Trailing Stop strategies with different trend conditions.
-        """
-        entry_variants = list(VolumeSurgeEntryCondition.all_possible_conditions()) + [
-            None
-        ]
-        trend_variants = SMATrendCondition.all_possible_conditions()
-        stateful_logics = MACDTrailingStatefulLogic.all_possible_conditions()
-        strategies = []
-        # Generate combinations of entry conditions, trend conditions, and stateful logic
-        for entry in entry_variants:
-            for trend in trend_variants:
-                for stateful_logic in stateful_logics:
-                    strategies.append(
-                        cls(
-                            entry_conditions=[entry] if entry else [],
-                            trend_conditions=[trend],
-                            stateful_logic=stateful_logic,
-                        )
-                    )
-        # Return the list of strategies
-        return strategies
