@@ -44,3 +44,17 @@ class StatefulLogic:
         keys, values = zip(*grid.items())
         combos = [dict(zip(keys, v)) for v in itertools.product(*values)]
         return [cls(**params) for params in combos]
+
+    def get_id(self):
+        """
+        Returns a unique string identifier for this logic instance,
+        including the class name and its parameters.
+        """
+        params = {}
+        for k, v in self.__dict__.items():
+            if hasattr(v, "get_id") and callable(v.get_id):
+                params[k] = v.get_id()
+            else:
+                params[k] = v
+        param_str = ",".join(f"{k}={repr(v)}" for k, v in sorted(params.items()))
+        return f"{self.__class__.__name__}({param_str})"

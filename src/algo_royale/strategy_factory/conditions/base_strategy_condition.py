@@ -50,16 +50,15 @@ class StrategyCondition:
         combos = [dict(zip(keys, v)) for v in itertools.product(*values)]
         return [cls(**params) for params in combos]
 
-    def condition_id(self):
+    def get_id(self):
         """
-        Returns a unique string identifier for this condition instance,
-        including the class name and its parameters.
-        If a parameter is itself a StrategyCondition, include its condition_id.
-        """
+                Returns a unique string identifier for this logic instance,
+                including the class name and its parameters.
+        ]"""
         params = {}
         for k, v in self.__dict__.items():
-            if isinstance(v, StrategyCondition):
-                params[k] = v.condition_id()
+            if hasattr(v, "get_id") and callable(v.get_id):
+                params[k] = v.get_id()
             else:
                 params[k] = v
         param_str = ",".join(f"{k}={repr(v)}" for k, v in sorted(params.items()))

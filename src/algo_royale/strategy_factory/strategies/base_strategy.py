@@ -1,5 +1,6 @@
 # strategies/base_strategy.py
 
+import hashlib
 from abc import ABC
 from typing import List, Optional
 
@@ -166,3 +167,30 @@ class Strategy(ABC):
         signals = self._apply_strategy(df)
         # Set signals to 'hold' where mask is False
         return signals.where(mask, other="hold")
+
+    def get_description(self):
+        def id_or_list(val):
+            if isinstance(val, list):
+                return [v.get_id() if hasattr(v, "get_id") else repr(v) for v in val]
+            elif hasattr(val, "get_id"):
+                return val.get_id()
+            else:
+                return repr(val)
+
+        params = {
+            "entry_conditions": id_or_list(self.entry_conditions),
+            "exit_conditions": id_or_list(self.exit_conditions),
+            "trend_conditions": id_or_list(self.trend_conditions),
+            "filter_conditions": id_or_list(self.filter_conditions),
+            "stateful_logic": id_or_list(self.stateful_logic),
+        }
+        param_str = ",".join(f"{k}={repr(v)}" for k, v in sorted(params.items()))
+        return f"{self.__class__.__name__}({param_str})"
+
+    def get_directory(self):
+        """
+        Returns the directory where this strategy is located.
+        This can be used to load additional resources or configurations.
+        """
+        strategy_id = self.get_description()
+        return hashlib.sha256(strategy_id.encode()).hexdigest()  # 64 hex chars
