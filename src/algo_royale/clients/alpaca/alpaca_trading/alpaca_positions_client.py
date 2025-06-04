@@ -1,32 +1,40 @@
 ## client\alpaca_trading\alpaca_positions_client.py
 
 from typing import Optional
+
 from algo_royale.clients.alpaca.alpaca_base_client import AlpacaBaseClient
 from algo_royale.clients.alpaca.alpaca_client_config import TradingConfig
-from algo_royale.clients.alpaca.exceptions import AlpacaPositionNotFoundException, AlpacaResourceNotFoundException, MissingParameterError, ParameterConflictError
-from algo_royale.models.alpaca_trading.alpaca_position import ClosedPositionList, PositionList
+from algo_royale.clients.alpaca.exceptions import (
+    AlpacaPositionNotFoundException,
+    AlpacaResourceNotFoundException,
+    MissingParameterError,
+    ParameterConflictError,
+)
+from algo_royale.models.alpaca_trading.alpaca_position import (
+    ClosedPositionList,
+    PositionList,
+)
+
 
 class AlpacaPositionsClient(AlpacaBaseClient):
-    """Singleton class to interact with Alpaca's API for positions data.""" 
+    """Singleton class to interact with Alpaca's API for positions data."""
 
     def __init__(self, trading_config: TradingConfig):
         """Initialize the AlpacaStockClient with trading configuration."""
         super().__init__(trading_config)
         self.trading_config = trading_config
-        
+
     @property
     def client_name(self) -> str:
         """Subclasses must define a name for logging and ID purposes"""
-        return "AlpacaPositionsClient"    
-    
+        return "AlpacaPositionsClient"
+
     @property
     def base_url(self) -> str:
         """Subclasses must define a name for logging and ID purposes"""
         return self.trading_config.get_base_url()
-    
-    async def get_all_open_positions(
-        self
-    ) -> Optional[PositionList]:
+
+    async def get_all_open_positions(self) -> Optional[PositionList]:
         """
         Get all open positions.
 
@@ -34,15 +42,12 @@ class AlpacaPositionsClient(AlpacaBaseClient):
             - PositionList object or None if no response.
         """
 
-        response = await self.get(
-            endpoint="positions"
-        )
+        response = await self.get(endpoint="positions")
 
         return PositionList.from_raw(response)
-    
+
     async def get_open_position_by_symbol_or_asset_id(
-        self,
-        symbol_or_asset_id: str
+        self, symbol_or_asset_id: str
     ) -> Optional[PositionList]:
         """
         Get open position by symbol or asset id
@@ -58,10 +63,13 @@ class AlpacaPositionsClient(AlpacaBaseClient):
                 endpoint=f"positions/{symbol_or_asset_id}",
             )
 
+            # If response is a dict (single position), wrap in a list
+            if isinstance(response, dict):
+                response = [response]
             return PositionList.from_raw(response)
         except AlpacaResourceNotFoundException as e:
             raise AlpacaPositionNotFoundException(e.message)
-    
+
     async def close_position_by_symbol_or_asset_id(
         self,
         symbol_or_asset_id: str,
@@ -73,20 +81,24 @@ class AlpacaPositionsClient(AlpacaBaseClient):
 
         Parameters:
             - symbol_or_asset_id (str) : symbol or assetId
-            - qty (float) : the number of shares to liquidate. 
+            - qty (float) : the number of shares to liquidate.
                 Can accept up to 9 decimal points. Cannot work with percentage
-            - percentage (float) : percentage of position to liquidate. 
-                Must be between 0 and 100. Would only sell fractional if position is originally fractional. 
+            - percentage (float) : percentage of position to liquidate.
+                Must be between 0 and 100. Would only sell fractional if position is originally fractional.
                 Can accept up to 9 decimal points. Cannot work with qty
 
         Returns:
             - ClosedPositionList object or None if no response.
         """
         if not symbol_or_asset_id:
-            raise MissingParameterError("Missing required parameter: 'symbol_or_asset_id'.")
+            raise MissingParameterError(
+                "Missing required parameter: 'symbol_or_asset_id'."
+            )
         if qty and percentage:
-            raise ParameterConflictError("Specify either 'qty' or 'percentage' or neither, not both.")
-        
+            raise ParameterConflictError(
+                "Specify either 'qty' or 'percentage' or neither, not both."
+            )
+
         params = {}
         # --- Build request payload ---
         if qty:
@@ -95,16 +107,14 @@ class AlpacaPositionsClient(AlpacaBaseClient):
             params["percentage"] = percentage
         try:
             response = await self.delete(
-                endpoint=f"positions/{symbol_or_asset_id}",
-                params=params
+                endpoint=f"positions/{symbol_or_asset_id}", params=params
             )
-            return ClosedPositionList.from_raw(response) 
+            return ClosedPositionList.from_raw(response)
         except AlpacaResourceNotFoundException as e:
             raise AlpacaPositionNotFoundException(e.message)
-            
+
     async def close_all_positions(
-        self,
-        cancel_orders: Optional[bool] = None
+        self, cancel_orders: Optional[bool] = None
     ) -> Optional[ClosedPositionList]:
         """
         Close all positions.
@@ -115,10 +125,7 @@ class AlpacaPositionsClient(AlpacaBaseClient):
         params = {}
         if cancel_orders:
             params["cancel_orders"] = cancel_orders
-            
-        response = await self.delete(
-            endpoint="positions",
-            params =params
-        )
 
-        return ClosedPositionList.from_raw(response) 
+        response = await self.delete(endpoint="positions", params=params)
+
+        return ClosedPositionList.from_raw(response)
