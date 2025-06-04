@@ -1,19 +1,20 @@
 ## client\alpaca_market_data\alpaca_stream_client.py
 import asyncio
 import json
-from typing import Optional, Callable
-from algo_royale.clients.alpaca.alpaca_base_client import AlpacaBaseClient
-from algo_royale.models.alpaca_market_data.enums import DataFeed
-from algo_royale.clients.alpaca.alpaca_client_config import TradingConfig
+from typing import Callable, Optional
+
 from websockets.client import connect
-import websockets
 from websockets.exceptions import ConnectionClosed
+
+from algo_royale.clients.alpaca.alpaca_base_client import AlpacaBaseClient
+from algo_royale.clients.alpaca.alpaca_client_config import TradingConfig
+from algo_royale.models.alpaca_market_data.enums import DataFeed
 
 
 class AlpacaStreamClient(AlpacaBaseClient):
     """
     Singleton client for streaming real-time stock market data (quotes, trades, bars) from Alpaca WebSocket API.
-    
+
     Features:
     - Reconnection handling
     - Keep-alive pings
@@ -31,17 +32,17 @@ class AlpacaStreamClient(AlpacaBaseClient):
         self.bar_symbols = set()
         self.websocket = None
         self.stop_stream = False
-        
+
     @property
     def client_name(self) -> str:
         """Subclasses must define a name for logging and ID purposes"""
         return "AlpacaStreamClient"
-    
+
     @property
     def base_url(self) -> str:
         """Subclasses must define a name for logging and ID purposes"""
-        return self.trading_config.alpaca_params["base_url_data_stream_v2"] 
-    
+        return self.trading_config.alpaca_params["base_url_data_stream_v2"]
+
     async def stream(
         self,
         symbols: list[str],
@@ -59,7 +60,7 @@ class AlpacaStreamClient(AlpacaBaseClient):
                 - IEX: IEX Cloud data (free tier).
                 - SIP: SIP data (paid tier).
                 - TEST: Test data (for development purposes).
-            on_quote (callable): Coroutine function for quote messages. 
+            on_quote (callable): Coroutine function for quote messages.
                 - Occurs: Every time the best bid or ask price for a stock changes.
             on_trade (callable): Coroutine function for trade messages.
                 - Occurs: Every time a buy and sell order are matched and a trade is executed.
@@ -82,21 +83,19 @@ class AlpacaStreamClient(AlpacaBaseClient):
                     # Run both loops concurrently
                     await asyncio.gather(
                         self._receive_loop(ws, on_quote, on_trade, on_bar),
-                        self._ping_loop(ws)
+                        self._ping_loop(ws),
                     )
 
             except Exception as e:
                 self.logger.warning(f"WebSocket disconnected: {e}")
-                self.logger.info(f"Attempting reconnect in {self.reconnect_delay} seconds...")
+                self.logger.info(
+                    f"Attempting reconnect in {self.reconnect_delay} seconds..."
+                )
                 await asyncio.sleep(self.reconnect_delay)
 
     async def _authenticate(self, ws):
         """Authenticate with the WebSocket using API key/secret."""
-        auth_msg = {
-            "action": "auth",
-            "key": self.api_key,
-            "secret": self.api_secret
-        }
+        auth_msg = {"action": "auth", "key": self.api_key, "secret": self.api_secret}
         await ws.send(json.dumps(auth_msg))
         response = await ws.recv()
         self.logger.info(f"Auth response: {response}")
@@ -107,10 +106,12 @@ class AlpacaStreamClient(AlpacaBaseClient):
             "action": "subscribe",
             "quotes": list(self.quote_symbols),
             "trades": list(self.trade_symbols),
-            "bars": list(self.bar_symbols)
+            "bars": list(self.bar_symbols),
         }
         await ws.send(json.dumps(msg))
-        self.logger.info(f"Subscribed to quotes: {self.quote_symbols}, trades: {self.trade_symbols}, bars: {self.bar_symbols}")
+        self.logger.info(
+            f"Subscribed to quotes: {self.quote_symbols}, trades: {self.trade_symbols}, bars: {self.bar_symbols}"
+        )
 
     async def _unsubscribe(self, ws, quotes=[], trades=[], bars=[]):
         """Send unsubscribe message."""
@@ -118,10 +119,12 @@ class AlpacaStreamClient(AlpacaBaseClient):
             "action": "unsubscribe",
             "quotes": quotes,
             "trades": trades,
-            "bars": bars
+            "bars": bars,
         }
         await ws.send(json.dumps(msg))
-        self.logger.info(f"Unsubscribed from quotes: {quotes}, trades: {trades}, bars: {bars}")
+        self.logger.info(
+            f"Unsubscribed from quotes: {quotes}, trades: {trades}, bars: {bars}"
+        )
 
     async def _receive_loop(self, ws, on_quote, on_trade, on_bar):
         """
@@ -142,11 +145,11 @@ class AlpacaStreamClient(AlpacaBaseClient):
                 # Handle each item in list individually
                 for item in data if isinstance(data, list) else [data]:
                     msg_type = item.get("T")
-                    if msg_type == "q" and on_quote: # Quote message
+                    if msg_type == "q" and on_quote:  # Quote message
                         await on_quote(item)
-                    elif msg_type == "t" and on_trade: # Trade message
+                    elif msg_type == "t" and on_trade:  # Trade message
                         await on_trade(item)
-                    elif msg_type == "b" and on_bar: # Bar message
+                    elif msg_type == "b" and on_bar:  # Bar message
                         await on_bar(item)
         except ConnectionClosed as e:
             self.logger.warning(f"WebSocket closed: {e}")
@@ -202,4 +205,3 @@ class AlpacaStreamClient(AlpacaBaseClient):
         """
         self.logger.info("Stopping stream...")
         self.stop_stream = True
-
