@@ -21,8 +21,11 @@ class DummyStrategy:
     def get_description(self):
         return "desc"
 
-    def __class__(self):
-        return type("DummyStrategy", (), {})()
+
+class DummyCombinator:
+    @staticmethod
+    def get_all_combinations():
+        return [DummyStrategy()]
 
 
 @pytest.fixture
@@ -32,35 +35,11 @@ def config(tmp_path):
 
 @pytest.fixture
 def factory(config):
-    return StrategyFactory(config=config)
+    # Inject DummyCombinator for testing
+    return StrategyFactory(config=config, strategy_combinators=[DummyCombinator])
 
 
-def test_get_all_strategy_combinations_returns_list(factory, monkeypatch):
-    # Patch all combinators to return dummy strategies
-    dummy = DummyStrategy()
-    for combinator in [
-        "BollingerBandsStrategyCombinator",
-        "ComboStrategyCombinator",
-        "MACDTrailingStrategyCombinator",
-        "MeanReversionStrategyCombinator",
-        "MomentumStrategyCombinator",
-        "MovingAverageCrossoverStrategyCombinator",
-        "MovingAverageStrategyCombinator",
-        "PullbackEntryStrategyCombinator",
-        "RSIStrategyCombinator",
-        "TimeOfDayBiasStrategyCombinator",
-        "TrailingStopStrategyCombinator",
-        "TrendScraperStrategyCombinator",
-        "VolatilityBreakoutStrategyCombinator",
-        "VolumeSurgeStrategyCombinator",
-        "VWAPReversionStrategyCombinator",
-        "WickReversalStrategyCombinator",
-    ]:
-        monkeypatch.setattr(
-            f"algo_royale.strategy_factory.combinator.{combinator}",
-            "get_all_combinations",
-            staticmethod(lambda: [dummy]),
-        )
+def test_get_all_strategy_combinations_returns_list(factory):
     combos = factory.get_all_strategy_combinations()
     assert isinstance(combos, list)
     assert all(hasattr(s, "get_hash_id") for s in combos)
@@ -68,7 +47,6 @@ def test_get_all_strategy_combinations_returns_list(factory, monkeypatch):
 
 
 def test_save_strategy_map_creates_file(factory, tmp_path):
-    # Use dummy strategies
     class Dummy:
         def __init__(self, i):
             self.i = i
@@ -79,13 +57,7 @@ def test_save_strategy_map_creates_file(factory, tmp_path):
         def get_description(self):
             return f"desc_{self.i}"
 
-        @property
-        def __class__(self):
-            class C:
-                __name__ = "Dummy"
-
-            return C
-
+    Dummy.__name__ = "Dummy"
     strategies = [Dummy(i) for i in range(3)]
     factory.strategy_map_path = str(tmp_path / "out.json")
     factory._save_strategy_map(strategies)

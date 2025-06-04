@@ -2,70 +2,31 @@ import json
 from typing import Optional
 
 from algo_royale.config.config import Config
-from algo_royale.strategy_factory.combinator.bollinger_bands_strategy_combinator import (
-    BollingerBandsStrategyCombinator,
-)
-from algo_royale.strategy_factory.combinator.combo_strategy_combinator import (
-    ComboStrategyCombinator,
-)
-from algo_royale.strategy_factory.combinator.macd_trailing_strategy_combinator import (
-    MACDTrailingStrategyCombinator,
-)
-from algo_royale.strategy_factory.combinator.mean_reversion_strategy_combinator import (
-    MeanReversionStrategyCombinator,
-)
-from algo_royale.strategy_factory.combinator.momentum_strategy_combinator import (
-    MomentumStrategyCombinator,
-)
-from algo_royale.strategy_factory.combinator.moving_average_crossover_strategy_combinator import (
-    MovingAverageCrossoverStrategyCombinator,
-)
-from algo_royale.strategy_factory.combinator.moving_average_strategy_combinator import (
-    MovingAverageStrategyCombinator,
-)
-from algo_royale.strategy_factory.combinator.pullback_entry_strategy_combinator import (
-    PullbackEntryStrategyCombinator,
-)
-from algo_royale.strategy_factory.combinator.rsi_strategy_combinator import (
-    RSIStrategyCombinator,
-)
-from algo_royale.strategy_factory.combinator.time_of_day_bias_strategy_combinator import (
-    TimeOfDayBiasStrategyCombinator,
-)
-from algo_royale.strategy_factory.combinator.trailing_stop_strategy_combinator import (
-    TrailingStopStrategyCombinator,
-)
-from algo_royale.strategy_factory.combinator.trend_scraper_strategy_combinator import (
-    TrendScraperStrategyCombinator,
-)
-from algo_royale.strategy_factory.combinator.volatility_breakout_strategy_combinator import (
-    VolatilityBreakoutStrategyCombinator,
-)
-from algo_royale.strategy_factory.combinator.volume_surge_strategy_combinator import (
-    VolumeSurgeStrategyCombinator,
-)
-from algo_royale.strategy_factory.combinator.vwap_reversion_strategy_combinator import (
-    VWAPReversionStrategyCombinator,
-)
-from algo_royale.strategy_factory.combinator.wick_reversal_strategy_combinator import (
-    WickReversalStrategyCombinator,
+from algo_royale.strategy_factory.combinator.base_strategy_combinator import (
+    StrategyCombinator,
 )
 from algo_royale.strategy_factory.strategies.base_strategy import Strategy
 
 
 class StrategyFactory:
     """
-    Factory for creating trading strategy instances from a JSON config file.
-    - "defaults" strategies are applied to every symbol.
-    - "symbols" can provide additional strategies for each symbol.
-    - Strategy names in JSON are mapped to classes via strategy_map.
+    Factory class to manage and generate strategy combinations.
+    This class is responsible for loading strategy definitions, generating all possible
+    strategy combinations, and saving a mapping of strategies to their descriptions.
+    It uses various strategy combinators to create complex strategies based on simple ones.
+    The strategy combinations can be used for backtesting or live trading.
+    Parameters:
+        config (Config): Configuration object containing paths and settings.
+        strategy_combinators (Optional[list[type[StrategyCombinator]]]): List of strategy combinators to use.
     """
 
     def __init__(
         self,
         config: Config,
+        strategy_combinators: Optional[list[type[StrategyCombinator]]] = None,
     ):
         self.strategy_map_path = config.get("paths.backtester", "strategy_map_path")
+        self.strategy_combinators = strategy_combinators
         self._all_strategy_combinations: Optional[list[Strategy]] = None
 
     def _get_merged_strategy_defs(self, symbol: str) -> list[dict]:
@@ -85,32 +46,15 @@ class StrategyFactory:
         self._all_strategy_combinations = all_strategies
         return self._all_strategy_combinations
 
-    def _get_all_strategy_combinations() -> list[Strategy]:
+    def _get_all_strategy_combinations(self) -> list[Strategy]:
         """
         Returns all strategy combinations across all symbols.
         This method is useful for testing or analysis purposes.
         """
         all_strategies = []
-        all_strategies.extend(BollingerBandsStrategyCombinator.get_all_combinations())
-        all_strategies.extend(ComboStrategyCombinator.get_all_combinations())
-        all_strategies.extend(MACDTrailingStrategyCombinator.get_all_combinations())
-        all_strategies.extend(MeanReversionStrategyCombinator.get_all_combinations())
-        all_strategies.extend(MomentumStrategyCombinator.get_all_combinations())
-        all_strategies.extend(
-            MovingAverageCrossoverStrategyCombinator.get_all_combinations()
-        )
-        all_strategies.extend(MovingAverageStrategyCombinator.get_all_combinations())
-        all_strategies.extend(PullbackEntryStrategyCombinator.get_all_combinations())
-        all_strategies.extend(RSIStrategyCombinator.get_all_combinations())
-        all_strategies.extend(TimeOfDayBiasStrategyCombinator.get_all_combinations())
-        all_strategies.extend(TrailingStopStrategyCombinator.get_all_combinations())
-        all_strategies.extend(TrendScraperStrategyCombinator.get_all_combinations())
-        all_strategies.extend(
-            VolatilityBreakoutStrategyCombinator.get_all_combinations()
-        )
-        all_strategies.extend(VolumeSurgeStrategyCombinator.get_all_combinations())
-        all_strategies.extend(VWAPReversionStrategyCombinator.get_all_combinations())
-        all_strategies.extend(WickReversalStrategyCombinator.get_all_combinations())
+        for combinator in self.strategy_combinators:
+            if isinstance(combinator, StrategyCombinator):
+                all_strategies.extend(combinator.get_all_combinations())
         return all_strategies
 
     def _save_strategy_map(self, strategies: list[Strategy]) -> None:

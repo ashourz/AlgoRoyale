@@ -28,7 +28,7 @@ def mock_logger():
 def mock_strategy():
     strat = MagicMock()
     strat.__class__.__name__ = "MockStrategy"
-    # Return a DataFrame with ENTRY_SIGNAL and EXIT_SIGNAL columns
+    strat.get_hash_id.return_value = "MockStrategy"  # <-- Add this line
     strat.generate_signals.side_effect = lambda df: pd.DataFrame(
         {
             StrategyColumns.ENTRY_SIGNAL: ["buy"] * len(df),
@@ -113,7 +113,14 @@ async def test_run_backtest_handles_page_exception(
     def bad_generate_signals(df):
         if df["a"].iloc[0] == 2:
             raise ValueError("bad page")
-        return pd.Series([1] * len(df), index=df.index)
+        # Return a valid DataFrame for the first page
+        return pd.DataFrame(
+            {
+                StrategyColumns.ENTRY_SIGNAL: ["buy"] * len(df),
+                StrategyColumns.EXIT_SIGNAL: ["hold"] * len(df),
+            },
+            index=df.index,
+        )
 
     mock_strategy.generate_signals.side_effect = bad_generate_signals
 
@@ -121,14 +128,14 @@ async def test_run_backtest_handles_page_exception(
         yield pd.DataFrame(
             {
                 "a": [1],
-                StrategyColumns.CLOSE_PRICE: [100],  # Changed from "close_price"
+                StrategyColumns.CLOSE_PRICE: [100],
                 StrategyColumns.TIMESTAMP: pd.to_datetime(["2020-01-01"]),
             }
         )
         yield pd.DataFrame(
             {
                 "a": [2],
-                StrategyColumns.CLOSE_PRICE: [200],  # Changed from "close_price"
+                StrategyColumns.CLOSE_PRICE: [200],
                 StrategyColumns.TIMESTAMP: pd.to_datetime(["2020-01-02"]),
             }
         )

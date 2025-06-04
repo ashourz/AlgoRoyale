@@ -86,6 +86,54 @@ from algo_royale.services.db.stock_data_service import StockDataService
 from algo_royale.services.db.trade_service import TradeService
 from algo_royale.services.db.trade_signal_service import TradeSignalService
 from algo_royale.services.market_data.alpaca_stock_service import AlpacaQuoteService
+from algo_royale.strategy_factory.combinator.bollinger_bands_strategy_combinator import (
+    BollingerBandsStrategyCombinator,
+)
+from algo_royale.strategy_factory.combinator.combo_strategy_combinator import (
+    ComboStrategyCombinator,
+)
+from algo_royale.strategy_factory.combinator.macd_trailing_strategy_combinator import (
+    MACDTrailingStrategyCombinator,
+)
+from algo_royale.strategy_factory.combinator.mean_reversion_strategy_combinator import (
+    MeanReversionStrategyCombinator,
+)
+from algo_royale.strategy_factory.combinator.momentum_strategy_combinator import (
+    MomentumStrategyCombinator,
+)
+from algo_royale.strategy_factory.combinator.moving_average_crossover_strategy_combinator import (
+    MovingAverageCrossoverStrategyCombinator,
+)
+from algo_royale.strategy_factory.combinator.moving_average_strategy_combinator import (
+    MovingAverageStrategyCombinator,
+)
+from algo_royale.strategy_factory.combinator.pullback_entry_strategy_combinator import (
+    PullbackEntryStrategyCombinator,
+)
+from algo_royale.strategy_factory.combinator.rsi_strategy_combinator import (
+    RSIStrategyCombinator,
+)
+from algo_royale.strategy_factory.combinator.time_of_day_bias_strategy_combinator import (
+    TimeOfDayBiasStrategyCombinator,
+)
+from algo_royale.strategy_factory.combinator.trailing_stop_strategy_combinator import (
+    TrailingStopStrategyCombinator,
+)
+from algo_royale.strategy_factory.combinator.trend_scraper_strategy_combinator import (
+    TrendScraperStrategyCombinator,
+)
+from algo_royale.strategy_factory.combinator.volatility_breakout_strategy_combinator import (
+    VolatilityBreakoutStrategyCombinator,
+)
+from algo_royale.strategy_factory.combinator.volume_surge_strategy_combinator import (
+    VolumeSurgeStrategyCombinator,
+)
+from algo_royale.strategy_factory.combinator.vwap_reversion_strategy_combinator import (
+    VWAPReversionStrategyCombinator,
+)
+from algo_royale.strategy_factory.combinator.wick_reversal_strategy_combinator import (
+    WickReversalStrategyCombinator,
+)
 from algo_royale.strategy_factory.strategy_factory import StrategyFactory
 from algo_royale.visualization.dashboard import BacktestDashboard
 
@@ -282,7 +330,28 @@ class DIContainer(containers.DeclarativeContainer):
         config=config,
     )
 
-    strategy_factory = providers.Singleton(StrategyFactory, config=Config)
+    strategy_factory = providers.Singleton(
+        StrategyFactory,
+        config=Config,
+        strategy_combinators=[
+            BollingerBandsStrategyCombinator,
+            ComboStrategyCombinator,
+            MACDTrailingStrategyCombinator,
+            MeanReversionStrategyCombinator,
+            MomentumStrategyCombinator,
+            MovingAverageCrossoverStrategyCombinator,
+            MovingAverageStrategyCombinator,
+            PullbackEntryStrategyCombinator,
+            RSIStrategyCombinator,
+            TimeOfDayBiasStrategyCombinator,
+            TrailingStopStrategyCombinator,
+            TrendScraperStrategyCombinator,
+            VolatilityBreakoutStrategyCombinator,
+            VolumeSurgeStrategyCombinator,
+            VWAPReversionStrategyCombinator,
+            WickReversalStrategyCombinator,
+        ],
+    )
 
     data_ingest_stage_coordinator = providers.Singleton(
         DataIngestStageCoordinator,
