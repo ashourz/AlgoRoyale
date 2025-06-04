@@ -53,7 +53,9 @@ class BacktestStageCoordinator(StageCoordinator):
         """
         Run the backtest and return a dict mapping symbol to a factory that yields result DataFrames.
         """
-        strategies: list[Strategy] = self.strategy_factory.all_strategy_combinations
+        strategies: list[Strategy] = (
+            self.strategy_factory.get_all_strategy_combinations()
+        )
         if not strategies:
             self.logger.error("No strategies found in the strategy factory.")
             return {}
