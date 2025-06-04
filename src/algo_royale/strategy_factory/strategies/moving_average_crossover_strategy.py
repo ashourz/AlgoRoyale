@@ -20,9 +20,7 @@ class MovingAverageCrossoverStrategy(Strategy):
     Args:
         close_col (str): Column name for the close price.
         volume_col (Optional[str]): Column name for the volume data. Defaults to None.
-        short_window (int): Window size for the short moving average. Defaults to 10.
-        long_window (int): Window size for the long moving average. Defaults to 50.
-        trend_window (int): Window size for the trend moving average. Defaults to 200.
+        short_window_long_window_trend_window (tuple[int, int, int]): Tuple containing the short window,
         volume_ma_window (int): Window size for the volume moving average filter. Defaults to 20.
         ma_type (str): Type of moving average ('ema' or 'sma'). Defaults to 'ema'.
     """
@@ -33,9 +31,7 @@ class MovingAverageCrossoverStrategy(Strategy):
             MovingAverageCrossoverEntryCondition(
                 close_col=StrategyColumns.CLOSE_PRICE,
                 volume_col=StrategyColumns.VOLUME,
-                short_window=10,
-                long_window=50,
-                trend_window=200,
+                short_window_long_window_trend_window=(10, 50, 200),
                 volume_ma_window=20,
                 ma_type=MA_Type.EMA,
             )
@@ -44,9 +40,7 @@ class MovingAverageCrossoverStrategy(Strategy):
             MovingAverageCrossoverExitCondition(
                 close_col=StrategyColumns.CLOSE_PRICE,
                 volume_col=StrategyColumns.VOLUME,
-                short_window=10,
-                long_window=50,
-                trend_window=200,
+                short_window_long_window_trend_window=(10, 50, 200),
                 volume_ma_window=20,
                 ma_type=MA_Type.EMA,
             )
