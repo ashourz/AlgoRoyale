@@ -1,5 +1,6 @@
 # src/models/alpaca_models/alpaca_trading/alpaca_order.py
 
+import logging
 from enum import Enum
 
 from pydantic import BaseModel
@@ -125,6 +126,8 @@ class ClosedPosition(BaseModel):
 
     @classmethod
     def from_raw(cls, data: dict) -> "ClosedPosition":
+        logging.debug(f"Parsing ClosedPosition from raw data: {data}")
+
         return cls(
             symbol=data["symbol"],
             status=data["status"],
@@ -140,12 +143,13 @@ class ClosedPositionList(BaseModel):
     closedPositions: list[ClosedPosition]
 
     @classmethod
-    def from_raw(cls, data: list[dict]) -> "ClosedPositionList":
+    def from_raw(cls, data: list) -> "ClosedPositionList":
         """
         Factory method to parse a raw list of order dictionaries
         into structured ClosedPosition objects.
+        Skips items that are not dicts.
         """
         parsed_closed_position = [
-            ClosedPosition.from_raw(closedPosition) for closedPosition in data
+            ClosedPosition.from_raw(item) for item in data if isinstance(item, dict)
         ]
         return cls(closedPositions=parsed_closed_position)
