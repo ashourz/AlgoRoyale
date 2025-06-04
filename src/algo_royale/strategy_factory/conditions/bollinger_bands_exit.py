@@ -31,7 +31,7 @@ class BollingerBandsExitCondition(StrategyCondition):
     @classmethod
     def available_param_grid(cls):
         return {
-            "close_col": [StrategyColumns.CLOSE_PRICE],
+            "close_col": [StrategyColumns.CLOSE_PRICE, StrategyColumns.OPEN_PRICE],
             "window": [10, 20, 30],
             "num_std": [1, 2, 3],
         }

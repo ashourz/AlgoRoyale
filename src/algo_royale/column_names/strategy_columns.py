@@ -9,8 +9,6 @@ class StrategyColumns(FeatureEngineeringColumns):
 
     TIMESTAMP = ColumnName("timestamp")
     STRATEGY_NAME = ColumnName("strategy_name")
-    ##TODO: SIGNAL should be replaced with entry and exit signals
     ENTRY_SIGNAL = ColumnName("entry_signal")
     EXIT_SIGNAL = ColumnName("exit_signal")
     TRAILING_STOP = ColumnName("trailing_stop")
-    SIGNAL = ColumnName("signal")

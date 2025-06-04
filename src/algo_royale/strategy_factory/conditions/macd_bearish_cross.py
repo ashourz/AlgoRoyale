@@ -11,7 +11,7 @@ def macd_bearish_cross(
     current_row,
     prev_row,
     macd_col: StrategyColumns = StrategyColumns.MACD,
-    signal_col: StrategyColumns = StrategyColumns.SIGNAL,
+    signal_col: StrategyColumns = StrategyColumns.MACD_SIGNAL,
 ):
     """
     Returns True if MACD crosses below its signal line between previous and current rows,
@@ -54,7 +54,7 @@ class MACDBearishCrossCondition(StrategyCondition):
     def __init__(
         self,
         macd_col: StrategyColumns = StrategyColumns.MACD,
-        signal_col: StrategyColumns = StrategyColumns.SIGNAL,
+        signal_col: StrategyColumns = StrategyColumns.MACD_SIGNAL,
     ):
         self.macd_col = macd_col
         self.signal_col = signal_col
@@ -75,5 +75,5 @@ class MACDBearishCrossCondition(StrategyCondition):
     def available_param_grid(cls):
         return {
             "macd_col": [StrategyColumns.MACD],
-            "signal_col": [StrategyColumns.SIGNAL],
+            "signal_col": [StrategyColumns.MACD_SIGNAL],
         }

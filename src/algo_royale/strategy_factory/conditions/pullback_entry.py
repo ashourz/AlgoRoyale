@@ -43,5 +43,5 @@ class PullbackEntryCondition(StrategyCondition):
                 StrategyColumns.EMA_150,
                 StrategyColumns.EMA_200,
             ],
-            "close_col": [StrategyColumns.CLOSE_PRICE],
+            "close_col": [StrategyColumns.CLOSE_PRICE, StrategyColumns.OPEN_PRICE],
         }

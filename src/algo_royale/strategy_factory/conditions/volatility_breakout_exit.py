@@ -8,26 +8,36 @@ from algo_royale.strategy_factory.conditions.base_strategy_condition import (
 
 class VolatilityBreakoutExitCondition(StrategyCondition):
     """Condition to identify volatility breakout exit points in a trading strategy.
-    This condition checks if the price range exceeds a specified threshold relative to the 20-period volatility,"""
+    This condition checks if the price range exceeds a specified threshold relative to a volatility measure,
+    and the price is below a moving average (downtrend).
+    """
 
     def __init__(
-        self, threshold=1.5, sma_col: StrategyColumns = StrategyColumns.SMA_20
+        self,
+        threshold=1.5,
+        sma_col: StrategyColumns = StrategyColumns.SMA_20,
+        volatility_col: StrategyColumns = StrategyColumns.VOLATILITY_20,
+        range_col: StrategyColumns = StrategyColumns.RANGE,
+        close_col: StrategyColumns = StrategyColumns.CLOSE_PRICE,
     ):
         self.threshold = threshold
         self.sma_col = sma_col
+        self.volatility_col = volatility_col
+        self.range_col = range_col
+        self.close_col = close_col
 
     @property
     def required_columns(self):
         return {
-            StrategyColumns.VOLATILITY_20,
-            StrategyColumns.RANGE,
-            StrategyColumns.CLOSE_PRICE,
+            self.volatility_col,
+            self.range_col,
+            self.close_col,
             self.sma_col,
         }
 
     def apply(self, df: pd.DataFrame) -> pd.Series:
-        breakout = df[StrategyColumns.RANGE] > self.threshold * df[StrategyColumns]
-        downtrend = df[StrategyColumns.CLOSE_PRICE] <= df[self.sma_col]
+        breakout = df[self.range_col] > self.threshold * df[self.volatility_col]
+        downtrend = df[self.close_col] <= df[self.sma_col]
         return breakout & downtrend
 
     @classmethod
@@ -42,4 +52,16 @@ class VolatilityBreakoutExitCondition(StrategyCondition):
                 StrategyColumns.SMA_150,
                 StrategyColumns.SMA_200,
             ],
+            "volatility_col": [
+                StrategyColumns.VOLATILITY_10,
+                StrategyColumns.VOLATILITY_20,
+                StrategyColumns.VOLATILITY_50,
+                StrategyColumns.HIST_VOLATILITY_20,
+            ],
+            "range_col": [
+                StrategyColumns.RANGE,
+                StrategyColumns.ATR_14,
+                # Add other range columns if available
+            ],
+            "close_col": [StrategyColumns.CLOSE_PRICE, StrategyColumns.OPEN_PRICE],
         }

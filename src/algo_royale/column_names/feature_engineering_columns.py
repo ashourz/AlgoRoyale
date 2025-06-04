@@ -66,6 +66,11 @@ class FeatureEngineeringColumns(BaseColumnNames):
         full_name="Moving Average Convergence Divergence",
         description="The difference between the 12-period and 26-period exponential moving averages, indicating trend strength.",
     )
+    MACD_SIGNAL = ColumnName(
+        value="macd_signal",
+        full_name="MACD Signal Line",
+        description="The 9-period exponential moving average of the MACD line, used to identify buy/sell signals.",
+    )
     RSI = ColumnName(
         value="rsi",
         full_name="Relative Strength Index",

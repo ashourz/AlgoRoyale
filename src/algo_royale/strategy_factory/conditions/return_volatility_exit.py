@@ -44,7 +44,7 @@ class ReturnVolatilityExitCondition(StrategyCondition):
                 StrategyColumns.PCT_RETURN,
                 StrategyColumns.LOG_RETURN,
             ],
-            "range_col": [StrategyColumns.RANGE],
+            "range_col": [StrategyColumns.RANGE, StrategyColumns.ATR_14],
             "volatility_col": [
                 StrategyColumns.HIST_VOLATILITY_20,
                 StrategyColumns.VOLATILITY_10,

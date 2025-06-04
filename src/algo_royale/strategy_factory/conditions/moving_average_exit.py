@@ -59,6 +59,6 @@ class MovingAverageExitCondition(StrategyCondition):
             if short < long
         ]
         return {
-            "close_col": [StrategyColumns.CLOSE_PRICE],
+            "close_col": [StrategyColumns.CLOSE_PRICE, StrategyColumns.OPEN_PRICE],
             "short_long_window": valid_pairs,
         }

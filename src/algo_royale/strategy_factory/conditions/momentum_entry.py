@@ -43,7 +43,7 @@ class MomentumEntryCondition(StrategyCondition):
     @classmethod
     def available_param_grid(cls):
         return {
-            "close_col": [StrategyColumns.CLOSE_PRICE],
+            "close_col": [StrategyColumns.CLOSE_PRICE, StrategyColumns.OPEN_PRICE],
             "lookback": [2, 3, 5, 10, 15, 20, 30],
             "threshold": [0.005, 0.01, 0.02, 0.03, 0.05],
             "smooth_window": [None, 3, 5, 10],

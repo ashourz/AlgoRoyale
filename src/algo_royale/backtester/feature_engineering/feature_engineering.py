@@ -34,7 +34,9 @@ def feature_engineering(df: pd.DataFrame, logger) -> pd.DataFrame:
         df[FeatureEngineeringColumns.CLOSE_PRICE].ewm(span=12, adjust=False).mean()
         - df[FeatureEngineeringColumns.CLOSE_PRICE].ewm(span=26, adjust=False).mean()
     )
-
+    df[FeatureEngineeringColumns.MACD_SIGNAL] = (
+        df[FeatureEngineeringColumns.MACD].ewm(span=9, adjust=False).mean()
+    )
     # RSI
     df[FeatureEngineeringColumns.RSI] = calculate_rsi(
         df[FeatureEngineeringColumns.CLOSE_PRICE]

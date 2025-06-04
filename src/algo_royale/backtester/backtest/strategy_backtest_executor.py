@@ -7,7 +7,7 @@ import pandas as pd
 from algo_royale.backtester.enum.backtest_stage import BacktestStage
 from algo_royale.backtester.stage_data.stage_data_manager import StageDataManager
 from algo_royale.column_names.strategy_columns import StrategyColumns
-from algo_royale.strategy_factory.base_strategy import Strategy
+from algo_royale.strategy_factory.strategies.base_strategy import Strategy
 
 
 class StrategyBacktestExecutor:
@@ -91,17 +91,14 @@ class StrategyBacktestExecutor:
             self._validate_data_quality(page_df)
 
             # Generate and validate signals
-            signals = strategy.generate_signals(page_df.copy())
+            signals_df = strategy.generate_signals(page_df.copy())
             self.logger.debug(
-                f"Generated signals: {type(signals)} with length {len(signals)}"
+                f"Generated signals: {type(signals_df)} with length {len(signals_df)}"
             )
-            self._validate_strategy_output(strategy, page_df, signals)
+            self._validate_strategy_output(strategy, page_df, signals_df)
 
             # Create result DataFrame
-            result_df = page_df.copy()
-            result_df[StrategyColumns.SIGNAL] = (
-                signals.values
-            )  # Important: use .values to avoid issues with Series alignment
+            result_df = signals_df.copy()
             result_df[StrategyColumns.STRATEGY_NAME] = strategy_name
             result_df[StrategyColumns.SYMBOL] = symbol
 
@@ -146,19 +143,30 @@ class StrategyBacktestExecutor:
             raise ValueError("Timestamp column must be datetime type")
 
     def _validate_strategy_output(
-        self, strategy: Strategy, df: pd.DataFrame, signals: pd.Series
+        self, strategy: Strategy, df: pd.DataFrame, signals_df: pd.DataFrame
     ) -> None:
         strategy_name = strategy.get_directory()
-        if len(signals) != len(df):
+        if len(signals_df) != len(df):
             raise ValueError(
                 f"Strategy {strategy_name} returned "
-                f"{len(signals)} signals for {len(df)} rows"
+                f"{len(signals_df)} rows for {len(df)} input rows"
             )
 
-        if not isinstance(signals, pd.Series):
-            raise ValueError(f"Strategy {strategy_name} must return pandas Series")
+        if not isinstance(signals_df, pd.DataFrame):
+            raise ValueError(f"Strategy {strategy_name} must return a pandas DataFrame")
 
-        if signals.isnull().any():
+        for col in [StrategyColumns.ENTRY_SIGNAL, StrategyColumns.EXIT_SIGNAL]:
+            if col not in signals_df.columns:
+                raise ValueError(
+                    f"Strategy {strategy_name} output missing required column: {col}"
+                )
+
+        if (
+            signals_df[[StrategyColumns.ENTRY_SIGNAL, StrategyColumns.EXIT_SIGNAL]]
+            .isnull()
+            .any()
+            .any()
+        ):
             raise ValueError(
                 f"Strategy {strategy_name} returned signals containing null values"
             )

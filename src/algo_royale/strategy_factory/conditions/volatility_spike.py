@@ -10,7 +10,7 @@ from algo_royale.strategy_factory.conditions.base_strategy_condition import (
 def volatility_spike(
     row,
     range_col: StrategyColumns = StrategyColumns.RANGE,
-    volatility_col: StrategyColumns = StrategyColumns.VOLATILITY,
+    volatility_col: StrategyColumns = StrategyColumns.VOLATILITY_10,
 ):
     """
     Returns True if the current price range is greater than the volatility measure,
@@ -67,11 +67,12 @@ class VolatilitySpikeCondition(StrategyCondition):
         return {
             "range_col": [
                 StrategyColumns.RANGE,
-                StrategyColumns.HIGH_LOW_RANGE,
+                StrategyColumns.ATR_14,
             ],
             "volatility_col": [
                 StrategyColumns.VOLATILITY_10,
                 StrategyColumns.VOLATILITY_20,
                 StrategyColumns.VOLATILITY_50,
+                StrategyColumns.HIST_VOLATILITY_20,
             ],
         }

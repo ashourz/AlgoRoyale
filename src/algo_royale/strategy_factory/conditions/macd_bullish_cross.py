@@ -10,7 +10,7 @@ from algo_royale.strategy_factory.conditions.base_strategy_condition import (
 def macd_bullish_cross(
     row,
     macd_col: StrategyColumns = StrategyColumns.MACD,
-    signal_col: StrategyColumns = StrategyColumns.SIGNAL,
+    signal_col: StrategyColumns = StrategyColumns.MACD_SIGNAL,
     close_col: StrategyColumns = StrategyColumns.CLOSE_PRICE,
 ) -> bool:
     """
@@ -53,7 +53,7 @@ class MACDBullishCrossCondition(StrategyCondition):
     def __init__(
         self,
         macd_col: StrategyColumns = StrategyColumns.MACD,
-        signal_col: StrategyColumns = StrategyColumns.SIGNAL,
+        signal_col: StrategyColumns = StrategyColumns.MACD_SIGNAL,
         close_col: StrategyColumns = StrategyColumns.CLOSE_PRICE,
     ):
         self.macd_col = macd_col
@@ -76,6 +76,6 @@ class MACDBullishCrossCondition(StrategyCondition):
     def available_param_grid(cls):
         return {
             "macd_col": [StrategyColumns.MACD],
-            "signal_col": [StrategyColumns.SIGNAL],
-            "close_col": [StrategyColumns.CLOSE_PRICE],
+            "signal_col": [StrategyColumns.MACD_SIGNAL],
+            "close_col": [StrategyColumns.CLOSE_PRICE, StrategyColumns.OPEN_PRICE],
         }

@@ -77,6 +77,6 @@ class RSIBelowThresholdConditin(StrategyCondition):
     def available_param_grid(cls):
         return {
             "rsi_col": [StrategyColumns.RSI],
-            "close_col": [StrategyColumns.CLOSE_PRICE],
+            "close_col": [StrategyColumns.CLOSE_PRICE, StrategyColumns.OPEN_PRICE],
             "threshold": [20, 25, 30, 35, 40, 45, 50],
         }

@@ -28,9 +28,13 @@ def mock_logger():
 def mock_strategy():
     strat = MagicMock()
     strat.__class__.__name__ = "MockStrategy"
-    # Always return a valid Series
-    strat.generate_signals.side_effect = lambda df: pd.Series(
-        [1] * len(df), index=df.index, name=StrategyColumns.SIGNAL
+    # Return a DataFrame with ENTRY_SIGNAL and EXIT_SIGNAL columns
+    strat.generate_signals.side_effect = lambda df: pd.DataFrame(
+        {
+            StrategyColumns.ENTRY_SIGNAL: ["buy"] * len(df),
+            StrategyColumns.EXIT_SIGNAL: ["hold"] * len(df),
+        },
+        index=df.index,
     )
     return strat
 
@@ -62,7 +66,8 @@ async def test_run_backtest_success(
     assert "AAPL" in results
     assert len(results["AAPL"]) == 2
     for df in results["AAPL"]:
-        assert StrategyColumns.SIGNAL in df.columns
+        assert StrategyColumns.ENTRY_SIGNAL in df.columns
+        assert StrategyColumns.EXIT_SIGNAL in df.columns
         assert StrategyColumns.STRATEGY_NAME in df.columns
         assert StrategyColumns.SYMBOL in df.columns
 

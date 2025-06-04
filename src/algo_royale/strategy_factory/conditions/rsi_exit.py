@@ -29,7 +29,7 @@ class RSIExitCondition(StrategyCondition):
     @classmethod
     def available_param_grid(cls):
         return {
-            "close_col": [StrategyColumns.CLOSE_PRICE],
+            "close_col": [StrategyColumns.CLOSE_PRICE, StrategyColumns.OPEN_PRICE],
             "period": [5, 10, 14, 20, 30],
             "overbought": [60, 65, 70, 75, 80],
         }

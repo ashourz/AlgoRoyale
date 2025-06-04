@@ -6,9 +6,11 @@ from typing import List, Optional
 
 import pandas as pd
 
+from algo_royale.column_names.strategy_columns import StrategyColumns
 from algo_royale.strategy_factory.conditions.base_strategy_condition import (
     StrategyCondition,
 )
+from algo_royale.strategy_factory.enum.signal_type import SignalType
 from algo_royale.strategy_factory.stateful_logic.base_stateful_logic import (
     StatefulLogic,
 )
@@ -87,28 +89,27 @@ class Strategy(ABC):
         return mask
 
     def _apply_entry(self, df: pd.DataFrame) -> pd.Series:
-        """
-        Applies entry conditions to the DataFrame.
-        Returns a boolean Series indicating where entry conditions are met.
-        """
         if not self.entry_conditions:
-            return pd.Series(True, index=df.index)
-        mask = pd.Series(True, index=df.index)
-        for func in self.entry_conditions:
-            mask &= func(df)
-        return mask
+            return pd.Series(SignalType.HOLD.value, index=df.index)
+        # Combine entry signals (example: take first non-hold, or customize as needed)
+        entry_signals = pd.Series(SignalType.HOLD.value, index=df.index)
+        for cond in self.entry_conditions:
+            cond_signal = cond.apply(df)
+            entry_signals = cond_signal.where(
+                cond_signal != SignalType.HOLD.value, entry_signals
+            )
+        return entry_signals
 
     def _apply_exit(self, df: pd.DataFrame) -> pd.Series:
-        """
-        Applies exit conditions to the DataFrame.
-        Returns a boolean Series indicating where exit conditions are met.
-        """
         if not self.exit_conditions:
-            return pd.Series(False, index=df.index)
-        mask = pd.Series(False, index=df.index)
-        for func in self.exit_conditions:
-            mask |= func(df)
-        return mask
+            return pd.Series(SignalType.HOLD.value, index=df.index)
+        exit_signals = pd.Series(SignalType.HOLD.value, index=df.index)
+        for cond in self.exit_conditions:
+            cond_signal = cond.apply(df)
+            exit_signals = cond_signal.where(
+                cond_signal != SignalType.HOLD.value, exit_signals
+            )
+        return exit_signals
 
     def _apply_strategy(self, df: pd.DataFrame) -> pd.Series:
         """
@@ -149,24 +150,47 @@ class Strategy(ABC):
 
         return signals
 
-    def generate_signals(self, df: pd.DataFrame) -> pd.Series:
-        """
-        Generates trading signals based on the strategy's conditions.
-        Parameters:
-        - df: DataFrame containing the price data with required columns.
-        Returns:
-        - signals: Series with 'buy', 'sell', or 'hold' signals.
-        Raises:
-        - ValueError: If required columns are missing in the DataFrame.
-        """
+    def generate_signals(self, df: pd.DataFrame) -> pd.DataFrame:
         required_cols = set(self.required_columns)
         missing = required_cols - set(df.columns)
         if missing:
             raise ValueError(f"Missing required columns: {missing}")
-        mask = self._apply_filters(df)
-        signals = self._apply_strategy(df)
-        # Set signals to 'hold' where mask is False
-        return signals.where(mask, other="hold")
+
+        filter_mask = self._apply_filters(df)
+        trend_mask = self._apply_trend(df)
+
+        entry_signals = self._apply_entry(df)
+        exit_signals = self._apply_exit(df)
+
+        # Only allow entry signals where both filter and trend masks are True
+        entry_signals = entry_signals.where(
+            filter_mask & trend_mask, other=SignalType.HOLD.value
+        )
+
+        # If stateful logic is present, apply it row by row
+        if self.stateful_logic is not None:
+            state = {}
+            entry_signals_new = entry_signals.copy()
+            exit_signals_new = exit_signals.copy()
+            for i in range(len(df)):
+                entry_signals_new.iloc[i], exit_signals_new.iloc[i], state = (
+                    self.stateful_logic(
+                        i=i,
+                        df=df,
+                        entry_signal=entry_signals.iloc[i],
+                        exit_signal=exit_signals.iloc[i],
+                        state=state,
+                        trend_mask=trend_mask,
+                        filter_mask=filter_mask,
+                    )
+                )
+            entry_signals = entry_signals_new
+            exit_signals = exit_signals_new
+
+        df = df.copy()
+        df[StrategyColumns.ENTRY_SIGNAL] = entry_signals
+        df[StrategyColumns.EXIT_SIGNAL] = exit_signals
+        return df
 
     def get_description(self):
         def id_or_list(val):

@@ -95,7 +95,7 @@ class MovingAverageCrossoverEntryCondition(StrategyCondition):
             if short < long < trend
         ]
         return {
-            "close_col": [StrategyColumns.CLOSE_PRICE],
+            "close_col": [StrategyColumns.CLOSE_PRICE, StrategyColumns.OPEN_PRICE],
             "volume_col": [StrategyColumns.VOLUME],
             "short_window_long_window_trend_window": valid_combos,
             "volume_ma_window": [10, 20, 30],
