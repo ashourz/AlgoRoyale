@@ -11,6 +11,7 @@ class BooleanColumnEntryCondition(StrategyCondition):
         """
         Condition based on a boolean column.
         """
+        super().__init__(entry_col=entry_col)
         self.entry_col = entry_col
 
     @property

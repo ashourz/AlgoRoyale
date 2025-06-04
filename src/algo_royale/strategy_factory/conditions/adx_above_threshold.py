@@ -54,6 +54,7 @@ class ADXAboveThresholdCondition(StrategyCondition):
         close_col: StrategyColumns = StrategyColumns.CLOSE_PRICE,
         threshold: float = 25,
     ):
+        super().__init__(adx_col=adx_col, close_col=close_col, threshold=threshold)
         self.adx_col = adx_col
         self.close_col = close_col
         self.threshold = threshold

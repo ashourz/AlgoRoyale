@@ -12,6 +12,7 @@ class PullbackEntryCondition(StrategyCondition):
         ma_col: StrategyColumns = StrategyColumns.SMA_20,
         close_col: StrategyColumns = StrategyColumns.CLOSE_PRICE,
     ):
+        super().__init__(ma_col=ma_col, close_col=close_col)
         self.ma_col = ma_col
         self.close_col = close_col
 

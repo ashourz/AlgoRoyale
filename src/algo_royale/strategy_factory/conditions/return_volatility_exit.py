@@ -22,6 +22,12 @@ class ReturnVolatilityExitCondition(StrategyCondition):
         range_col: StrategyColumns = StrategyColumns.RANGE,
         volatility_col: StrategyColumns = StrategyColumns.VOLATILITY_20,
     ):
+        super().__init__(
+            return_col=return_col,
+            range_col=range_col,
+            volatility_col=volatility_col,
+            threshold=threshold,
+        )
         self.return_col = return_col
         self.range_col = range_col
         self.volatility_col = volatility_col

@@ -13,6 +13,11 @@ class WickReversalEntryCondition(StrategyCondition):
         lower_wick_col: StrategyColumns = StrategyColumns.LOWER_WICK,
         body_col: StrategyColumns = StrategyColumns.BODY,
     ):
+        super().__init__(
+            wick_body_ratio=wick_body_ratio,
+            lower_wick_col=lower_wick_col,
+            body_col=body_col,
+        )
         self.wick_body_ratio = wick_body_ratio
         self.lower_wick_col = lower_wick_col
         self.body_col = body_col

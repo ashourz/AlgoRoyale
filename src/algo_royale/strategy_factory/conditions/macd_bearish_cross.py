@@ -56,6 +56,7 @@ class MACDBearishCrossCondition(StrategyCondition):
         macd_col: StrategyColumns = StrategyColumns.MACD,
         signal_col: StrategyColumns = StrategyColumns.MACD_SIGNAL,
     ):
+        super().__init__(macd_col=macd_col, signal_col=signal_col)
         self.macd_col = macd_col
         self.signal_col = signal_col
 

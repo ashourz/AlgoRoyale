@@ -10,6 +10,7 @@ from algo_royale.strategy_factory.conditions.volume_surge_entry import (
 
 class VolumeSurgeExitCondition(StrategyCondition):
     def __init__(self, entry_condition: VolumeSurgeEntryCondition):
+        super().__init__(entry_condition=entry_condition)
         self.entry_condition = entry_condition
 
     @property

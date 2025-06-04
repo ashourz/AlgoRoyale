@@ -12,6 +12,7 @@ class TrendAboveSMACondition(StrategyCondition):
         price_col: StrategyColumns = StrategyColumns.CLOSE_PRICE,
         sma_col: StrategyColumns = StrategyColumns.SMA_20,
     ):
+        super().__init__(price_col=price_col, sma_col=sma_col)
         self.price_col = price_col
         self.sma_col = sma_col
 

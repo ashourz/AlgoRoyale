@@ -47,6 +47,7 @@ class ADXBelowThresholdCondition(StrategyCondition):
     def __init__(
         self, adx_col: StrategyColumns = StrategyColumns.ADX, threshold: float = 25
     ):
+        super().__init__(adx_col=adx_col, threshold=threshold)
         self.adx_col = adx_col
         self.threshold = threshold
 

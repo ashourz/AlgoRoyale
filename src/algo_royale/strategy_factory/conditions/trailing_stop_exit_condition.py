@@ -15,6 +15,7 @@ class TrailingStopExitCondition(StrategyCondition):
     def __init__(
         self, close_col: StrategyColumns = StrategyColumns.CLOSE_PRICE, stop_pct=0.02
     ):
+        super().__init__(close_col=close_col, stop_pct=stop_pct)
         self.close_col = close_col
         self.stop_pct = stop_pct
 

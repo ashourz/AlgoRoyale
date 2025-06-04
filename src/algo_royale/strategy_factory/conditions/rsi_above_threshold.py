@@ -49,6 +49,7 @@ class RSIAboveThresholdCondition(StrategyCondition):
     def __init__(
         self, rsi_col: StrategyColumns = StrategyColumns.RSI, threshold: float = 70
     ):
+        super().__init__(rsi_col=rsi_col, threshold=threshold)
         self.rsi_col = rsi_col
         self.threshold = threshold
 

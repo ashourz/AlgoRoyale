@@ -20,6 +20,10 @@ class SMATrendCondition(StrategyCondition):
         sma_fast_col: StrategyColumns = StrategyColumns.SMA_50,
         sma_slow_col: StrategyColumns = StrategyColumns.SMA_200,
     ):
+        super().__init__(
+            sma_fast_col=sma_fast_col,
+            sma_slow_col=sma_slow_col,
+        )
         self.sma_fast_col = sma_fast_col
         self.sma_slow_col = sma_slow_col
 

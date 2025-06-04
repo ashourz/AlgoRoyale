@@ -13,6 +13,11 @@ class VWAPReversionEntryCondition(StrategyCondition):
         vwap_col: StrategyColumns = StrategyColumns.VWAP_20,
         vwp_col: StrategyColumns = StrategyColumns.VOLUME_WEIGHTED_PRICE,
     ):
+        super().__init__(
+            deviation_threshold=deviation_threshold,
+            vwap_col=vwap_col,
+            vwp_col=vwp_col,
+        )
         self.deviation_threshold = deviation_threshold
         self.vwap_col = vwap_col
         self.vwp_col = vwp_col

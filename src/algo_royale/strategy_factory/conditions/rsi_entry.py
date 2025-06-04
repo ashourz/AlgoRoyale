@@ -8,6 +8,7 @@ from algo_royale.strategy_factory.conditions.base_strategy_condition import (
 
 class RSIEntryCondition(StrategyCondition):
     def __init__(self, close_col=StrategyColumns.CLOSE_PRICE, period=14, oversold=30):
+        super().__init__(close_col=close_col, period=period, oversold=oversold)
         self.close_col = close_col
         self.period = period
         self.oversold = oversold

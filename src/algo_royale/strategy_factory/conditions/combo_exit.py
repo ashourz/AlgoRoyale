@@ -24,6 +24,14 @@ class ComboExitCondition(StrategyCondition):
         volume_col: StrategyColumns = StrategyColumns.VOLUME,
         vol_ma_col: StrategyColumns = StrategyColumns.VOL_MA_20,
     ):
+        super().__init__(
+            rsi_col=rsi_col,
+            macd_col=macd_col,
+            volume_col=volume_col,
+            vol_ma_col=vol_ma_col,
+            rsi_sell_thresh=rsi_sell_thresh,
+            macd_sell_thresh=macd_sell_thresh,
+        )
         self.rsi_col = rsi_col
         self.macd_col = macd_col
         self.volume_col = volume_col

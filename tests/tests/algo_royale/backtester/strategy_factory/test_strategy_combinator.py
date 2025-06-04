@@ -1,0 +1,96 @@
+from algo_royale.strategy_factory.combinator.base_strategy_combinator import (
+    StrategyCombinator,
+)
+
+
+class DummyCondition:
+    @staticmethod
+    def all_possible_conditions():
+        # Return two dummy conditions
+        return ["cond1", "cond2"]
+
+
+class DummyStatefulLogic:
+    @staticmethod
+    def all_possible_conditions():
+        return ["logic1"]
+
+
+class DummyStrategy:
+    def __init__(self, **kwargs):
+        self.kwargs = kwargs
+
+
+def make_combinator(
+    filter_types=[DummyCondition],
+    entry_types=[DummyCondition],
+    trend_types=[DummyCondition],
+    exit_types=[DummyCondition],
+    stateful_types=[DummyStatefulLogic],
+    allow_empty_filter=False,
+    allow_empty_entry=False,
+    allow_empty_trend=False,
+    allow_empty_exit=False,
+    allow_empty_stateful_logic=False,
+):
+    class TestCombinator(StrategyCombinator):
+        pass
+
+    TestCombinator.filter_condition_types = filter_types
+    TestCombinator.allow_empty_filter = allow_empty_filter
+    TestCombinator.entry_condition_types = entry_types
+    TestCombinator.allow_empty_entry = allow_empty_entry
+    TestCombinator.trend_condition_types = trend_types
+    TestCombinator.allow_empty_trend = allow_empty_trend
+    TestCombinator.exit_condition_types = exit_types
+    TestCombinator.allow_empty_exit = allow_empty_exit
+    TestCombinator.stateful_logic_types = stateful_types
+    TestCombinator.allow_empty_stateful_logic = allow_empty_stateful_logic
+    TestCombinator.strategy_class = DummyStrategy
+    return TestCombinator
+
+
+def test_all_strategy_combinations_basic():
+    Combinator = make_combinator()
+    combos = Combinator.all_strategy_combinations()
+    assert len(combos) == 81  # matches actual output
+
+
+def test_all_strategy_combinations_with_empty_allowed():
+    Combinator = make_combinator(
+        allow_empty_filter=True,
+        allow_empty_entry=True,
+        allow_empty_trend=True,
+        allow_empty_exit=True,
+        allow_empty_stateful_logic=True,
+    )
+    combos = Combinator.all_strategy_combinations()
+    assert len(combos) == 512  # matches actual output
+
+
+def test_all_strategy_combinations_with_max_limits():
+    Combinator = make_combinator()
+    combos = Combinator.all_strategy_combinations(
+        max_filter=1, max_entry=1, max_trend=1, max_exit=1
+    )
+    assert len(combos) == 16  # matches actual output
+
+
+def test_all_strategy_combinations_empty_conditions():
+    Combinator = make_combinator(
+        filter_types=[],
+        entry_types=[],
+        trend_types=[],
+        exit_types=[],
+        stateful_types=[],
+        allow_empty_filter=True,
+        allow_empty_entry=True,
+        allow_empty_trend=True,
+        allow_empty_exit=True,
+        allow_empty_stateful_logic=True,
+    )
+    combos = Combinator.all_strategy_combinations()
+    # Only one possible strategy: all empty
+    assert len(combos) == 1
+    strat = combos[0]
+    assert isinstance(strat, DummyStrategy)

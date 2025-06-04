@@ -10,6 +10,7 @@ class TimeOfDayEntryCondition(StrategyCondition):
     def __init__(
         self, buy_hours={10, 14}, hour_col: StrategyColumns = StrategyColumns.HOUR
     ):
+        super().__init__(buy_hours=buy_hours, hour_col=hour_col)
         self.buy_hours = set(buy_hours)
         self.hour_col = hour_col
 

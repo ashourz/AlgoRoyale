@@ -10,6 +10,9 @@ from algo_royale.strategy_factory.conditions.pullback_entry import (
 
 class PullbackExitCondition(StrategyCondition):
     def __init__(self, entry_condition: PullbackEntryCondition):
+        super().__init__(
+            entry_condition=entry_condition,
+        )
         self.entry_condition = entry_condition
 
     @property

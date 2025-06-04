@@ -18,6 +18,7 @@ class BollingerBandsEntryCondition(StrategyCondition):
         window=20,
         num_std=2,
     ):
+        super().__init__(close_col=close_col, window=window, num_std=num_std)
         self.close_col = close_col
         self.window = window
         self.num_std = num_std

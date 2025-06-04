@@ -27,6 +27,13 @@ class MACDTrailingStatefulLogic(StatefulLogic):
         signal: int = 9,
         stop_pct: float = 0.02,
     ):
+        super().__init__(
+            close_col=close_col,
+            fast=fast,
+            slow=slow,
+            signal=signal,
+            stop_pct=stop_pct,
+        )
         self.close_col = close_col
         self.fast = fast
         self.slow = slow

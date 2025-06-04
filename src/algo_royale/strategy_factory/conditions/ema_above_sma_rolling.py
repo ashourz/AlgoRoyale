@@ -20,6 +20,7 @@ class EMAAboveSMARollingCondition(StrategyCondition):
         ),
         window: int = 3,
     ):
+        super().__init__(ema_sma_pair=ema_sma_pair, window=window)
         self.ema_col, self.sma_col = ema_sma_pair
         self.window = window
 

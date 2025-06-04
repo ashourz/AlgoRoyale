@@ -8,6 +8,10 @@ class StatefulLogic:
     update signals and state based on the current row of data.
     """
 
+    def __init__(self, *args, **kwargs):
+        for k, v in kwargs.items():
+            setattr(self, k, v)
+
     def __call__(self, i, df, signals, state, trend_mask, entry_mask, exit_mask):
         """
         Update signals and state for the i-th row.

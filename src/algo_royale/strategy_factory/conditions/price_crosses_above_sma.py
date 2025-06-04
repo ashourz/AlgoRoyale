@@ -58,6 +58,7 @@ class PriceCrossesAboveSMACondition(StrategyCondition):
         close_col: StrategyColumns = StrategyColumns.CLOSE_PRICE,
         sma_col: StrategyColumns = StrategyColumns.SMA_20,
     ):
+        super().__init__(close_col=close_col, sma_col=sma_col)
         self.close_col = close_col
         self.sma_col = sma_col
 

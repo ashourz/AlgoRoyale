@@ -24,6 +24,7 @@ class MovingAverageEntryCondition(StrategyCondition):
         close_col: StrategyColumns = StrategyColumns.CLOSE_PRICE,
         short_long_window: tuple[int, int] = (50, 200),
     ):
+        super().__init__(close_col=close_col)
         self.close_col = close_col
         self.short_window, self.long_window = short_long_window
 

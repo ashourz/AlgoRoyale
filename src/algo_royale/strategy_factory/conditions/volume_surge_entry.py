@@ -8,6 +8,7 @@ from algo_royale.strategy_factory.conditions.base_strategy_condition import (
 
 class VolumeSurgeEntryCondition(StrategyCondition):
     def __init__(self, vol_col=StrategyColumns.VOLUME, threshold=2.0, ma_window=20):
+        super().__init__(vol_col=vol_col, threshold=threshold, ma_window=ma_window)
         self.vol_col = vol_col
         self.threshold = threshold
         self.ma_window = ma_window

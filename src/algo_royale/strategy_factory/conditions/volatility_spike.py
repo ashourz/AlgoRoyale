@@ -49,6 +49,10 @@ class VolatilitySpikeCondition(StrategyCondition):
         range_col: StrategyColumns = StrategyColumns.RANGE,
         volatility_col: StrategyColumns = StrategyColumns.VOLATILITY,
     ):
+        super().__init__(
+            range_col=range_col,
+            volatility_col=volatility_col,
+        )
         self.range_col = range_col
         self.volatility_col = volatility_col
 

@@ -54,6 +54,11 @@ class VolumeSurgeCondition(StrategyCondition):
         vol_ma_col: StrategyColumns = StrategyColumns.VOL_MA_20,
         threshold: float = 2.0,
     ):
+        super().__init__(
+            volume_col=volume_col,
+            vol_ma_col=vol_ma_col,
+            threshold=threshold,
+        )
         self.volume_col = volume_col
         self.vol_ma_col = vol_ma_col
         self.threshold = threshold

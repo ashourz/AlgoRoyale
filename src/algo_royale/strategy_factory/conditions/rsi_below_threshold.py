@@ -57,6 +57,7 @@ class RSIBelowThresholdConditin(StrategyCondition):
         close_col: StrategyColumns = StrategyColumns.CLOSE_PRICE,
         threshold=30,
     ):
+        super().__init__(rsi_col=rsi_col, close_col=close_col, threshold=threshold)
         self.rsi_col = rsi_col
         self.close_col = close_col
         self.threshold = threshold

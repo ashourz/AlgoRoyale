@@ -20,6 +20,13 @@ class VolatilityBreakoutExitCondition(StrategyCondition):
         range_col: StrategyColumns = StrategyColumns.RANGE,
         close_col: StrategyColumns = StrategyColumns.CLOSE_PRICE,
     ):
+        super().__init__(
+            threshold=threshold,
+            sma_col=sma_col,
+            volatility_col=volatility_col,
+            range_col=range_col,
+            close_col=close_col,
+        )
         self.threshold = threshold
         self.sma_col = sma_col
         self.volatility_col = volatility_col

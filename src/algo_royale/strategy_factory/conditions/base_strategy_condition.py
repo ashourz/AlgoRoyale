@@ -9,7 +9,8 @@ class StrategyCondition:
     """
 
     def __init__(self, *args, **kwargs):
-        pass
+        for k, v in kwargs.items():
+            setattr(self, k, v)
 
     def apply(self, df: pd.DataFrame) -> pd.Series:
         """
@@ -40,26 +41,29 @@ class StrategyCondition:
     @classmethod
     def all_possible_conditions(cls):
         """
-        Returns a list of all possible condition instances for this class,
-        using the available_param_grid.
+        Returns all possible instances of this condition class with different parameter combinations.
+        If no parameters are defined, returns a single instance of the class.
         """
         grid = cls.available_param_grid()
         if not grid:
             return [cls()]
-        keys, values = zip(*grid.items())
-        combos = [dict(zip(keys, v)) for v in itertools.product(*values)]
-        return [cls(**params) for params in combos]
+        keys = list(grid.keys())
+        values = list(grid.values())
+        combos = []
+        for prod in itertools.product(*values):
+            params = dict(zip(keys, prod))
+            combos.append(cls(**params))
+        return combos
 
     def get_id(self):
-        """
-                Returns a unique string identifier for this logic instance,
-                including the class name and its parameters.
-        ]"""
-        params = {}
-        for k, v in self.__dict__.items():
+        params = []
+        for k in sorted(self.__dict__):
+            if k.startswith("_"):
+                continue
+            v = getattr(self, k)
             if hasattr(v, "get_id") and callable(v.get_id):
-                params[k] = v.get_id()
+                v_str = v.get_id()
             else:
-                params[k] = v
-        param_str = ",".join(f"{k}={repr(v)}" for k, v in sorted(params.items()))
-        return f"{self.__class__.__name__}({param_str})"
+                v_str = repr(v)
+            params.append(f"{k}={v_str}")
+        return f"{self.__class__.__name__}({','.join(params)})"

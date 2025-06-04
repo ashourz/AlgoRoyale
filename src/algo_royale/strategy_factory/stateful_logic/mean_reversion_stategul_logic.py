@@ -13,6 +13,14 @@ class MeanReversionStatefulLogic(StatefulLogic):
         reentry_cooldown=5,
         close_col: StrategyColumns = StrategyColumns.CLOSE_PRICE,
     ):
+        super().__init__(
+            window=window,
+            threshold=threshold,
+            stop_pct=stop_pct,
+            profit_target_pct=profit_target_pct,
+            reentry_cooldown=reentry_cooldown,
+            close_col=close_col,
+        )
         self.window = window
         self.threshold = threshold
         self.stop_pct = stop_pct
