@@ -1,95 +1,96 @@
 import json
+import os
 
 import pytest
 
 from algo_royale.strategy_factory.strategy_factory import StrategyFactory
 
 
+class DummyConfig:
+    def __init__(self, tmp_path):
+        self._path = str(tmp_path / "strategy_map.json")
+
+    def get(self, *args, **kwargs):
+        return self._path
+
+
 class DummyStrategy:
-    def __init__(self, **kwargs):
-        self.params = kwargs
+    def get_hash_id(self):
+        return "dummy"
+
+    def get_description(self):
+        return "desc"
+
+    def __class__(self):
+        return type("DummyStrategy", (), {})()
 
 
 @pytest.fixture
-def strategy_map():
-    return {
-        "MovingAverageStrategy": DummyStrategy,
-        "MomentumStrategy": DummyStrategy,
-    }
+def config(tmp_path):
+    return DummyConfig(tmp_path)
 
 
 @pytest.fixture
-def factory(strategy_map):
-    return StrategyFactory(strategy_map=strategy_map)
+def factory(config):
+    return StrategyFactory(config=config)
 
 
-def write_json(tmp_path, data) -> str:
-    file = tmp_path / "strategies.json"
-    with open(file, "w") as f:
-        json.dump(data, f)
-    return str(file)
+def test_get_all_strategy_combinations_returns_list(factory, monkeypatch):
+    # Patch all combinators to return dummy strategies
+    dummy = DummyStrategy()
+    for combinator in [
+        "BollingerBandsStrategyCombinator",
+        "ComboStrategyCombinator",
+        "MACDTrailingStrategyCombinator",
+        "MeanReversionStrategyCombinator",
+        "MomentumStrategyCombinator",
+        "MovingAverageCrossoverStrategyCombinator",
+        "MovingAverageStrategyCombinator",
+        "PullbackEntryStrategyCombinator",
+        "RSIStrategyCombinator",
+        "TimeOfDayBiasStrategyCombinator",
+        "TrailingStopStrategyCombinator",
+        "TrendScraperStrategyCombinator",
+        "VolatilityBreakoutStrategyCombinator",
+        "VolumeSurgeStrategyCombinator",
+        "VWAPReversionStrategyCombinator",
+        "WickReversalStrategyCombinator",
+    ]:
+        monkeypatch.setattr(
+            f"algo_royale.strategy_factory.combinator.{combinator}",
+            "get_all_combinations",
+            staticmethod(lambda: [dummy]),
+        )
+    combos = factory.get_all_strategy_combinations()
+    assert isinstance(combos, list)
+    assert all(hasattr(s, "get_hash_id") for s in combos)
+    assert all(hasattr(s, "get_description") for s in combos)
 
 
-def test_create_strategies_param_grid(tmp_path, factory):
-    config = {
-        "defaults": [
-            {
-                "name": "MovingAverageStrategy",
-                "param_grid": {"x": [1, 2], "y": [10, 20]},
-            }
-        ],
-        "symbols": {"AAPL": []},
-    }
-    json_path = write_json(tmp_path, config)
-    result = factory.create_strategies(json_path)
-    assert len(result["AAPL"]) == 4
-    for strat in result["AAPL"]:
-        assert isinstance(strat, DummyStrategy)
-        assert set(strat.params.keys()) == {"x", "y"}
+def test_save_strategy_map_creates_file(factory, tmp_path):
+    # Use dummy strategies
+    class Dummy:
+        def __init__(self, i):
+            self.i = i
 
+        def get_hash_id(self):
+            return f"id_{self.i}"
 
-def test_create_strategies_params_singleton(tmp_path, factory):
-    config = {
-        "defaults": [{"name": "MovingAverageStrategy", "params": {"foo": 123}}],
-        "symbols": {"AAPL": []},
-    }
-    json_path = write_json(tmp_path, config)
-    result = factory.create_strategies(json_path)
-    assert len(result["AAPL"]) == 1
-    assert result["AAPL"][0].params == {"foo": 123}
+        def get_description(self):
+            return f"desc_{self.i}"
 
+        @property
+        def __class__(self):
+            class C:
+                __name__ = "Dummy"
 
-def test_create_strategies_symbol_specific(tmp_path, factory):
-    config = {
-        "defaults": [],
-        "symbols": {
-            "AAPL": [{"name": "MomentumStrategy", "param_grid": {"window": [5, 10]}}],
-            "GOOG": [],
-        },
-    }
-    json_path = write_json(tmp_path, config)
-    result = factory.create_strategies(json_path)
-    assert len(result["AAPL"]) == 2
-    assert len(result["GOOG"]) == 0
+            return C
 
-
-def test_create_strategies_unknown_strategy(tmp_path, factory):
-    config = {
-        "defaults": [{"name": "NotARealStrategy", "param_grid": {}}],
-        "symbols": {"AAPL": []},
-    }
-    json_path = write_json(tmp_path, config)
-    with pytest.raises(ValueError):
-        factory.create_strategies(json_path)
-
-
-def test_create_strategies_defaults_and_symbol(tmp_path, factory):
-    config = {
-        "defaults": [{"name": "MovingAverageStrategy", "param_grid": {"a": [1]}}],
-        "symbols": {"AAPL": [{"name": "MomentumStrategy", "param_grid": {"b": [2]}}]},
-    }
-    json_path = write_json(tmp_path, config)
-    result = factory.create_strategies(json_path)
-    assert len(result["AAPL"]) == 2
-    names = [type(s).__name__ for s in result["AAPL"]]
-    assert names.count("DummyStrategy") == 2
+    strategies = [Dummy(i) for i in range(3)]
+    factory.strategy_map_path = str(tmp_path / "out.json")
+    factory._save_strategy_map(strategies)
+    assert os.path.exists(factory.strategy_map_path)
+    with open(factory.strategy_map_path) as f:
+        data = json.load(f)
+    assert "Dummy" in data
+    assert all(f"id_{i}" in data["Dummy"] for i in range(3))

@@ -30,7 +30,7 @@ class MeanReversionStrategy(Strategy):
         self,
         trend_conditions: list[MeanReversionStatefulLogic] = [
             PriceAboveSMACondition(
-                price_col=StrategyColumns.CLOSE_PRICE, sma_col=StrategyColumns.SMA_200
+                close_col=StrategyColumns.CLOSE_PRICE, sma_col=StrategyColumns.SMA_200
             )
         ],
         stateful_logic: MeanReversionStatefulLogic = MeanReversionStatefulLogic(

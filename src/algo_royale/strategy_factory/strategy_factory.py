@@ -1,6 +1,5 @@
-import itertools
 import json
-from typing import Dict, Optional
+from typing import Optional
 
 from algo_royale.config.config import Config
 from algo_royale.strategy_factory.combinator.bollinger_bands_strategy_combinator import (
@@ -73,42 +72,6 @@ class StrategyFactory:
         default_strats = self.json_config.get("defaults", [])
         symbol_strats = self.json_config.get("symbols", {}).get(symbol, [])
         return default_strats + symbol_strats
-
-    def create_strategies(
-        self,
-        json_path: str,
-    ) -> Dict[str, list[object]]:
-        """
-        For each symbol in config, create all strategy instances (all param combos for param_grid).
-        Returns dict: symbol -> list of strategy instances.
-        """
-        with open(json_path, "r") as f:
-            self.json_config = json.load(f)
-
-        strategies_per_symbol: Dict[str, list[object]] = {}
-        all_symbols = list(self.json_config.get("symbols", {}).keys())
-        for symbol in all_symbols:
-            strat_defs = self._get_merged_strategy_defs(symbol)
-            strategies = []
-            for strat_def in strat_defs:
-                name = strat_def.get("name")
-                strat_cls = self.strategy_map.get(name)
-                if strat_cls is None:
-                    raise ValueError(f"Unknown strategy: {name}")
-                param_grid = strat_def.get("param_grid")
-                if param_grid:
-                    param_names = list(param_grid.keys())
-                    param_values = [
-                        v if isinstance(v, list) else [v] for v in param_grid.values()
-                    ]
-                    for combo in itertools.product(*param_values):
-                        params = dict(zip(param_names, combo))
-                        strategies.append(strat_cls(**params))
-                else:
-                    params = strat_def.get("params", {})
-                    strategies.append(strat_cls(**params))
-            strategies_per_symbol[symbol] = strategies
-        return strategies_per_symbol
 
     def get_all_strategy_combinations(self):
         """
