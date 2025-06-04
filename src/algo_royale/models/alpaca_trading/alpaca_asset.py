@@ -1,6 +1,5 @@
 # src/models/alpaca_models/alpaca_asset.py
 
-from typing import List
 from pydantic import BaseModel
 
 
@@ -21,7 +20,7 @@ class Asset(BaseModel):
         shortable (bool): Whether the asset can be sold short.
         easy_to_borrow (bool): Indicates if the asset is easy to borrow for shorting.
         fractionable (bool): Whether the asset supports fractional share trading.
-        attributes (List[str]): Additional asset-specific attributes (if any).
+        attributes (list[str]): Additional asset-specific attributes (if any).
     """
 
     id: str
@@ -36,7 +35,7 @@ class Asset(BaseModel):
     shortable: bool
     easy_to_borrow: bool
     fractionable: bool
-    attributes: List[str]
+    attributes: list[str]
 
     @staticmethod
     def from_raw(data: dict) -> "Asset":
@@ -62,18 +61,18 @@ class Asset(BaseModel):
             shortable=data["shortable"],
             easy_to_borrow=data["easy_to_borrow"],
             fractionable=data["fractionable"],
-            attributes=data.get("attributes") or []
+            attributes=data.get("attributes") or [],
         )
 
     @staticmethod
-    def parse_assets(raw_data: List[dict]) -> List["Asset"]:
+    def parse_assets(raw_data: list[dict]) -> list["Asset"]:
         """
         Parses a list of raw asset dictionaries into a list of Asset model instances.
 
         Args:
-            raw_data (List[dict]): List of dictionaries, each representing an asset.
+            raw_data (list[dict]): List of dictionaries, each representing an asset.
 
         Returns:
-            List[Asset]: A list of Asset model instances.
+            list[Asset]: A list of Asset model instances.
         """
         return [Asset.from_raw(asset) for asset in raw_data]

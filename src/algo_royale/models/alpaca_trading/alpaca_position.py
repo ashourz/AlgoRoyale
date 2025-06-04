@@ -1,7 +1,6 @@
 # src/models/alpaca_models/alpaca_trading/alpaca_order.py
 
 from enum import Enum
-from typing import List
 
 from pydantic import BaseModel
 
@@ -107,10 +106,10 @@ class PositionList(BaseModel):
     Represents a list of OrderResponse objects returned from the Alpaca API.
     """
 
-    positions: List[Position]
+    positions: list[Position]
 
     @classmethod
-    def from_raw(cls, data: List[dict]) -> "PositionList":
+    def from_raw(cls, data: list[dict]) -> "PositionList":
         """
         Factory method to parse a raw list of order dictionaries
         into structured Position objects.
@@ -138,10 +137,10 @@ class ClosedPositionList(BaseModel):
     Represents a list of ClosedPosition objects returned from the Alpaca API.
     """
 
-    closedPositions: List[ClosedPosition]
+    closedPositions: list[ClosedPosition]
 
     @classmethod
-    def from_raw(cls, data: List[dict]) -> "ClosedPositionList":
+    def from_raw(cls, data: list[dict]) -> "ClosedPositionList":
         """
         Factory method to parse a raw list of order dictionaries
         into structured ClosedPosition objects.

@@ -1,6 +1,6 @@
 import asyncio
 from logging import Logger
-from typing import AsyncIterator, Callable, Dict, List, Union
+from typing import AsyncIterator, Callable, Dict, Union
 
 import pandas as pd
 
@@ -19,9 +19,9 @@ class StrategyBacktestExecutor:
 
     async def run_backtest(
         self,
-        strategies: List[Strategy],
+        strategies: list[Strategy],
         data: Dict[str, Callable[[], AsyncIterator[pd.DataFrame]]],
-    ) -> Dict[str, List[pd.DataFrame]]:
+    ) -> Dict[str, list[pd.DataFrame]]:
         """Pure async implementation for processing streaming data"""
         results = {}
 
@@ -50,7 +50,7 @@ class StrategyBacktestExecutor:
                 async for page_df in async_df_iterator:
                     page_count += 1
                     for strategy in strategies:
-                        strategy_name = strategy.get_directory()
+                        strategy_name = strategy.get_hash_id()
                         pair_key = f"{symbol}_{strategy_name}"
 
                         if self._should_skip_pair(pair_key, strategy_name, symbol):
@@ -79,7 +79,7 @@ class StrategyBacktestExecutor:
         self, symbol: str, strategy: Strategy, page_df: pd.DataFrame, page_num: int
     ) -> Union[pd.DataFrame, None]:
         """Process a single page of data with proper signal handling"""
-        strategy_name = strategy.get_directory()
+        strategy_name = strategy.get_hash_id()
         if page_df.empty:
             self.logger.debug(
                 f"Empty page {page_num} for symbol:{symbol} | strategy:{strategy_name}"
@@ -145,7 +145,7 @@ class StrategyBacktestExecutor:
     def _validate_strategy_output(
         self, strategy: Strategy, df: pd.DataFrame, signals_df: pd.DataFrame
     ) -> None:
-        strategy_name = strategy.get_directory()
+        strategy_name = strategy.get_hash_id()
         if len(signals_df) != len(df):
             raise ValueError(
                 f"Strategy {strategy_name} returned "

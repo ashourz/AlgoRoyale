@@ -1,10 +1,12 @@
 # src/models/alpaca_models/alpaca_bar.py
 
-import pandas as pd
-from pydantic import BaseModel
-from typing import Dict, List, Optional, Union
 from datetime import datetime
+from typing import Dict, Optional, Union
+
+import pandas as pd
 from dateutil.parser import isoparse  # If you want to use the isoparse method
+from pydantic import BaseModel
+
 
 class Bar(BaseModel):
     """
@@ -20,6 +22,7 @@ class Bar(BaseModel):
         num_trades (int): Number of trades during the bar.
         volume_weighted_price (float): Volume-weighted average price.
     """
+
     timestamp: datetime
     open_price: float
     high_price: float
@@ -30,36 +33,50 @@ class Bar(BaseModel):
     volume_weighted_price: float
 
     @classmethod
-    def parse_timestamp(cls, raw_ts: Union[int, str, pd.Timestamp, datetime]) -> datetime:
+    def parse_timestamp(
+        cls, raw_ts: Union[int, str, pd.Timestamp, datetime]
+    ) -> datetime:
         """Handle all supported timestamp formats."""
         if isinstance(raw_ts, (datetime, pd.Timestamp)):
-            return raw_ts if raw_ts.tzinfo is not None else raw_ts.replace(tzinfo=datetime.utc.tzinfo)
+            return (
+                raw_ts
+                if raw_ts.tzinfo is not None
+                else raw_ts.replace(tzinfo=datetime.utc.tzinfo)
+            )
         elif isinstance(raw_ts, int):
             return datetime.fromtimestamp(raw_ts, tz=datetime.utc.tzinfo)
         elif isinstance(raw_ts, str):
             return isoparse(raw_ts)
         raise ValueError(f"Unsupported timestamp type: {type(raw_ts)}")
-    
+
     @classmethod
     def from_raw(cls, data: Union[dict, pd.Series]) -> "Bar":
         """Handle both Alpaca and DataFrame formats."""
         if isinstance(data, pd.Series):
             data = data.to_dict()
-        
+
         # Extract timestamp
-        timestamp = data.get('t') or data.get('timestamp')
+        timestamp = data.get("t") or data.get("timestamp")
         if timestamp is None:
             raise ValueError("Missing timestamp in data")
-        
+
         return cls(
             timestamp=cls.parse_timestamp(timestamp),
-            open_price=float(data.get('o') or data.get('open_price') or data.get('open')),
-            high_price=float(data.get('h') or data.get('high_price') or data.get('high')),
-            low_price=float(data.get('l') or data.get('low_price') or data.get('low')),
-            close_price=float(data.get('c') or data.get('close_price') or data.get('close')),
-            volume=int(data.get('v') or data.get('volume') or 0),
-            num_trades=int(data.get('n') or data.get('num_trades') or 0),
-            volume_weighted_price=float(data.get('vw') or data.get('volume_weighted_price') or 0)
+            open_price=float(
+                data.get("o") or data.get("open_price") or data.get("open")
+            ),
+            high_price=float(
+                data.get("h") or data.get("high_price") or data.get("high")
+            ),
+            low_price=float(data.get("l") or data.get("low_price") or data.get("low")),
+            close_price=float(
+                data.get("c") or data.get("close_price") or data.get("close")
+            ),
+            volume=int(data.get("v") or data.get("volume") or 0),
+            num_trades=int(data.get("n") or data.get("num_trades") or 0),
+            volume_weighted_price=float(
+                data.get("vw") or data.get("volume_weighted_price") or 0
+            ),
         )
 
 
@@ -68,10 +85,11 @@ class BarsResponse(BaseModel):
     Represents a collection of historical bars for one or more stock symbols.
 
     Attributes:
-        symbol_bars (Dict[str, List[Bar]]): A mapping from stock symbol to a list of Bar objects.
+        symbol_bars (Dict[str, list[Bar]]): A mapping from stock symbol to a list of Bar objects.
         next_page_token (Optional[str]): Token to fetch the next page of data, if available.
     """
-    symbol_bars: Dict[str, List[Bar]]
+
+    symbol_bars: Dict[str, list[Bar]]
     next_page_token: Optional[str] = None
 
     @classmethod
@@ -90,11 +108,14 @@ class BarsResponse(BaseModel):
             symbol: [Bar.from_raw(bar_data) for bar_data in bar_list]
             for symbol, bar_list in raw_data.get("bars", {}).items()
         }
-        
+
         return cls(
             symbol_bars=parsed,
-            next_page_token=raw_data.get("next_page_token")  # You may need to add error handling if "next_page_token" is missing
+            next_page_token=raw_data.get(
+                "next_page_token"
+            ),  # You may need to add error handling if "next_page_token" is missing
         )
+
 
 class LatestBarsResponse(BaseModel):
     """
@@ -115,8 +136,8 @@ class LatestBarsResponse(BaseModel):
         Creates a LatestBarsResponse instance from raw API response data.
 
         Args:
-            raw_data (dict): The raw dictionary response from the Alpaca API. 
-                            Expected to contain a "bars" dictionary where each key 
+            raw_data (dict): The raw dictionary response from the Alpaca API.
+                            Expected to contain a "bars" dictionary where each key
                             is a symbol and each value is a single bar (dict).
 
         Returns:

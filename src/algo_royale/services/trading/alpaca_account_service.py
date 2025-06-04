@@ -1,9 +1,25 @@
-from typing import Optional, List
 from datetime import datetime
-from algo_royale.clients.alpaca.alpaca_trading.alpaca_accounts_client import AlpacaAccountClient
-from algo_royale.models.alpaca_trading.alpaca_account import Account, AccountActivities, AccountConfiguration
-from algo_royale.models.alpaca_trading.enums import ActivityType, SortDirection, TradeConfirmationEmail, DTBPCheck, MarginMultiplier, OptionsTradingLevel, PDTCheck
+from typing import Optional
+
+from algo_royale.clients.alpaca.alpaca_trading.alpaca_accounts_client import (
+    AlpacaAccountClient,
+)
 from algo_royale.clients.alpaca.exceptions import ParameterConflictError
+from algo_royale.models.alpaca_trading.alpaca_account import (
+    Account,
+    AccountActivities,
+    AccountConfiguration,
+)
+from algo_royale.models.alpaca_trading.enums import (
+    ActivityType,
+    DTBPCheck,
+    MarginMultiplier,
+    OptionsTradingLevel,
+    PDTCheck,
+    SortDirection,
+    TradeConfirmationEmail,
+)
+
 
 class AlpacaAccountService:
     """Service class to interact with Alpaca account data, leveraging the AlpacaAccountClient."""
@@ -45,7 +61,7 @@ class AlpacaAccountService:
         max_margin_multiplier: Optional[MarginMultiplier] = None,
         max_options_trading_level: Optional[OptionsTradingLevel] = None,
         pdt_check: Optional[PDTCheck] = None,
-        ptp_no_exception_entry: Optional[bool] = None
+        ptp_no_exception_entry: Optional[bool] = None,
     ) -> Optional[AccountConfiguration]:
         """
         Updates and fetches account configuration from the Alpaca API.
@@ -73,25 +89,25 @@ class AlpacaAccountService:
             max_margin_multiplier=max_margin_multiplier,
             max_options_trading_level=max_options_trading_level,
             pdt_check=pdt_check,
-            ptp_no_exception_entry=ptp_no_exception_entry
+            ptp_no_exception_entry=ptp_no_exception_entry,
         )
 
     async def get_account_activities(
         self,
-        activity_types: Optional[List[ActivityType]] = None,
+        activity_types: Optional[list[ActivityType]] = None,
         category: Optional[str] = None,
         date: Optional[datetime] = None,
         until: Optional[datetime] = None,
         after: Optional[datetime] = None,
         direction: Optional[SortDirection] = SortDirection.DESC,
         page_size: Optional[int] = 100,
-        page_token: Optional[str] = None
+        page_token: Optional[str] = None,
     ) -> Optional[AccountActivities]:
         """
         Retrieves account activities from the Alpaca API.
 
         Args:
-            activity_types (Optional[List[ActivityType]]): List of activity types to filter results.
+            activity_types (Optional[list[ActivityType]]): List of activity types to filter results.
             category (Optional[str]): Activity category (mutually exclusive with activity_types).
             date (Optional[datetime]): Specific date for filtering activities.
             until (Optional[datetime]): Filter activities before this date.
@@ -104,7 +120,9 @@ class AlpacaAccountService:
             Optional[AccountActivities]: A list of account activity objects or None if not found.
         """
         if activity_types and category:
-            raise ParameterConflictError("Specify either 'activity_types' or 'category' or neither, not both.")
+            raise ParameterConflictError(
+                "Specify either 'activity_types' or 'category' or neither, not both."
+            )
 
         return await self.account_client.get_account_activities(
             activity_types=activity_types,
@@ -114,7 +132,7 @@ class AlpacaAccountService:
             after=after,
             direction=direction,
             page_size=page_size,
-            page_token=page_token
+            page_token=page_token,
         )
 
     async def get_account_activities_by_activity_type(
@@ -125,7 +143,7 @@ class AlpacaAccountService:
         after: Optional[datetime] = None,
         direction: Optional[SortDirection] = SortDirection.DESC,
         page_size: Optional[int] = 100,
-        page_token: Optional[str] = None
+        page_token: Optional[str] = None,
     ) -> Optional[AccountActivities]:
         """
         Retrieves account activities filtered by activity type from the Alpaca API.
@@ -149,5 +167,5 @@ class AlpacaAccountService:
             after=after,
             direction=direction,
             page_size=page_size,
-            page_token=page_token
+            page_token=page_token,
         )

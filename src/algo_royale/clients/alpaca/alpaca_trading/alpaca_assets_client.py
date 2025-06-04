@@ -1,67 +1,63 @@
 ## client\alpaca_trading\alpaca_assets_client.py
 
-from typing import List, Optional
+from typing import Optional
+
 from algo_royale.clients.alpaca.alpaca_base_client import AlpacaBaseClient
 from algo_royale.clients.alpaca.alpaca_client_config import TradingConfig
-from algo_royale.clients.alpaca.exceptions import AlpacaAssetNotFoundException, AlpacaResourceNotFoundException
+from algo_royale.clients.alpaca.exceptions import (
+    AlpacaAssetNotFoundException,
+    AlpacaResourceNotFoundException,
+)
 from algo_royale.models.alpaca_trading.alpaca_asset import Asset
 
+
 class AlpacaAssetsClient(AlpacaBaseClient):
-    """Singleton class to interact with Alpaca's API for news data.""" 
+    """Singleton class to interact with Alpaca's API for news data."""
 
     def __init__(self, trading_config: TradingConfig):
         """Initialize the AlpacaStockClient with trading configuration."""
         super().__init__(trading_config)
         self.trading_config = trading_config
-        
+
     @property
     def client_name(self) -> str:
         """Subclasses must define a name for logging and ID purposes"""
-        return "AlpacaAssetsClient"    
-    
+        return "AlpacaAssetsClient"
+
     @property
     def base_url(self) -> str:
         """Subclasses must define a name for logging and ID purposes"""
         return self.trading_config.get_base_url()
-    
+
     async def fetch_assets(
-            self,
-            status: Optional[str] = None,
-            asset_class: str = "us_equity",
-            exchange: Optional[str] = None
-        ) -> Optional[List[Asset]]:
+        self,
+        status: Optional[str] = None,
+        asset_class: str = "us_equity",
+        exchange: Optional[str] = None,
+    ) -> Optional[list[Asset]]:
         """Fetch asset data from Alpaca."""
 
-        params = {
-            "status": status,
-            "asset_class": asset_class,
-            "exchange": exchange
-        }
-                
+        params = {"status": status, "asset_class": asset_class, "exchange": exchange}
+
         try:
-            response = await self.get(
-                endpoint="assets",
-                params=params
-            )
+            response = await self.get(endpoint="assets", params=params)
             return Asset.parse_assets(response)
         except AlpacaResourceNotFoundException as e:
-            self.logger.error(f"Asset not found. Code:{e.status_code} | Message:{e.message}")
+            self.logger.error(
+                f"Asset not found. Code:{e.status_code} | Message:{e.message}"
+            )
             raise AlpacaAssetNotFoundException(e.message)
-    
-    
+
     async def fetch_asset_by_symbol_or_id(
-            self,
-            symbol_or_asset_id: str
-        ) -> Optional[Asset]:
+        self, symbol_or_asset_id: str
+    ) -> Optional[Asset]:
         """Fetch asset data from Alpaca."""
 
         try:
-            response = await self.get(
-                endpoint=f"assets/{symbol_or_asset_id}"
-            )
+            response = await self.get(endpoint=f"assets/{symbol_or_asset_id}")
             return Asset.from_raw(response)
         except AlpacaResourceNotFoundException as e:
-            self.logger.error(f"Asset not found. Code:{e.status_code} | Message:{e.message}")
+            self.logger.error(
+                f"Asset not found. Code:{e.status_code} | Message:{e.message}"
+            )
             raise AlpacaAssetNotFoundException(e.message)
-
-            

@@ -2,7 +2,7 @@
 
 import hashlib
 from abc import ABC
-from typing import List, Optional
+from typing import Optional
 
 import pandas as pd
 
@@ -34,10 +34,10 @@ class Strategy(ABC):
 
     def __init__(
         self,
-        filter_conditions: Optional[List[StrategyCondition]] = None,
-        trend_conditions: Optional[List[StrategyCondition]] = None,
-        entry_conditions: Optional[List[StrategyCondition]] = None,
-        exit_conditions: Optional[List[StrategyCondition]] = None,
+        filter_conditions: Optional[list[StrategyCondition]] = None,
+        trend_conditions: Optional[list[StrategyCondition]] = None,
+        entry_conditions: Optional[list[StrategyCondition]] = None,
+        exit_conditions: Optional[list[StrategyCondition]] = None,
         stateful_logic: Optional[StatefulLogic] = None,
     ):
         self.filter_conditions = filter_conditions or []
@@ -47,7 +47,7 @@ class Strategy(ABC):
         self.stateful_logic = stateful_logic
 
     @property
-    def required_columns(self) -> List[str]:
+    def required_columns(self) -> list[str]:
         """
         Returns a list of required columns for the strategy.
         This includes columns needed for trend, entry, exit, and filter conditions.
@@ -211,7 +211,7 @@ class Strategy(ABC):
         param_str = ",".join(f"{k}={repr(v)}" for k, v in sorted(params.items()))
         return f"{self.__class__.__name__}({param_str})"
 
-    def get_directory(self):
+    def get_hash_id(self):
         """
         Returns the directory where this strategy is located.
         This can be used to load additional resources or configurations.

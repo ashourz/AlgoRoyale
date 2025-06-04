@@ -1,31 +1,54 @@
 # src/algo_royale/client/alpaca_corporate_action_client.py
 
 from datetime import datetime
-from typing import List, Optional
-from algo_royale.clients.alpaca.alpaca_client_config import TradingConfig
-from algo_royale.models.alpaca_trading.alpaca_order import DeleteOrdersResponse, Order, OrderListResponse, StopLoss, TakeProfit
-from algo_royale.models.alpaca_trading.enums import OrderClass, OrderSide, OrderStatusFilter, OrderType, PositionIntent, SortDirection, TimeInForce
+from typing import Optional
+
 from algo_royale.clients.alpaca.alpaca_base_client import AlpacaBaseClient
-from algo_royale.clients.alpaca.exceptions import AlpacaInvalidHeadersException, AlpacaUnprocessableException, InsufficientBuyingPowerOrSharesError, MissingParameterError, ParameterConflictError, UnprocessableOrderException
+from algo_royale.clients.alpaca.alpaca_client_config import TradingConfig
+from algo_royale.clients.alpaca.exceptions import (
+    AlpacaInvalidHeadersException,
+    AlpacaUnprocessableException,
+    InsufficientBuyingPowerOrSharesError,
+    MissingParameterError,
+    ParameterConflictError,
+    UnprocessableOrderException,
+)
+from algo_royale.models.alpaca_trading.alpaca_order import (
+    DeleteOrdersResponse,
+    Order,
+    OrderListResponse,
+    StopLoss,
+    TakeProfit,
+)
+from algo_royale.models.alpaca_trading.enums import (
+    OrderClass,
+    OrderSide,
+    OrderStatusFilter,
+    OrderType,
+    PositionIntent,
+    SortDirection,
+    TimeInForce,
+)
+
 
 class AlpacaOrdersClient(AlpacaBaseClient):
-    """Singleton class to interact with Alpaca's API for orders data.""" 
+    """Singleton class to interact with Alpaca's API for orders data."""
 
     def __init__(self, trading_config: TradingConfig):
         """Initialize the AlpacaStockClient with trading configuration."""
         super().__init__(trading_config)
         self.trading_config = trading_config
-        
+
     @property
     def client_name(self) -> str:
         """Subclasses must define a name for logging and ID purposes"""
-        return "AlpacaOrdersClient"    
+        return "AlpacaOrdersClient"
 
     @property
     def base_url(self) -> str:
         """Subclasses must define a name for logging and ID purposes"""
         return self.trading_config.get_base_url()
-        
+
     async def create_order(
         self,
         symbol: Optional[str] = None,
@@ -43,7 +66,7 @@ class AlpacaOrdersClient(AlpacaBaseClient):
         order_class: Optional[OrderClass] = None,
         take_profit: Optional[TakeProfit] = None,
         stop_loss: Optional[StopLoss] = None,
-        position_intent: Optional[PositionIntent] = None
+        position_intent: Optional[PositionIntent] = None,
     ) -> Optional[Order]:
         """
         Create an order with the given parameters.
@@ -59,16 +82,16 @@ class AlpacaOrdersClient(AlpacaBaseClient):
                 - Options trading: market, limit, stop, stop_limit.
                 - Multileg Options trading: market, limit.
                 - Crypto trading: market, limit, stop_limit.
-                
-            - time_in_force (TimeInForce): The Time-In-Force values supported by Alpaca vary based on the order's security type. 
-            
+
+            - time_in_force (TimeInForce): The Time-In-Force values supported by Alpaca vary based on the order's security type.
+
                 Here is a breakdown of the supported TIFs for each specific security type:
                 - Equity trading: day, gtc, opg, cls, ioc, fok.
                 - Options trading: day.
                 - Crypto trading: gtc, ioc.
-                
+
             - limit_price (float): Required if type is limit or stop_limit.
-            
+
                 In case of mleg, the limit_price parameter is expressed with the following notation:
                     - A positive value indicates a debit, representing a cost or payment to be made.
                     - A negative value signifies a credit, reflecting an amount to be received.
@@ -76,14 +99,14 @@ class AlpacaOrdersClient(AlpacaBaseClient):
             - stop_price (float): Required for 'stop' or 'stop_limit'.
             - trail_price (float): Required (or trail_percent) for 'trailing_stop'.
             - trail_percent (float): Required (or trail_price) for 'trailing_stop'.
-            - extended_hours (bool): (default) false. 
-            
+            - extended_hours (bool): (default) false.
+
                 If true, order will be eligible to execute in premarket/afterhours.
                 Only works with type limit and time_in_force day..
             - client_order_id (str): Optional client-side ID (<= 128 chars).
 
                 A unique identifier for the order. Automatically generated if not sent. (<= 128 characters)
-                
+
             - order_class (OrderClass): The order classes supported by Alpaca vary based on the order's security type. The following provides a comprehensive breakdown of the supported order classes for each category:
 
                 - Equity trading: simple (or ""), oco, oto, bracket.
@@ -91,7 +114,7 @@ class AlpacaOrdersClient(AlpacaBaseClient):
                     - simple (or "")
                     - mleg (required for multi-leg complex option strategies)
                 - Crypto trading: simple (or "")
-                
+
             - take_profit (TakeProfit): Object with required `limit_price` for bracket/advanced orders.
             - stop_loss (StopLoss): Object with required `stop_price` and optional `limit_price`.
             - position_intent (PositionIntent): Positioning strategy for options (if supported).
@@ -105,22 +128,32 @@ class AlpacaOrdersClient(AlpacaBaseClient):
             raise MissingParameterError("Missing required parameter: 'symbol'.")
 
         if qty and notional:
-            raise ParameterConflictError("Specify either 'qty' or 'notional', not both.")
+            raise ParameterConflictError(
+                "Specify either 'qty' or 'notional', not both."
+            )
 
         if not qty and not notional:
             raise MissingParameterError("You must specify either 'qty' or 'notional'.")
 
         if order_type in ["stop", "stop_limit"] and not stop_price:
-            raise MissingParameterError(f"'stop_price' is required for order_type '{order_type}'.")
+            raise MissingParameterError(
+                f"'stop_price' is required for order_type '{order_type}'."
+            )
 
         if order_type in ["limit", "stop_limit"] and not limit_price:
-            raise MissingParameterError(f"'limit_price' is required for order_type '{order_type}'.")
+            raise MissingParameterError(
+                f"'limit_price' is required for order_type '{order_type}'."
+            )
 
         if order_type == "trailing_stop":
             if not (trail_price or trail_percent):
-                raise MissingParameterError("Either 'trail_price' or 'trail_percent' is required for 'trailing_stop' order.")
+                raise MissingParameterError(
+                    "Either 'trail_price' or 'trail_percent' is required for 'trailing_stop' order."
+                )
             if trail_price and trail_percent:
-                raise ParameterConflictError("Specify only one: 'trail_price' or 'trail_percent' for 'trailing_stop'.")
+                raise ParameterConflictError(
+                    "Specify only one: 'trail_price' or 'trail_percent' for 'trailing_stop'."
+                )
 
         payload = {}
 
@@ -159,25 +192,24 @@ class AlpacaOrdersClient(AlpacaBaseClient):
             payload["position_intent"] = position_intent
 
         try:
-            response = await self.post(
-                endpoint="orders",
-                data=payload
-            )
+            response = await self.post(endpoint="orders", data=payload)
             return Order.from_raw(response)
         except AlpacaInvalidHeadersException as e:
-            self.logger.error(f"Insufficient buying power or shares. Code:{e.status_code} | Message:{e.message}")
+            self.logger.error(
+                f"Insufficient buying power or shares. Code:{e.status_code} | Message:{e.message}"
+            )
             raise InsufficientBuyingPowerOrSharesError(e.message)
-    
+
     async def get_all_orders(
         self,
-        status: Optional[OrderStatusFilter] = None, 
+        status: Optional[OrderStatusFilter] = None,
         limit: Optional[int] = None,
         after: Optional[datetime] = None,
         until: Optional[datetime] = None,
         direction: Optional[SortDirection] = None,
         nested: Optional[bool] = None,
-        symbols: Optional[List[str]] = None,
-        side: Optional[OrderSide] = None
+        symbols: Optional[list[str]] = None,
+        side: Optional[OrderSide] = None,
     ) -> Optional[OrderListResponse]:
         """
         Get all orders with the given parameters.
@@ -189,7 +221,7 @@ class AlpacaOrdersClient(AlpacaBaseClient):
             - until (datetime) : The response will include only ones submitted until this timestamp (exclusive.)
             - direction (SortDirection) : The chronological order of response based on the submission time. asc or desc. Defaults to desc.
             - nested (bool) : If true, the result will roll up multi-leg orders under the legs field of primary order.
-            - symbols: (List[str]) : A comma-separated list of symbols to filter by (ex. “AAPL,TSLA,MSFT”). 
+            - symbols: (list[str]) : A comma-separated list of symbols to filter by (ex. “AAPL,TSLA,MSFT”).
             - side (OrderSide) : 'buy' or 'sell'. Required for all order classes except mleg.
 
         Returns:
@@ -212,17 +244,14 @@ class AlpacaOrdersClient(AlpacaBaseClient):
         if nested:
             params["nested"] = nested
         if symbols:
-            params["symbols"] = ",".join(symbols),
+            params["symbols"] = (",".join(symbols),)
         if side:
             params["side"] = side
 
-        response = await self.get(
-            endpoint="orders",
-            params=params
-        )
+        response = await self.get(endpoint="orders", params=params)
 
         return OrderListResponse.from_raw(response)
-    
+
     async def get_order_by_client_order_id(
         self,
         client_order_id: str,
@@ -241,14 +270,11 @@ class AlpacaOrdersClient(AlpacaBaseClient):
         params["client_order_id"] = client_order_id
         if nested:
             params["nested"] = nested
-                
-        response = await self.get(
-            endpoint="orders:by_client_order_id",
-            params = params
-        )
+
+        response = await self.get(endpoint="orders:by_client_order_id", params=params)
 
         return Order.from_raw(response)
-    
+
     async def replace_order_by_client_order_id(
         self,
         client_order_id: str,
@@ -257,7 +283,7 @@ class AlpacaOrdersClient(AlpacaBaseClient):
         limit_price: Optional[float] = None,
         stop_price: Optional[float] = None,
         trail_price: Optional[float] = None,
-        new_client_order_id: Optional[str] = None
+        new_client_order_id: Optional[str] = None,
     ) -> Optional[Order]:
         """
         Get order by client order id.
@@ -265,15 +291,15 @@ class AlpacaOrdersClient(AlpacaBaseClient):
         Parameters:
             - client_order_id (str) :The client-assigned order ID.
             - qty (float): Number of shares to trade. Can be fractional for market & day orders.
-             - time_in_force (TimeInForce): The Time-In-Force values supported by Alpaca vary based on the order's security type. 
-            
+             - time_in_force (TimeInForce): The Time-In-Force values supported by Alpaca vary based on the order's security type.
+
                 Here is a breakdown of the supported TIFs for each specific security type:
                 - Equity trading: day, gtc, opg, cls, ioc, fok.
                 - Options trading: day.
                 - Crypto trading: gtc, ioc.
-                
+
             - limit_price (float): Required if type is limit or stop_limit.
-            
+
                 In case of mleg, the limit_price parameter is expressed with the following notation:
                     - A positive value indicates a debit, representing a cost or payment to be made.
                     - A negative value signifies a credit, reflecting an amount to be received.
@@ -283,7 +309,7 @@ class AlpacaOrdersClient(AlpacaBaseClient):
             - new_client_order_id (str): Optional client-side ID (<= 128 chars).
 
                 A unique identifier for the order. Automatically generated if not sent. (<= 128 characters)
-                
+
         Returns:
             - OrderResponse object or None if no response.
         """
@@ -304,13 +330,10 @@ class AlpacaOrdersClient(AlpacaBaseClient):
         if new_client_order_id:
             payload["client_order_id"] = new_client_order_id
 
-        response = await self.patch(
-            endpoint=f"orders/{client_order_id}",
-            data=payload
-        )
+        response = await self.patch(endpoint=f"orders/{client_order_id}", data=payload)
 
         return Order.from_raw(response)
-    
+
     async def delete_order_by_client_order_id(
         self,
         client_order_id: str,
@@ -326,14 +349,14 @@ class AlpacaOrdersClient(AlpacaBaseClient):
         try:
             await self.delete(
                 endpoint=f"orders/{client_order_id}",
-            )  
+            )
         except UnprocessableOrderException as e:
-            self.logger.error(f"Order cannot be cancelled. Code:{e.status_code} | Message:{e.message}")
-            return None    
-        
-    async def delete_all_orders(
-        self
-    ) -> Optional[DeleteOrdersResponse]:
+            self.logger.error(
+                f"Order cannot be cancelled. Code:{e.status_code} | Message:{e.message}"
+            )
+            return None
+
+    async def delete_all_orders(self) -> Optional[DeleteOrdersResponse]:
         """
         Delete all orders.
 
@@ -341,10 +364,10 @@ class AlpacaOrdersClient(AlpacaBaseClient):
             - DeleteOrdersResponse object or None if no response.
         """
         try:
-            response = await self.delete(
-                endpoint="orders"
-            )
-            return DeleteOrdersResponse.from_raw(response) 
+            response = await self.delete(endpoint="orders")
+            return DeleteOrdersResponse.from_raw(response)
         except AlpacaUnprocessableException as e:
-            self.logger.error(f"Order cannot be cancelled. Code:{e.status_code} | Message:{e.message}")
-            raise UnprocessableOrderException(e.message)    
+            self.logger.error(
+                f"Order cannot be cancelled. Code:{e.status_code} | Message:{e.message}"
+            )
+            raise UnprocessableOrderException(e.message)

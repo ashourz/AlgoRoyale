@@ -2,7 +2,7 @@ import asyncio
 import re
 from logging import Logger
 from pathlib import Path
-from typing import AsyncIterator, Callable, Dict, List, Optional
+from typing import AsyncIterator, Callable, Dict, Optional
 
 import pandas as pd
 
@@ -18,7 +18,7 @@ class StageDataLoader:
         config: Config,
         logger: Logger,
         stage_data_manager: StageDataManager,
-        load_watchlist: Callable[[str], List[str]],
+        load_watchlist: Callable[[str], list[str]],
     ):
         try:
             # Initialize directories and services
@@ -146,7 +146,7 @@ class StageDataLoader:
 
     async def _get_all_existing_data_symbols(
         self, stage: BacktestStage, strategy_name: str
-    ) -> List[str]:
+    ) -> list[str]:
         """
         Ensure that data exists for all symbols in the watchlist for the current stage.
         This method checks each symbol in the watchlist and returns a list of symbols

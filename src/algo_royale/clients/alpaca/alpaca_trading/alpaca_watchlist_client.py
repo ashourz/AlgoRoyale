@@ -1,24 +1,32 @@
 ## client\alpaca_trading\alpaca_watchlist_client.py
 
-from typing import List, Optional
+from typing import Optional
+
 from algo_royale.clients.alpaca.alpaca_base_client import AlpacaBaseClient
 from algo_royale.clients.alpaca.alpaca_client_config import TradingConfig
-from algo_royale.clients.alpaca.exceptions import AlpacaResourceNotFoundException, AlpacaWatchlistNotFoundException
-from algo_royale.models.alpaca_trading.alpaca_watchlist import Watchlist, WatchlistListResponse
+from algo_royale.clients.alpaca.exceptions import (
+    AlpacaResourceNotFoundException,
+    AlpacaWatchlistNotFoundException,
+)
+from algo_royale.models.alpaca_trading.alpaca_watchlist import (
+    Watchlist,
+    WatchlistListResponse,
+)
+
 
 class AlpacaWatchlistClient(AlpacaBaseClient):
-    """Singleton class to interact with Alpaca's API for watchlist data.""" 
+    """Singleton class to interact with Alpaca's API for watchlist data."""
 
     def __init__(self, trading_config: TradingConfig):
         """Initialize the AlpacaStockClient with trading configuration."""
         super().__init__(trading_config)
         self.trading_config = trading_config
-        
+
     @property
     def client_name(self) -> str:
         """Subclasses must define a name for logging and ID purposes"""
-        return "AlpacaWatchlistClient"    
-    
+        return "AlpacaWatchlistClient"
+
     @property
     def base_url(self) -> str:
         """Subclasses must define a name for logging and ID purposes"""
@@ -27,14 +35,14 @@ class AlpacaWatchlistClient(AlpacaBaseClient):
     async def get_all_watchlists(self) -> Optional[WatchlistListResponse]:
         """
         Gets all watchlists for an account.
-         """
-                
+        """
+
         response = await self.get(
             endpoint="watchlists",
-        ) 
-        
+        )
+
         return WatchlistListResponse.from_raw(response)
-            
+
     async def get_watchlist_by_id(
         self,
         watchlist_id: str,
@@ -48,13 +56,13 @@ class AlpacaWatchlistClient(AlpacaBaseClient):
         Returns:
             - Watchlist object or None if no response.
         """
-                
+
         response = await self.get(
             endpoint=f"watchlists/{watchlist_id}",
         )
 
         return Watchlist.from_raw(response)
-    
+
     async def delete_watchlist_by_id(
         self,
         watchlist_id: str,
@@ -69,10 +77,12 @@ class AlpacaWatchlistClient(AlpacaBaseClient):
             await self.delete(
                 endpoint=f"watchlists/{watchlist_id}",
             )
-        except AlpacaResourceNotFoundException as e: 
-            self.logger.error(f"Watchlist not found. Code:{e.status_code} | Message:{e.message}")
+        except AlpacaResourceNotFoundException as e:
+            self.logger.error(
+                f"Watchlist not found. Code:{e.status_code} | Message:{e.message}"
+            )
             raise AlpacaWatchlistNotFoundException(e.message)
-        
+
     async def get_watchlist_by_name(
         self,
         name: str,
@@ -86,16 +96,13 @@ class AlpacaWatchlistClient(AlpacaBaseClient):
         Returns:
             - Watchlist object or None if no response.
         """
-                
+
         params = {"name": name}
-                
-        response = await self.get(
-            endpoint="watchlists:by_name",
-            params = params
-        )
+
+        response = await self.get(endpoint="watchlists:by_name", params=params)
 
         return Watchlist.from_raw(response)
-    
+
     async def delete_watchlist_by_name(
         self,
         name: str,
@@ -107,22 +114,19 @@ class AlpacaWatchlistClient(AlpacaBaseClient):
             - name (str) :The watchlist name.
 
         """
-                
+
         params = {"name": name}
-        
+
         try:
-            await self.delete(
-                endpoint="watchlists:by_name",
-                params = params
+            await self.delete(endpoint="watchlists:by_name", params=params)
+        except AlpacaResourceNotFoundException as e:
+            self.logger.error(
+                f"Watchlist not found. Code:{e.status_code} | Message:{e.message}"
             )
-        except AlpacaResourceNotFoundException as e: 
-            self.logger.error(f"Watchlist not found. Code:{e.status_code} | Message:{e.message}")
             raise AlpacaWatchlistNotFoundException(e.message)
-        
+
     async def delete_symbol_from_watchlist(
-        self,
-        watchlist_id: str,
-        symbol: str
+        self, watchlist_id: str, symbol: str
     ) -> Optional[Watchlist]:
         """
         Delete watchlist by client order name.
@@ -135,18 +139,16 @@ class AlpacaWatchlistClient(AlpacaBaseClient):
             - Watchlist object or None if no response.
         """
         try:
-            response = await self.delete(
-                endpoint=f"watchlists/{watchlist_id}/{symbol}"
-            )
+            response = await self.delete(endpoint=f"watchlists/{watchlist_id}/{symbol}")
             return Watchlist.from_raw(response)
-        except AlpacaResourceNotFoundException as e: 
-            self.logger.error(f"Watchlist not found. Code:{e.status_code} | Message:{e.message}")
+        except AlpacaResourceNotFoundException as e:
+            self.logger.error(
+                f"Watchlist not found. Code:{e.status_code} | Message:{e.message}"
+            )
             raise AlpacaWatchlistNotFoundException(e.message)
-        
+
     async def update_watchlist_by_id(
-        self,
-        watchlist_id: str,
-        name: str
+        self, watchlist_id: str, name: str
     ) -> Optional[Watchlist]:
         """
         Update watchlist by id.
@@ -160,14 +162,11 @@ class AlpacaWatchlistClient(AlpacaBaseClient):
         """
 
         payload = {"name": name}
-                
-        response = await self.put(
-            endpoint=f"watchlists/{watchlist_id}",
-            data = payload
-        )
-        
+
+        response = await self.put(endpoint=f"watchlists/{watchlist_id}", data=payload)
+
         return Watchlist.from_raw(response)
-    
+
     async def update_watchlist_by_name(
         self,
         name: str,
@@ -187,15 +186,13 @@ class AlpacaWatchlistClient(AlpacaBaseClient):
 
         params = {"name": name}
         payload = {"name": update_name}
-                
+
         response = await self.put(
-            endpoint="watchlists:by_name",
-            params = params,
-            data = payload
+            endpoint="watchlists:by_name", params=params, data=payload
         )
 
         return Watchlist.from_raw(response)
-    
+
     async def add_asset_to_watchlist_by_name(
         self,
         name: str,
@@ -217,15 +214,13 @@ class AlpacaWatchlistClient(AlpacaBaseClient):
         payload = {}
         if symbol:
             params["symbol"] = symbol
-                
+
         response = await self.post(
-            endpoint="watchlists:by_name",
-            params = params,
-            data = payload
+            endpoint="watchlists:by_name", params=params, data=payload
         )
 
         return Watchlist.from_raw(response)
-    
+
     async def add_asset_to_watchlist_by_id(
         self,
         watchlist_id: str,
@@ -246,25 +241,21 @@ class AlpacaWatchlistClient(AlpacaBaseClient):
         if symbol:
             payload["symbol"] = symbol
 
-                
-        response = await self.post(
-            endpoint=f"watchlists/{watchlist_id}",
-            data = payload
-        )
+        response = await self.post(endpoint=f"watchlists/{watchlist_id}", data=payload)
 
         return Watchlist.from_raw(response)
-    
+
     async def create_watchlist(
         self,
         name: str,
-        symbols: Optional[List[str]],
+        symbols: Optional[list[str]],
     ) -> Optional[Watchlist]:
         """
         Create watchlist.
 
         Parameters:
             - name (str) :The watchlist name.
-            - symbols (List[str]) :optional list of symbols to add
+            - symbols (list[str]) :optional list of symbols to add
 
         Returns:
             - Watchlist object or None if no response.
@@ -274,10 +265,7 @@ class AlpacaWatchlistClient(AlpacaBaseClient):
         payload["name"] = name
         if symbols:
             payload["symbols"] = symbols
-                
-        response = await self.post(
-            endpoint="watchlists",
-            data = payload
-        )
+
+        response = await self.post(endpoint="watchlists", data=payload)
 
         return Watchlist.from_raw(response)

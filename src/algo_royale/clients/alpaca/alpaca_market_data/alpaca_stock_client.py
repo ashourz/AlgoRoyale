@@ -1,43 +1,50 @@
 ## client\alpaca_market_data\alpaca_stock_client.py
 
-from typing import List, Optional
+from datetime import datetime
+from typing import Optional
+
+from alpaca.common.enums import Sort, SupportedCurrencies
+from alpaca.data.enums import Adjustment, DataFeed
+from alpaca.data.timeframe import TimeFrame, TimeFrameUnit
+
 from algo_royale.clients.alpaca.alpaca_base_client import AlpacaBaseClient
+from algo_royale.clients.alpaca.alpaca_client_config import TradingConfig
 from algo_royale.models.alpaca_market_data.alpaca_auction import AuctionResponse
-from algo_royale.models.alpaca_market_data.alpaca_bar import BarsResponse, LatestBarsResponse
+from algo_royale.models.alpaca_market_data.alpaca_bar import (
+    BarsResponse,
+    LatestBarsResponse,
+)
 from algo_royale.models.alpaca_market_data.alpaca_condition_code import ConditionCodeMap
 from algo_royale.models.alpaca_market_data.alpaca_quote import QuotesResponse
-from datetime import datetime
-
-from alpaca.data.enums import DataFeed, Adjustment
-from alpaca.common.enums import Sort, SupportedCurrencies
-from alpaca.data.timeframe import TimeFrame, TimeFrameUnit
 from algo_royale.models.alpaca_market_data.alpaca_snapshot import SnapshotsResponse
-from algo_royale.models.alpaca_market_data.alpaca_trade import HistoricalTradesResponse, LatestTradesResponse
+from algo_royale.models.alpaca_market_data.alpaca_trade import (
+    HistoricalTradesResponse,
+    LatestTradesResponse,
+)
 from algo_royale.models.alpaca_market_data.enums import SnapshotFeed, Tape, TickType
-from algo_royale.clients.alpaca.alpaca_client_config import TradingConfig
 
 
 class AlpacaStockClient(AlpacaBaseClient):
     """Singleton class to interact with Alpaca's API for stock data."""
-        
+
     def __init__(self, trading_config: TradingConfig):
         """Initialize the AlpacaStockClient with trading configuration."""
         super().__init__(trading_config)
         self.trading_config = trading_config
-          
+
     @property
     def client_name(self) -> str:
         """Subclasses must define a name for logging and ID purposes"""
         return "AlpacaStockClient"
-    
+
     @property
     def base_url(self) -> str:
         """Subclasses must define a name for logging and ID purposes"""
-        return self.trading_config.alpaca_params["base_url_data_v2"] 
-    
+        return self.trading_config.alpaca_params["base_url_data_v2"]
+
     async def fetch_historical_quotes(
         self,
-        symbols: List[str],
+        symbols: list[str],
         start_date: datetime,
         end_date: datetime,
         currency=SupportedCurrencies.USD,
@@ -53,8 +60,8 @@ class AlpacaStockClient(AlpacaBaseClient):
         if not isinstance(start_date, datetime):
             raise ValueError("start_date must be a datetime object")
         if not isinstance(end_date, datetime):
-            raise ValueError("end_date must be a datetime object")  
-        
+            raise ValueError("end_date must be a datetime object")
+
         params = {
             "symbols": ",".join(symbols),
             "start": start_date.isoformat(),
@@ -66,41 +73,31 @@ class AlpacaStockClient(AlpacaBaseClient):
             "feed": feed,
             "asof": None,
         }
-                
-        response = await self.get(
-            endpoint="stocks/quotes",
-            params=params
-        )
-        
+
+        response = await self.get(endpoint="stocks/quotes", params=params)
+
         return QuotesResponse.from_raw(response)
-    
+
     async def fetch_latest_quotes(
         self,
-        symbols: List[str],
-        currency: SupportedCurrencies =SupportedCurrencies.USD,
-        feed: DataFeed = DataFeed.IEX
+        symbols: list[str],
+        currency: SupportedCurrencies = SupportedCurrencies.USD,
+        feed: DataFeed = DataFeed.IEX,
     ) -> Optional[QuotesResponse]:
         """Fetch latest stock quotes from Alpaca."""
-        
+
         if not isinstance(symbols, list):
             symbols = [symbols]
-        
-        params = {
-            "symbols": ",".join(symbols),
-            "currency": currency,
-            "feed": feed
-        }
-                
-        response = await self.get(
-            endpoint="stocks/quotes/latest",
-            params=params
-        )
-        
+
+        params = {"symbols": ",".join(symbols), "currency": currency, "feed": feed}
+
+        response = await self.get(endpoint="stocks/quotes/latest", params=params)
+
         return QuotesResponse.from_raw(response)
 
     async def fetch_historical_auctions(
         self,
-        symbols: List[str],
+        symbols: list[str],
         start_date: datetime,
         end_date: datetime,
         currency=SupportedCurrencies.USD,
@@ -115,8 +112,8 @@ class AlpacaStockClient(AlpacaBaseClient):
         if not isinstance(start_date, datetime):
             raise ValueError("start_date must be a datetime object")
         if not isinstance(end_date, datetime):
-            raise ValueError("end_date must be a datetime object")  
-        
+            raise ValueError("end_date must be a datetime object")
+
         params = {
             "symbols": ",".join(symbols),
             "start": start_date.isoformat(),
@@ -128,17 +125,14 @@ class AlpacaStockClient(AlpacaBaseClient):
             "feed": DataFeed.SIP,
             "asof": None,
         }
-                
-        response = await self.get(
-            endpoint="stocks/auctions",
-            params=params
-        )  
-        
+
+        response = await self.get(endpoint="stocks/auctions", params=params)
+
         return AuctionResponse.from_raw(response)
-    
+
     async def fetch_historical_bars(
         self,
-        symbols: List[str],
+        symbols: list[str],
         start_date: datetime,
         end_date: datetime,
         currency=SupportedCurrencies.USD,
@@ -156,141 +150,108 @@ class AlpacaStockClient(AlpacaBaseClient):
         if not isinstance(start_date, datetime):
             raise ValueError("start_date must be a datetime object")
         if not isinstance(end_date, datetime):
-            raise ValueError("end_date must be a datetime object")  
-        
+            raise ValueError("end_date must be a datetime object")
+
         params = {
             "symbols": ",".join(symbols),
             "start": start_date.isoformat(),
             "end": end_date.isoformat(),
             "currency": currency,
             "feed": feed,
-            "timeframe":timeframe,
-            "adjustment":adjustment,
+            "timeframe": timeframe,
+            "adjustment": adjustment,
             "sort": sort_order,
             "limit": min(page_limit, 1000),
             "page_token": page_token,
             "asof": None,
         }
-                
-        response = await self.get(
-            endpoint="stocks/bars",
-            params=params
-        )
-        
+
+        response = await self.get(endpoint="stocks/bars", params=params)
+
         return BarsResponse.from_raw(response)
-    
+
     async def fetch_latest_bars(
         self,
-        symbols: List[str],
+        symbols: list[str],
         currency=SupportedCurrencies.USD,
-        feed: DataFeed = DataFeed.IEX
+        feed: DataFeed = DataFeed.IEX,
     ) -> Optional[LatestBarsResponse]:
         """Fetch historical auction data from Alpaca."""
 
         if not isinstance(symbols, list):
             symbols = [symbols]
-        
-        params = {
-            "symbols": ",".join(symbols),
-            "currency": currency,
-            "feed": feed
-        }
-                
-        response = await self.get(
-            endpoint="stocks/bars/latest",
-            params=params
-        )      
-        
+
+        params = {"symbols": ",".join(symbols), "currency": currency, "feed": feed}
+
+        response = await self.get(endpoint="stocks/bars/latest", params=params)
+
         return LatestBarsResponse.from_raw(response)
 
     async def fetch_condition_codes(
-        self,
-        ticktype: TickType,
-        tape: Tape
+        self, ticktype: TickType, tape: Tape
     ) -> Optional[ConditionCodeMap]:
         """Fetch condition codes metadata from Alpaca for a specific tick type and tape."""
-        
-        params = {
-            "tape": tape
-        }
-                
+
+        params = {"tape": tape}
+
         response = await self.get(
-            endpoint=f"stocks/meta/conditions/{ticktype.value}",
-            params=params
+            endpoint=f"stocks/meta/conditions/{ticktype.value}", params=params
         )
-        
+
         return ConditionCodeMap.from_raw(response)
-    
-    
+
     async def fetch_snapshots(
         self,
-        symbols: List[str],
+        symbols: list[str],
         currency=SupportedCurrencies.USD,
-        feed: SnapshotFeed = SnapshotFeed.IEX
+        feed: SnapshotFeed = SnapshotFeed.IEX,
     ) -> Optional[SnapshotsResponse]:
         """Fetch condition codes metadata from Alpaca for a specific tick type and tape."""
-        
-        params = {
-            "symbols": ",".join(symbols),
-            "currency": currency,
-            "feed": feed        
-        }
-        response = await self.get(
-            endpoint="stocks/snapshots",
-            params=params
-        )
+
+        params = {"symbols": ",".join(symbols), "currency": currency, "feed": feed}
+        response = await self.get(endpoint="stocks/snapshots", params=params)
 
         return SnapshotsResponse.from_raw(response)
 
     async def fetch_historical_trades(
         self,
-        symbols: List[str],
+        symbols: list[str],
         start_date: datetime,
         end_date: datetime,
         currency=SupportedCurrencies.USD,
         limit: int = 1000,
         feed: DataFeed = DataFeed.IEX,
         sort_order: Sort = Sort.DESC,
-        page_token: Optional[str] = None
+        page_token: Optional[str] = None,
     ) -> Optional[HistoricalTradesResponse]:
         """Fetch historical stock trades from Alpaca between the specified dates for given symbols."""
-        
+
         params = {
             "symbols": ",".join(symbols),
             "start": start_date.isoformat(),
             "end": end_date.isoformat(),
             "currency": currency,
-            "limit": min(limit,1000),
+            "limit": min(limit, 1000),
             "feed": feed,
             "sort": sort_order,
             "page_token": page_token,
             "asof": None,
         }
 
-        response = await self.get(
-            endpoint="stocks/trades",
-            params=params
-        )
-        
+        response = await self.get(endpoint="stocks/trades", params=params)
+
         return HistoricalTradesResponse.from_raw(response)
-    
+
     async def fetch_latest_trades(
         self,
-        symbols: List[str],
+        symbols: list[str],
         currency=SupportedCurrencies.USD,
-        feed: DataFeed = DataFeed.IEX
+        feed: DataFeed = DataFeed.IEX,
     ) -> Optional[LatestTradesResponse]:
         """Fetch historical stock trades from Alpaca between the specified dates for given symbols."""
-        
-        params = {
-            "symbols": ",".join(symbols),
-            "currency": currency,
-            "feed": feed
-        }
 
-        response = await self.get(
-            endpoint="stocks/trades/latest",
-            params=params
-        )
-        
+        params = {"symbols": ",".join(symbols), "currency": currency, "feed": feed}
+
+        response = await self.get(endpoint="stocks/trades/latest", params=params)
+
         return LatestTradesResponse.from_raw(response)

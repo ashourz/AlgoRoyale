@@ -1,5 +1,4 @@
 from datetime import datetime
-from typing import List
 
 from pydantic import BaseModel
 
@@ -16,7 +15,7 @@ class Watchlist(BaseModel):
         created_at (datetime): Timestamp of creation.
         updated_at (datetime): Timestamp of last update.
         name (str): The name of the watchlist.
-        assets (List[Asset]): List of assets in the watchlist.
+        assets (list[Asset]): List of assets in the watchlist.
     """
 
     id: str
@@ -24,7 +23,7 @@ class Watchlist(BaseModel):
     created_at: datetime
     updated_at: datetime
     name: str
-    assets: List[Asset]
+    assets: list[Asset]
 
     class Config:
         from_attributes = True
@@ -59,10 +58,10 @@ class WatchlistListResponse(BaseModel):
     Represents a list of Watchlist objects returned from the Alpaca API.
     """
 
-    watchlists: List[Watchlist]
+    watchlists: list[Watchlist]
 
     @classmethod
-    def from_raw(cls, data: List[dict]) -> "WatchlistListResponse":
+    def from_raw(cls, data: list[dict]) -> "WatchlistListResponse":
         """
         Factory method to parse a raw list of watchlist dictionaries
         into structured Watchlist objects.

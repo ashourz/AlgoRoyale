@@ -1,5 +1,5 @@
 from logging import Logger
-from typing import AsyncIterator, Callable, Dict, List, Optional
+from typing import AsyncIterator, Callable, Dict, Optional
 
 import dateutil
 import pandas as pd
@@ -27,7 +27,7 @@ class DataIngestStageCoordinator(StageCoordinator):
         stage_data_manager: StageDataManager,
         logger: Logger,
         quote_service: AlpacaQuoteService,
-        load_watchlist: Callable[[str], List[str]],
+        load_watchlist: Callable[[str], list[str]],
     ):
         super().__init__(
             stage=BacktestStage.DATA_INGEST,

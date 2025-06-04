@@ -1,15 +1,17 @@
 # src/models/alpaca_models/alpaca_active_stock.py
 
-from pydantic import BaseModel, RootModel
-from typing import List, Optional
 from datetime import datetime
+from typing import Optional
+
+from pydantic import BaseModel, RootModel
+
 
 class AuctionEvent(BaseModel):
-    condition: str         # e.g. "M", "6", "Q", "O"
-    price: float           # e.g. 182.01
-    size: int              # number of shares
-    timestamp: datetime    # e.g. "2022-01-03T21:00:00.121043712Z"
-    exchange_code: str     # e.g. "P", "T", "Q"
+    condition: str  # e.g. "M", "6", "Q", "O"
+    price: float  # e.g. 182.01
+    size: int  # number of shares
+    timestamp: datetime  # e.g. "2022-01-03T21:00:00.121043712Z"
+    exchange_code: str  # e.g. "P", "T", "Q"
 
     @staticmethod
     def from_raw(data: dict) -> "AuctionEvent":
@@ -23,9 +25,9 @@ class AuctionEvent(BaseModel):
 
 
 class AuctionDay(BaseModel):
-    date: str                          # e.g. "2022-01-03"
-    closing_events: List[AuctionEvent]
-    opening_events: List[AuctionEvent]
+    date: str  # e.g. "2022-01-03"
+    closing_events: list[AuctionEvent]
+    opening_events: list[AuctionEvent]
 
     @classmethod
     def from_raw(cls, data: dict) -> "AuctionDay":
@@ -34,7 +36,6 @@ class AuctionDay(BaseModel):
             closing_events=[AuctionEvent.from_raw(event) for event in data["c"]],
             opening_events=[AuctionEvent.from_raw(event) for event in data["o"]],
         )
-
 
 
 class Auctions(RootModel[dict[str, list[AuctionDay]]]):
@@ -56,8 +57,8 @@ class Auctions(RootModel[dict[str, list[AuctionDay]]]):
             for symbol, day_list in raw_data.items()
         }
         return cls(root=parsed)
-    
-    def get_by_symbol(self, symbol: str) -> List[AuctionDay]:
+
+    def get_by_symbol(self, symbol: str) -> list[AuctionDay]:
         """
         Fetch auction data for a given symbol.
 
@@ -65,7 +66,7 @@ class Auctions(RootModel[dict[str, list[AuctionDay]]]):
             symbol (str): The stock symbol to look up.
 
         Returns:
-            List[AuctionDay]: The list of auction data for the symbol, or an empty list if not found.
+            list[AuctionDay]: The list of auction data for the symbol, or an empty list if not found.
         """
         return self.root.get(symbol, [])
 

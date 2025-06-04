@@ -1,33 +1,36 @@
 ## client\alpaca_market_data\alpaca_news_client.py
 
-from typing import List, Optional, Union
-from algo_royale.clients.alpaca.alpaca_base_client import AlpacaBaseClient
-from algo_royale.models.alpaca_market_data.alpaca_news import NewsResponse
 from datetime import datetime
-from algo_royale.clients.alpaca.alpaca_client_config import TradingConfig
+from typing import Optional, Union
+
 from alpaca.common.enums import Sort
 
+from algo_royale.clients.alpaca.alpaca_base_client import AlpacaBaseClient
+from algo_royale.clients.alpaca.alpaca_client_config import TradingConfig
+from algo_royale.models.alpaca_market_data.alpaca_news import NewsResponse
+
+
 class AlpacaNewsClient(AlpacaBaseClient):
-    """Singleton class to interact with Alpaca's API for news data.""" 
+    """Singleton class to interact with Alpaca's API for news data."""
 
     def __init__(self, trading_config: TradingConfig):
         """Initialize the AlpacaStockClient with trading configuration."""
         super().__init__(trading_config)
         self.trading_config = trading_config
-        
+
     @property
     def client_name(self) -> str:
         """Subclasses must define a name for logging and ID purposes"""
-        return "AlpacaNewsClient"    
-    
+        return "AlpacaNewsClient"
+
     @property
     def base_url(self) -> str:
         """Subclasses must define a name for logging and ID purposes"""
         return self.trading_config.alpaca_params["base_url_data_v1beta1"]
-    
+
     async def fetch_news(
         self,
-        symbols: Optional[Union[str, List[str]]] = None,
+        symbols: Optional[Union[str, list[str]]] = None,
         start_date: Optional[datetime] = None,
         end_date: Optional[datetime] = None,
         include_content: Optional[bool] = None,
@@ -69,9 +72,6 @@ class AlpacaNewsClient(AlpacaBaseClient):
         if page_token:
             params["page_token"] = page_token
 
-        response = await self.get(
-            endpoint="news",
-            params=params
-        )
+        response = await self.get(endpoint="news", params=params)
 
         return NewsResponse.from_raw(response)

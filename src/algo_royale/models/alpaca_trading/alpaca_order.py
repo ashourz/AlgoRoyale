@@ -1,7 +1,7 @@
 # src/models/alpaca_models/alpaca_trading/alpaca_order.py
 
 from datetime import datetime
-from typing import List, Optional
+from typing import Optional
 
 from pydantic import BaseModel, Field
 
@@ -78,7 +78,7 @@ class Order(BaseModel):
         stop_price (Optional[float]): The stop price for stop-limit orders, if applicable.
         status (OrderStatus): The current status of the order (e.g., "accepted", "filled").
         extended_hours (bool): Whether the order is eligible for extended hours trading.
-        legs (Optional[List[str]]): List of associated orders if the order is a multi-leg order.
+        legs (Optional[list[str]]): List of associated orders if the order is a multi-leg order.
         trail_percent (Optional[float]): The trailing percentage for trailing stop orders, if applicable.
         trail_price (Optional[float]): The trailing price for trailing stop orders, if applicable.
         hwm (Optional[str]): The high water mark, if applicable.
@@ -128,7 +128,7 @@ class Order(BaseModel):
     status: OrderStatus
 
     extended_hours: bool
-    legs: Optional[List[str]] = None
+    legs: Optional[list[str]] = None
     subtag: Optional[str] = None
     source: Optional[str] = None
 
@@ -203,10 +203,10 @@ class OrderListResponse(BaseModel):
     Represents a list of OrderResponse objects returned from the Alpaca API.
     """
 
-    orders: List[Order]
+    orders: list[Order]
 
     @classmethod
-    def from_raw(cls, data: List[dict]) -> "OrderListResponse":
+    def from_raw(cls, data: list[dict]) -> "OrderListResponse":
         """
         Factory method to parse a raw list of order dictionaries
         into structured OrderResponse objects.
@@ -225,15 +225,15 @@ class DeleteOrderStatus(BaseModel):
 class DeleteOrdersResponse(BaseModel):
     """Represents the multi-status response when deleting multiple orders."""
 
-    orders: List[DeleteOrderStatus]
+    orders: list[DeleteOrderStatus]
 
     @classmethod
-    def from_raw(cls, data: List[dict]) -> "DeleteOrdersResponse":
+    def from_raw(cls, data: list[dict]) -> "DeleteOrdersResponse":
         """
         Converts a raw list of dictionaries to a DeleteOrdersResponse.
 
         Args:
-            data (List[dict]): The raw JSON response from the API.
+            data (list[dict]): The raw JSON response from the API.
 
         Returns:
             DeleteOrdersResponse: The parsed model.

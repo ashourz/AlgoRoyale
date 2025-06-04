@@ -1,9 +1,10 @@
 # src/models/alpaca_models/alpaca_quote.py
 
-from pydantic import BaseModel
-from typing import List, Dict, Optional
 from datetime import datetime
+from typing import Dict, Optional
+
 from dateutil.parser import isoparse  # if not using built-in parsing
+from pydantic import BaseModel
 
 
 class Quote(BaseModel):
@@ -18,7 +19,7 @@ class Quote(BaseModel):
         bid_exchange (str): The exchange where the bid price was listed.
         bid_price (float): The price at which the asset is being offered to be bought (bid price).
         bid_size (int): The number of shares available at the bid price.
-        conditions (List[str]): A list of conditions for the quote, such as `["P", "R"]` (e.g., "P" could represent "primary" exchange, and "R" might mean "retail").
+        conditions (list[str]): A list of conditions for the quote, such as `["P", "R"]` (e.g., "P" could represent "primary" exchange, and "R" might mean "retail").
         tape (str): The tape (market) where the transaction occurred (e.g., "A" for NYSE, "B" for Nasdaq).
 
     Methods:
@@ -33,7 +34,7 @@ class Quote(BaseModel):
     bid_exchange: str
     bid_price: float
     bid_size: int
-    conditions: List[str]
+    conditions: list[str]
     tape: str
 
     @staticmethod
@@ -46,7 +47,7 @@ class Quote(BaseModel):
 
         Returns:
             Quote: A Quote object populated with values from the raw data.
-        
+
         Example:
             data = {
                 "t": "2024-04-01T00:00:00Z",
@@ -77,9 +78,9 @@ class Quote(BaseModel):
 class QuotesResponse(BaseModel):
     """
     Represents the response from the Alpaca API when fetching historical stock quotes.
-    
+
     Attributes:
-        quotes (Dict[str, List[Quote]]): A dictionary where the keys are symbol tickers (e.g., "AAPL") and the values are lists of `Quote` objects for that symbol.
+        quotes (Dict[str, list[Quote]]): A dictionary where the keys are symbol tickers (e.g., "AAPL") and the values are lists of `Quote` objects for that symbol.
         next_page_token (Optional[str]): A token for pagination, used to fetch the next set of data if available. If there is no more data, this will be `None`.
 
     Example:
@@ -94,9 +95,9 @@ class QuotesResponse(BaseModel):
         }
     """
 
-    quotes: Dict[str, List[Quote]]  # Mapping of symbol (str) to list of Quote objects
+    quotes: Dict[str, list[Quote]]  # Mapping of symbol (str) to list of Quote objects
     next_page_token: Optional[str]  # Token for pagination if more data is available
-    
+
     @classmethod
     def from_raw(cls, data: dict) -> Optional["QuotesResponse"]:
         """
@@ -107,7 +108,7 @@ class QuotesResponse(BaseModel):
 
         Returns:
             QuotesResponse: A QuotesResponse object populated with values from the raw data.
-        
+
         Example:
             response = {
                 "quotes": {
@@ -124,11 +125,12 @@ class QuotesResponse(BaseModel):
             return None
 
         return cls(
-            quotes = {
+            quotes={
                 symbol: [
-                    Quote.from_raw(q) for q in (quote if isinstance(quote, list) else [quote])
+                    Quote.from_raw(q)
+                    for q in (quote if isinstance(quote, list) else [quote])
                 ]
                 for symbol, quote in data["quotes"].items()
             },
-            next_page_token=data.get("next_page_token")
+            next_page_token=data.get("next_page_token"),
         )

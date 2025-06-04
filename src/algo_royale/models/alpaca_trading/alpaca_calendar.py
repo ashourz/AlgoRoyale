@@ -1,7 +1,8 @@
 # src/models/alpaca_models/alpaca_trading/alpaca_order.py
 
-from datetime import datetime, date
-from typing import Any, Dict, List
+from datetime import date, datetime
+from typing import Any, Dict
+
 from pydantic import BaseModel
 
 
@@ -16,7 +17,7 @@ class Calendar(BaseModel):
     close: datetime
     session_open: datetime
     session_close: datetime
-    settlement_date: date 
+    settlement_date: date
 
     @classmethod
     def from_raw(cls, data: Dict[str, Any]) -> "Calendar":
@@ -35,9 +36,15 @@ class Calendar(BaseModel):
             "trading_day": datetime.strptime(data["date"], "%Y-%m-%d").date(),
             "open": datetime.strptime(f"{date_str} {data['open']}", "%Y-%m-%d %H:%M"),
             "close": datetime.strptime(f"{date_str} {data['close']}", "%Y-%m-%d %H:%M"),
-            "session_open": datetime.strptime(f"{date_str} {data['session_open']}", "%Y-%m-%d %H%M"),
-            "session_close": datetime.strptime(f"{date_str} {data['session_close']}", "%Y-%m-%d %H%M"),
-            "settlement_date": datetime.strptime(data["settlement_date"], "%Y-%m-%d").date(),
+            "session_open": datetime.strptime(
+                f"{date_str} {data['session_open']}", "%Y-%m-%d %H%M"
+            ),
+            "session_close": datetime.strptime(
+                f"{date_str} {data['session_close']}", "%Y-%m-%d %H%M"
+            ),
+            "settlement_date": datetime.strptime(
+                data["settlement_date"], "%Y-%m-%d"
+            ).date(),
         }
 
         return cls(**parsed_data)
@@ -48,15 +55,15 @@ class CalendarList(BaseModel):
     Wrapper for a list of Calendar entries.
     """
 
-    calendars: List[Calendar]
+    calendars: list[Calendar]
 
     @classmethod
-    def from_raw(cls, data_list: List[Dict[str, Any]]) -> "CalendarList":
+    def from_raw(cls, data_list: list[Dict[str, Any]]) -> "CalendarList":
         """
         Parses a list of raw dictionary entries into a CalendarList.
 
         Args:
-            data_list (List[Dict[str, Any]]): List of raw calendar entries.
+            data_list (list[Dict[str, Any]]): List of raw calendar entries.
 
         Returns:
             CalendarList: List wrapped in CalendarList model.

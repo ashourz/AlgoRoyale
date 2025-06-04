@@ -1,38 +1,58 @@
-from typing import List, Optional
 from datetime import datetime
-from algo_royale.clients.alpaca.alpaca_trading.alpaca_orders_client import AlpacaOrdersClient
-from algo_royale.models.alpaca_trading.alpaca_order import DeleteOrdersResponse, OrderListResponse, Order, StopLoss, TakeProfit
-from algo_royale.models.alpaca_trading.enums import OrderClass, OrderSide, OrderStatusFilter, OrderType, PositionIntent, SortDirection, TimeInForce
+from typing import Optional
+
+from algo_royale.clients.alpaca.alpaca_trading.alpaca_orders_client import (
+    AlpacaOrdersClient,
+)
+from algo_royale.models.alpaca_trading.alpaca_order import (
+    DeleteOrdersResponse,
+    Order,
+    OrderListResponse,
+    StopLoss,
+    TakeProfit,
+)
+from algo_royale.models.alpaca_trading.enums import (
+    OrderClass,
+    OrderSide,
+    OrderStatusFilter,
+    OrderType,
+    PositionIntent,
+    SortDirection,
+    TimeInForce,
+)
+
 
 class AlpacaOrdersService:
     """
     Service class to interact with Alpaca's API for orders management.
 
-    This class provides a simplified interface for interacting with Alpaca's orders API and includes 
-    methods for creating, retrieving, updating, and deleting orders. The parameters for each method are 
+    This class provides a simplified interface for interacting with Alpaca's orders API and includes
+    methods for creating, retrieving, updating, and deleting orders. The parameters for each method are
     fully documented to facilitate interaction with the Alpaca platform.
     """
 
     def __init__(self):
         self.client = AlpacaOrdersClient()
 
-    async def create_order(self, 
-                     symbol: Optional[str] = None,
-                     qty: Optional[float] = None,
-                     notional: Optional[float] = None,
-                     side: Optional[OrderSide] = None,
-                     order_type: Optional[OrderType] = None,
-                     time_in_force: Optional[TimeInForce] = None,
-                     limit_price: Optional[float] = None,
-                     stop_price: Optional[float] = None,
-                     trail_price: Optional[float] = None,
-                     trail_percent: Optional[float] = None,
-                     extended_hours: Optional[bool] = None,
-                     client_order_id: Optional[str] = None,
-                     order_class: Optional[OrderClass] = None,
-                     take_profit: Optional[TakeProfit] = None,
-                     stop_loss: Optional[StopLoss] = None,
-                     position_intent: Optional[PositionIntent] = None) -> Optional[Order]:
+    async def create_order(
+        self,
+        symbol: Optional[str] = None,
+        qty: Optional[float] = None,
+        notional: Optional[float] = None,
+        side: Optional[OrderSide] = None,
+        order_type: Optional[OrderType] = None,
+        time_in_force: Optional[TimeInForce] = None,
+        limit_price: Optional[float] = None,
+        stop_price: Optional[float] = None,
+        trail_price: Optional[float] = None,
+        trail_percent: Optional[float] = None,
+        extended_hours: Optional[bool] = None,
+        client_order_id: Optional[str] = None,
+        order_class: Optional[OrderClass] = None,
+        take_profit: Optional[TakeProfit] = None,
+        stop_loss: Optional[StopLoss] = None,
+        position_intent: Optional[PositionIntent] = None,
+    ) -> Optional[Order]:
         """
         Create an order with the specified parameters.
 
@@ -73,18 +93,20 @@ class AlpacaOrdersService:
             order_class=order_class,
             take_profit=take_profit,
             stop_loss=stop_loss,
-            position_intent=position_intent
+            position_intent=position_intent,
         )
 
-    async def get_all_orders(self, 
-                       status: Optional[OrderStatusFilter] = None, 
-                       limit: Optional[int] = None,
-                       after: Optional[datetime] = None,
-                       until: Optional[datetime] = None,
-                       direction: Optional[SortDirection] = None,
-                       nested: Optional[bool] = None,
-                       symbols: Optional[List[str]] = None,
-                       side: Optional[OrderSide] = None) -> Optional[OrderListResponse]:
+    async def get_all_orders(
+        self,
+        status: Optional[OrderStatusFilter] = None,
+        limit: Optional[int] = None,
+        after: Optional[datetime] = None,
+        until: Optional[datetime] = None,
+        direction: Optional[SortDirection] = None,
+        nested: Optional[bool] = None,
+        symbols: Optional[list[str]] = None,
+        side: Optional[OrderSide] = None,
+    ) -> Optional[OrderListResponse]:
         """
         Retrieve all orders based on various filters.
 
@@ -95,7 +117,7 @@ class AlpacaOrdersService:
             - until (datetime): Only orders placed before this date-time.
             - direction (SortDirection): Order of response (asc or desc).
             - nested (bool): Whether to include multi-leg orders.
-            - symbols (List[str]): A list of symbols to filter by.
+            - symbols (list[str]): A list of symbols to filter by.
             - side (OrderSide): Side of the order ('buy' or 'sell').
 
         Returns:
@@ -109,12 +131,12 @@ class AlpacaOrdersService:
             direction=direction,
             nested=nested,
             symbols=symbols,
-            side=side
+            side=side,
         )
 
-    async def get_order_by_client_order_id(self, 
-                                     client_order_id: str, 
-                                     nested: Optional[bool] = None) -> Optional[Order]:
+    async def get_order_by_client_order_id(
+        self, client_order_id: str, nested: Optional[bool] = None
+    ) -> Optional[Order]:
         """
         Retrieve a specific order by its client-order ID.
 
@@ -126,18 +148,19 @@ class AlpacaOrdersService:
             - Order: The order object associated with the client-order ID.
         """
         return await self.client.get_order_by_client_order_id(
-            client_order_id=client_order_id,
-            nested=nested
+            client_order_id=client_order_id, nested=nested
         )
 
-    async def replace_order_by_client_order_id(self, 
-                                         client_order_id: str, 
-                                         qty: Optional[int] = None, 
-                                         time_in_force: Optional[TimeInForce] = None, 
-                                         limit_price: Optional[float] = None, 
-                                         stop_price: Optional[float] = None, 
-                                         trail_price: Optional[float] = None, 
-                                         new_client_order_id: Optional[str] = None) -> Optional[Order]:
+    async def replace_order_by_client_order_id(
+        self,
+        client_order_id: str,
+        qty: Optional[int] = None,
+        time_in_force: Optional[TimeInForce] = None,
+        limit_price: Optional[float] = None,
+        stop_price: Optional[float] = None,
+        trail_price: Optional[float] = None,
+        new_client_order_id: Optional[str] = None,
+    ) -> Optional[Order]:
         """
         Replace an existing order by its client-order ID.
 
@@ -160,7 +183,7 @@ class AlpacaOrdersService:
             limit_price=limit_price,
             stop_price=stop_price,
             trail_price=trail_price,
-            new_client_order_id=new_client_order_id
+            new_client_order_id=new_client_order_id,
         )
 
     async def delete_order_by_client_order_id(self, client_order_id: str):

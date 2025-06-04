@@ -15,6 +15,7 @@ from algo_royale.backtester.stage_data.stage_data_writer import StageDataWriter
 from algo_royale.backtester.watchlist.watchlist import load_watchlist
 from algo_royale.column_names.strategy_columns import StrategyColumns
 from algo_royale.config.config import Config
+from algo_royale.strategy_factory.strategies.base_strategy import Strategy
 from algo_royale.strategy_factory.strategy_factory import StrategyFactory
 
 
@@ -37,9 +38,6 @@ class BacktestStageCoordinator(StageCoordinator):
             stage_data_manager=stage_data_manager,
             logger=logger,
         )
-        self.json_path = config.get("paths.backtester", "strategies_json_path")
-        if not self.json_path:
-            raise ValueError("JSON path for strategies not specified in config")
         watchlist_path = config.get("paths.backtester", "watchlist_path", [])
         if not self.watchlist_path:
             raise ValueError("Watchlist path not specified in config")
@@ -55,7 +53,7 @@ class BacktestStageCoordinator(StageCoordinator):
         """
         Run the backtest and return a dict mapping symbol to a factory that yields result DataFrames.
         """
-        strategies = self.strategy_factory.all_strategy_combinations
+        strategies: list[Strategy] = self.strategy_factory.all_strategy_combinations
         if not strategies:
             self.logger.error("No strategies found in the strategy factory.")
             return {}
@@ -74,11 +72,11 @@ class BacktestStageCoordinator(StageCoordinator):
                 symbol_results = await self.executor.run_backtest(
                     strategies, {symbol: prepared_data[symbol]}
                 )
-                # symbol_results: Dict[str, List[pd.DataFrame]], where key is symbol
+                # symbol_results: Dict[str, list[pd.DataFrame]], where key is symbol
                 if symbol_results and symbol in symbol_results:
                     # For each strategy, collect its results
                     for strategy in strategies:
-                        strategy_name = strategy.get_directory()
+                        strategy_name = strategy.get_hash_id()
                         # Filter DataFrames for this strategy
                         strategy_dfs = (
                             [

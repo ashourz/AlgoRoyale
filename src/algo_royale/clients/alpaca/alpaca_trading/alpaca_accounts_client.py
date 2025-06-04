@@ -2,47 +2,57 @@
 
 from datetime import datetime
 from enum import Enum
-from typing import List, Optional
+from typing import Optional
+
 from algo_royale.clients.alpaca.alpaca_base_client import AlpacaBaseClient
-from algo_royale.clients.alpaca.exceptions import ParameterConflictError
-from algo_royale.models.alpaca_trading.alpaca_account import Account, AccountActivities, AccountConfiguration
-from algo_royale.models.alpaca_trading.enums import ActivityType, DTBPCheck, MarginMultiplier, OptionsTradingLevel, PDTCheck, SortDirection, TradeConfirmationEmail
 from algo_royale.clients.alpaca.alpaca_client_config import TradingConfig
+from algo_royale.clients.alpaca.exceptions import ParameterConflictError
+from algo_royale.models.alpaca_trading.alpaca_account import (
+    Account,
+    AccountActivities,
+    AccountConfiguration,
+)
+from algo_royale.models.alpaca_trading.enums import (
+    ActivityType,
+    DTBPCheck,
+    MarginMultiplier,
+    OptionsTradingLevel,
+    PDTCheck,
+    SortDirection,
+    TradeConfirmationEmail,
+)
+
 
 class AlpacaAccountClient(AlpacaBaseClient):
-    """Singleton class to interact with Alpaca's API for news data.""" 
+    """Singleton class to interact with Alpaca's API for news data."""
 
     def __init__(self, trading_config: TradingConfig):
         """Initialize the AlpacaStockClient with trading configuration."""
         super().__init__(trading_config)
         self.trading_config = trading_config
-        
+
     @property
     def client_name(self) -> str:
         """Subclasses must define a name for logging and ID purposes"""
-        return "AlpacaNewsClient"    
-    
+        return "AlpacaNewsClient"
+
     @property
     def base_url(self) -> str:
         """Subclasses must define a name for logging and ID purposes"""
         return self.trading_config.get_base_url()
-     
+
     async def fetch_account(self) -> Optional[Account]:
         """Fetch account data from Alpaca."""
 
-        response = await self.get(
-            endpoint="account"
-        )  
-        
+        response = await self.get(endpoint="account")
+
         return Account.from_raw(response)
 
     async def fetch_account_configuration(self) -> Optional[AccountConfiguration]:
         """Fetch account data from Alpaca."""
 
-        response = await self.get(
-            endpoint="account/configurations"
-        )
-        
+        response = await self.get(endpoint="account/configurations")
+
         return AccountConfiguration.from_raw(response)
 
     async def update_account_configuration(
@@ -55,7 +65,7 @@ class AlpacaAccountClient(AlpacaBaseClient):
         max_margin_multiplier: Optional[MarginMultiplier] = None,
         max_options_trading_level: Optional[OptionsTradingLevel] = None,
         pdt_check: Optional[PDTCheck] = None,
-        ptp_no_exception_entry: Optional[bool] = None
+        ptp_no_exception_entry: Optional[bool] = None,
     ) -> Optional[AccountConfiguration]:
         """
         Update and fetch account configuration from Alpaca.
@@ -77,9 +87,15 @@ class AlpacaAccountClient(AlpacaBaseClient):
         payload = {}
 
         if dtbp_check is not None:
-            payload["dtbp_check"] = dtbp_check.value if isinstance(dtbp_check, Enum) else dtbp_check
+            payload["dtbp_check"] = (
+                dtbp_check.value if isinstance(dtbp_check, Enum) else dtbp_check
+            )
         if trade_confirm_email is not None:
-            payload["trade_confirm_email"] = trade_confirm_email.value if isinstance(trade_confirm_email, Enum) else trade_confirm_email
+            payload["trade_confirm_email"] = (
+                trade_confirm_email.value
+                if isinstance(trade_confirm_email, Enum)
+                else trade_confirm_email
+            )
         if suspend_trade is not None:
             payload["suspend_trade"] = suspend_trade
         if no_shorting is not None:
@@ -87,38 +103,45 @@ class AlpacaAccountClient(AlpacaBaseClient):
         if fractional_trading is not None:
             payload["fractional_trading"] = fractional_trading
         if max_margin_multiplier is not None:
-            payload["max_margin_multiplier"] = max_margin_multiplier.value if isinstance(max_margin_multiplier, Enum) else max_margin_multiplier
+            payload["max_margin_multiplier"] = (
+                max_margin_multiplier.value
+                if isinstance(max_margin_multiplier, Enum)
+                else max_margin_multiplier
+            )
         if max_options_trading_level is not None:
-            payload["max_options_trading_level"] = max_options_trading_level.value if isinstance(max_options_trading_level, Enum) else max_options_trading_level
+            payload["max_options_trading_level"] = (
+                max_options_trading_level.value
+                if isinstance(max_options_trading_level, Enum)
+                else max_options_trading_level
+            )
         if pdt_check is not None:
-            payload["pdt_check"] = pdt_check.value if isinstance(pdt_check, Enum) else pdt_check
+            payload["pdt_check"] = (
+                pdt_check.value if isinstance(pdt_check, Enum) else pdt_check
+            )
         if ptp_no_exception_entry is not None:
             payload["ptp_no_exception_entry"] = ptp_no_exception_entry
 
         # Send the PATCH request
-        response = await self.patch(
-            endpoint="account/configurations",
-            data=payload
-        )
+        response = await self.patch(endpoint="account/configurations", data=payload)
 
         return AccountConfiguration.from_raw(response)
 
     async def get_account_activities(
         self,
-        activity_types: Optional[List[ActivityType]] = None,
+        activity_types: Optional[list[ActivityType]] = None,
         category: Optional[str] = None,
         date: Optional[datetime] = None,
         until: Optional[datetime] = None,
         after: Optional[datetime] = None,
         direction: Optional[SortDirection] = SortDirection.DESC,
         page_size: Optional[int] = 100,
-        page_token: Optional[str] = None
+        page_token: Optional[str] = None,
     ) -> Optional[AccountActivities]:
         """
         Retrieve account activities from Alpaca API.
 
         Args:
-            activity_types (Optional[List[ActivityType]]): List of activity types to filter results.
+            activity_types (Optional[list[ActivityType]]): List of activity types to filter results.
             category (Optional[str]): Activity category (mutually exclusive with activity_types).
             date (Optional[datetime]): Specific date for filtering.
             until (Optional[datetime]): Filter for activities before this date.
@@ -130,10 +153,12 @@ class AlpacaAccountClient(AlpacaBaseClient):
         Returns:
             Optional[AccountActivities]: A list of account activity objects.
         """
-        
+
         if activity_types and category:
-            raise ParameterConflictError("Specify either 'activity_types' or 'category' or neither, not both.")
-        
+            raise ParameterConflictError(
+                "Specify either 'activity_types' or 'category' or neither, not both."
+            )
+
         params = {}
 
         if activity_types:
@@ -154,13 +179,10 @@ class AlpacaAccountClient(AlpacaBaseClient):
         if page_token:
             params["page_token"] = page_token
 
-        response = await self.get(
-            endpoint="account/activities",
-            params=params
-        )
+        response = await self.get(endpoint="account/activities", params=params)
 
         return AccountActivities.from_raw(response)
-    
+
     async def get_account_activities_by_activity_type(
         self,
         activity_type: ActivityType,
@@ -169,7 +191,7 @@ class AlpacaAccountClient(AlpacaBaseClient):
         after: Optional[datetime] = None,
         direction: Optional[SortDirection] = SortDirection.DESC,
         page_size: Optional[int] = 100,
-        page_token: Optional[str] = None
+        page_token: Optional[str] = None,
     ) -> Optional[AccountActivities]:
         """
         Retrieve account activities from Alpaca API.
@@ -186,7 +208,7 @@ class AlpacaAccountClient(AlpacaBaseClient):
         Returns:
             Optional[AccountActivities]: A list of account activity objects.
         """
-        
+
         params = {}
 
         if date:
@@ -201,10 +223,9 @@ class AlpacaAccountClient(AlpacaBaseClient):
             params["page_size"] = str(page_size)
         if page_token:
             params["page_token"] = page_token
-                
+
         response = await self.get(
-            endpoint=f"account/activities/{activity_type.value}",
-            params=params
+            endpoint=f"account/activities/{activity_type.value}", params=params
         )
 
         return AccountActivities.from_raw(response)

@@ -1,7 +1,8 @@
 import itertools
 import json
-from typing import Dict, List, Optional, Type
+from typing import Dict, Optional
 
+from algo_royale.config.config import Config
 from algo_royale.strategy_factory.combinator.bollinger_bands_strategy_combinator import (
     BollingerBandsStrategyCombinator,
 )
@@ -41,8 +42,8 @@ from algo_royale.strategy_factory.combinator.trend_scraper_strategy_combinator i
 from algo_royale.strategy_factory.combinator.volatility_breakout_strategy_combinator import (
     VolatilityBreakoutStrategyCombinator,
 )
-from algo_royale.strategy_factory.combinator.volume_breakout_strategy_combinator import (
-    VolumeBreakoutStrategyCombinator,
+from algo_royale.strategy_factory.combinator.volume_surge_strategy_combinator import (
+    VolumeSurgeStrategyCombinator,
 )
 from algo_royale.strategy_factory.combinator.vwap_reversion_strategy_combinator import (
     VWAPReversionStrategyCombinator,
@@ -63,12 +64,12 @@ class StrategyFactory:
 
     def __init__(
         self,
-        strategy_map: Optional[Dict[str, Type]] = None,
+        config: Config,
     ):
-        self.strategy_map = strategy_map
-        self.all_strategy_combinations = self._get_all_strategy_combinations()
+        self.strategy_map_path = config.get("paths.backtester", "strategy_map_path")
+        self._all_strategy_combinations: Optional[list[Strategy]] = None
 
-    def _get_merged_strategy_defs(self, symbol: str) -> List[dict]:
+    def _get_merged_strategy_defs(self, symbol: str) -> list[dict]:
         default_strats = self.json_config.get("defaults", [])
         symbol_strats = self.json_config.get("symbols", {}).get(symbol, [])
         return default_strats + symbol_strats
@@ -76,7 +77,7 @@ class StrategyFactory:
     def create_strategies(
         self,
         json_path: str,
-    ) -> Dict[str, List[object]]:
+    ) -> Dict[str, list[object]]:
         """
         For each symbol in config, create all strategy instances (all param combos for param_grid).
         Returns dict: symbol -> list of strategy instances.
@@ -84,7 +85,7 @@ class StrategyFactory:
         with open(json_path, "r") as f:
             self.json_config = json.load(f)
 
-        strategies_per_symbol: Dict[str, List[object]] = {}
+        strategies_per_symbol: Dict[str, list[object]] = {}
         all_symbols = list(self.json_config.get("symbols", {}).keys())
         for symbol in all_symbols:
             strat_defs = self._get_merged_strategy_defs(symbol)
@@ -109,7 +110,19 @@ class StrategyFactory:
             strategies_per_symbol[symbol] = strategies
         return strategies_per_symbol
 
-    def _get_all_strategy_combinations() -> List[Strategy]:
+    def get_all_strategy_combinations(self):
+        """
+        Returns all strategy combinations across all symbols.
+        This method caches the result to avoid recomputing.
+        If the strategy combinations have already been computed, it returns the cached value."""
+        if self._all_strategy_combinations is not None:
+            return self._all_strategy_combinations
+        all_strategies = self._get_all_strategy_combinations()
+        self._save_strategy_map(all_strategies)
+        self._all_strategy_combinations = all_strategies
+        return self._all_strategy_combinations
+
+    def _get_all_strategy_combinations() -> list[Strategy]:
         """
         Returns all strategy combinations across all symbols.
         This method is useful for testing or analysis purposes.
@@ -132,7 +145,24 @@ class StrategyFactory:
         all_strategies.extend(
             VolatilityBreakoutStrategyCombinator.get_all_combinations()
         )
-        all_strategies.extend(VolumeBreakoutStrategyCombinator.get_all_combinations())
+        all_strategies.extend(VolumeSurgeStrategyCombinator.get_all_combinations())
         all_strategies.extend(VWAPReversionStrategyCombinator.get_all_combinations())
         all_strategies.extend(WickReversalStrategyCombinator.get_all_combinations())
         return all_strategies
+
+    def _save_strategy_map(self, strategies: list[Strategy]) -> None:
+        """
+        Generates and saves a mapping of {strategy_class: {hash_id: description}}
+        to the path specified by self.strategy_map_path.
+        """
+        strategy_id_map = {}
+        for strat in strategies:
+            class_name = strat.__class__.__name__
+            hash_id = strat.get_hash_id()
+            desc = strat.get_description()
+            if class_name not in strategy_id_map:
+                strategy_id_map[class_name] = {}
+            strategy_id_map[class_name][hash_id] = desc
+
+        with open(self.strategy_map_path, "w") as f:
+            json.dump(strategy_id_map, f, indent=2)

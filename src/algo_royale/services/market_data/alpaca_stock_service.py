@@ -1,18 +1,27 @@
 # src/algo_royale/service/alpaca_quote_service.py
 
 from datetime import datetime
-from typing import List, Optional
+from typing import Optional
 
-from algo_royale.clients.alpaca.alpaca_market_data.alpaca_stock_client import AlpacaStockClient
+from alpaca.common.enums import Sort, SupportedCurrencies
+from alpaca.data.enums import Adjustment, DataFeed
+from alpaca.data.timeframe import TimeFrame, TimeFrameUnit
+
+from algo_royale.clients.alpaca.alpaca_market_data.alpaca_stock_client import (
+    AlpacaStockClient,
+)
 from algo_royale.models.alpaca_market_data.alpaca_auction import AuctionResponse
-from algo_royale.models.alpaca_market_data.alpaca_bar import BarsResponse, LatestBarsResponse
+from algo_royale.models.alpaca_market_data.alpaca_bar import (
+    BarsResponse,
+    LatestBarsResponse,
+)
 from algo_royale.models.alpaca_market_data.alpaca_condition_code import ConditionCodeMap
 from algo_royale.models.alpaca_market_data.alpaca_quote import QuotesResponse
 from algo_royale.models.alpaca_market_data.alpaca_snapshot import SnapshotsResponse
-from algo_royale.models.alpaca_market_data.alpaca_trade import HistoricalTradesResponse, LatestTradesResponse
-from alpaca.data.enums import DataFeed, Adjustment
-from alpaca.common.enums import Sort, SupportedCurrencies
-from alpaca.data.timeframe import TimeFrame, TimeFrameUnit
+from algo_royale.models.alpaca_market_data.alpaca_trade import (
+    HistoricalTradesResponse,
+    LatestTradesResponse,
+)
 from algo_royale.models.alpaca_market_data.enums import SnapshotFeed, Tape, TickType
 
 
@@ -27,7 +36,7 @@ class AlpacaQuoteService:
 
     async def fetch_historical_quotes(
         self,
-        symbols: List[str],
+        symbols: list[str],
         start_date: datetime,
         end_date: datetime,
         currency=SupportedCurrencies.USD,
@@ -38,9 +47,9 @@ class AlpacaQuoteService:
     ) -> Optional[QuotesResponse]:
         """
         Fetch historical stock data from Alpaca for the given symbols and date range.
-        
+
         Parameters:
-            symbols (List[str]): List of stock symbols to query.
+            symbols (list[str]): List of stock symbols to query.
             start_date (datetime): Start date for the historical data.
             end_date (datetime): End date for the historical data.
             currency (SupportedCurrencies): The currency in which the data should be returned.
@@ -53,20 +62,27 @@ class AlpacaQuoteService:
             Optional[QuotesResponse]: Historical stock quotes if successful.
         """
         return await self.client.fetch_historical_quotes(
-            symbols, start_date, end_date, currency, sort_order, feed, page_limit, page_token
+            symbols,
+            start_date,
+            end_date,
+            currency,
+            sort_order,
+            feed,
+            page_limit,
+            page_token,
         )
-    
+
     async def fetch_latest_quotes(
         self,
-        symbols: List[str],
+        symbols: list[str],
         currency: SupportedCurrencies = SupportedCurrencies.USD,
-        feed: DataFeed = DataFeed.IEX
+        feed: DataFeed = DataFeed.IEX,
     ) -> Optional[QuotesResponse]:
         """
         Fetch the latest stock quotes for the given symbols from Alpaca.
 
         Parameters:
-            symbols (List[str]): List of stock symbols.
+            symbols (list[str]): List of stock symbols.
             currency (SupportedCurrencies): The currency in which the data should be returned.
             feed (DataFeed): Data feed provider.
 
@@ -77,7 +93,7 @@ class AlpacaQuoteService:
 
     async def fetch_historical_auctions(
         self,
-        symbols: List[str],
+        symbols: list[str],
         start_date: datetime,
         end_date: datetime,
         currency=SupportedCurrencies.USD,
@@ -89,7 +105,7 @@ class AlpacaQuoteService:
         Fetch historical auction data from Alpaca for the given symbols and date range.
 
         Parameters:
-            symbols (List[str]): List of stock symbols to query.
+            symbols (list[str]): List of stock symbols to query.
             start_date (datetime): Start date for the historical auctions.
             end_date (datetime): End date for the historical auctions.
             currency (SupportedCurrencies): The currency in which the data should be returned.
@@ -106,7 +122,7 @@ class AlpacaQuoteService:
 
     async def fetch_historical_bars(
         self,
-        symbols: List[str],
+        symbols: list[str],
         start_date: datetime,
         end_date: datetime,
         currency=SupportedCurrencies.USD,
@@ -121,7 +137,7 @@ class AlpacaQuoteService:
         Fetch historical bar data for the given symbols and date range.
 
         Parameters:
-            symbols (List[str]): List of stock symbols.
+            symbols (list[str]): List of stock symbols.
             start_date (datetime): Start date for the historical bars.
             end_date (datetime): End date for the historical bars.
             currency (SupportedCurrencies): The currency in which the data should be returned.
@@ -136,20 +152,29 @@ class AlpacaQuoteService:
             Optional[BarsResponse]: Historical bar data if successful.
         """
         return await self.client.fetch_historical_bars(
-            symbols, start_date, end_date, currency, feed, timeframe, adjustment, sort_order, page_limit, page_token
+            symbols,
+            start_date,
+            end_date,
+            currency,
+            feed,
+            timeframe,
+            adjustment,
+            sort_order,
+            page_limit,
+            page_token,
         )
 
     async def fetch_latest_bars(
         self,
-        symbols: List[str],
+        symbols: list[str],
         currency=SupportedCurrencies.USD,
-        feed: DataFeed = DataFeed.IEX
+        feed: DataFeed = DataFeed.IEX,
     ) -> Optional[LatestBarsResponse]:
         """
         Fetch the latest bar data for the given symbols from Alpaca.
 
         Parameters:
-            symbols (List[str]): List of stock symbols.
+            symbols (list[str]): List of stock symbols.
             currency (SupportedCurrencies): The currency in which the data should be returned.
             feed (DataFeed): Data feed provider.
 
@@ -159,9 +184,7 @@ class AlpacaQuoteService:
         return await self.client.fetch_latest_bars(symbols, currency, feed)
 
     async def fetch_condition_codes(
-        self,
-        ticktype: TickType,
-        tape: Tape
+        self, ticktype: TickType, tape: Tape
     ) -> Optional[ConditionCodeMap]:
         """
         Fetch condition code metadata for a specific tick type and tape.
@@ -177,15 +200,15 @@ class AlpacaQuoteService:
 
     async def fetch_snapshots(
         self,
-        symbols: List[str],
+        symbols: list[str],
         currency=SupportedCurrencies.USD,
-        feed: SnapshotFeed = SnapshotFeed.IEX
+        feed: SnapshotFeed = SnapshotFeed.IEX,
     ) -> Optional[SnapshotsResponse]:
         """
         Fetch snapshot data for the given symbols.
 
         Parameters:
-            symbols (List[str]): List of stock symbols.
+            symbols (list[str]): List of stock symbols.
             currency (SupportedCurrencies): The currency in which the data should be returned.
             feed (SnapshotFeed): Data feed provider.
 
@@ -196,20 +219,20 @@ class AlpacaQuoteService:
 
     async def fetch_historical_trades(
         self,
-        symbols: List[str],
+        symbols: list[str],
         start_date: datetime,
         end_date: datetime,
         currency=SupportedCurrencies.USD,
         limit: int = 1000,
         feed: DataFeed = DataFeed.IEX,
         sort_order: Sort = Sort.DESC,
-        page_token: Optional[str] = None
+        page_token: Optional[str] = None,
     ) -> Optional[HistoricalTradesResponse]:
         """
         Fetch historical trade data for the given symbols and date range.
 
         Parameters:
-            symbols (List[str]): List of stock symbols.
+            symbols (list[str]): List of stock symbols.
             start_date (datetime): Start date for the historical trades.
             end_date (datetime): End date for the historical trades.
             currency (SupportedCurrencies): The currency in which the data should be returned.
@@ -227,15 +250,15 @@ class AlpacaQuoteService:
 
     async def fetch_latest_trades(
         self,
-        symbols: List[str],
+        symbols: list[str],
         currency=SupportedCurrencies.USD,
-        feed: DataFeed = DataFeed.IEX
+        feed: DataFeed = DataFeed.IEX,
     ) -> Optional[LatestTradesResponse]:
         """
         Fetch the latest trade data for the given symbols from Alpaca.
 
         Parameters:
-            symbols (List[str]): List of stock symbols.
+            symbols (list[str]): List of stock symbols.
             currency (SupportedCurrencies): The currency in which the data should be returned.
             feed (DataFeed): Data feed provider.
 

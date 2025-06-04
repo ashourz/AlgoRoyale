@@ -1,20 +1,33 @@
 # src/models/alpaca_models/alpaca_account.py
 
-from enum import Enum
-from algo_royale.models.alpaca_trading.enums import ActivityType, DTBPCheck, MarginMultiplier, OptionsTradingLevel, OrderSide, PDTCheck, TradeActivityType, TradeConfirmationEmail
-from pydantic import BaseModel
-from typing import List, Optional
 from datetime import datetime
+from enum import Enum
+from typing import Optional
+
 from dateutil.parser import isoparse
+from pydantic import BaseModel
+
+from algo_royale.models.alpaca_trading.enums import (
+    ActivityType,
+    DTBPCheck,
+    MarginMultiplier,
+    OptionsTradingLevel,
+    OrderSide,
+    PDTCheck,
+    TradeActivityType,
+    TradeConfirmationEmail,
+)
+
 
 class AccountStatus(Enum):
-    ONBOARDING =  "ONBOARDING"                  #	The account is onboarding.
-    SUBMISSION_FAILED =  "SUBMISSION_FAILED"    # The account application submission failed for some reason.
-    SUBMITTED =  "SUBMITTED"                    # The account application has been submitted for review.
-    ACCOUNT_UPDATED =  "ACCOUNT_UPDATED"        # The account information is being updated.
-    APPROVAL_PENDING =  "APPROVAL_PENDING"      # The final account approval is pending.
-    ACTIVE =  "ACTIVE"                          #	The account is active for trading.
-    REJECTED =  "REJECTED"                      # The account application has been rejected.
+    ONBOARDING = "ONBOARDING"  # The account is onboarding.
+    SUBMISSION_FAILED = "SUBMISSION_FAILED"  # The account application submission failed for some reason.
+    SUBMITTED = "SUBMITTED"  # The account application has been submitted for review.
+    ACCOUNT_UPDATED = "ACCOUNT_UPDATED"  # The account information is being updated.
+    APPROVAL_PENDING = "APPROVAL_PENDING"  # The final account approval is pending.
+    ACTIVE = "ACTIVE"  # The account is active for trading.
+    REJECTED = "REJECTED"  # The account application has been rejected.
+
 
 class Account(BaseModel):
     id: str
@@ -91,7 +104,7 @@ class Account(BaseModel):
             daytrade_count=data["daytrade_count"],
             last_maintenance_margin=data["last_maintenance_margin"],
             daytrading_buying_power=data["daytrading_buying_power"],
-            regt_buying_power=data["regt_buying_power"]
+            regt_buying_power=data["regt_buying_power"],
         )
 
 
@@ -120,16 +133,24 @@ class AccountConfiguration(BaseModel):
         return AccountConfiguration(
             dtbp_check=DTBPCheck(data["dtbp_check"]) if "dtbp_check" in data else None,
             fractional_trading=data.get("fractional_trading"),
-            max_margin_multiplier=MarginMultiplier(data["max_margin_multiplier"]) if "max_margin_multiplier" in data else None,
-            max_options_trading_level=OptionsTradingLevel(data["max_options_trading_level"]) if "max_options_trading_level" in data else None,
+            max_margin_multiplier=MarginMultiplier(data["max_margin_multiplier"])
+            if "max_margin_multiplier" in data
+            else None,
+            max_options_trading_level=OptionsTradingLevel(
+                data["max_options_trading_level"]
+            )
+            if "max_options_trading_level" in data
+            else None,
             no_shorting=data.get("no_shorting"),
             pdt_check=PDTCheck(data["pdt_check"]) if "pdt_check" in data else None,
             ptp_no_exception_entry=data.get("ptp_no_exception_entry"),
             suspend_trade=data.get("suspend_trade"),
-            trade_confirm_email=TradeConfirmationEmail(data["trade_confirm_email"]) if "trade_confirm_email" in data else None
+            trade_confirm_email=TradeConfirmationEmail(data["trade_confirm_email"])
+            if "trade_confirm_email" in data
+            else None,
         )
 
-        
+
 class AccountActivity(BaseModel):
     activity_type: Optional[ActivityType] = None
     id: Optional[str] = None
@@ -151,7 +172,9 @@ class AccountActivity(BaseModel):
     @staticmethod
     def from_raw(data: dict) -> "AccountActivity":
         return AccountActivity(
-            activity_type=ActivityType(data["activity_type"]) if "activity_type" in data else None,
+            activity_type=ActivityType(data["activity_type"])
+            if "activity_type" in data
+            else None,
             id=data.get("id", None),
             cum_qty=data.get("cum_qty", None),
             leaves_qty=data.get("leaves_qty", None),
@@ -159,7 +182,11 @@ class AccountActivity(BaseModel):
             qty=data.get("qty", None),
             side=OrderSide(data["side"]) if "side" in data else None,
             symbol=data.get("symbol", None),
-            transaction_time=datetime.fromisoformat(data["transaction_time"].replace("Z", "+00:00")) if "transaction_time" in data else None,
+            transaction_time=datetime.fromisoformat(
+                data["transaction_time"].replace("Z", "+00:00")
+            )
+            if "transaction_time" in data
+            else None,
             order_id=data.get("order_id", None),
             type=TradeActivityType(data["type"]) if "type" in data else None,
             order_status=data.get("order_status", None),
@@ -171,10 +198,10 @@ class AccountActivity(BaseModel):
 
 
 class AccountActivities(BaseModel):
-    activities: List[AccountActivity]
+    activities: list[AccountActivity]
 
     @staticmethod
-    def from_raw(data: List[dict]) -> "AccountActivities":
+    def from_raw(data: list[dict]) -> "AccountActivities":
         return AccountActivities(
             activities=[AccountActivity.from_raw(item) for item in data]
         )
