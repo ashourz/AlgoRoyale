@@ -1,3 +1,4 @@
+import inspect
 import itertools
 from abc import ABC
 from logging import Logger
@@ -26,7 +27,7 @@ class StrategyCombinator(ABC):
 
     @classmethod
     def all_strategy_combinations(
-        cls, logger: Logger, max_filter=2, max_entry=2, max_trend=2, max_exit=2
+        cls, logger: Logger, max_filter=1, max_entry=1, max_trend=1, max_exit=1
     ) -> list[Strategy]:
         """
         Generate all possible strategy combinations based on the defined condition types.
@@ -117,22 +118,53 @@ class StrategyCombinator(ABC):
                 for trend in trend_combos:
                     for exit_ in exit_combos:
                         for stateful_logic in stateful_logics:
-                            kwargs = {
-                                "filter_conditions": filter_,
-                                "entry_conditions": entry,
-                                "trend_conditions": trend,
-                                "exit_conditions": exit_,
-                                "stateful_logic": stateful_logic,
-                            }
-                            # Remove empty lists if the strategy doesn't accept them
-                            if not filter_:
-                                kwargs.pop("filter_conditions")
-                            if not entry:
-                                kwargs.pop("entry_conditions")
-                            if not trend:
-                                kwargs.pop("trend_conditions")
-                            if not exit_:
-                                kwargs.pop("exit_conditions")
-                            strategies.append(cls.strategy_class(**kwargs))
+                            try:
+                                kwargs = {
+                                    "filter_conditions": filter_,
+                                    "entry_conditions": entry,
+                                    "trend_conditions": trend,
+                                    "exit_conditions": exit_,
+                                    "stateful_logic": stateful_logic,
+                                }
+                                # Remove empty lists if the strategy doesn't accept them
+                                if not filter_:
+                                    kwargs.pop("filter_conditions")
+                                if not entry:
+                                    kwargs.pop("entry_conditions")
+                                if not trend:
+                                    kwargs.pop("trend_conditions")
+                                if not exit_:
+                                    kwargs.pop("exit_conditions")
+                                # If the strategy class does not accept stateful logic, remove it
+                                if (
+                                    not stateful_logic
+                                    and not cls.allow_empty_stateful_logic
+                                ):
+                                    kwargs.pop("stateful_logic")
+                                # If the strategy class does not accept any of the conditions, skip it
+                                init_params = inspect.signature(
+                                    cls.strategy_class.__init__
+                                ).parameters
+                                accepted_keys = set(init_params.keys()) - {"self"}
+
+                                filtered_kwargs = {
+                                    k: v
+                                    for k, v in kwargs.items()
+                                    if k in accepted_keys
+                                }
+
+                                strategies.append(cls.strategy_class(**filtered_kwargs))
+                            except Exception as e:
+                                logger.error(
+                                    "Error creating strategy with filter=%s, entry=%s, "
+                                    "trend=%s, exit=%s, stateful_logic=%s: %s",
+                                    filter_,
+                                    entry,
+                                    trend,
+                                    exit_,
+                                    stateful_logic,
+                                    e,
+                                )
+        # Log the number of generated strategies
         logger.info("Generated %d strategy combinations", len(strategies))
         return strategies
