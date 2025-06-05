@@ -24,13 +24,20 @@ class DummyStrategy:
 
 class DummyCombinator:
     @staticmethod
-    def get_all_combinations():
-        return [DummyStrategy()]
+    def all_strategy_combinations(logger=None):
+        # Yield a lambda that returns a DummyStrategy instance
+        yield lambda: DummyStrategy()
 
 
 class DummyLogger:
     def info(self, msg, *args):
-        print(msg % args)
+        print(msg % args if args else msg)
+
+    def warning(self, msg, *args):
+        print("WARNING:", msg % args if args else msg)
+
+    def error(self, msg, *args):
+        print("ERROR:", msg % args if args else msg)
 
 
 @pytest.fixture
@@ -46,11 +53,16 @@ def factory(config):
     )
 
 
-def test_get_all_strategy_combinations_returns_list(factory):
-    combos = factory.get_all_strategy_combinations()
-    assert isinstance(combos, list)
-    assert all(hasattr(s, "get_hash_id") for s in combos)
-    assert all(hasattr(s, "get_description") for s in combos)
+def test_get_all_strategy_combination_lambdas_returns_lambdas(factory):
+    lambdas = factory.get_all_strategy_combination_lambdas()
+    assert isinstance(lambdas, list)
+    assert all(callable(l) for l in lambdas)
+    # Each lambda should return a list of strategies when called
+    for l in lambdas:
+        strategies = l()
+        assert isinstance(strategies, list)
+        assert all(hasattr(s, "get_hash_id") for s in strategies)
+        assert all(hasattr(s, "get_description") for s in strategies)
 
 
 def test_save_strategy_map_creates_file(factory, tmp_path):

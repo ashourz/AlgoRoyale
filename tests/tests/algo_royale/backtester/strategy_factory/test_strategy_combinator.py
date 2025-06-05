@@ -59,8 +59,22 @@ def make_combinator(
 
 def test_all_strategy_combinations_basic():
     Combinator = make_combinator()
-    combos = Combinator.all_strategy_combinations(logger=DummyLogger())
-    assert len(combos) == 81  # matches actual output
+    combos = list(
+        Combinator.all_strategy_combinations(
+            logger=DummyLogger(),
+            max_filter=2,
+            max_entry=2,
+            max_trend=2,
+            max_exit=2,
+        )
+    )
+    assert (
+        len(combos) == 81
+    )  # 3*3*3*3*1 = 81 (if empty not allowed, 2^4*1=16 if only singles)
+    assert all(callable(c) for c in combos)
+    for c in combos:
+        strat = c()
+        assert isinstance(strat, DummyStrategy)
 
 
 def test_all_strategy_combinations_with_empty_allowed():
@@ -71,16 +85,34 @@ def test_all_strategy_combinations_with_empty_allowed():
         allow_empty_exit=True,
         allow_empty_stateful_logic=True,
     )
-    combos = Combinator.all_strategy_combinations(logger=DummyLogger())
-    assert len(combos) == 512  # matches actual output
+    combos = list(
+        Combinator.all_strategy_combinations(
+            logger=DummyLogger(),
+            max_filter=2,
+            max_entry=2,
+            max_trend=2,
+            max_exit=2,
+        )
+    )
+    assert len(combos) == 512  # 4*4*4*4*2 = 512 (if 2 of each type, empty allowed)
+    assert all(callable(c) for c in combos)
+    for c in combos:
+        strat = c()
+        assert isinstance(strat, DummyStrategy)
 
 
 def test_all_strategy_combinations_with_max_limits():
     Combinator = make_combinator()
-    combos = Combinator.all_strategy_combinations(
-        logger=DummyLogger(), max_filter=1, max_entry=1, max_trend=1, max_exit=1
+    combos = list(
+        Combinator.all_strategy_combinations(
+            logger=DummyLogger(), max_filter=1, max_entry=1, max_trend=1, max_exit=1
+        )
     )
     assert len(combos) == 16  # matches actual output
+    assert all(callable(c) for c in combos)
+    for c in combos:
+        strat = c()
+        assert isinstance(strat, DummyStrategy)
 
 
 def test_all_strategy_combinations_empty_conditions():
@@ -96,8 +128,10 @@ def test_all_strategy_combinations_empty_conditions():
         allow_empty_exit=True,
         allow_empty_stateful_logic=True,
     )
-    combos = Combinator.all_strategy_combinations(logger=DummyLogger())
+    combos = list(Combinator.all_strategy_combinations(logger=DummyLogger()))
     # Only one possible strategy: all empty
     assert len(combos) == 1
-    strat = combos[0]
+    strat_lambda = combos[0]
+    assert callable(strat_lambda)
+    strat = strat_lambda()
     assert isinstance(strat, DummyStrategy)

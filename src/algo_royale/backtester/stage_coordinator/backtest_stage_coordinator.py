@@ -1,3 +1,4 @@
+import asyncio
 from logging import Logger
 from typing import AsyncIterator, Callable, Dict
 
@@ -15,7 +16,6 @@ from algo_royale.backtester.stage_data.stage_data_writer import StageDataWriter
 from algo_royale.backtester.watchlist.watchlist import load_watchlist
 from algo_royale.column_names.strategy_columns import StrategyColumns
 from algo_royale.config.config import Config
-from algo_royale.strategy_factory.strategies.base_strategy import Strategy
 from algo_royale.strategy_factory.strategy_factory import StrategyFactory
 
 
@@ -49,46 +49,49 @@ class BacktestStageCoordinator(StageCoordinator):
 
     async def process(
         self, prepared_data: Dict[str, Callable[[], AsyncIterator[pd.DataFrame]]]
-    ) -> Dict[str, Dict[None, Callable[[], AsyncIterator[pd.DataFrame]]]]:
-        """
-        Run the backtest and return a dict mapping symbol to a factory that yields result DataFrames.
+    ) -> Dict[str, Dict[str, Callable[[], AsyncIterator[pd.DataFrame]]]]:
+        """Process the backtest stage by running all strategies on the prepared data.
+        Args:
+            prepared_data (Dict[str, Callable[[], AsyncIterator[pd.DataFrame]]]):
+                A dictionary where keys are symbols and values are async generators
+                that yield DataFrames containing prepared data for each symbol.
+        Returns:
+            Dict[str, Dict[str, Callable[[], AsyncIterator[pd.DataFrame]]]]:
         """
         self.logger.info("Starting backtest stage processing...")
-        strategies: list[Strategy] = (
-            self.strategy_factory.get_all_strategy_combinations()
-        )
+
+        # Get all strategy combination lambdas and instantiate all strategies
+        strategy_lambdas = self.strategy_factory.get_all_strategy_combination_lambdas()
+        strategies = []
+        for lambda_ in strategy_lambdas:
+            strategies.extend(lambda_())
+
         if not strategies:
             self.logger.error("No strategies found in the strategy factory.")
             return {}
         else:
             self.logger.info(f"Found {len(strategies)} strategies to run.")
+
         results: Dict[str, Dict[str, list[pd.DataFrame]]] = {}
+        semaphore = asyncio.Semaphore(100)  # Limit to 100 concurrent tasks
 
-        for symbol in self.watchlist:
-            self.logger.debug(f"Processing symbol: {symbol}")
-            if symbol not in prepared_data:
-                self.logger.warning(f"No prepared data for symbol {symbol}, skipping.")
-                continue
+        async def process_symbol_strategy(symbol, strategy):
+            async with semaphore:
+                try:
+                    if symbol not in prepared_data:
+                        self.logger.warning(
+                            f"No prepared data for symbol {symbol}, skipping."
+                        )
+                        return symbol, strategy.get_hash_id(), []
 
-            self.logger.debug(f"Running backtest for symbol: {symbol}")
-            symbol_results = await self.executor.run_backtest(
-                strategies, {symbol: prepared_data[symbol]}
-            )
-            # symbol_results: Dict[str, list[pd.DataFrame]], where key is symbol
-            if symbol_results and symbol in symbol_results:
-                self.logger.debug(f"Backtest results for symbol {symbol} found.")
-                # For each strategy, collect its results
-                for strategy in strategies:
-                    # Get the strategy name using its hash ID
-                    strategy_name = strategy.get_hash_id()
-                    self.logger.debug(
-                        f"Processing strategy: {strategy_name} for symbol: {symbol}"
+                    symbol_results = await self.executor.run_backtest(
+                        [strategy], {symbol: prepared_data[symbol]}
                     )
-                    # Filter DataFrames for this strategy
+                    strategy_name = strategy.get_hash_id()
                     strategy_dfs = (
                         [
                             df
-                            for df in symbol_results[symbol]
+                            for df in symbol_results.get(symbol, [])
                             if (
                                 StrategyColumns.STRATEGY_NAME in df.columns
                                 and (
@@ -96,24 +99,37 @@ class BacktestStageCoordinator(StageCoordinator):
                                 ).any()
                             )
                         ]
-                        if symbol_results[symbol]
+                        if symbol_results and symbol in symbol_results
                         else []
                     )
-                    if symbol not in results:
-                        self.logger.debug(
-                            f"Initializing results dict for symbol: {symbol}"
-                        )
-                        results[symbol] = {}
-                    results[symbol][strategy_name] = strategy_dfs
-            else:
-                self.logger.warning(f"No results for symbol {symbol}.")
+                    return symbol, strategy_name, strategy_dfs
+                except Exception as e:
+                    self.logger.error(
+                        f"Error processing symbol {symbol} with strategy {strategy.get_hash_id()}: {e}"
+                    )
+                    return symbol, strategy.get_hash_id(), []
 
-        if not results:
-            self.logger.error("Backtest returned no results.")
-            return {}
+        # --- CONCURRENT EXECUTION ---
+        tasks = [
+            process_symbol_strategy(symbol, strategy)
+            for symbol in self.watchlist
+            for strategy in strategies
+        ]
+        completed = await asyncio.gather(*tasks, return_exceptions=True)
+
+        # Aggregate results, skipping exceptions
+        for item in completed:
+            if isinstance(item, Exception):
+                self.logger.error(f"Exception in task: {item}", exc_info=True)
+                continue
+            if item is None:
+                continue
+            symbol, strategy_name, strategy_dfs = item
+            if symbol not in results:
+                results[symbol] = {}
+            results[symbol][strategy_name] = strategy_dfs
 
         # Convert results to a dict of async generators
-        # where each symbol maps to a generator that yields DataFrames
         def make_factory(dfs):
             async def gen():
                 for df in dfs:

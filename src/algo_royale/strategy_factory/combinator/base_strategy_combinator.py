@@ -2,6 +2,7 @@ import inspect
 import itertools
 from abc import ABC
 from logging import Logger
+from typing import Callable, Generator
 
 from algo_royale.strategy_factory.strategies.base_strategy import Strategy
 
@@ -28,7 +29,7 @@ class StrategyCombinator(ABC):
     @classmethod
     def all_strategy_combinations(
         cls, logger: Logger, max_filter=1, max_entry=1, max_trend=1, max_exit=1
-    ) -> list[Strategy]:
+    ) -> Generator[Callable[[], Strategy], None, None]:
         """
         Generate all possible strategy combinations based on the defined condition types.
         This method combines all possible conditions from the specified types and generates
@@ -112,7 +113,6 @@ class StrategyCombinator(ABC):
             len(exit_combos),
             len(stateful_logics),
         )
-        strategies = []
         for filter_ in filter_combos:
             for entry in entry_combos:
                 for trend in trend_combos:
@@ -152,8 +152,10 @@ class StrategyCombinator(ABC):
                                     for k, v in kwargs.items()
                                     if k in accepted_keys
                                 }
+                                # Yield a partial (lambda) that will instantiate the strategy when called
+                                from functools import partial
 
-                                strategies.append(cls.strategy_class(**filtered_kwargs))
+                                yield partial(cls.strategy_class, **filtered_kwargs)
                             except Exception as e:
                                 logger.error(
                                     "Error creating strategy with filter=%s, entry=%s, "
@@ -165,6 +167,3 @@ class StrategyCombinator(ABC):
                                     stateful_logic,
                                     e,
                                 )
-        # Log the number of generated strategies
-        logger.info("Generated %d strategy combinations", len(strategies))
-        return strategies
