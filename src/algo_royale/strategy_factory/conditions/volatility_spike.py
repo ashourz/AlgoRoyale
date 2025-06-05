@@ -67,7 +67,7 @@ class VolatilitySpikeCondition(StrategyCondition):
         return [self.range_col, self.volatility_col]
 
     @classmethod
-    def available_param_grid(cls):
+    def available_param_grid(cls) -> dict:
         return {
             "range_col": [
                 StrategyColumns.RANGE,

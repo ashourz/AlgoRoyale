@@ -24,7 +24,7 @@ class TrendAboveSMACondition(StrategyCondition):
         return df[self.price_col] > df[self.sma_col]
 
     @classmethod
-    def available_param_grid(cls):
+    def available_param_grid(cls) -> dict:
         return {
             "price_col": [StrategyColumns.CLOSE_PRICE, StrategyColumns.OPEN_PRICE],
             "sma_col": [

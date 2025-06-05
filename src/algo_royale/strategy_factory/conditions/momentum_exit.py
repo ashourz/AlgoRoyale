@@ -48,7 +48,7 @@ class MomentumExitCondition(StrategyCondition):
         return sell_condition
 
     @classmethod
-    def available_param_grid(cls):
+    def available_param_grid(cls) -> dict:
         return {
             "close_col": [StrategyColumns.CLOSE_PRICE, StrategyColumns.OPEN_PRICE],
             "lookback": [2, 3, 5, 10, 15, 20, 30],

@@ -47,7 +47,7 @@ class TrailingStopStatefulLogic(StatefulLogic):
         return {self.close_col}
 
     @classmethod
-    def available_param_grid(cls):
+    def available_param_grid(cls) -> dict:
         return {
             "close_col": [StrategyColumns.CLOSE_PRICE],
             "stop_pct": [0.01, 0.02, 0.03, 0.05],

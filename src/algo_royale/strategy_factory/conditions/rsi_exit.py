@@ -28,7 +28,7 @@ class RSIExitCondition(StrategyCondition):
         return rsi > self.overbought
 
     @classmethod
-    def available_param_grid(cls):
+    def available_param_grid(cls) -> dict:
         return {
             "close_col": [StrategyColumns.CLOSE_PRICE, StrategyColumns.OPEN_PRICE],
             "period": [5, 10, 14, 20, 30],

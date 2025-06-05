@@ -22,7 +22,7 @@ class BooleanColumnEntryCondition(StrategyCondition):
         return df[self.entry_col].astype(bool)
 
     @classmethod
-    def available_param_grid(cls):
+    def available_param_grid(cls) -> dict:
         return {
             "entry_col": [StrategyColumns.ENTRY_SIGNAL],
         }

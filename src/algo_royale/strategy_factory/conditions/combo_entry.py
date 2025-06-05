@@ -51,7 +51,7 @@ class ComboEntryCondition(StrategyCondition):
         )
 
     @classmethod
-    def available_param_grid(cls):
+    def available_param_grid(cls) -> dict:
         return {
             "rsi_col": [StrategyColumns.RSI],
             "macd_col": [StrategyColumns.MACD],

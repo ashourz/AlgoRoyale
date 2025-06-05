@@ -31,7 +31,7 @@ class VWAPReversionExitCondition(StrategyCondition):
         return deviation > self.deviation_threshold
 
     @classmethod
-    def available_param_grid(cls):
+    def available_param_grid(cls) -> dict:
         return {
             "deviation_threshold": [0.005, 0.01, 0.015, 0.02],
             "vwap_col": [

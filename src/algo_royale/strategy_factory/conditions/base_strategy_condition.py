@@ -1,4 +1,5 @@
 import itertools
+from logging import Logger
 
 import pandas as pd
 
@@ -27,7 +28,7 @@ class StrategyCondition:
         return set()
 
     @classmethod
-    def available_param_grid(cls):
+    def available_param_grid(cls) -> dict:
         """
         Should be overridden in subclasses to return a dict of parameter names to lists of possible values.
         Example:
@@ -39,16 +40,18 @@ class StrategyCondition:
         return {}
 
     @classmethod
-    def all_possible_conditions(cls):
+    def all_possible_conditions(cls, logger: Logger):
         """
         Returns all possible instances of this condition class with different parameter combinations.
         If no parameters are defined, returns a single instance of the class.
         """
         grid = cls.available_param_grid()
+        logger.debug(f"Available param grid for {cls.__name__}: {grid}")
         if not grid:
             return [cls()]
         keys = list(grid.keys())
         values = list(grid.values())
+        logger.debug(f"Keys: {keys}, Values: {values}")
         combos = []
         for prod in itertools.product(*values):
             params = dict(zip(keys, prod))

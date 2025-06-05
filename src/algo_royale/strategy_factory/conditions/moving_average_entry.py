@@ -51,7 +51,7 @@ class MovingAverageEntryCondition(StrategyCondition):
         return golden_cross
 
     @classmethod
-    def available_param_grid(cls):
+    def available_param_grid(cls) -> dict:
         short_windows = [5, 10, 15, 20, 50]
         long_windows = [30, 50, 100, 200]
         valid_pairs = [

@@ -22,7 +22,7 @@ class TimeOfDayExitCondition(StrategyCondition):
         return df[self.hour_col].isin(self.sell_hours)
 
     @classmethod
-    def available_param_grid(cls):
+    def available_param_grid(cls) -> dict:
         return {
             "sell_hours": [
                 {11, 15},

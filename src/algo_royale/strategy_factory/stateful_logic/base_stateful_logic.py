@@ -25,7 +25,7 @@ class StatefulLogic:
         return set()
 
     @classmethod
-    def available_param_grid(cls):
+    def available_param_grid(cls) -> dict:
         """
         Should be overridden in subclasses to return a dict of parameter names to lists of possible values.
         Example:

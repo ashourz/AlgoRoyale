@@ -11,11 +11,19 @@ class DummyConditionNoParams(StrategyCondition):
 
 class DummyConditionWithParams(StrategyCondition):
     @classmethod
-    def available_param_grid(cls):
+    def available_param_grid(cls) -> dict:
         return {
             "threshold": [1, 2],
             "window": [10, 20],
         }
+
+
+class DummyLogger:
+    def info(self, msg, *args):
+        print(msg % args)
+
+    def debug(self, msg, *args):
+        print
 
 
 def test_apply_raises_not_implemented():
@@ -29,13 +37,13 @@ def test_available_param_grid_default():
 
 
 def test_all_possible_conditions_no_params():
-    conds = DummyConditionNoParams.all_possible_conditions()
+    conds = DummyConditionNoParams.all_possible_conditions(logger=DummyLogger())
     assert len(conds) == 1
     assert isinstance(conds[0], DummyConditionNoParams)
 
 
 def test_all_possible_conditions_with_params():
-    conds = DummyConditionWithParams.all_possible_conditions()
+    conds = DummyConditionWithParams.all_possible_conditions(logger=DummyLogger())
     # 2 thresholds x 2 windows = 4 combinations
     assert len(conds) == 4
     ids = [c.get_id() for c in conds]

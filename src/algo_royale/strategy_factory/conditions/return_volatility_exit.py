@@ -43,7 +43,7 @@ class ReturnVolatilityExitCondition(StrategyCondition):
         return weakness | volatility_spike
 
     @classmethod
-    def available_param_grid(cls):
+    def available_param_grid(cls) -> dict:
         return {
             "threshold": [-0.005, -0.01, -0.02, -0.03, -0.04, -0.05, -0.06, -0.1],
             "return_col": [

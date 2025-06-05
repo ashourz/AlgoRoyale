@@ -73,7 +73,7 @@ class MACDBearishCrossCondition(StrategyCondition):
         return [self.macd_col, self.signal_col]
 
     @classmethod
-    def available_param_grid(cls):
+    def available_param_grid(cls) -> dict:
         return {
             "macd_col": [StrategyColumns.MACD],
             "signal_col": [StrategyColumns.MACD_SIGNAL],

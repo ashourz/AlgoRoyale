@@ -31,7 +31,7 @@ class TrailingStopExitCondition(StrategyCondition):
         return {self.close_col}
 
     @classmethod
-    def available_param_grid(cls):
+    def available_param_grid(cls) -> dict:
         return {
             "close_col": [
                 StrategyColumns.CLOSE_PRICE,

@@ -53,6 +53,7 @@ class StageCoordinator(ABC):
         """
         Orchestrate the stage: load, prepare, process, write.
         """
+        self.logger.info(f"Starting stage: {self.stage}")
         if not self.stage.incoming_stage:
             """ If no incoming stage is defined, skip loading data """
             self.logger.error(f"Stage {self.stage} has no incoming stage defined.")
@@ -90,6 +91,9 @@ class StageCoordinator(ABC):
     ) -> Dict[str, Callable[[], AsyncIterator[pd.DataFrame]]]:
         """Load data based on the configuration"""
         try:
+            self.logger.info(
+                f"Loading data for stage:{stage} | strategy:{strategy_name}"
+            )
             data = await self.data_loader.load_all_stage_data(
                 stage=stage, strategy_name=strategy_name
             )
@@ -114,6 +118,7 @@ class StageCoordinator(ABC):
         strategy_name: Optional[str] = None,
     ) -> Dict[str, Callable[[], AsyncIterator[pd.DataFrame]]]:
         """Prepare data for processing"""
+        self.logger.info(f"Preparing data for stage:{stage} | strategy:{strategy_name}")
         prepared_data = {}
         for symbol, df_iter_factory in data.items():
 
@@ -139,6 +144,9 @@ class StageCoordinator(ABC):
                     raise
 
             prepared_data[symbol] = factory
+        self.logger.info(
+            f"Data prepared for stage:{stage} | strategy:{strategy_name} with {len(prepared_data)} symbols"
+        )
         return prepared_data
 
     async def _write(
@@ -157,6 +165,7 @@ class StageCoordinator(ABC):
         :param processed_data: A dictionary mapping symbols to strategy factories that yield DataFrames.
         :type processed_data: Dict[str, Dict[str, Callable[[], AsyncIterator[pd.DataFrame]]]]
         """
+        self.logger.info(f"Writing data for stage: {stage}")
         try:
             for symbol, strategy_factories in processed_data.items():
                 try:

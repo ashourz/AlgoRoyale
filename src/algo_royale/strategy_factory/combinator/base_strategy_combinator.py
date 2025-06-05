@@ -1,7 +1,11 @@
 import itertools
+from abc import ABC
+from logging import Logger
+
+from algo_royale.strategy_factory.strategies.base_strategy import Strategy
 
 
-class StrategyCombinator:
+class StrategyCombinator(ABC):
     """
     Base class to generate all combinations of entry, trend, exit conditions and stateful logic.
     Subclass and set the class attributes below to lists of types/classes that implement
@@ -22,26 +26,61 @@ class StrategyCombinator:
 
     @classmethod
     def all_strategy_combinations(
-        cls, max_filter=2, max_entry=2, max_trend=2, max_exit=2
-    ):
+        cls, logger: Logger, max_filter=2, max_entry=2, max_trend=2, max_exit=2
+    ) -> list[Strategy]:
+        """
+        Generate all possible strategy combinations based on the defined condition types.
+        This method combines all possible conditions from the specified types and generates
+        all non-empty combinations up to the specified maximums for each condition type.
+        Parameters:
+            max_filter (int): Maximum number of filter conditions to combine.
+            max_entry (int): Maximum number of entry conditions to combine.
+            max_trend (int): Maximum number of trend conditions to combine.
+            max_exit (int): Maximum number of exit conditions to combine.
+        Returns:
+            list: A list of Strategy instances representing all possible combinations.
+        """
         # Gather all possible conditions from each type
+        logger.info(
+            "Generating all strategy combinations with max_filter=%d, max_entry=%d, "
+            "max_trend=%d, max_exit=%d",
+            max_filter,
+            max_entry,
+            max_trend,
+            max_exit,
+        )
         filter_variants = []
         for cond_type in cls.filter_condition_types:
-            filter_variants.extend(list(cond_type.all_possible_conditions()))
+            filter_variants.extend(
+                list(cond_type.all_possible_conditions(logger=logger))
+            )
         entry_variants = []
         for cond_type in cls.entry_condition_types:
-            entry_variants.extend(list(cond_type.all_possible_conditions()))
+            entry_variants.extend(
+                list(cond_type.all_possible_conditions(logger=logger))
+            )
         trend_variants = []
         for cond_type in cls.trend_condition_types:
-            trend_variants.extend(list(cond_type.all_possible_conditions()))
+            trend_variants.extend(
+                list(cond_type.all_possible_conditions(logger=logger))
+            )
         exit_variants = []
         for cond_type in cls.exit_condition_types:
-            exit_variants.extend(list(cond_type.all_possible_conditions()))
+            exit_variants.extend(list(cond_type.all_possible_conditions(logger=logger)))
         stateful_logics = []
         for logic_type in cls.stateful_logic_types:
             stateful_logics.extend(list(logic_type.all_possible_conditions()))
         if cls.allow_empty_stateful_logic and [] not in stateful_logics:
             stateful_logics.append([])
+
+        logger.info(
+            "Found %d filter, %d entry, %d trend, %d exit, and %d stateful logic types",
+            len(filter_variants),
+            len(entry_variants),
+            len(trend_variants),
+            len(exit_variants),
+            len(stateful_logics),
+        )
 
         # Generate all non-empty combinations up to max_* for entry/trend/exit conditions
         def combos(variants, max_n, allow_empty=True):
@@ -63,7 +102,15 @@ class StrategyCombinator:
             trend_variants, max_trend, allow_empty=cls.allow_empty_trend
         )
         exit_combos = combos(exit_variants, max_exit, allow_empty=cls.allow_empty_exit)
-
+        # Generate all combinations of strategies
+        logger.info(
+            "Generating combinations of strategies with %d filter, %d entry, %d trend, %d exit, and %d stateful logic types",
+            len(filter_combos),
+            len(entry_combos),
+            len(trend_combos),
+            len(exit_combos),
+            len(stateful_logics),
+        )
         strategies = []
         for filter_ in filter_combos:
             for entry in entry_combos:
@@ -87,4 +134,5 @@ class StrategyCombinator:
                             if not exit_:
                                 kwargs.pop("exit_conditions")
                             strategies.append(cls.strategy_class(**kwargs))
+        logger.info("Generated %d strategy combinations", len(strategies))
         return strategies

@@ -1,6 +1,5 @@
 # src/models/alpaca_models/alpaca_trading/alpaca_order.py
 
-import logging
 from enum import Enum
 
 from pydantic import BaseModel
@@ -126,8 +125,6 @@ class ClosedPosition(BaseModel):
 
     @classmethod
     def from_raw(cls, data: dict) -> "ClosedPosition":
-        logging.debug(f"Parsing ClosedPosition from raw data: {data}")
-
         return cls(
             symbol=data["symbol"],
             status=data["status"],

@@ -1,3 +1,5 @@
+from logging import Logger
+
 from algo_royale.strategy_factory.combinator.base_strategy_combinator import (
     StrategyCombinator,
 )
@@ -5,7 +7,7 @@ from algo_royale.strategy_factory.combinator.base_strategy_combinator import (
 
 class DummyCondition:
     @staticmethod
-    def all_possible_conditions():
+    def all_possible_conditions(logger: Logger):
         # Return two dummy conditions
         return ["cond1", "cond2"]
 
@@ -19,6 +21,11 @@ class DummyStatefulLogic:
 class DummyStrategy:
     def __init__(self, **kwargs):
         self.kwargs = kwargs
+
+
+class DummyLogger:
+    def info(self, msg, *args):
+        print(msg % args)
 
 
 def make_combinator(
@@ -52,7 +59,7 @@ def make_combinator(
 
 def test_all_strategy_combinations_basic():
     Combinator = make_combinator()
-    combos = Combinator.all_strategy_combinations()
+    combos = Combinator.all_strategy_combinations(logger=DummyLogger())
     assert len(combos) == 81  # matches actual output
 
 
@@ -64,14 +71,14 @@ def test_all_strategy_combinations_with_empty_allowed():
         allow_empty_exit=True,
         allow_empty_stateful_logic=True,
     )
-    combos = Combinator.all_strategy_combinations()
+    combos = Combinator.all_strategy_combinations(logger=DummyLogger())
     assert len(combos) == 512  # matches actual output
 
 
 def test_all_strategy_combinations_with_max_limits():
     Combinator = make_combinator()
     combos = Combinator.all_strategy_combinations(
-        max_filter=1, max_entry=1, max_trend=1, max_exit=1
+        logger=DummyLogger(), max_filter=1, max_entry=1, max_trend=1, max_exit=1
     )
     assert len(combos) == 16  # matches actual output
 
@@ -89,7 +96,7 @@ def test_all_strategy_combinations_empty_conditions():
         allow_empty_exit=True,
         allow_empty_stateful_logic=True,
     )
-    combos = Combinator.all_strategy_combinations()
+    combos = Combinator.all_strategy_combinations(logger=DummyLogger())
     # Only one possible strategy: all empty
     assert len(combos) == 1
     strat = combos[0]

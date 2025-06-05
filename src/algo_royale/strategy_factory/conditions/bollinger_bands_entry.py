@@ -41,7 +41,7 @@ class BollingerBandsEntryCondition(StrategyCondition):
         return condition
 
     @classmethod
-    def available_param_grid(cls):
+    def available_param_grid(cls) -> dict:
         return {
             "close_col": [StrategyColumns.CLOSE_PRICE, StrategyColumns.OPEN_PRICE],
             "window": [10, 20, 30],

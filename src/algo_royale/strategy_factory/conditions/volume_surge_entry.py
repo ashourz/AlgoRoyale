@@ -23,7 +23,7 @@ class VolumeSurgeEntryCondition(StrategyCondition):
         return surge
 
     @classmethod
-    def available_param_grid(cls):
+    def available_param_grid(cls) -> dict:
         return {
             "vol_col": [StrategyColumns.VOLUME],
             "threshold": [1.2, 1.5, 1.8, 2.0, 2.5, 3.0, 4.0],

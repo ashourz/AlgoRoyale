@@ -332,7 +332,8 @@ class DIContainer(containers.DeclarativeContainer):
 
     strategy_factory = providers.Singleton(
         StrategyFactory,
-        config=Config,
+        config=config,
+        logger=logger_backtest_prod,
         strategy_combinators=[
             BollingerBandsStrategyCombinator,
             ComboStrategyCombinator,

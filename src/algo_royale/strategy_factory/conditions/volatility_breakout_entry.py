@@ -46,7 +46,7 @@ class VolatilityBreakoutEntryCondition(StrategyCondition):
         return breakout & uptrend
 
     @classmethod
-    def available_param_grid(cls):
+    def available_param_grid(cls) -> dict:
         return {
             "threshold": [0.8, 1.0, 1.2, 1.5, 2.0, 2.5],
             "sma_col": [

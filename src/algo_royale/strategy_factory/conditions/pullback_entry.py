@@ -26,7 +26,7 @@ class PullbackEntryCondition(StrategyCondition):
         return above_ma & below_ma_yesterday
 
     @classmethod
-    def available_param_grid(cls):
+    def available_param_grid(cls) -> dict:
         return {
             "ma_col": [
                 StrategyColumns.SMA_10,

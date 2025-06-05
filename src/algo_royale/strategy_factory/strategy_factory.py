@@ -1,4 +1,5 @@
 import json
+from logging import Logger
 from typing import Optional
 
 from algo_royale.config.config import Config
@@ -23,16 +24,13 @@ class StrategyFactory:
     def __init__(
         self,
         config: Config,
+        logger: Logger,
         strategy_combinators: Optional[list[type[StrategyCombinator]]] = None,
     ):
         self.strategy_map_path = config.get("paths.backtester", "strategy_map_path")
         self.strategy_combinators = strategy_combinators
         self._all_strategy_combinations: Optional[list[Strategy]] = None
-
-    def _get_merged_strategy_defs(self, symbol: str) -> list[dict]:
-        default_strats = self.json_config.get("defaults", [])
-        symbol_strats = self.json_config.get("symbols", {}).get(symbol, [])
-        return default_strats + symbol_strats
+        self.logger = logger
 
     def get_all_strategy_combinations(self):
         """
@@ -51,10 +49,19 @@ class StrategyFactory:
         Returns all strategy combinations across all symbols.
         This method is useful for testing or analysis purposes.
         """
-        all_strategies = []
+        all_strategies: list[Strategy] = []
+        self.logger.info(
+            "Generating all strategy combinations. Strategy combinator count: %d",
+            len(self.strategy_combinators) if self.strategy_combinators else 0,
+        )
         for combinator in self.strategy_combinators:
-            if isinstance(combinator, StrategyCombinator):
-                all_strategies.extend(combinator.get_all_combinations())
+            if issubclass(combinator, StrategyCombinator):
+                all_strategies.extend(
+                    combinator.all_strategy_combinations(logger=self.logger)
+                )
+        self.logger.info(
+            "Generated %d strategy combinations from combinators.", len(all_strategies)
+        )
         return all_strategies
 
     def _save_strategy_map(self, strategies: list[Strategy]) -> None:
@@ -62,6 +69,7 @@ class StrategyFactory:
         Generates and saves a mapping of {strategy_class: {hash_id: description}}
         to the path specified by self.strategy_map_path.
         """
+        self.logger.info("Saving strategy map to %s", self.strategy_map_path)
         strategy_id_map = {}
         for strat in strategies:
             class_name = strat.__class__.__name__
@@ -73,3 +81,7 @@ class StrategyFactory:
 
         with open(self.strategy_map_path, "w") as f:
             json.dump(strategy_id_map, f, indent=2)
+
+        self.logger.info(
+            "Strategy map saved successfully with %d strategies.", len(strategies)
+        )

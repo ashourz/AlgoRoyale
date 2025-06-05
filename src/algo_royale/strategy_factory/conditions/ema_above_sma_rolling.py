@@ -35,7 +35,7 @@ class EMAAboveSMARollingCondition(StrategyCondition):
         return trend.rolling(window=self.window).sum() == self.window
 
     @classmethod
-    def available_param_grid(cls):
+    def available_param_grid(cls) -> dict:
         ema_periods = [9, 10, 12, 20, 26, 50, 100, 150, 200]
         sma_periods = [10, 20, 50, 100, 150, 200]
         ema_cols = [getattr(StrategyColumns, f"EMA_{p}") for p in ema_periods]

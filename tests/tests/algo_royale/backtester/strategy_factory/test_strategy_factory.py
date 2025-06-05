@@ -28,6 +28,11 @@ class DummyCombinator:
         return [DummyStrategy()]
 
 
+class DummyLogger:
+    def info(self, msg, *args):
+        print(msg % args)
+
+
 @pytest.fixture
 def config(tmp_path):
     return DummyConfig(tmp_path)
@@ -36,7 +41,9 @@ def config(tmp_path):
 @pytest.fixture
 def factory(config):
     # Inject DummyCombinator for testing
-    return StrategyFactory(config=config, strategy_combinators=[DummyCombinator])
+    return StrategyFactory(
+        config=config, logger=DummyLogger(), strategy_combinators=[DummyCombinator]
+    )
 
 
 def test_get_all_strategy_combinations_returns_list(factory):

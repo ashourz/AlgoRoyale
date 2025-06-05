@@ -11,7 +11,7 @@ class DummyLogicNoParams(StatefulLogic):
 
 class DummyLogicWithParams(StatefulLogic):
     @classmethod
-    def available_param_grid(cls):
+    def available_param_grid(cls) -> dict:
         return {
             "alpha": [0.1, 0.2],
             "beta": [1, 2],

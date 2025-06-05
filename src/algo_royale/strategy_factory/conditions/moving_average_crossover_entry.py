@@ -90,7 +90,7 @@ class MovingAverageCrossoverEntryCondition(StrategyCondition):
         return buy_condition
 
     @classmethod
-    def available_param_grid(cls):
+    def available_param_grid(cls) -> dict:
         short_windows = [5, 10, 15, 20]
         long_windows = [30, 50, 100, 200]
         trend_windows = [100, 200, 300]

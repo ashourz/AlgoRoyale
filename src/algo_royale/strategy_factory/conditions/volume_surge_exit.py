@@ -1,3 +1,5 @@
+import itertools
+
 import pandas as pd
 
 from algo_royale.strategy_factory.conditions.base_strategy_condition import (
@@ -21,3 +23,20 @@ class VolumeSurgeExitCondition(StrategyCondition):
         entry_mask = self.entry_condition.apply(df)
         # Sell on the next bar after a surge
         return entry_mask.shift(-1).fillna(False)
+
+    @classmethod
+    def available_param_grid(cls) -> dict:
+        param_grid = VolumeSurgeEntryCondition.available_param_grid()
+        thresholds = param_grid["threshold"]
+        vol_cols = param_grid["vol_col"]
+        ma_windows = param_grid["ma_window"]
+
+        entry_conditions = [
+            VolumeSurgeEntryCondition(
+                vol_col=vol_col, threshold=threshold, ma_window=ma_window
+            )
+            for threshold, vol_col, ma_window in itertools.product(
+                thresholds, vol_cols, ma_windows
+            )
+        ]
+        return {"entry_condition": entry_conditions}

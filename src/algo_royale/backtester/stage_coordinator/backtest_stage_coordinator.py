@@ -39,7 +39,7 @@ class BacktestStageCoordinator(StageCoordinator):
             logger=logger,
         )
         watchlist_path = config.get("paths.backtester", "watchlist_path", [])
-        if not self.watchlist_path:
+        if not watchlist_path:
             raise ValueError("Watchlist path not specified in config")
         self.watchlist = load_watchlist(watchlist_path)
         if not self.watchlist:
@@ -53,53 +53,60 @@ class BacktestStageCoordinator(StageCoordinator):
         """
         Run the backtest and return a dict mapping symbol to a factory that yields result DataFrames.
         """
+        self.logger.info("Starting backtest stage processing...")
         strategies: list[Strategy] = (
             self.strategy_factory.get_all_strategy_combinations()
         )
         if not strategies:
             self.logger.error("No strategies found in the strategy factory.")
             return {}
-
+        else:
+            self.logger.info(f"Found {len(strategies)} strategies to run.")
         results: Dict[str, Dict[str, list[pd.DataFrame]]] = {}
 
         for symbol in self.watchlist:
-            for strategies in strategies.items():
-                if symbol not in prepared_data:
-                    self.logger.warning(
-                        f"No prepared data for symbol {symbol}, skipping."
-                    )
-                    continue
+            self.logger.debug(f"Processing symbol: {symbol}")
+            if symbol not in prepared_data:
+                self.logger.warning(f"No prepared data for symbol {symbol}, skipping.")
+                continue
 
-                self.logger.debug(f"Running backtest for symbol: {symbol}")
-                symbol_results = await self.executor.run_backtest(
-                    strategies, {symbol: prepared_data[symbol]}
-                )
-                # symbol_results: Dict[str, list[pd.DataFrame]], where key is symbol
-                if symbol_results and symbol in symbol_results:
-                    # For each strategy, collect its results
-                    for strategy in strategies:
-                        strategy_name = strategy.get_hash_id()
-                        # Filter DataFrames for this strategy
-                        strategy_dfs = (
-                            [
-                                df
-                                for df in symbol_results[symbol]
-                                if (
-                                    StrategyColumns.STRATEGY_NAME in df.columns
-                                    and (
-                                        df[StrategyColumns.STRATEGY_NAME]
-                                        == strategy_name
-                                    ).any()
-                                )
-                            ]
-                            if symbol_results[symbol]
-                            else []
+            self.logger.debug(f"Running backtest for symbol: {symbol}")
+            symbol_results = await self.executor.run_backtest(
+                strategies, {symbol: prepared_data[symbol]}
+            )
+            # symbol_results: Dict[str, list[pd.DataFrame]], where key is symbol
+            if symbol_results and symbol in symbol_results:
+                self.logger.debug(f"Backtest results for symbol {symbol} found.")
+                # For each strategy, collect its results
+                for strategy in strategies:
+                    # Get the strategy name using its hash ID
+                    strategy_name = strategy.get_hash_id()
+                    self.logger.debug(
+                        f"Processing strategy: {strategy_name} for symbol: {symbol}"
+                    )
+                    # Filter DataFrames for this strategy
+                    strategy_dfs = (
+                        [
+                            df
+                            for df in symbol_results[symbol]
+                            if (
+                                StrategyColumns.STRATEGY_NAME in df.columns
+                                and (
+                                    df[StrategyColumns.STRATEGY_NAME] == strategy_name
+                                ).any()
+                            )
+                        ]
+                        if symbol_results[symbol]
+                        else []
+                    )
+                    if symbol not in results:
+                        self.logger.debug(
+                            f"Initializing results dict for symbol: {symbol}"
                         )
-                        if symbol not in results:
-                            results[symbol] = {}
-                        results[symbol][strategy_name] = strategy_dfs
-                else:
-                    self.logger.warning(f"No results for symbol {symbol}.")
+                        results[symbol] = {}
+                    results[symbol][strategy_name] = strategy_dfs
+            else:
+                self.logger.warning(f"No results for symbol {symbol}.")
 
         if not results:
             self.logger.error("Backtest returned no results.")

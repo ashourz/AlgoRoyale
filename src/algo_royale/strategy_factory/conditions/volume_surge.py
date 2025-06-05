@@ -76,7 +76,7 @@ class VolumeSurgeCondition(StrategyCondition):
         return [self.volume_col, self.vol_ma_col]
 
     @classmethod
-    def available_param_grid(cls):
+    def available_param_grid(cls) -> dict:
         return {
             "volume_col": [StrategyColumns.VOLUME],
             "vol_ma_col": [

@@ -72,7 +72,7 @@ class MeanReversionStatefulLogic(StatefulLogic):
         return {self.close_col}
 
     @classmethod
-    def available_param_grid(cls):
+    def available_param_grid(cls) -> dict:
         """Override to provide parameter grid for mean reversion strategy."""
         return {
             "window": [5, 10, 15, 20, 25, 30, 40, 50],

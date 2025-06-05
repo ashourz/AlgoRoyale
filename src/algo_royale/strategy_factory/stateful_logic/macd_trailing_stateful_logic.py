@@ -92,7 +92,7 @@ class MACDTrailingStatefulLogic(StatefulLogic):
         return [self.close_col]
 
     @classmethod
-    def available_param_grid(cls):
+    def available_param_grid(cls) -> dict:
         """
         Returns a dict of parameter names to lists of possible values.
         This allows for hyperparameter tuning.

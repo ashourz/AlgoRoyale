@@ -72,7 +72,7 @@ class ADXAboveThresholdCondition(StrategyCondition):
         return [self.adx_col, self.close_col]
 
     @classmethod
-    def available_param_grid(cls):
+    def available_param_grid(cls) -> dict:
         return {
             "adx_col": [StrategyColumns.ADX],
             "close_col": [StrategyColumns.CLOSE_PRICE, StrategyColumns.CLOSE],
