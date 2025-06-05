@@ -56,10 +56,10 @@ def factory(config):
 def test_get_all_strategy_combination_lambdas_returns_lambdas(factory):
     lambdas = factory.get_all_strategy_combination_lambdas()
     assert isinstance(lambdas, list)
-    assert all(callable(l) for l in lambdas)
+    assert all(callable(lambda_) for lambda_ in lambdas)
     # Each lambda should return a list of strategies when called
-    for l in lambdas:
-        strategies = l()
+    for lambda_ in lambdas:
+        strategies = lambda_()
         assert isinstance(strategies, list)
         assert all(hasattr(s, "get_hash_id") for s in strategies)
         assert all(hasattr(s, "get_description") for s in strategies)
