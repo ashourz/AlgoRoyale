@@ -21,9 +21,11 @@ class MACDTrailingStrategyCombinator(StrategyCombinator):
     """
 
     filter_condition_types = []  # No filter conditions for this strategy
+    allow_empty_filter = True  # Allow empty filter conditions
     entry_condition_types = [VolumeSurgeEntryCondition]
     allow_empty_entry = True  # Allow empty entry conditions
     trend_condition_types = [SMATrendCondition]
     exit_condition_types = []  # No exit conditions for this strategy
+    allow_empty_exit = True  # Allow empty exit conditions
     stateful_logic_types = [MACDTrailingStatefulLogic]
     strategy_class = MACDTrailingStopStrategy

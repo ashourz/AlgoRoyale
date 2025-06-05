@@ -40,6 +40,7 @@ class TrailingStopStrategyCombinator(StrategyCombinator):
     and does not include any filter conditions or exit conditions."""
 
     filter_condition_types = []  # No filter conditions for this strategy
+    allow_empty_filter = True  # Allow empty filter conditions
     entry_condition_types = [
         BooleanColumnEntryCondition,
         MomentumEntryCondition,

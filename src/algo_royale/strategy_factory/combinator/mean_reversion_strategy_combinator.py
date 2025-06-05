@@ -19,8 +19,11 @@ class MeanReversionStrategyCombinator(StrategyCombinator):
     """
 
     filter_condition_types = []  # No filter conditions for this strategy
+    allow_empty_filter = True  # Allow empty filter conditions
     entry_condition_types = []  # No specific entry conditions, will use trend conditions
+    allow_empty_entry = True  # Allow empty entry conditions
     trend_condition_types = [PriceAboveSMACondition]
     exit_condition_types = []  # No exit conditions for this strategy
+    allow_empty_exit = True  # Allow empty exit conditions
     stateful_logic_types = [MeanReversionStatefulLogic]
     strategy_class = MeanReversionStrategy

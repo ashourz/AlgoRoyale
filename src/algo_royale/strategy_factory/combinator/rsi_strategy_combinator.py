@@ -13,8 +13,11 @@ class RSIStrategyCombinator(StrategyCombinator):
     """
 
     filter_condition_types = []  # No filter conditions for this strategy
+    allow_empty_filter = True  # Allow empty filter conditions
     entry_condition_types = [RSIEntryCondition]
     trend_condition_types = []  # No trend conditions for this strategy
+    allow_empty_trend = True  # Allow empty trend conditions
     exit_condition_types = [RSIExitCondition]
     stateful_logic_types = []  # No stateful logic for this strategy
+    allow_empty_stateful_logic = True  # Allow empty stateful logic
     strategy_class = RSIStrategy

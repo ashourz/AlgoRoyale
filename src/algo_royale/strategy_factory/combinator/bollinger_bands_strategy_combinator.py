@@ -21,9 +21,11 @@ class BollingerBandsStrategyCombinator(StrategyCombinator):
     """
 
     filter_condition_types = []  # No filter conditions for this strategy
+    allow_empty_filter = True  # Allow empty filter conditions
     entry_condition_types = [BollingerBandsEntryCondition]
     trend_condition_types = [SMATrendCondition]
     allow_empty_trend = True  # Allow empty trend conditions
     exit_condition_types = [BollingerBandsExitCondition]
     stateful_logic_types = []  # No stateful logic for this strategy
+    allow_empty_stateful_logic = True  # Allow empty stateful logic
     strategy_class = BollingerBandsStrategy
