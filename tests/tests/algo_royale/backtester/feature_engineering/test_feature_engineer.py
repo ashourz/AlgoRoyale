@@ -14,7 +14,7 @@ def mock_logger():
 @pytest.mark.asyncio
 async def test_engineer_features_yields_engineered(mock_logger):
     # Use a simple fake feature engineering function
-    def fake_feature_engineering(df):
+    def fake_feature_engineering(df, logger=None):
         df = df.copy()
         df["engineered"] = 1
         return df

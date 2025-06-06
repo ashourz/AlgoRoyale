@@ -10,7 +10,6 @@ class FeatureEngineeringColumns(BaseColumnNames):
     # It inherits from BaseColumnNames to maintain consistency across the framework.
 
     SYMBOL = ColumnName("symbol")
-    RAW_EXCHANGE = ColumnName("exchange")
     TIMESTAMP = ColumnName("timestamp")
     OPEN_PRICE = ColumnName("open_price")
     HIGH_PRICE = ColumnName("high_price")

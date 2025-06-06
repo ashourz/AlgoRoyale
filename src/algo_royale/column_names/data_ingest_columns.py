@@ -5,7 +5,6 @@ from algo_royale.column_names.column_name import ColumnName
 class DataIngestColumns(BaseColumnNames):
     """Column names used during data ingestion and initial processing."""
 
-    RAW_EXCHANGE = ColumnName("exchange")
     TIMESTAMP = ColumnName("timestamp")
     OPEN_PRICE = ColumnName("open_price")
     HIGH_PRICE = ColumnName("high_price")

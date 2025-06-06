@@ -7,6 +7,18 @@ from algo_royale.column_names.feature_engineering_columns import (
 )
 
 
+class BacktestStageName(str):
+    DATA_INGEST = "data_ingest"
+    FEATURE_ENGINEERING = "feature_engineering"
+    BACKTEST = "backtest"
+    STRATEGY_OPTIMIZATION = "strategy_optimization"
+    RESULTS_ANALYSIS = "results_analysis"
+    STRATEGY_METRICS = "strategy_metrics"
+    STRATEGY_SELECTION = "strategy_selection"
+    REPORTING = "reporting"
+    DEPLOYMENT = "deployment"
+
+
 class BacktestStage(Enum):
     """
     Enum representing the different stages of the pipeline.
@@ -15,7 +27,7 @@ class BacktestStage(Enum):
     - Attributes:
         value (str): The value of the stage.
         description (str): A description of the stage.
-        incoming_stage (Optional[str]): The stage that feeds into this stage.
+        incoming_stage_name (Optional[str]): The stage that feeds into this stage.
         required_input_columns (list): A list of required columns for the stage.
         rename_map (dict): A dictionary mapping original column names to new names.
 
@@ -32,7 +44,7 @@ class BacktestStage(Enum):
     """
 
     DATA_INGEST = (
-        "data_ingest",
+        BacktestStageName.DATA_INGEST,
         "Loading and staging raw/unprocessed data (from API, files, DB, etc.)",
         None,
         [
@@ -49,9 +61,9 @@ class BacktestStage(Enum):
         {},
     )
     FEATURE_ENGINEERING = (
-        "feature_engineering",
+        BacktestStageName.FEATURE_ENGINEERING,
         "Creating new features from existing data (technical indicators, etc.)",
-        "DATA_INGEST",
+        BacktestStageName.DATA_INGEST,
         [
             FeatureEngineeringColumns.TIMESTAMP,
             FeatureEngineeringColumns.OPEN_PRICE,
@@ -76,33 +88,16 @@ class BacktestStage(Enum):
         },
     )
     BACKTEST = (
-        "backtest",
+        BacktestStageName.BACKTEST,
         "Backtesting strategies on historical data",
-        "FEATURE_ENGINEERING",
-        [
-            "timestamp",
-            "open",
-            "high",
-            "low",
-            "close",
-            "volume",
-            "symbol",
-        ],
-        {
-            "timestamp": "timestamp",
-            "open_price": "open",
-            "high_price": "high",
-            "low_price": "low",
-            "close_price": "close",
-            "volume": "volume",
-            "num_trades": "num_trades",
-            "volume_weighted_price": "volume_weighted_price",
-        },
+        BacktestStageName.FEATURE_ENGINEERING,
+        [],
+        {},
     )
     STRATEGY_OPTIMIZATION = (
-        "strategy_optimization",
+        BacktestStageName.STRATEGY_OPTIMIZATION,
         "Optimizing strategies using historical data",
-        "BACKTEST",
+        BacktestStageName.BACKTEST,
         [
             "timestamp",
             "open",
@@ -114,37 +109,37 @@ class BacktestStage(Enum):
         {},
     )
     RESULTS_ANALYSIS = (
-        "results_analysis",
+        BacktestStageName.RESULTS_ANALYSIS,
         "Analyzing backtest results and performance metrics",
-        "STRATEGY_OPTIMIZATION",
+        BacktestStageName.STRATEGY_OPTIMIZATION,
         [],
         {},
     )
     STRATEGY_METRICS = (
-        "strategy_metrics",
+        BacktestStageName.STRATEGY_METRICS,
         "Calculating and reporting strategy performance metrics",
-        "RESULTS_ANALYSIS",
+        BacktestStageName.RESULTS_ANALYSIS,
         [],
         {},
     )
     STRATEGY_SELECTION = (
-        "strategy_selection",
+        BacktestStageName.STRATEGY_SELECTION,
         "Selecting the best strategy based on performance metrics",
-        "STRATEGY_METRICS",
+        BacktestStageName.STRATEGY_METRICS,
         [],
         {},
     )
     REPORTING = (
-        "reporting",
+        BacktestStageName.REPORTING,
         "Generating reports and visualizations for analysis",
-        "STRATEGY_SELECTION",
+        BacktestStageName.STRATEGY_SELECTION,
         [],
         {},
     )
     DEPLOYMENT = (
-        "deployment",
+        BacktestStageName.DEPLOYMENT,
         "Deploying the selected strategy for live trading",
-        "REPORTING",
+        BacktestStageName.REPORTING,
         [],
         {},
     )
@@ -158,9 +153,22 @@ class BacktestStage(Enum):
         self.rename_map = rename_map
 
 
+def get_stage_by_name(name: str) -> Optional[BacktestStage]:
+    """
+    Get a BacktestStage by its name.
+
+    :param name: The name of the stage.
+    :return: The BacktestStage if found, otherwise None.
+    """
+    for stage in BacktestStage:
+        if stage.value == name:
+            return stage
+    return None
+
+
 # After class definition, resolve incoming_stage
 for stage in BacktestStage:
     if isinstance(stage._incoming_stage_name, str):
-        stage.incoming_stage = BacktestStage[stage._incoming_stage_name]
+        stage.incoming_stage = get_stage_by_name(stage._incoming_stage_name)
     else:
         stage.incoming_stage = None

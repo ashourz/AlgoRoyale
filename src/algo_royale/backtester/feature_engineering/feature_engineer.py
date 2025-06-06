@@ -30,7 +30,9 @@ class FeatureEngineer:
                 self.logger.info(
                     f"Feature engineering input columns: {df.columns}, shape: {df.shape}"
                 )
-                engineered_df = self.feature_engineering_func(df)
+                engineered_df: pd.DataFrame = self.feature_engineering_func(
+                    df=df, logger=self.logger
+                )
 
                 # Only yield the rows corresponding to the current page
                 # (i.e., drop the buffer rows)
@@ -52,4 +54,4 @@ class FeatureEngineer:
                 # Update buffer to last N rows of the *input* DataFrame
                 buffer = df.iloc[-self.max_lookback :].copy()
             except Exception as e:
-                print(f"Feature engineering failed for {symbol}: {e}")
+                self.logger.error(f"Feature engineering failed for {symbol}: {e}")
