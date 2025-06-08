@@ -26,7 +26,7 @@ class BollingerBandsEntryCondition(StrategyCondition):
 
     @property
     def required_columns(self):
-        return {self.close_col}
+        return [self.close_col]
 
     def _apply(self, df: pd.DataFrame) -> pd.Series:
         rolling_mean = df[self.close_col].rolling(window=self.window).mean()

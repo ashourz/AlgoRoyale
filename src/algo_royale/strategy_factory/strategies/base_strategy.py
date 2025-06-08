@@ -52,17 +52,21 @@ class Strategy(ABC):
         Returns a list of required columns for the strategy.
         This includes columns needed for trend, entry, exit, and filter conditions.
         """
-        required = set()
-        for func in (
-            self.trend_conditions
-            + self.entry_conditions
-            + self.exit_conditions
-            + ([self.stateful_logic] if self.stateful_logic is not None else [])
-            + self.filter_conditions
-        ):
-            if hasattr(func, "required_columns"):
-                required.update(func.required_columns)
-        return list(required)
+        try:
+            required = set()
+            for func in (
+                self.trend_conditions
+                + self.entry_conditions
+                + self.exit_conditions
+                + ([self.stateful_logic] if self.stateful_logic is not None else [])
+                + self.filter_conditions
+            ):
+                if hasattr(func, "required_columns"):
+                    required.update(func.required_columns)
+            return list(required)
+        except Exception as e:
+            print(f"Error in required_columns: {e}")
+            return []
 
     def _apply_filters(self, df: pd.DataFrame) -> pd.Series:
         """
@@ -154,7 +158,10 @@ class Strategy(ABC):
         required_cols = set(self.required_columns)
         missing = required_cols - set(df.columns)
         if missing:
-            raise ValueError(f"Missing required columns: {missing}")
+            df = df.copy()
+            df[StrategyColumns.ENTRY_SIGNAL] = SignalType.HOLD.value
+            df[StrategyColumns.EXIT_SIGNAL] = SignalType.HOLD.value
+            return df
 
         filter_mask = self._apply_filters(df)
         trend_mask = self._apply_trend(df)

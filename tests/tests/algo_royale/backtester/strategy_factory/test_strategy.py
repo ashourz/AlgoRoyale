@@ -19,7 +19,7 @@ class DummyCondition(StrategyCondition):
 
     @property
     def required_columns(self):
-        return {self.col}
+        return [self.col]
 
     def apply(self, df):
         return pd.Series(self.value, index=df.index)

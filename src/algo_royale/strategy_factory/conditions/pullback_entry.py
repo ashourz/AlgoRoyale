@@ -19,7 +19,7 @@ class PullbackEntryCondition(StrategyCondition):
 
     @property
     def required_columns(self):
-        return {self.ma_col, self.close_col}
+        return [self.ma_col, self.close_col]
 
     def _apply(self, df: pd.DataFrame) -> pd.Series:
         above_ma = df[self.close_col] > df[self.ma_col]

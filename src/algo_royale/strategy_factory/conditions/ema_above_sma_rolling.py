@@ -27,7 +27,7 @@ class EMAAboveSMARollingCondition(StrategyCondition):
 
     @property
     def required_columns(self):
-        return {self.ema_col, self.sma_col}
+        return [self.ema_col, self.sma_col]
 
     def _apply(self, df: pd.DataFrame) -> pd.Series:
         trend = (df[self.ema_col] > df[self.sma_col]) & (

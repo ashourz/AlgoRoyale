@@ -44,7 +44,7 @@ class TrailingStopStatefulLogic(StatefulLogic):
 
     @property
     def required_columns(self):
-        return {self.close_col}
+        return [self.close_col]
 
     @classmethod
     def available_param_grid(cls) -> dict:

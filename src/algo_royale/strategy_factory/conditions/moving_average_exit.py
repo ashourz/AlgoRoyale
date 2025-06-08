@@ -30,7 +30,7 @@ class MovingAverageExitCondition(StrategyCondition):
 
     @property
     def required_columns(self):
-        return {self.close_col}
+        return [self.close_col]
 
     def _apply(self, df: pd.DataFrame) -> pd.Series:
         short_ma = (

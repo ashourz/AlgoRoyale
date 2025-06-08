@@ -42,7 +42,7 @@ class ComboExitCondition(StrategyCondition):
 
     @property
     def required_columns(self):
-        return {self.rsi_col, self.macd_col, self.volume_col, self.vol_ma_col}
+        return [self.rsi_col, self.macd_col, self.volume_col, self.vol_ma_col]
 
     def _apply(self, df: pd.DataFrame) -> pd.Series:
         return (

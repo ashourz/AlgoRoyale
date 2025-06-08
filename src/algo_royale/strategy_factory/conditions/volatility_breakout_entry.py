@@ -34,12 +34,12 @@ class VolatilityBreakoutEntryCondition(StrategyCondition):
 
     @property
     def required_columns(self):
-        return {
+        return [
             self.close_col,
             self.range_col,
             self.close_col,
             self.sma_col,
-        }
+        ]
 
     def _apply(self, df: pd.DataFrame) -> pd.Series:
         breakout = df[self.range_col] > self.threshold * df[self.volatility_col]

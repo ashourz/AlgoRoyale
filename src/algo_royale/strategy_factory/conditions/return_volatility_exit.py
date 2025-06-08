@@ -36,7 +36,7 @@ class ReturnVolatilityExitCondition(StrategyCondition):
 
     @property
     def required_columns(self):
-        return {self.return_col, self.range_col, self.volatility_col}
+        return [self.return_col, self.range_col, self.volatility_col]
 
     def _apply(self, df: pd.DataFrame) -> pd.Series:
         weakness = df[self.return_col] < self.threshold

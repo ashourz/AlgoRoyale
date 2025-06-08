@@ -17,7 +17,7 @@ class TimeOfDayExitCondition(StrategyCondition):
 
     @property
     def required_columns(self):
-        return {self.hour_col}
+        return [self.hour_col]
 
     def _apply(self, df: pd.DataFrame) -> pd.Series:
         return df[self.hour_col].isin(self.sell_hours)

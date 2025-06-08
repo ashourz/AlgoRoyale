@@ -31,7 +31,7 @@ class MomentumExitCondition(StrategyCondition):
 
     @property
     def required_columns(self):
-        return {self.close_col}
+        return [self.close_col]
 
     def _apply(self, df: pd.DataFrame) -> pd.Series:
         momentum = df[self.close_col].pct_change(periods=self.lookback)

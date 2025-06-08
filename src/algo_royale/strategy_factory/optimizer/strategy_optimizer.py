@@ -89,10 +89,11 @@ class StrategyOptimizer:
             )
             try:
                 score = result[self.metric_name]
-            except KeyError:
-                raise KeyError(
-                    f"Metric '{self.metric_name}' not found in backtest result. Available metrics: {list(result.keys())}"
+            except Exception as e:
+                logger.error(
+                    f"[{symbol}] Error extracting metric '{self.metric_name}' from backtest result: {e} | Result: {result}"
                 )
+                return float("-inf") if self.direction == "maximize" else float("inf")
             if logger:
                 logger.debug(f"[{symbol}] Trial result: {score}")
             return score

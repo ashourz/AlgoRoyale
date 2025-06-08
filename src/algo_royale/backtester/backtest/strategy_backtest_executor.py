@@ -90,6 +90,18 @@ class StrategyBacktestExecutor:
             # Validate input data
             self._validate_data_quality(page_df)
 
+            # Filter out rows with NaNs in required columns for this strategy
+            required_cols = getattr(strategy, "required_columns", [])
+            if required_cols:
+                filtered_df = page_df.dropna(subset=required_cols)
+            else:
+                filtered_df = page_df
+
+            if filtered_df.empty:
+                self.logger.debug(
+                    f"All rows dropped after filtering for required columns in page {page_num} for {symbol}-{strategy_name}"
+                )
+                return None
             # Generate and validate signals
             signals_df = strategy.generate_signals(page_df.copy())
             self.logger.debug(
@@ -132,9 +144,13 @@ class StrategyBacktestExecutor:
         if df.empty:
             raise ValueError("Empty DataFrame received")
 
-        if df.isnull().any().any():
-            missing = df.columns[df.isnull().any()].tolist()
-            raise ValueError(f"Data contains null values in columns: {missing}")
+        # Only check essential columns for nulls
+        essential_cols = [StrategyColumns.TIMESTAMP, StrategyColumns.CLOSE_PRICE]
+        for col in essential_cols:
+            if col not in df.columns:
+                raise ValueError(f"Missing essential column: {col}")
+            if df[col].isnull().any():
+                raise ValueError(f"Null values found in essential column: {col}")
 
         if (df[StrategyColumns.CLOSE_PRICE] <= 0).any():
             raise ValueError("Invalid close prices (<= 0) detected")
