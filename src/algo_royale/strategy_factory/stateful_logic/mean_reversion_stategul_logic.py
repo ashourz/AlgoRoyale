@@ -82,3 +82,23 @@ class MeanReversionStatefulLogic(StatefulLogic):
             "reentry_cooldown": [0, 1, 2, 3, 5, 7, 10, 15, 20, 30],
             "close_col": [StrategyColumns.CLOSE_PRICE],
         }
+
+    @classmethod
+    def optuna_suggest(cls, trial, prefix=""):
+        """Override to provide Optuna suggestions for mean reversion strategy."""
+        window = trial.suggest_int(f"{prefix}window", 5, 50)
+        threshold = trial.suggest_float(f"{prefix}threshold", 0.005, 0.04)
+        stop_pct = trial.suggest_float(f"{prefix}stop_pct", 0.005, 0.5)
+        profit_target_pct = trial.suggest_float(
+            f"{prefix}profit_target_pct", 0.005, 0.04
+        )
+        reentry_cooldown = trial.suggest_int(f"{prefix}reentry_cooldown", 0, 30)
+        close_col = StrategyColumns.CLOSE_PRICE
+        return cls(
+            window=window,
+            threshold=threshold,
+            stop_pct=stop_pct,
+            profit_target_pct=profit_target_pct,
+            reentry_cooldown=reentry_cooldown,
+            close_col=close_col,
+        )

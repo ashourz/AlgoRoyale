@@ -1,3 +1,4 @@
+import inspect
 import time
 from typing import Any, Callable, Dict, Type
 
@@ -57,12 +58,24 @@ class StrategyOptimizer:
                     trial, prefix=f"{symbol}_logic_"
                 )
 
-            strategy = self.strategy_class(
-                entry_conditions=entry_conds,
-                trend_conditions=trend_conds,
-                exit_conditions=exit_conds,
-                stateful_logic=state_logic,
+            # Build full candidate kwargs
+            init_kwargs = {
+                "entry_conditions": entry_conds,
+                "trend_conditions": trend_conds,
+                "exit_conditions": exit_conds,
+                "filter_conditions": [],
+                "stateful_logic": state_logic,
+            }
+
+            # Only keep those that the strategy class actually accepts
+            valid_params = set(
+                inspect.signature(self.strategy_class.__init__).parameters
             )
+            strategy_kwargs = {
+                k: v for k, v in init_kwargs.items() if k in valid_params
+            }
+
+            strategy = self.strategy_class(**strategy_kwargs)
 
             result = self.backtest_fn(strategy, df)
             score = getattr(result, self.metric_name)

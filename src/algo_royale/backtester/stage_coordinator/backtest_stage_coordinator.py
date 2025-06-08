@@ -119,6 +119,15 @@ class BacktestStageCoordinator(StageCoordinator):
         strategy_combinator: type[StrategyCombinator],
         data_factory,
     ) -> tuple[str, str, list[pd.DataFrame]]:
+        """Optimize and backtest a strategy for a given symbol and data.
+        Args:
+            symbol: The stock symbol.
+            df: The historical data as a DataFrame.
+            strategy_combinator: The strategy combinator class.
+            data_factory: Factory function to produce the data asynchronously.
+        Returns:
+            A tuple of (symbol, strategy_name, list of backtest result DataFrames).
+        """
         optimizer = StrategyOptimizer(
             strategy_class=strategy_combinator.strategy_class,
             condition_types=strategy_combinator.get_condition_types(),
@@ -129,7 +138,6 @@ class BacktestStageCoordinator(StageCoordinator):
         )
 
         optimization_result = optimizer.optimize(symbol, df, n_trials=50)
-
         # Rebuild and re-run with best config
         best_strategy = strategy_combinator(**optimization_result["best_params"])
 

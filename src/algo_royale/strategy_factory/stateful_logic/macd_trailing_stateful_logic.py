@@ -104,3 +104,25 @@ class MACDTrailingStatefulLogic(StatefulLogic):
             "signal": [7, 9, 10, 11, 13],
             "stop_pct": [0.005, 0.01, 0.015, 0.02, 0.025, 0.03, 0.35, 0.4, 0.45, 0.5],
         }
+
+    @classmethod
+    def optuna_suggest(cls, trial, prefix=""):
+        """
+        Suggests hyperparameters for this stateful logic using Optuna.
+        """
+        close_col = trial.suggest_categorical(
+            f"{prefix}close_col",
+            [StrategyColumns.CLOSE_PRICE, StrategyColumns.OPEN_PRICE],
+        )
+        fast = trial.suggest_int(f"{prefix}fast", 8, 16)
+        slow = trial.suggest_int(f"{prefix}slow", 20, 32)
+        signal = trial.suggest_int(f"{prefix}signal", 7, 13)
+        stop_pct = trial.suggest_float(f"{prefix}stop_pct", 0.005, 0.5)
+
+        return cls(
+            close_col=close_col,
+            fast=fast,
+            slow=slow,
+            signal=signal,
+            stop_pct=stop_pct,
+        )
