@@ -28,7 +28,7 @@ class MeanReversionStatefulLogic(StatefulLogic):
         self.reentry_cooldown = reentry_cooldown
         self.close_col = close_col
 
-    def __call__(self, i, df, signals, state, trend_mask, entry_mask, exit_mask):
+    def __call_impl(self, i, df, signals, state, trend_mask, entry_mask, exit_mask):
         if not state:
             state = {
                 "in_position": False,

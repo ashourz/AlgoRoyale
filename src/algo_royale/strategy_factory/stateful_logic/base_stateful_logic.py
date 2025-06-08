@@ -13,10 +13,12 @@ class StatefulLogic:
             setattr(self, k, v)
 
     def __call__(self, i, df, signals, state, trend_mask, entry_mask, exit_mask):
-        """
-        Update signals and state for the i-th row.
-        Should return (signal, state).
-        """
+        missing = [col for col in self.required_columns if col not in df.columns]
+        if missing:
+            return signals.iloc[i], state
+        return self._call_impl(i, df, signals, state, trend_mask, entry_mask, exit_mask)
+
+    def _call_impl(self, i, df, signals, state, trend_mask, entry_mask, exit_mask):
         raise NotImplementedError("Implement in subclass")
 
     @property

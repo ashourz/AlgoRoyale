@@ -21,7 +21,7 @@ class PullbackEntryCondition(StrategyCondition):
     def required_columns(self):
         return {self.ma_col, self.close_col}
 
-    def apply(self, df: pd.DataFrame) -> pd.Series:
+    def _apply(self, df: pd.DataFrame) -> pd.Series:
         above_ma = df[self.close_col] > df[self.ma_col]
         below_ma_yesterday = df[self.close_col].shift(1) < df[self.ma_col].shift(1)
         return above_ma & below_ma_yesterday

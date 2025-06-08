@@ -128,11 +128,15 @@ class BacktestStageCoordinator(StageCoordinator):
         Returns:
             A tuple of (symbol, strategy_name, list of backtest result DataFrames).
         """
+
+        async def single_page_async_iter(df):
+            yield df
+
         optimizer = StrategyOptimizer(
             strategy_class=strategy_combinator.strategy_class,
             condition_types=strategy_combinator.get_condition_types(),
             backtest_fn=lambda strat, df_: self.executor.run_backtest(
-                [strat], {symbol: lambda: iter([df_])}
+                [strat], {symbol: lambda: single_page_async_iter(df_)}
             ),
             logger=self.logger,
         )

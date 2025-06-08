@@ -58,7 +58,7 @@ class PriceBelowSMACondition(StrategyCondition):
         self.close_col = close_col
         self.sma_col = sma_col
 
-    def apply(self, df: pd.DataFrame) -> pd.Series:
+    def _apply(self, df: pd.DataFrame) -> pd.Series:
         return df.apply(
             lambda row: price_below_sma(row, self.sma_col, self.close_col),
             axis=1,

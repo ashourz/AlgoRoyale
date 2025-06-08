@@ -18,7 +18,7 @@ class RSIEntryCondition(StrategyCondition):
     def required_columns(self):
         return {self.close_col}
 
-    def apply(self, df: pd.DataFrame) -> pd.Series:
+    def _apply(self, df: pd.DataFrame) -> pd.Series:
         delta = df[self.close_col].diff()
         gain = delta.clip(lower=0)
         loss = -delta.clip(upper=0)

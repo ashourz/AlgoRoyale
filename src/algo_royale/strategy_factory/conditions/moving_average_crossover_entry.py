@@ -63,7 +63,7 @@ class MovingAverageCrossoverEntryCondition(StrategyCondition):
         else:
             return series.rolling(window=window, min_periods=window).mean()
 
-    def apply(self, df: pd.DataFrame) -> pd.Series:
+    def _apply(self, df: pd.DataFrame) -> pd.Series:
         short_ma = self._moving_average(df[self.close_col], self.short_window)
         long_ma = self._moving_average(df[self.close_col], self.long_window)
         trend_ma = self._moving_average(df[self.close_col], self.trend_window)

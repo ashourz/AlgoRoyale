@@ -66,7 +66,7 @@ class MACDBullishCrossCondition(StrategyCondition):
         self.signal_col = signal_col
         self.close_col = close_col
 
-    def apply(self, df: pd.DataFrame) -> pd.Series:
+    def _apply(self, df: pd.DataFrame) -> pd.Series:
         return df.apply(
             lambda row: macd_bullish_cross(
                 row, self.macd_col, self.signal_col, self.close_col

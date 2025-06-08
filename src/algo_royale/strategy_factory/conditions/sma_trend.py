@@ -32,7 +32,7 @@ class SMATrendCondition(StrategyCondition):
     def required_columns(self):
         return {self.sma_fast_col, self.sma_slow_col}
 
-    def apply(self, df: pd.DataFrame) -> pd.Series:
+    def _apply(self, df: pd.DataFrame) -> pd.Series:
         return df[self.sma_fast_col] > df[self.sma_slow_col]
 
     def __call__(self, df):

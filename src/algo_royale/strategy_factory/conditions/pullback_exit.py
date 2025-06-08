@@ -22,7 +22,7 @@ class PullbackExitCondition(StrategyCondition):
     def required_columns(self):
         return self.entry_condition.required_columns
 
-    def apply(self, df: pd.DataFrame) -> pd.Series:
+    def _apply(self, df: pd.DataFrame) -> pd.Series:
         entry_mask = self.entry_condition.apply(df)
         # Sell on the next day after a buy signal
         return entry_mask.shift(-1).fillna(False)

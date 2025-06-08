@@ -27,7 +27,7 @@ class VWAPReversionExitCondition(StrategyCondition):
     def required_columns(self):
         return {self.vwap_col, self.vwp_col}
 
-    def apply(self, df: pd.DataFrame) -> pd.Series:
+    def _apply(self, df: pd.DataFrame) -> pd.Series:
         deviation = (df[self.vwp_col] - df[self.vwap_col]) / df[self.vwap_col]
         return deviation > self.deviation_threshold
 

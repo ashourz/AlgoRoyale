@@ -20,7 +20,7 @@ class TrailingStopExitCondition(StrategyCondition):
         self.close_col = close_col
         self.stop_pct = stop_pct
 
-    def apply(self, df: pd.DataFrame) -> pd.Series:
+    def _apply(self, df: pd.DataFrame) -> pd.Series:
         # Calculate the rolling maximum close (trailing high)
         trailing_high = df[self.close_col].cummax()
         trailing_stop = trailing_high * (1 - self.stop_pct)

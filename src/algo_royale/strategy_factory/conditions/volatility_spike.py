@@ -57,7 +57,7 @@ class VolatilitySpikeCondition(StrategyCondition):
         self.range_col = range_col
         self.volatility_col = volatility_col
 
-    def apply(self, df: pd.DataFrame) -> pd.Series:
+    def _apply(self, df: pd.DataFrame) -> pd.Series:
         return df.apply(
             lambda row: volatility_spike(row, self.range_col, self.volatility_col),
             axis=1,

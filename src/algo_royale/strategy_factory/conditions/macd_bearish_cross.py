@@ -61,7 +61,7 @@ class MACDBearishCrossCondition(StrategyCondition):
         self.macd_col = macd_col
         self.signal_col = signal_col
 
-    def apply(self, df: pd.DataFrame) -> pd.Series:
+    def _apply(self, df: pd.DataFrame) -> pd.Series:
         return df.apply(
             lambda row: macd_bearish_cross(
                 row, df.shift(1).loc[row.name], self.macd_col, self.signal_col

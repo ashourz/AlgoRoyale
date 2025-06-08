@@ -52,7 +52,7 @@ class ADXBelowThresholdCondition(StrategyCondition):
         self.adx_col = adx_col
         self.threshold = threshold
 
-    def apply(self, df: pd.DataFrame) -> pd.Series:
+    def _apply(self, df: pd.DataFrame) -> pd.Series:
         return df[self.adx_col] < self.threshold
 
     @property

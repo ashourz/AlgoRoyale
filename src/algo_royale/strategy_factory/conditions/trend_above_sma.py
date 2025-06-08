@@ -21,7 +21,7 @@ class TrendAboveSMACondition(StrategyCondition):
     def required_columns(self):
         return {self.price_col, self.sma_col}
 
-    def apply(self, df: pd.DataFrame) -> pd.Series:
+    def _apply(self, df: pd.DataFrame) -> pd.Series:
         return df[self.price_col] > df[self.sma_col]
 
     @classmethod

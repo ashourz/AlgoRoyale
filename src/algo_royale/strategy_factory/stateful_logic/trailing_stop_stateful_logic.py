@@ -15,7 +15,7 @@ class TrailingStopStatefulLogic(StatefulLogic):
         self.close_col = close_col
         self.stop_pct = stop_pct
 
-    def __call__(self, i, df, signals, state, trend_mask, entry_mask, exit_mask):
+    def __call_impl(self, i, df, signals, state, trend_mask, entry_mask, exit_mask):
         # Initialize state if needed
         if state is None or "trailing_high" not in state:
             state = {"in_position": False, "trailing_high": None}

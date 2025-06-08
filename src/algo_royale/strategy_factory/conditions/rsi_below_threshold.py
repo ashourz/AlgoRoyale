@@ -63,7 +63,7 @@ class RSIBelowThresholdConditin(StrategyCondition):
         self.close_col = close_col
         self.threshold = threshold
 
-    def apply(self, df: pd.DataFrame) -> pd.Series:
+    def _apply(self, df: pd.DataFrame) -> pd.Series:
         return df.apply(
             lambda row: rsi_below_threshold(
                 row, self.rsi_col, self.close_col, self.threshold

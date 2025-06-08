@@ -60,7 +60,7 @@ class ADXAboveThresholdCondition(StrategyCondition):
         self.close_col = close_col
         self.threshold = threshold
 
-    def apply(self, df: pd.DataFrame) -> pd.Series:
+    def _apply(self, df: pd.DataFrame) -> pd.Series:
         return df.apply(
             lambda row: adx_above_threshold(
                 row, self.adx_col, self.close_col, self.threshold

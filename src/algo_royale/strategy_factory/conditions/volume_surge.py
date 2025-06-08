@@ -64,7 +64,7 @@ class VolumeSurgeCondition(StrategyCondition):
         self.vol_ma_col = vol_ma_col
         self.threshold = threshold
 
-    def apply(self, df: pd.DataFrame) -> pd.Series:
+    def _apply(self, df: pd.DataFrame) -> pd.Series:
         return df.apply(
             lambda row: volume_surge(
                 row, self.volume_col, self.vol_ma_col, self.threshold

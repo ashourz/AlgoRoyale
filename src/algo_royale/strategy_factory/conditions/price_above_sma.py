@@ -61,7 +61,7 @@ class PriceAboveSMACondition(StrategyCondition):
         self.close_col = close_col
         self.sma_col = sma_col
 
-    def apply(self, df: pd.DataFrame) -> pd.Series:
+    def _apply(self, df: pd.DataFrame) -> pd.Series:
         return df.apply(
             lambda row: price_crosses_above_sma(
                 row, df.shift(1).loc[row.name], self.sma_col, self.close_col

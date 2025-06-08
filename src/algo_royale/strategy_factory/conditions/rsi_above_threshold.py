@@ -54,7 +54,7 @@ class RSIAboveThresholdCondition(StrategyCondition):
         self.rsi_col = rsi_col
         self.threshold = threshold
 
-    def apply(self, df: pd.DataFrame) -> pd.Series:
+    def _apply(self, df: pd.DataFrame) -> pd.Series:
         return df.apply(
             lambda row: rsi_above_threshold(row, self.rsi_col, self.threshold),
             axis=1,

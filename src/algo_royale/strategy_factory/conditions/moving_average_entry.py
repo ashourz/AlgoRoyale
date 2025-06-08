@@ -33,7 +33,7 @@ class MovingAverageEntryCondition(StrategyCondition):
     def required_columns(self):
         return {self.close_col}
 
-    def apply(self, df: pd.DataFrame) -> pd.Series:
+    def _apply(self, df: pd.DataFrame) -> pd.Series:
         short_ma = (
             df[self.close_col]
             .rolling(window=self.short_window, min_periods=self.short_window)

@@ -33,7 +33,7 @@ class MomentumEntryCondition(StrategyCondition):
     def required_columns(self):
         return {self.close_col}
 
-    def apply(self, df: pd.DataFrame) -> pd.Series:
+    def _apply(self, df: pd.DataFrame) -> pd.Series:
         momentum = df[self.close_col].pct_change(periods=self.lookback)
         if self.smooth_window:
             momentum = momentum.rolling(window=self.smooth_window, min_periods=1).mean()

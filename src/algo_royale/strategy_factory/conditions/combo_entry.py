@@ -44,7 +44,7 @@ class ComboEntryCondition(StrategyCondition):
     def required_columns(self):
         return {self.rsi_col, self.macd_col, self.volume_col, self.vol_ma_col}
 
-    def apply(self, df: pd.DataFrame) -> pd.Series:
+    def _apply(self, df: pd.DataFrame) -> pd.Series:
         return (
             (df[self.rsi_col] < self.rsi_buy_thresh)
             & (df[self.macd_col] > self.macd_buy_thresh)

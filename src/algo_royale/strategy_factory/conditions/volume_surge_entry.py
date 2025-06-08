@@ -18,7 +18,7 @@ class VolumeSurgeEntryCondition(StrategyCondition):
     def required_columns(self):
         return {self.vol_col}
 
-    def apply(self, df: pd.DataFrame) -> pd.Series:
+    def _apply(self, df: pd.DataFrame) -> pd.Series:
         vol_ma = df[self.vol_col].rolling(window=self.ma_window, min_periods=1).mean()
         surge = df[self.vol_col] > (vol_ma * self.threshold)
         return surge

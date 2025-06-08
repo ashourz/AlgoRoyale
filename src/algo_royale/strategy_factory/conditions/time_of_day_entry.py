@@ -19,7 +19,7 @@ class TimeOfDayEntryCondition(StrategyCondition):
     def required_columns(self):
         return {self.hour_col}
 
-    def apply(self, df: pd.DataFrame) -> pd.Series:
+    def _apply(self, df: pd.DataFrame) -> pd.Series:
         return df[self.hour_col].isin(self.buy_hours)
 
     @classmethod

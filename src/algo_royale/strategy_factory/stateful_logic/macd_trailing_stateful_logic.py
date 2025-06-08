@@ -40,7 +40,7 @@ class MACDTrailingStatefulLogic(StatefulLogic):
         self.signal = signal
         self.stop_pct = stop_pct
 
-    def __call__(self, i, df, signals, state, trend_mask, entry_mask, exit_mask):
+    def __call_impl(self, i, df, signals, state, trend_mask, entry_mask, exit_mask):
         # Initialize state if empty
         if not state:
             state = {

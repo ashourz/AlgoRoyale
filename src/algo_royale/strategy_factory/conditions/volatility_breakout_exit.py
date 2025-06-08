@@ -43,7 +43,7 @@ class VolatilityBreakoutExitCondition(StrategyCondition):
             self.sma_col,
         }
 
-    def apply(self, df: pd.DataFrame) -> pd.Series:
+    def _apply(self, df: pd.DataFrame) -> pd.Series:
         breakout = df[self.range_col] > self.threshold * df[self.volatility_col]
         downtrend = df[self.close_col] <= df[self.sma_col]
         return breakout & downtrend

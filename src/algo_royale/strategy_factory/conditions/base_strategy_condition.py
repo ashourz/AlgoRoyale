@@ -15,13 +15,20 @@ class StrategyCondition:
             setattr(self, k, v)
 
     def apply(self, df: pd.DataFrame) -> pd.Series:
-        """
-        Should return a boolean Series where True means the filter passes.
-        """
-        raise NotImplementedError("Filter must implement apply(df)")
+        # Check for missing columns
+        missing = [col for col in self.required_columns() if col not in df.columns]
+        if missing:
+            # Return all False (or np.nan) if required columns are missing
+            return pd.Series([False] * len(df), index=df.index)
+        # Delegate to subclass logic
+        return self._apply(df)
 
     def __call__(self, df):
         return self.apply(df)
+
+    def _apply(self, df: pd.DataFrame) -> pd.Series:
+        """Subclasses implement their logic here."""
+        raise NotImplementedError("Subclasses must implement _apply(df)")
 
     @property
     def required_columns(self):

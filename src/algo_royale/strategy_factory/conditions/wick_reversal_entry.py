@@ -27,7 +27,7 @@ class WickReversalEntryCondition(StrategyCondition):
     def required_columns(self):
         return {self.lower_wick_col, self.body_col}
 
-    def apply(self, df: pd.DataFrame) -> pd.Series:
+    def _apply(self, df: pd.DataFrame) -> pd.Series:
         body_safe = df[self.body_col].replace(0, 1e-8)
         long_lower_wick = df[self.lower_wick_col] > self.wick_body_ratio * body_safe
         return long_lower_wick
