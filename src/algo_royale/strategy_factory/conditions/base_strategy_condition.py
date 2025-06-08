@@ -61,9 +61,16 @@ class StrategyCondition:
 
     @classmethod
     def optuna_suggest(cls, trial: Trial, prefix: str = ""):
-        return cls(
-            period=trial.suggest_int(f"{prefix}period", 10, 30),
-            threshold=trial.suggest_float(f"{prefix}threshold", 0.2, 0.8),
+        """Should be overridden in subclasses to suggest parameters using an Optuna trial.
+
+        Example:
+            return cls(
+                threshold=trial.suggest_int(f"{prefix}threshold", 20, 30),
+                window=trial.suggest_int(f"{prefix}window", 10, 14)
+            )
+        """
+        raise NotImplementedError(
+            f"{cls.__name__}.optuna_suggest() must be implemented to use Optuna."
         )
 
     def get_id(self):

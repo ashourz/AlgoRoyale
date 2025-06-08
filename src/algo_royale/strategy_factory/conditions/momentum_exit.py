@@ -1,4 +1,5 @@
 import pandas as pd
+from optuna import Trial
 
 from algo_royale.column_names.strategy_columns import StrategyColumns
 from algo_royale.strategy_factory.conditions.base_strategy_condition import (
@@ -56,3 +57,20 @@ class MomentumExitCondition(StrategyCondition):
             "smooth_window": [None, 3, 5, 10],
             "confirmation_periods": [1, 2, 3, 4, 5],
         }
+
+    @classmethod
+    def optuna_suggest(cls, trial: Trial, prefix: str = ""):
+        return cls(
+            close_col=trial.suggest_categorical(
+                f"{prefix}close_col",
+                [StrategyColumns.CLOSE_PRICE, StrategyColumns.OPEN_PRICE],
+            ),
+            lookback=trial.suggest_int(f"{prefix}lookback", 2, 30),
+            threshold=trial.suggest_float(f"{prefix}threshold", 0.001, 0.05),
+            smooth_window=trial.suggest_categorical(
+                f"{prefix}smooth_window", [None, 3, 5, 10]
+            ),
+            confirmation_periods=trial.suggest_int(
+                f"{prefix}confirmation_periods", 1, 5
+            ),
+        )

@@ -1,4 +1,5 @@
 import pandas as pd
+from optuna import Trial
 
 from algo_royale.column_names.strategy_columns import StrategyColumns
 from algo_royale.strategy_factory.conditions.base_strategy_condition import (
@@ -66,3 +67,29 @@ class ComboEntryCondition(StrategyCondition):
             "rsi_buy_thresh": [20, 30, 35, 40, 45, 50],
             "macd_buy_thresh": [-0.1, 0, 0.1, 0.2, 0.5],
         }
+
+    @classmethod
+    def optuna_suggest(cls, trial: Trial, prefix: str = ""):
+        return cls(
+            rsi_col=trial.suggest_categorical(
+                f"{prefix}rsi_col", [StrategyColumns.RSI]
+            ),
+            macd_col=trial.suggest_categorical(
+                f"{prefix}macd_col", [StrategyColumns.MACD]
+            ),
+            volume_col=trial.suggest_categorical(
+                f"{prefix}volume_col", [StrategyColumns.VOLUME]
+            ),
+            vol_ma_col=trial.suggest_categorical(
+                f"{prefix}vol_ma_col",
+                [
+                    StrategyColumns.VOL_MA_10,
+                    StrategyColumns.VOL_MA_20,
+                    StrategyColumns.VOL_MA_50,
+                    StrategyColumns.VOL_MA_100,
+                    StrategyColumns.VOL_MA_200,
+                ],
+            ),
+            rsi_buy_thresh=trial.suggest_int(f"{prefix}rsi_buy_thresh", 20, 50),
+            macd_buy_thresh=trial.suggest_float(f"{prefix}macd_buy_thresh", -0.1, 0.5),
+        )

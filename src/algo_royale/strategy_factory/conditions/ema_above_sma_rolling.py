@@ -1,4 +1,5 @@
 import pandas as pd
+from optuna import Trial
 
 from algo_royale.column_names.strategy_columns import StrategyColumns
 from algo_royale.strategy_factory.conditions.base_strategy_condition import (
@@ -53,3 +54,13 @@ class EMAAboveSMARollingCondition(StrategyCondition):
             "ema_sma_pair": pairs,
             "window": [2, 3, 5, 7, 10, 15, 20],
         }
+
+    @classmethod
+    def optuna_suggest(cls, trial: Trial, prefix: str = ""):
+        return cls(
+            ema_sma_pair=trial.suggest_categorical(
+                f"{prefix}ema_sma_pair",
+                cls.available_param_grid()["ema_sma_pair"],
+            ),
+            window=trial.suggest_int(f"{prefix}window", 2, 20),
+        )

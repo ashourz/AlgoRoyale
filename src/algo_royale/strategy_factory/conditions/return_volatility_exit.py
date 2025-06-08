@@ -1,4 +1,5 @@
 import pandas as pd
+from optuna import Trial
 
 from algo_royale.column_names.strategy_columns import StrategyColumns
 from algo_royale.strategy_factory.conditions.base_strategy_condition import (
@@ -58,3 +59,29 @@ class ReturnVolatilityExitCondition(StrategyCondition):
                 StrategyColumns.VOLATILITY_50,
             ],
         }
+
+    @classmethod
+    def optuna_suggest(cls, trial: Trial, prefix=""):
+        return cls(
+            threshold=trial.suggest_float(
+                f"{prefix}threshold",
+                [-0.005, -0.1],
+            ),
+            return_col=trial.suggest_categorical(
+                f"{prefix}return_col",
+                [StrategyColumns.PCT_RETURN, StrategyColumns.LOG_RETURN],
+            ),
+            range_col=trial.suggest_categorical(
+                f"{prefix}range_col",
+                [StrategyColumns.RANGE, StrategyColumns.ATR_14],
+            ),
+            volatility_col=trial.suggest_categorical(
+                f"{prefix}volatility_col",
+                [
+                    StrategyColumns.HIST_VOLATILITY_20,
+                    StrategyColumns.VOLATILITY_10,
+                    StrategyColumns.VOLATILITY_20,
+                    StrategyColumns.VOLATILITY_50,
+                ],
+            ),
+        )

@@ -1,4 +1,5 @@
 import pandas as pd
+from optuna import Trial
 
 from algo_royale.column_names.strategy_columns import StrategyColumns
 from algo_royale.strategy_factory.conditions.base_strategy_condition import (
@@ -46,3 +47,31 @@ class PullbackEntryCondition(StrategyCondition):
             ],
             "close_col": [StrategyColumns.CLOSE_PRICE, StrategyColumns.OPEN_PRICE],
         }
+
+    @classmethod
+    def optuna_suggest(cls, trial: Trial, prefix=""):
+        return cls(
+            ma_col=trial.suggest_categorical(
+                f"{prefix}ma_col",
+                [
+                    StrategyColumns.SMA_10,
+                    StrategyColumns.SMA_20,
+                    StrategyColumns.SMA_50,
+                    StrategyColumns.SMA_100,
+                    StrategyColumns.SMA_150,
+                    StrategyColumns.SMA_200,
+                    StrategyColumns.EMA_9,
+                    StrategyColumns.EMA_10,
+                    StrategyColumns.EMA_20,
+                    StrategyColumns.EMA_26,
+                    StrategyColumns.EMA_50,
+                    StrategyColumns.EMA_100,
+                    StrategyColumns.EMA_150,
+                    StrategyColumns.EMA_200,
+                ],
+            ),
+            close_col=trial.suggest_categorical(
+                f"{prefix}close_col",
+                [StrategyColumns.CLOSE_PRICE, StrategyColumns.OPEN_PRICE],
+            ),
+        )

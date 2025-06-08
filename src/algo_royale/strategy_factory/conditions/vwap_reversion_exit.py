@@ -1,4 +1,5 @@
 import pandas as pd
+from optuna import Trial
 
 from algo_royale.column_names.strategy_columns import StrategyColumns
 from algo_royale.strategy_factory.conditions.base_strategy_condition import (
@@ -44,3 +45,25 @@ class VWAPReversionExitCondition(StrategyCondition):
             ],
             "vwp_col": [StrategyColumns.VOLUME_WEIGHTED_PRICE],
         }
+
+    @classmethod
+    def optuna_suggest(cls, trial: Trial, prefix=""):
+        return cls(
+            deviation_threshold=trial.suggest_float(
+                f"{prefix}deviation_threshold", 0.005, 0.02
+            ),
+            vwap_col=trial.suggest_categorical(
+                f"{prefix}vwap_col",
+                [
+                    StrategyColumns.VWAP_10,
+                    StrategyColumns.VWAP_20,
+                    StrategyColumns.VWAP_50,
+                    StrategyColumns.VWAP_100,
+                    StrategyColumns.VWAP_150,
+                    StrategyColumns.VWAP_200,
+                ],
+            ),
+            vwp_col=trial.suggest_categorical(
+                f"{prefix}vwp_col", [StrategyColumns.VOLUME_WEIGHTED_PRICE]
+            ),
+        )

@@ -1,4 +1,5 @@
 import pandas as pd
+from optuna import Trial
 
 from algo_royale.column_names.strategy_columns import StrategyColumns
 from algo_royale.strategy_factory.conditions.base_strategy_condition import (
@@ -78,3 +79,16 @@ class ADXAboveThresholdCondition(StrategyCondition):
             "close_col": [StrategyColumns.CLOSE_PRICE, StrategyColumns.CLOSE],
             "threshold": [20, 25, 30, 35, 40, 45, 50],
         }
+
+    @classmethod
+    def optuna_suggest(cls, trial: Trial, prefix: str = ""):
+        return cls(
+            adx_col=trial.suggest_categorical(
+                f"{prefix}adx_col", [StrategyColumns.ADX]
+            ),
+            close_col=trial.suggest_categorical(
+                f"{prefix}close_col",
+                [StrategyColumns.CLOSE_PRICE, StrategyColumns.CLOSE],
+            ),
+            threshold=trial.suggest_int(f"{prefix}threshold", 20, 50),
+        )

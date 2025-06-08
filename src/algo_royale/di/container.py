@@ -89,7 +89,6 @@ from algo_royale.services.market_data.alpaca_stock_service import AlpacaQuoteSer
 from algo_royale.strategy_factory.combinator.bollinger_bands_strategy_combinator import (
     BollingerBandsStrategyCombinator,
 )
-from algo_royale.strategy_factory.strategy_factory import StrategyFactory
 from algo_royale.visualization.dashboard import BacktestDashboard
 
 
@@ -285,30 +284,6 @@ class DIContainer(containers.DeclarativeContainer):
         config=config,
     )
 
-    strategy_factory = providers.Singleton(
-        StrategyFactory,
-        config=config,
-        logger=logger_backtest_prod,
-        strategy_combinators=[
-            BollingerBandsStrategyCombinator,
-            # ComboStrategyCombinator,
-            # MACDTrailingStrategyCombinator,
-            # MeanReversionStrategyCombinator,
-            # MomentumStrategyCombinator,
-            # MovingAverageCrossoverStrategyCombinator,
-            # MovingAverageStrategyCombinator,
-            # PullbackEntryStrategyCombinator,
-            # RSIStrategyCombinator,
-            # TimeOfDayBiasStrategyCombinator,
-            # TrailingStopStrategyCombinator,
-            # TrendScraperStrategyCombinator,
-            # VolatilityBreakoutStrategyCombinator,
-            # VolumeSurgeStrategyCombinator,
-            # VWAPReversionStrategyCombinator,
-            # WickReversalStrategyCombinator,
-        ],
-    )
-
     data_ingest_stage_coordinator = providers.Singleton(
         DataIngestStageCoordinator,
         config=config,
@@ -339,7 +314,24 @@ class DIContainer(containers.DeclarativeContainer):
         data_writer=stage_data_writer,
         stage_data_manager=stage_data_manager,
         logger=logger_backtest_prod,
-        strategy_factory=strategy_factory,
+        strategy_combinators=[
+            BollingerBandsStrategyCombinator,
+            # ComboStrategyCombinator,
+            # MACDTrailingStrategyCombinator,
+            # MeanReversionStrategyCombinator,
+            # MomentumStrategyCombinator,
+            # MovingAverageCrossoverStrategyCombinator,
+            # MovingAverageStrategyCombinator,
+            # PullbackEntryStrategyCombinator,
+            # RSIStrategyCombinator,
+            # TimeOfDayBiasStrategyCombinator,
+            # TrailingStopStrategyCombinator,
+            # TrendScraperStrategyCombinator,
+            # VolatilityBreakoutStrategyCombinator,
+            # VolumeSurgeStrategyCombinator,
+            # VWAPReversionStrategyCombinator,
+            # WickReversalStrategyCombinator,
+        ],
     )
 
     pipeline_coordinator = providers.Singleton(

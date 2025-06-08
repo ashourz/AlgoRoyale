@@ -1,4 +1,5 @@
 import pandas as pd
+from optuna import Trial
 
 from algo_royale.column_names.strategy_columns import StrategyColumns
 from algo_royale.strategy_factory.conditions.base_strategy_condition import (
@@ -80,3 +81,24 @@ class VolatilitySpikeCondition(StrategyCondition):
                 StrategyColumns.HIST_VOLATILITY_20,
             ],
         }
+
+    @classmethod
+    def optuna_suggest(cls, trial: Trial, prefix=""):
+        return cls(
+            range_col=trial.suggest_categorical(
+                prefix + "range_col",
+                [
+                    StrategyColumns.RANGE,
+                    StrategyColumns.ATR_14,
+                ],
+            ),
+            volatility_col=trial.suggest_categorical(
+                prefix + "volatility_col",
+                [
+                    StrategyColumns.VOLATILITY_10,
+                    StrategyColumns.VOLATILITY_20,
+                    StrategyColumns.VOLATILITY_50,
+                    StrategyColumns.HIST_VOLATILITY_20,
+                ],
+            ),
+        )

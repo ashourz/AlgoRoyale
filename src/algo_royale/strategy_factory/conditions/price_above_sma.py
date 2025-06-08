@@ -1,4 +1,5 @@
 import pandas as pd
+from optuna import Trial
 
 from algo_royale.column_names.strategy_columns import StrategyColumns
 from algo_royale.strategy_factory.conditions.base_strategy_condition import (
@@ -85,3 +86,23 @@ class PriceAboveSMACondition(StrategyCondition):
                 StrategyColumns.SMA_200,
             ],
         }
+
+    @classmethod
+    def optuna_suggest(cls, trial: Trial, prefix=""):
+        return cls(
+            close_col=trial.suggest_categorical(
+                f"{prefix}close_col",
+                [StrategyColumns.CLOSE_PRICE, StrategyColumns.OPEN_PRICE],
+            ),
+            sma_col=trial.suggest_categorical(
+                f"{prefix}sma_col",
+                [
+                    StrategyColumns.SMA_10,
+                    StrategyColumns.SMA_20,
+                    StrategyColumns.SMA_50,
+                    StrategyColumns.SMA_100,
+                    StrategyColumns.SMA_150,
+                    StrategyColumns.SMA_200,
+                ],
+            ),
+        )

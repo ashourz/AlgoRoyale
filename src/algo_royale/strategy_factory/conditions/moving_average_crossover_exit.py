@@ -1,4 +1,5 @@
 import pandas as pd
+from optuna import Trial
 
 from algo_royale.column_names.strategy_columns import StrategyColumns
 from algo_royale.strategy_factory.conditions.base_strategy_condition import (
@@ -97,3 +98,32 @@ class MovingAverageCrossoverExitCondition(StrategyCondition):
             "volume_ma_window": [10, 20, 30],
             "ma_type": [MA_Type.EMA, MA_Type.SMA],
         }
+
+    @classmethod
+    def optuna_suggest(cls, trial: Trial, prefix: str = ""):
+        short_windows = [5, 10, 15, 20]
+        long_windows = [30, 50, 100, 200]
+        trend_windows = [100, 200, 300]
+        valid_combos = [
+            (short, long, trend)
+            for short in short_windows
+            for long in long_windows
+            for trend in trend_windows
+            if short < long < trend
+        ]
+        return cls(
+            close_col=trial.suggest_categorical(
+                f"{prefix}close_col",
+                [StrategyColumns.CLOSE_PRICE, StrategyColumns.OPEN_PRICE],
+            ),
+            volume_col=trial.suggest_categorical(
+                f"{prefix}volume_col", [StrategyColumns.VOLUME]
+            ),
+            short_window_long_window_trend_window=trial.suggest_categorical(
+                f"{prefix}short_window_long_window_trend_window", valid_combos
+            ),
+            volume_ma_window=trial.suggest_int(f"{prefix}volume_ma_window", 10, 30),
+            ma_type=trial.suggest_categorical(
+                f"{prefix}ma_type", [MA_Type.EMA, MA_Type.SMA]
+            ),
+        )

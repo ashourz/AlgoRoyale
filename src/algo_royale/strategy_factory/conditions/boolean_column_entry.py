@@ -1,4 +1,5 @@
 import pandas as pd
+from optuna import Trial
 
 from algo_royale.column_names.strategy_columns import StrategyColumns
 from algo_royale.strategy_factory.conditions.base_strategy_condition import (
@@ -26,3 +27,12 @@ class BooleanColumnEntryCondition(StrategyCondition):
         return {
             "entry_col": [StrategyColumns.ENTRY_SIGNAL],
         }
+
+    @classmethod
+    def optuna_suggest(cls, trial: Trial, prefix: str = ""):
+        return cls(
+            entry_col=trial.suggest_categorical(
+                f"{prefix}entry_col",
+                [StrategyColumns.ENTRY_SIGNAL],
+            ),
+        )

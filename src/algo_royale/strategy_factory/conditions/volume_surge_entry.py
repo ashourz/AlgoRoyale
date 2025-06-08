@@ -1,4 +1,5 @@
 import pandas as pd
+from optuna import Trial
 
 from algo_royale.column_names.strategy_columns import StrategyColumns
 from algo_royale.strategy_factory.conditions.base_strategy_condition import (
@@ -29,3 +30,13 @@ class VolumeSurgeEntryCondition(StrategyCondition):
             "threshold": [1.2, 1.5, 1.8, 2.0, 2.5, 3.0, 4.0],
             "ma_window": [10, 20, 30, 50],
         }
+
+    @classmethod
+    def optuna_suggest(cls, trial: Trial, prefix=""):
+        return cls(
+            vol_col=trial.suggest_categorical(
+                f"{prefix}vol_col", [StrategyColumns.VOLUME]
+            ),
+            threshold=trial.suggest_float(f"{prefix}threshold", 1.2, 4.0),
+            ma_window=trial.suggest_int(f"{prefix}ma_window", 10, 50),
+        )

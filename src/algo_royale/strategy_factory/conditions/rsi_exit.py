@@ -1,4 +1,5 @@
 import pandas as pd
+from optuna import Trial
 
 from algo_royale.column_names.strategy_columns import StrategyColumns
 from algo_royale.strategy_factory.conditions.base_strategy_condition import (
@@ -34,3 +35,14 @@ class RSIExitCondition(StrategyCondition):
             "period": [5, 10, 14, 20, 30],
             "overbought": [60, 65, 70, 75, 80],
         }
+
+    @classmethod
+    def optuna_suggest(cls, trial: Trial, prefix=""):
+        return cls(
+            close_col=trial.suggest_categorical(
+                f"{prefix}close_col",
+                [StrategyColumns.CLOSE_PRICE, StrategyColumns.OPEN_PRICE],
+            ),
+            period=trial.suggest_int(f"{prefix}period", 5, 30),
+            overbought=trial.suggest_int(f"{prefix}overbought", 60, 80),
+        )

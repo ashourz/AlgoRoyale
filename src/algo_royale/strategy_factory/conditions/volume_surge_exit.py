@@ -1,6 +1,7 @@
 import itertools
 
 import pandas as pd
+from optuna import Trial
 
 from algo_royale.strategy_factory.conditions.base_strategy_condition import (
     StrategyCondition,
@@ -40,3 +41,11 @@ class VolumeSurgeExitCondition(StrategyCondition):
             )
         ]
         return {"entry_condition": entry_conditions}
+
+    @classmethod
+    def optuna_suggest(cls, trial: Trial, prefix=""):
+        return cls(
+            entry_condition=VolumeSurgeEntryCondition.optuna_suggest(
+                trial, prefix=f"{prefix}entry_"
+            )
+        )

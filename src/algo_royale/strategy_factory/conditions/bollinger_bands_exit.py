@@ -1,4 +1,5 @@
 import pandas as pd
+from optuna import Trial
 
 from algo_royale.column_names.strategy_columns import StrategyColumns
 from algo_royale.strategy_factory.conditions.base_strategy_condition import (
@@ -36,3 +37,14 @@ class BollingerBandsExitCondition(StrategyCondition):
             "window": [10, 20, 30],
             "num_std": [1, 2, 3],
         }
+
+    @classmethod
+    def optuna_suggest(cls, trial: Trial, prefix: str = ""):
+        return cls(
+            close_col=trial.suggest_categorical(
+                f"{prefix}close_col",
+                [StrategyColumns.CLOSE_PRICE, StrategyColumns.OPEN_PRICE],
+            ),
+            window=trial.suggest_int(f"{prefix}window", 10, 30),
+            num_std=trial.suggest_categorical(f"{prefix}num_std", [1, 2, 3]),
+        )

@@ -1,4 +1,5 @@
 import pandas as pd
+from optuna import Trial
 
 from algo_royale.column_names.strategy_columns import StrategyColumns
 from algo_royale.strategy_factory.conditions.base_strategy_condition import (
@@ -69,3 +70,10 @@ class RSIAboveThresholdCondition(StrategyCondition):
             "rsi_col": [StrategyColumns.RSI],
             "threshold": [50, 55, 60, 65, 70, 75, 80, 85],
         }
+
+    @classmethod
+    def optuna_suggest(cls, trial: Trial, prefix=""):
+        return cls(
+            rsi_col=StrategyColumns.RSI,
+            threshold=trial.suggest_int(f"{prefix}threshold", 50, 85),
+        )

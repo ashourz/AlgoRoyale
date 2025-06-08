@@ -1,4 +1,5 @@
 import pandas as pd
+from optuna import Trial
 
 from algo_royale.column_names.strategy_columns import StrategyColumns
 from algo_royale.strategy_factory.conditions.base_strategy_condition import (
@@ -64,3 +65,23 @@ class MovingAverageEntryCondition(StrategyCondition):
             "close_col": [StrategyColumns.CLOSE_PRICE, StrategyColumns.OPEN_PRICE],
             "short_long_window": valid_pairs,
         }
+
+    @classmethod
+    def optuna_suggest(cls, trial: Trial, prefix: str = ""):
+        short_windows = [5, 10, 15, 20, 50]
+        long_windows = [30, 50, 100, 200]
+        valid_pairs = [
+            (short, long)
+            for short in short_windows
+            for long in long_windows
+            if short < long
+        ]
+        return cls(
+            close_col=trial.suggest_categorical(
+                f"{prefix}close_col",
+                [StrategyColumns.CLOSE_PRICE, StrategyColumns.OPEN_PRICE],
+            ),
+            short_long_window=trial.suggest_categorical(
+                f"{prefix}short_long_window", valid_pairs
+            ),
+        )

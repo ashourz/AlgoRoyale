@@ -1,4 +1,5 @@
 import pandas as pd
+from optuna import Trial
 
 from algo_royale.column_names.strategy_columns import StrategyColumns
 from algo_royale.strategy_factory.conditions.base_strategy_condition import (
@@ -84,3 +85,20 @@ class MACDBullishCrossCondition(StrategyCondition):
             "signal_col": [StrategyColumns.MACD_SIGNAL],
             "close_col": [StrategyColumns.CLOSE_PRICE, StrategyColumns.OPEN_PRICE],
         }
+
+    @classmethod
+    def optuna_suggest(cls, trial: Trial, prefix: str = ""):
+        return cls(
+            macd_col=trial.suggest_categorical(
+                f"{prefix}macd_col",
+                [StrategyColumns.MACD],
+            ),
+            signal_col=trial.suggest_categorical(
+                f"{prefix}signal_col",
+                [StrategyColumns.MACD_SIGNAL],
+            ),
+            close_col=trial.suggest_categorical(
+                f"{prefix}close_col",
+                [StrategyColumns.CLOSE_PRICE, StrategyColumns.OPEN_PRICE],
+            ),
+        )

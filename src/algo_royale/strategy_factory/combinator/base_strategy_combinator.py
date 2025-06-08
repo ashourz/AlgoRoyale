@@ -167,3 +167,16 @@ class StrategyCombinator(ABC):
                                     stateful_logic,
                                     e,
                                 )
+
+    @classmethod
+    def get_condition_types(cls):
+        """Return the condition types for this combinator class."""
+        return {
+            "filter": cls.filter_condition_types or [],
+            "entry": cls.entry_condition_types or [],
+            "trend": cls.trend_condition_types or [],
+            "exit": cls.exit_condition_types or [],
+            "stateful_logic": cls.stateful_logic_types[0]
+            if cls.stateful_logic_types
+            else None,
+        }

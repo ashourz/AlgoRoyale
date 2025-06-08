@@ -1,4 +1,5 @@
 import pandas as pd
+from optuna import Trial
 
 from algo_royale.column_names.strategy_columns import StrategyColumns
 from algo_royale.strategy_factory.conditions.base_strategy_condition import (
@@ -38,3 +39,15 @@ class WickReversalEntryCondition(StrategyCondition):
             "lower_wick_col": [StrategyColumns.LOWER_WICK],
             "body_col": [StrategyColumns.BODY],
         }
+
+    @classmethod
+    def optuna_suggest(cls, trial: Trial, prefix=""):
+        return cls(
+            wick_body_ratio=trial.suggest_float(f"{prefix}wick_body_ratio", 1.2, 4.0),
+            lower_wick_col=trial.suggest_categorical(
+                f"{prefix}lower_wick_col", [StrategyColumns.LOWER_WICK]
+            ),
+            body_col=trial.suggest_categorical(
+                f"{prefix}body_col", [StrategyColumns.BODY]
+            ),
+        )

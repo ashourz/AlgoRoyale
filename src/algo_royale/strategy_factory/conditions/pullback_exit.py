@@ -1,6 +1,7 @@
 import itertools
 
 import pandas as pd
+from optuna import Trial
 
 from algo_royale.strategy_factory.conditions.base_strategy_condition import (
     StrategyCondition,
@@ -37,3 +38,11 @@ class PullbackExitCondition(StrategyCondition):
             for ma_col, close_col in itertools.product(ma_cols, close_cols)
         ]
         return {"entry_condition": entry_conditions}
+
+    @classmethod
+    def optuna_suggest(cls, trial: Trial, prefix=""):
+        return cls(
+            entry_condition=PullbackEntryCondition.optuna_suggest(
+                trial, prefix=f"{prefix}entry_condition_"
+            )
+        )

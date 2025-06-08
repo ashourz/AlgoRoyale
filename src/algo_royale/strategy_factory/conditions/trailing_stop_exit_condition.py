@@ -1,4 +1,5 @@
 import pandas as pd
+from optuna import Trial
 
 from algo_royale.column_names.strategy_columns import StrategyColumns
 from algo_royale.strategy_factory.conditions.base_strategy_condition import (
@@ -39,3 +40,13 @@ class TrailingStopExitCondition(StrategyCondition):
             ],
             "stop_pct": [0.01, 0.02, 0.03, 0.05],
         }
+
+    @classmethod
+    def optuna_suggest(cls, trial: Trial, prefix=""):
+        return cls(
+            close_col=trial.suggest_categorical(
+                f"{prefix}close_col",
+                [StrategyColumns.CLOSE_PRICE, StrategyColumns.OPEN_PRICE],
+            ),
+            stop_pct=trial.suggest_float(f"{prefix}stop_pct", 0.01, 0.05),
+        )
