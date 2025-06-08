@@ -39,7 +39,7 @@ async def test_engineer_features_yields_engineered(mock_logger):
 @pytest.mark.asyncio
 async def test_engineer_features_handles_exception(capsys, mock_logger):
     # Use a feature engineering function that raises
-    def bad_feature_engineering(df):
+    def bad_feature_engineering(df, logger=None):  # <-- Accept logger
         raise ValueError("bad data")
 
     async def df_iter():
@@ -54,5 +54,4 @@ async def test_engineer_features_handles_exception(capsys, mock_logger):
 
     # Should yield nothing, but print error
     assert results == []
-    captured = capsys.readouterr()
-    assert "Feature engineering failed for AAPL" in captured.out
+    mock_logger.error.assert_any_call("Feature engineering failed for AAPL: bad data")
