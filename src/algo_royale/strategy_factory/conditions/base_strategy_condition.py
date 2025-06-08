@@ -2,6 +2,7 @@ import itertools
 from logging import Logger
 
 import pandas as pd
+from optuna import Trial
 
 
 class StrategyCondition:
@@ -57,6 +58,13 @@ class StrategyCondition:
             params = dict(zip(keys, prod))
             combos.append(cls(**params))
         return combos
+
+    @classmethod
+    def optuna_suggest(cls, trial: Trial, prefix: str = ""):
+        return cls(
+            period=trial.suggest_int(f"{prefix}period", 10, 30),
+            threshold=trial.suggest_float(f"{prefix}threshold", 0.2, 0.8),
+        )
 
     def get_id(self):
         params = []
