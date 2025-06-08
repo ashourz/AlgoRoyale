@@ -89,6 +89,9 @@ class Strategy(ABC):
             return pd.Series(True, index=df.index)
         mask = pd.Series(True, index=df.index)
         for func in self.trend_conditions:
+            print(
+                f"trend_condition type: {type(func)}"
+            )  # Should always be a condition object, not a list
             mask &= func(df)
         return mask
 
@@ -98,6 +101,9 @@ class Strategy(ABC):
         # Combine entry signals (example: take first non-hold, or customize as needed)
         entry_signals = pd.Series(SignalType.HOLD.value, index=df.index)
         for cond in self.entry_conditions:
+            print(
+                f"entry_condition type: {type(cond)}"
+            )  # Should always be a condition object, not a list
             cond_signal = cond.apply(df)
             entry_signals = cond_signal.where(
                 cond_signal != SignalType.HOLD.value, entry_signals
@@ -109,6 +115,9 @@ class Strategy(ABC):
             return pd.Series(SignalType.HOLD.value, index=df.index)
         exit_signals = pd.Series(SignalType.HOLD.value, index=df.index)
         for cond in self.exit_conditions:
+            print(
+                f"exit_condition type: {type(cond)}"
+            )  # Should always be a condition object, not a list
             cond_signal = cond.apply(df)
             exit_signals = cond_signal.where(
                 cond_signal != SignalType.HOLD.value, exit_signals
@@ -162,11 +171,13 @@ class Strategy(ABC):
             df[StrategyColumns.ENTRY_SIGNAL] = SignalType.HOLD.value
             df[StrategyColumns.EXIT_SIGNAL] = SignalType.HOLD.value
             return df
-
+        print(f"Generating signals for strategy: {self.get_description()}")
         filter_mask = self._apply_filters(df)
+        print(f"Filter mask sum: {filter_mask.sum()} / {len(filter_mask)}")
         trend_mask = self._apply_trend(df)
-
+        print(f"Trend mask sum: {trend_mask.sum()} / {len(trend_mask)}")
         entry_signals = self._apply_entry(df)
+        print(f"Entry signals unique: {entry_signals.unique()}")
         exit_signals = self._apply_exit(df)
 
         # Only allow entry signals where both filter and trend masks are True
