@@ -10,9 +10,7 @@ from algo_royale.backtester.backtest.strategy_backtest_executor import (
 )
 from algo_royale.backtester.data_preparer.async_data_preparer import AsyncDataPreparer
 from algo_royale.backtester.enum.backtest_stage import BacktestStage
-from algo_royale.backtester.evaluator.simple_backtest_evaluator import (
-    SimpleBacktestEvaluator,
-)
+from algo_royale.backtester.evaluator.base_backtest_evaluator import BacktestEvaluator
 from algo_royale.backtester.stage_coordinator.stage_coordinator import StageCoordinator
 from algo_royale.backtester.stage_data.stage_data_loader import StageDataLoader
 from algo_royale.backtester.stage_data.stage_data_manager import StageDataManager
@@ -24,6 +22,7 @@ from algo_royale.strategy_factory.combinator.base_strategy_combinator import (
 )
 from algo_royale.strategy_factory.optimizer.strategy_optimizer import StrategyOptimizer
 from algo_royale.strategy_factory.strategies.base_strategy import Strategy
+from algo_royale.strategy_factory.strategy_factory import StrategyFactory
 
 
 class BacktestStageCoordinator(StageCoordinator):
@@ -34,6 +33,9 @@ class BacktestStageCoordinator(StageCoordinator):
         data_preparer: AsyncDataPreparer,
         data_writer: StageDataWriter,
         stage_data_manager: StageDataManager,
+        strategy_executor: StrategyBacktestExecutor,
+        strategy_evaluator: BacktestEvaluator,
+        stretegy_factory: StrategyFactory,
         logger: Logger,
         strategy_combinators: Optional[Sequence[type[StrategyCombinator]]] = None,
     ):
@@ -64,8 +66,9 @@ class BacktestStageCoordinator(StageCoordinator):
         self.strategy_combinators = strategy_combinators
         if not self.strategy_combinators:
             raise ValueError("No strategy combinators provided")
-        self.executor = StrategyBacktestExecutor(stage_data_manager, logger)
-        self.evaluator = SimpleBacktestEvaluator(logger)
+        self.executor = strategy_executor
+        self.evaluator = strategy_evaluator
+        self.strategy_factory = stretegy_factory
 
     async def process(
         self,
@@ -182,7 +185,11 @@ class BacktestStageCoordinator(StageCoordinator):
                 if k in valid_params and k != "self"
             }
             self.logger.info(f"Filtered params: {filtered_params}")
-            best_strategy = strategy_combinator.strategy_class(**filtered_params)
+
+            # Use the factory to build the strategy with proper condition/stateful logic instantiation
+            best_strategy = self.strategy_factory.build_strategy(
+                strategy_combinator.strategy_class, filtered_params
+            )
 
             # Run backtest with best strategy
             backtest_result = asyncio.run(
