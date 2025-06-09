@@ -26,7 +26,7 @@ class StrategyCondition:
         # Delegate to subclass logic
         return self._apply(df)
 
-    def __call__(self, df):
+    def __call__(self, df: pd.DataFrame) -> pd.Series:
         return self.apply(df)
 
     def _apply(self, df: pd.DataFrame) -> pd.Series:

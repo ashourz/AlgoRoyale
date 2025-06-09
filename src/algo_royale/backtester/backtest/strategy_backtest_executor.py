@@ -30,14 +30,14 @@ class StrategyBacktestExecutor:
             return
 
         # Verify at least some files exist
-        for symbol in data.keys():
-            data_path = self.stage_data_manager.get_directory_path(
-                self.stage, None, symbol
-            )
-            if not data_path.exists():
-                self.logger.error(f"Data path does not exist: {data_path}")
-            elif not any(data_path.glob("*.csv")):
-                self.logger.error(f"No CSV files found in {data_path}")
+        # for symbol in data.keys():
+        #     data_path = self.stage_data_manager.get_directory_path(
+        #         self.stage, None, symbol
+        #     )
+        #     if not data_path.exists():
+        #         self.logger.error(f"Data path does not exist: {data_path}")
+        #     elif not any(data_path.glob("*.csv")):
+        #         self.logger.error(f"No CSV files found in {data_path}")
 
         try:
             self.logger.info("Starting async backtest for strategies: %s", strategies)
@@ -52,8 +52,13 @@ class StrategyBacktestExecutor:
                     for strategy in strategies:
                         strategy_name = strategy.get_hash_id()
                         pair_key = f"{symbol}_{strategy_name}"
-
+                        self.logger.debug(
+                            f"Processing page {page_count} for {symbol}-{strategy_name}"
+                        )
                         if self._should_skip_pair(pair_key, strategy_name, symbol):
+                            self.logger.debug(
+                                f"Skipping {symbol}-{strategy_name} as already processed"
+                            )
                             continue
 
                         try:

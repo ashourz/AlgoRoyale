@@ -108,6 +108,7 @@ class Strategy(ABC):
             entry_signals = cond_signal.where(
                 cond_signal != SignalType.HOLD.value, entry_signals
             )
+            print(f"Intermediate entry_signals: {entry_signals.unique()}")
         return entry_signals
 
     def _apply_exit(self, df: pd.DataFrame) -> pd.Series:

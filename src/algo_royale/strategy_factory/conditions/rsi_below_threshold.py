@@ -30,7 +30,7 @@ def rsi_below_threshold(
     return row[rsi_col] < threshold
 
 
-class RSIBelowThresholdConditin(StrategyCondition):
+class RSIBelowThresholdCondition(StrategyCondition):
     """Condition to check if RSI is below a specified threshold.
     This condition checks if the Relative Strength Index (RSI) is below a specified threshold,
     indicating oversold conditions. It is typically used in contrarian strategies

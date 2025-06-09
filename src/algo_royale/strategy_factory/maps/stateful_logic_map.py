@@ -1,0 +1,18 @@
+from algo_royale.strategy_factory.stateful_logic.base_stateful_logic import (
+    StatefulLogic,
+)
+from algo_royale.strategy_factory.stateful_logic.macd_trailing_stateful_logic import (
+    MACDTrailingStatefulLogic,
+)
+from algo_royale.strategy_factory.stateful_logic.mean_reversion_stategul_logic import (
+    MeanReversionStatefulLogic,
+)
+from algo_royale.strategy_factory.stateful_logic.trailing_stop_stateful_logic import (
+    TrailingStopStatefulLogic,
+)
+
+STATEFUL_LOGIC_CLASS_MAP: dict[str, type[StatefulLogic]] = {
+    "MACDTrailingStatefulLogic": MACDTrailingStatefulLogic,
+    "MeanReversionStatefulLogic": MeanReversionStatefulLogic,
+    "TrailingStopStatefulLogic": TrailingStopStatefulLogic,
+}

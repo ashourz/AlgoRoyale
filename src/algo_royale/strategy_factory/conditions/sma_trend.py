@@ -35,7 +35,7 @@ class SMATrendCondition(StrategyCondition):
     def _apply(self, df: pd.DataFrame) -> pd.Series:
         return df[self.sma_fast_col] > df[self.sma_slow_col]
 
-    def __call__(self, df):
+    def __call__(self, df: pd.DataFrame) -> pd.Series:
         return self.apply(df)
 
     @classmethod

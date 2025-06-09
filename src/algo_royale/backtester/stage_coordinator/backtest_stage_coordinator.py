@@ -1,6 +1,7 @@
 import asyncio
+import inspect
 from logging import Logger
-from typing import AsyncIterator, Callable, Dict, Optional
+from typing import AsyncIterator, Callable, Dict, Optional, Sequence
 
 import pandas as pd
 
@@ -9,6 +10,9 @@ from algo_royale.backtester.backtest.strategy_backtest_executor import (
 )
 from algo_royale.backtester.data_preparer.async_data_preparer import AsyncDataPreparer
 from algo_royale.backtester.enum.backtest_stage import BacktestStage
+from algo_royale.backtester.evaluator.simple_backtest_evaluator import (
+    SimpleBacktestEvaluator,
+)
 from algo_royale.backtester.stage_coordinator.stage_coordinator import StageCoordinator
 from algo_royale.backtester.stage_data.stage_data_loader import StageDataLoader
 from algo_royale.backtester.stage_data.stage_data_manager import StageDataManager
@@ -19,6 +23,7 @@ from algo_royale.strategy_factory.combinator.base_strategy_combinator import (
     StrategyCombinator,
 )
 from algo_royale.strategy_factory.optimizer.strategy_optimizer import StrategyOptimizer
+from algo_royale.strategy_factory.strategies.base_strategy import Strategy
 
 
 class BacktestStageCoordinator(StageCoordinator):
@@ -30,7 +35,7 @@ class BacktestStageCoordinator(StageCoordinator):
         data_writer: StageDataWriter,
         stage_data_manager: StageDataManager,
         logger: Logger,
-        strategy_combinators: Optional[list[type[StrategyCombinator]]] = None,
+        strategy_combinators: Optional[Sequence[type[StrategyCombinator]]] = None,
     ):
         """Coordinator for the backtest stage.
         Args:
@@ -60,13 +65,14 @@ class BacktestStageCoordinator(StageCoordinator):
         if not self.strategy_combinators:
             raise ValueError("No strategy combinators provided")
         self.executor = StrategyBacktestExecutor(stage_data_manager, logger)
+        self.evaluator = SimpleBacktestEvaluator(logger)
 
     async def process(
         self,
         prepared_data: Optional[
             Dict[str, Callable[[], AsyncIterator[pd.DataFrame]]]
         ] = None,
-    ) -> Dict[str, Dict[None, Callable[[], AsyncIterator[pd.DataFrame]]]]:
+    ) -> Dict[str, Dict[str, Callable[[], AsyncIterator[pd.DataFrame]]]]:
         results = {}
         tasks = []
 
@@ -79,6 +85,7 @@ class BacktestStageCoordinator(StageCoordinator):
             dfs: list[pd.DataFrame] = []
             async for df in prepared_data[symbol]():
                 dfs.append(df)
+            self.logger.debug(f"Fetched {len(dfs)} dataframes for symbol: {symbol}")
             df: pd.DataFrame = pd.concat(dfs, ignore_index=True)
 
             for strategy_combinator in self.strategy_combinators:
@@ -94,10 +101,18 @@ class BacktestStageCoordinator(StageCoordinator):
         results_list = await asyncio.gather(*tasks)
 
         # Collect results into proper structure
-        for symbol, strategy_name, dfs in results_list:
+        for symbol, strategy_name, dfs, optimization_result in results_list:
             if dfs:
                 results.setdefault(symbol, {})[strategy_name] = self.make_factory(dfs)
 
+            # Save optimization results if any
+            self.data_writer.save_stage_data(
+                BacktestStage.OPTIMIZATION_RESULTS,
+                strategy_name=strategy_name,
+                symbol=symbol,
+                df=pd.DataFrame([optimization_result]),  # Note the brackets!
+                page_idx=0,
+            )
         return results
 
     def make_factory(
@@ -117,8 +132,8 @@ class BacktestStageCoordinator(StageCoordinator):
         symbol: str,
         df: pd.DataFrame,
         strategy_combinator: type[StrategyCombinator],
-        data_factory,
-    ) -> tuple[str, str, list[pd.DataFrame]]:
+        data_factory: Callable[[], AsyncIterator[pd.DataFrame]],
+    ) -> tuple[str, str, list[pd.DataFrame], dict]:
         """Optimize and backtest a strategy for a given symbol and data.
         Args:
             symbol: The stock symbol.
@@ -128,27 +143,89 @@ class BacktestStageCoordinator(StageCoordinator):
         Returns:
             A tuple of (symbol, strategy_name, list of backtest result DataFrames).
         """
+        try:
+            # async def single_page_async_iter(df):
+            #     yield df
+            self.logger.info(
+                f"Optimizing and backtesting for {symbol} with {strategy_combinator}"
+            )
+            optimizer = StrategyOptimizer(
+                strategy_class=strategy_combinator.strategy_class,
+                condition_types=strategy_combinator.get_condition_types(),
+                # backtest_fn=lambda strat, df_: self._backtest_and_evaluate(
+                #     [strat], {symbol: lambda: single_page_async_iter(df_)}
+                # ),
+                backtest_fn=lambda strat, df_: self._backtest_and_evaluate(
+                    symbol, strat, df_
+                ),
+                logger=self.logger,
+            )
 
-        async def single_page_async_iter(df):
+            optimization_result = optimizer.optimize(symbol, df)
+            self.logger.info(
+                f"Optimization result for {symbol} with {strategy_combinator}: {optimization_result}"
+            )
+            best_params = optimization_result["best_params"]
+            self.logger.info(f"Best params: {best_params}")
+
+            # Instantiate best strategy
+
+            # Only keep params accepted by the strategy's __init__
+            valid_params = set(
+                inspect.signature(
+                    strategy_combinator.strategy_class.__init__
+                ).parameters
+            )
+            filtered_params = {
+                k: v
+                for k, v in best_params.items()
+                if k in valid_params and k != "self"
+            }
+            self.logger.info(f"Filtered params: {filtered_params}")
+            best_strategy = strategy_combinator.strategy_class(**filtered_params)
+
+            # Run backtest with best strategy
+            backtest_result = asyncio.run(
+                self.executor.run_backtest([best_strategy], {symbol: data_factory})
+            )
+            dfs = backtest_result.get(symbol, [])
+
+            # dfs = backtest_result.get(symbol, [])
+            # optimization_results_df = pd.DataFrame(optimization_result)
+            # # Instantiate evaluator (can be cached as self.evaluator if preferred)
+            # evaluator = SimpleBacktestEvaluator(self.logger)
+            # performance_metrics = {}
+
+            # if dfs:
+            #     # Usually one DataFrame per strategy; iterate or just evaluate the first for now
+            #     performance_metrics = evaluator.evaluate(best_strategy, dfs[0])
+            # return (symbol, optimization_result["strategy"], dfs)
+            # return (symbol, optimization_result["strategy"], [optimization_results_df])
+            return (symbol, optimization_result["strategy"], dfs, optimization_result)
+        except Exception as e:
+            self.logger.error(
+                f"Error optimizing/backtesting for {symbol} with {strategy_combinator}: {str(e)}"
+            )
+            return (symbol, strategy_combinator.__name__, [])
+
+    async def _backtest_and_evaluate(
+        self,
+        symbol: str,
+        strategy: Strategy,
+        df: pd.DataFrame,
+    ):
+        # We wrap df into an async factory as your executor expects
+        async def data_factory():
             yield df
 
-        optimizer = StrategyOptimizer(
-            strategy_class=strategy_combinator.strategy_class,
-            condition_types=strategy_combinator.get_condition_types(),
-            backtest_fn=lambda strat, df_: self.executor.run_backtest(
-                [strat], {symbol: lambda: single_page_async_iter(df_)}
-            ),
-            logger=self.logger,
+        raw_results = await self.executor.run_backtest(
+            [strategy], {symbol: data_factory}
         )
-
-        optimization_result = optimizer.optimize(symbol, df, n_trials=50)
-        # Rebuild and re-run with best config
-        best_strategy = strategy_combinator(**optimization_result["best_params"])
-
-        loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
-        backtest_result = loop.run_until_complete(
-            self.executor.run_backtest([best_strategy], {symbol: data_factory})
-        )
-        dfs = backtest_result.get(symbol, [])
-        return (symbol, optimization_result["strategy"], dfs)
+        self.logger.debug(f"Raw backtest results: line count: {len(raw_results)}")
+        dfs = raw_results.get(symbol, [])
+        if not dfs:
+            return {}
+        self.logger.debug(f"Backtest result DataFrames: {len(dfs)}")
+        full_df = pd.concat(dfs, ignore_index=True)
+        metrics = self.evaluator.evaluate(strategy, full_df)
+        return metrics

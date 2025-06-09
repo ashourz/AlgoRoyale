@@ -35,32 +35,47 @@ class StrategyOptimizer:
         self.logger = logger
 
     def optimize(
-        self, symbol: str, df: pd.DataFrame, n_trials: int = 50
+        self,
+        symbol: str,
+        df: pd.DataFrame,
+        n_trials: int = 1,  ## TODO: change back to 50
     ) -> Dict[str, Any]:
+        self.logger.info(
+            f"Starting optimization for {symbol} with {self.strategy_class.__name__}"
+        )
+        self.logger.debug(f"DataFrame lines: {len(df)}")
         study = optuna.create_study(direction=self.direction)
         start_time = time.time()
 
         def objective(trial, logger=self.logger):
             entry_conds = [
-                cond_cls.optuna_suggest(trial, prefix=f"{symbol}_entry_{i}_")
+                cond_cls.optuna_suggest(
+                    trial, prefix=f"{symbol}_entry_{cond_cls.__name__}_"
+                )
                 for i, cond_cls in enumerate(self.condition_types.get("entry", []))
             ]
             trend_conds = [
-                cond_cls.optuna_suggest(trial, prefix=f"{symbol}_trend_{i}_")
+                cond_cls.optuna_suggest(
+                    trial, prefix=f"{symbol}_trend_{cond_cls.__name__}_"
+                )
                 for i, cond_cls in enumerate(self.condition_types.get("trend", []))
             ]
             exit_conds = [
-                cond_cls.optuna_suggest(trial, prefix=f"{symbol}_exit_{i}_")
+                cond_cls.optuna_suggest(
+                    trial, prefix=f"{symbol}_exit_{cond_cls.__name__}_"
+                )
                 for i, cond_cls in enumerate(self.condition_types.get("exit", []))
             ]
             filter_conds = [
-                cond_cls.optuna_suggest(trial, prefix=f"{symbol}_filter_{i}_")
+                cond_cls.optuna_suggest(
+                    trial, prefix=f"{symbol}_filter_{cond_cls.__name__}_"
+                )
                 for i, cond_cls in enumerate(self.condition_types.get("filter", []))
             ]
             state_logic = self.condition_types.get("stateful_logic")
             if state_logic:
                 state_logic = state_logic.optuna_suggest(
-                    trial, prefix=f"{symbol}_logic_"
+                    trial, prefix=f"{symbol}_logic_{state_logic.__name__}_"
                 )
 
             # Build full candidate kwargs
@@ -101,14 +116,61 @@ class StrategyOptimizer:
         study.optimize(objective, n_trials=n_trials)
 
         duration = round(time.time() - start_time, 2)
-
-        return {
+        self.logger.info(
+            f"Optimization completed for {symbol} in {duration} seconds over {n_trials} trials"
+        )
+        results = {
             "strategy": self.strategy_class.__name__,
             "best_value": study.best_value,
-            "best_params": study.best_params,
+            "best_params": self._strip_prefixes(study.best_params, symbol),
             "meta": {
                 "run_time_sec": duration,
                 "n_trials": n_trials,
                 "symbol": symbol,
             },
         }
+        self.logger.debug(f"Optimization results: {results}")
+        return results
+
+    def _strip_prefixes(self, params: dict, symbol: str) -> dict:
+        grouped = {
+            "entry_conditions": {},
+            "exit_conditions": {},
+            "filter_conditions": {},
+            "trend_conditions": {},
+            "logic": {},
+        }
+
+        for k, v in params.items():
+            # Example: 'GOOG_entry_BollingerBandsEntryCondition_close_col'
+            parts = k.split("_")
+            if len(parts) >= 4:
+                _, cond_type, cond_class = parts[:3]
+                param = "_".join(parts[3:])
+                conds_key = (
+                    f"{cond_type}_conditions" if cond_type != "logic" else "logic"
+                )
+                if cond_class not in grouped[conds_key]:
+                    grouped[conds_key][cond_class] = {}
+                grouped[conds_key][cond_class][param] = v
+            else:
+                grouped[k] = v
+
+        # Convert dicts to lists of dicts for each condition type
+        for key in [
+            "entry_conditions",
+            "exit_conditions",
+            "filter_conditions",
+            "trend_conditions",
+        ]:
+            grouped[key] = [
+                {cond_class: params} for cond_class, params in grouped[key].items()
+            ]
+
+        # For logic, you may want a single dict or object, not a list
+        if grouped["logic"]:
+            grouped["stateful_logic"] = grouped["logic"]
+        grouped.pop("logic", None)
+
+        # Remove empty lists for unused types
+        return {k: v for k, v in grouped.items() if v}
