@@ -10,6 +10,9 @@ from algo_royale.backtester.data_preparer.data_preparer import DataPreparer
 from algo_royale.backtester.data_stream.normalized_data_stream_factory import (
     NormalizedDataStreamFactory,
 )
+from algo_royale.backtester.evaluator.simple_backtest_evaluator import (
+    SimpleBacktestEvaluator,
+)
 from algo_royale.backtester.feature_engineering.feature_engineer import FeatureEngineer
 from algo_royale.backtester.feature_engineering.feature_engineering import (
     feature_engineering,
@@ -89,6 +92,7 @@ from algo_royale.services.market_data.alpaca_stock_service import AlpacaQuoteSer
 from algo_royale.strategy_factory.combinator.bollinger_bands_strategy_combinator import (
     BollingerBandsStrategyCombinator,
 )
+from algo_royale.strategy_factory.strategy_factory import StrategyFactory
 from algo_royale.visualization.dashboard import BacktestDashboard
 
 
@@ -273,12 +277,6 @@ class DIContainer(containers.DeclarativeContainer):
         logger=logger_backtest_prod,
     )
 
-    strategy_backtest_executor = providers.Singleton(
-        StrategyBacktestExecutor,
-        stage_data_writer=stage_data_writer,
-        logger=logger_backtest_prod,
-    )
-
     backtest_dashboard = providers.Singleton(
         BacktestDashboard,
         config=config,
@@ -306,6 +304,24 @@ class DIContainer(containers.DeclarativeContainer):
         feature_engineer=feature_engineer,
     )
 
+    # Strategy backtest executor
+    strategy_executor = providers.Singleton(
+        StrategyBacktestExecutor,
+        stage_data_manager=stage_data_manager,
+        logger=logger_backtest_prod,
+    )
+    strategy_evaluator = providers.Singleton(
+        SimpleBacktestEvaluator,
+        logger=logger_backtest_prod,
+    )
+
+    strategy_factory = providers.Singleton(
+        StrategyFactory,
+        config=config,
+        logger=logger_backtest_prod,
+    )
+    # Strategy backtest coordinator
+    # This is where we define the backtest stage coordinator with the strategy executor
     backtest_stage_coordinator = providers.Singleton(
         BacktestStageCoordinator,
         config=config,
@@ -313,6 +329,9 @@ class DIContainer(containers.DeclarativeContainer):
         data_preparer=async_data_preparer,
         data_writer=stage_data_writer,
         stage_data_manager=stage_data_manager,
+        strategy_executor=strategy_executor,
+        strategy_evaluator=strategy_evaluator,
+        strategy_factory=strategy_factory,
         logger=logger_backtest_prod,
         strategy_combinators=[
             BollingerBandsStrategyCombinator,

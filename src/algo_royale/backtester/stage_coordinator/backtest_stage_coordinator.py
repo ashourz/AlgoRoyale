@@ -35,7 +35,7 @@ class BacktestStageCoordinator(StageCoordinator):
         stage_data_manager: StageDataManager,
         strategy_executor: StrategyBacktestExecutor,
         strategy_evaluator: BacktestEvaluator,
-        stretegy_factory: StrategyFactory,
+        strategy_factory: StrategyFactory,
         logger: Logger,
         strategy_combinators: Optional[Sequence[type[StrategyCombinator]]] = None,
     ):
@@ -68,7 +68,7 @@ class BacktestStageCoordinator(StageCoordinator):
             raise ValueError("No strategy combinators provided")
         self.executor = strategy_executor
         self.evaluator = strategy_evaluator
-        self.strategy_factory = stretegy_factory
+        self.strategy_factory = strategy_factory
 
     async def process(
         self,
@@ -105,17 +105,33 @@ class BacktestStageCoordinator(StageCoordinator):
 
         # Collect results into proper structure
         for symbol, strategy_name, dfs, optimization_result in results_list:
-            if dfs:
-                results.setdefault(symbol, {})[strategy_name] = self.make_factory(dfs)
-
-            # Save optimization results if any
-            self.data_writer.save_stage_data(
-                BacktestStage.OPTIMIZATION_RESULTS,
-                strategy_name=strategy_name,
-                symbol=symbol,
-                df=pd.DataFrame([optimization_result]),  # Note the brackets!
-                page_idx=0,
-            )
+            try:
+                if dfs:
+                    results.setdefault(symbol, {})[strategy_name] = self.make_factory(
+                        dfs
+                    )
+                    self.logger.info(
+                        f"Backtest completed for {symbol} with {strategy_name}"
+                    )
+                else:
+                    self.logger.warning(
+                        f"No backtest results for {symbol} with {strategy_name}"
+                    )
+                    continue
+                # Save optimization results if any
+                self.data_writer.save_stage_data(
+                    BacktestStage.STRATEGY_OPTIMIZATION,
+                    strategy_name=strategy_name,
+                    symbol=symbol,
+                    results_df=pd.DataFrame(
+                        [optimization_result]
+                    ),  # Note the brackets!
+                    page_idx=0,
+                )
+            except Exception as e:
+                self.logger.error(
+                    f"Error processing results for {symbol} with {strategy_name}: {str(e)}"
+                )
         return results
 
     def make_factory(
