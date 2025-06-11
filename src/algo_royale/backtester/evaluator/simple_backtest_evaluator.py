@@ -7,6 +7,7 @@ from algo_royale.backtester.evaluator.base_backtest_evaluator import (
     BacktestEvaluator,
 )
 from algo_royale.column_names.strategy_columns import StrategyColumns
+from algo_royale.strategy_factory.enum.signal_type import SignalType
 
 
 class SimpleBacktestEvaluator(BacktestEvaluator):
@@ -15,7 +16,11 @@ class SimpleBacktestEvaluator(BacktestEvaluator):
 
     def _evaluate_signals(self, signals_df: pd.DataFrame) -> dict:
         try:
+            self.logger.debug(
+                f"Evaluating signals DataFrame with {len(signals_df)} rows"
+            )
             trades = self.simulate_trades(signals_df)
+            self.logger.debug(f"Trades simulated: {len(trades)}")
             if not trades:
                 return {
                     "total_return": 0.0,
@@ -60,11 +65,11 @@ class SimpleBacktestEvaluator(BacktestEvaluator):
             signal_exit = row[exit_col]
             price = row[close_col]
 
-            if signal_entry == "buy" and not in_trade:
+            if signal_entry == SignalType.BUY.value and not in_trade:
                 entry_price = price
                 in_trade = True
 
-            elif signal_exit == "sell" and in_trade:
+            elif signal_exit == SignalType.SELL.value and in_trade:
                 pnl = (price - entry_price) / entry_price
                 cumulative_return += pnl
                 trades.append(

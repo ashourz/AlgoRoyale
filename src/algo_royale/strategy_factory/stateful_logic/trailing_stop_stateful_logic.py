@@ -1,4 +1,5 @@
 from algo_royale.column_names.strategy_columns import StrategyColumns
+from algo_royale.strategy_factory.enum.signal_type import SignalType
 from algo_royale.strategy_factory.stateful_logic.base_stateful_logic import (
     StatefulLogic,
 )
@@ -28,7 +29,7 @@ class TrailingStopStatefulLogic(StatefulLogic):
                 # Enter position
                 state["in_position"] = True
                 state["trailing_high"] = price
-                signal = "buy"
+                signal = SignalType.BUY.value
         else:
             # Update trailing high
             if price > state["trailing_high"]:
@@ -38,7 +39,7 @@ class TrailingStopStatefulLogic(StatefulLogic):
                 # Exit position
                 state["in_position"] = False
                 state["trailing_high"] = None
-                signal = "sell"
+                signal = SignalType.SELL.value
 
         return signal, state
 

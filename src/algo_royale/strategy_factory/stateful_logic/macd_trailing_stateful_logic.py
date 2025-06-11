@@ -1,6 +1,7 @@
 import pandas as pd
 
 from algo_royale.column_names.strategy_columns import StrategyColumns
+from algo_royale.strategy_factory.enum.signal_type import SignalType
 
 from .base_stateful_logic import StatefulLogic
 
@@ -67,7 +68,7 @@ class MACDTrailingStatefulLogic(StatefulLogic):
                 macd.iloc[i] > signal_line.iloc[i]
             )
             if buy_signal and trend_ok:
-                signals.iloc[i] = "buy"
+                signals.iloc[i] = SignalType.BUY.value
                 state["in_position"] = True
                 state["trailing_stop"] = price * (1 - self.stop_pct)
         else:
@@ -78,7 +79,7 @@ class MACDTrailingStatefulLogic(StatefulLogic):
                 macd.iloc[i] < signal_line.iloc[i]
             )
             if sell_signal or price < state["trailing_stop"]:
-                signals.iloc[i] = "sell"
+                signals.iloc[i] = SignalType
                 state["in_position"] = False
                 state["trailing_stop"] = None
 

@@ -1,4 +1,5 @@
 from algo_royale.column_names.strategy_columns import StrategyColumns
+from algo_royale.strategy_factory.enum.signal_type import SignalType
 
 from .base_stateful_logic import StatefulLogic
 
@@ -45,7 +46,7 @@ class MeanReversionStatefulLogic(StatefulLogic):
         if not state["in_position"]:
             if (i - state["last_exit_idx"]) > self.reentry_cooldown:
                 if deviation < -self.threshold and trend_mask.iloc[i]:
-                    signals.iloc[i] = "buy"
+                    signals.iloc[i] = SignalType.BUY.value
                     state["in_position"] = True
                     state["entry_price"] = price
                     state["trailing_stop"] = price * (1 - self.stop_pct)
@@ -58,7 +59,7 @@ class MeanReversionStatefulLogic(StatefulLogic):
             sell_signal = deviation > self.threshold or hit_stop or hit_profit
 
             if sell_signal:
-                signals.iloc[i] = "sell"
+                signals.iloc[i] = SignalType.SELL.value
                 state["in_position"] = False
                 state["entry_price"] = None
                 state["trailing_stop"] = None

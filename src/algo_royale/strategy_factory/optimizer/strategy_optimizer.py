@@ -38,7 +38,7 @@ class StrategyOptimizer:
         self,
         symbol: str,
         df: pd.DataFrame,
-        n_trials: int = 1,  ## TODO: change back to 50
+        n_trials: int = 50,  ## TODO: change back to 50
     ) -> Dict[str, Any]:
         self.logger.info(
             f"Starting optimization for {symbol} with {self.strategy_class.__name__}"
@@ -109,6 +109,8 @@ class StrategyOptimizer:
                     f"[{symbol}] Error extracting metric '{self.metric_name}' from backtest result: {e} | Result: {result}"
                 )
                 return float("-inf") if self.direction == "maximize" else float("inf")
+            # Store the full result in the trial for later retrieval
+            trial.set_user_attr("full_result", result)
             if logger:
                 logger.debug(f"[{symbol}] Trial result: {score}")
             return score
@@ -127,7 +129,11 @@ class StrategyOptimizer:
                 "run_time_sec": duration,
                 "n_trials": n_trials,
                 "symbol": symbol,
+                "direction": self.direction,
             },
+            "best_result": study.best_trial.user_attrs.get(
+                "full_result"
+            ),  # <-- add this line
         }
         self.logger.debug(f"Optimization results: {results}")
         return results
