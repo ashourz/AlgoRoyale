@@ -38,8 +38,20 @@ class StrategyOptimizer:
         self,
         symbol: str,
         df: pd.DataFrame,
-        n_trials: int = 50,  ## TODO: change back to 50
+        n_trials: int = 200,  ## TODO: change back to 50
     ) -> Dict[str, Any]:
+        """
+        Run the optimization process for a given symbol and DataFrame.
+        :param symbol: The symbol to optimize for.
+        :param df: DataFrame containing the data for the symbol.
+        :param n_trials: Number of trials to run.
+            - Default is 50, but can be adjusted based on the complexity of the strategy.
+            - 50: A good starting point for most strategies.
+            - 100: For more complex strategies or when more precision is needed.
+            - 200: For very complex strategies or when the search space is large.
+            - 500: For exhaustive searches, but may take a long time.
+        :return: A dictionary with the optimization results.
+        """
         self.logger.info(
             f"Starting optimization for {symbol} with {self.strategy_class.__name__}"
         )
