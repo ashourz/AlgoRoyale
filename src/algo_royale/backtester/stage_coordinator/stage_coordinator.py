@@ -49,7 +49,7 @@ class StageCoordinator(ABC):
         """
         pass
 
-    async def run(self) -> bool:
+    async def run(self, load_in_reverse=False) -> bool:
         """
         Orchestrate the stage: load, prepare, process, write.
         """
@@ -61,7 +61,9 @@ class StageCoordinator(ABC):
         else:
             """ Load data from the incoming stage """
             self.logger.info(f"stage:{self.stage} starting data loading.")
-            data = await self._load_data(stage=self.stage.incoming_stage)
+            data = await self._load_data(
+                stage=self.stage.incoming_stage, reverse_pages=load_in_reverse
+            )
             if not data:
                 self.logger.error(
                     f"No data loaded from stage:{self.stage.incoming_stage}"
@@ -87,7 +89,10 @@ class StageCoordinator(ABC):
         return True
 
     async def _load_data(
-        self, stage: BacktestStage, strategy_name: Optional[str] = None
+        self,
+        stage: BacktestStage,
+        strategy_name: Optional[str] = None,
+        reverse_pages: bool = False,
     ) -> Dict[str, Callable[[], AsyncIterator[pd.DataFrame]]]:
         """Load data based on the configuration"""
         try:
@@ -95,7 +100,7 @@ class StageCoordinator(ABC):
                 f"Loading data for stage:{stage} | strategy:{strategy_name}"
             )
             data = await self.data_loader.load_all_stage_data(
-                stage=stage, strategy_name=strategy_name
+                stage=stage, strategy_name=strategy_name, reverse_pages=reverse_pages
             )
             return data
         except Exception as e:

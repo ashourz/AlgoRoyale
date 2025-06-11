@@ -39,7 +39,9 @@ class PipelineCoordinator:
 
             # Feature Engineering Stage
             self.logger.info("Running feature engineering stage...")
-            fe_success = await self.feature_engineering_stage_coordinator.run()
+            fe_success = await self.feature_engineering_stage_coordinator.run(
+                load_in_reverse=True
+            )
             if not fe_success:
                 self.logger.error("Feature engineering stage failed")
                 return False

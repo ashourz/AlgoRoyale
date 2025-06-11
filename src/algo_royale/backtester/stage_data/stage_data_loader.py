@@ -42,7 +42,10 @@ class StageDataLoader:
             raise RuntimeError(f"Failed to initialize BacktestDataLoader: {e}")
 
     async def load_all_stage_data(
-        self, stage: BacktestStage, strategy_name: Optional[str] = None
+        self,
+        stage: BacktestStage,
+        strategy_name: Optional[str] = None,
+        reverse_pages: bool = False,
     ) -> Dict[str, Callable[[], AsyncIterator[pd.DataFrame]]]:
         """Returns async data generators with automatic data fetching
         for all symbols in the watchlist for the given stage and strategy.
@@ -91,7 +94,10 @@ class StageDataLoader:
                 # Prepare the async generator for the symbol
                 data[symbol] = (
                     lambda s=symbol, st=stage, str=strategy_name: self._symbol_data_gen(
-                        stage=st, symbol=s, strategy_name=str
+                        stage=st,
+                        symbol=s,
+                        strategy_name=str,
+                        reverse_pages=reverse_pages,
                     )
                 )
 
@@ -110,15 +116,21 @@ class StageDataLoader:
 
         return data
 
-    def _symbol_data_gen(self, stage, symbol, strategy_name):
+    def _symbol_data_gen(self, stage, symbol, strategy_name, reverse_pages=False):
         async def gen():
-            async for df in self.load_symbol(stage, symbol, strategy_name):
+            async for df in self.load_symbol(
+                stage, symbol, strategy_name, reverse_pages=reverse_pages
+            ):
                 yield df
 
         return gen()
 
     async def load_symbol(
-        self, stage: BacktestStage, symbol: str, strategy_name: Optional[str] = None
+        self,
+        stage: BacktestStage,
+        symbol: str,
+        strategy_name: Optional[str] = None,
+        reverse_pages: bool = False,
     ) -> AsyncIterator[pd.DataFrame]:
         """Async generator yielding DataFrames, fetching data if needed"""
         symbol_dir = self._get_stage_symbol_dir(
@@ -140,7 +152,10 @@ class StageDataLoader:
 
         # Then stream the data
         async for df in self._stream_existing_data_async(
-            stage=stage, strategy_name=strategy_name, symbol_dir=symbol_dir
+            stage=stage,
+            strategy_name=strategy_name,
+            symbol_dir=symbol_dir,
+            reverse_pages=reverse_pages,
         ):
             yield df
 
@@ -212,7 +227,11 @@ class StageDataLoader:
         return any(symbol_dir.iterdir())
 
     async def _stream_existing_data_async(
-        self, stage: BacktestStage, strategy_name: str, symbol_dir: Path
+        self,
+        stage: BacktestStage,
+        strategy_name: str,
+        symbol_dir: Path,
+        reverse_pages: bool = False,
     ) -> AsyncIterator[pd.DataFrame]:
         """Async generator to stream existing data pages for a symbol"""
 
@@ -234,6 +253,7 @@ class StageDataLoader:
                 )
             ],
             key=extract_page_chunk,
+            reverse=reverse_pages,  # <-- This is the key line!
         )
 
         self.logger.debug(f"Found {len(pages)} data pages in {symbol_dir}")

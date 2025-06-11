@@ -111,8 +111,8 @@ class DataIngestStageCoordinator(StageCoordinator):
                 bars = response.symbol_bars[symbol]
                 df = pd.DataFrame([bar.model_dump() for bar in bars])
                 df[DataIngestColumns.SYMBOL] = symbol
+                df = df.iloc[::-1].reset_index(drop=True)  # Reverse rows
                 total_rows += len(df)
-
                 yield df
 
                 page_token = response.next_page_token
