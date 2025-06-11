@@ -45,7 +45,7 @@ class Strategy(ABC):
         self.entry_conditions = entry_conditions or []
         self.exit_conditions = exit_conditions or []
         self.stateful_logic = stateful_logic
-        self.debug = False  # Set to True for debugging output
+        self.debug = True  # Set to True for debugging output
 
     @property
     def required_columns(self) -> list[str]:
@@ -161,7 +161,7 @@ class Strategy(ABC):
             if trend_mask.iloc[i] and entry_mask.iloc[i] == SignalType.BUY.value:
                 signals.iloc[i] = SignalType.BUY.value
             if exit_mask.iloc[i] == SignalType.SELL.value:
-                signals.iloc[i] = SignalType.SELL.valuee
+                signals.iloc[i] = SignalType.SELL.value
 
             # Call stateful logic hook if present
             if self.stateful_logic is not None:

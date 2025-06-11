@@ -79,7 +79,7 @@ class MACDTrailingStatefulLogic(StatefulLogic):
                 macd.iloc[i] < signal_line.iloc[i]
             )
             if sell_signal or price < state["trailing_stop"]:
-                signals.iloc[i] = SignalType
+                signals.iloc[i] = SignalType.SELL.value
                 state["in_position"] = False
                 state["trailing_stop"] = None
 
