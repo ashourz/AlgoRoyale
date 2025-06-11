@@ -90,7 +90,7 @@ class StrategyCondition:
     def get_id(self):
         params = []
         for k in sorted(self.__dict__):
-            if k.startswith("_"):
+            if k.startswith("_") or k == "debug":
                 continue
             v = getattr(self, k)
             if hasattr(v, "get_id") and callable(v.get_id):

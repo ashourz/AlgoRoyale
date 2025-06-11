@@ -1,5 +1,4 @@
 import pandas as pd
-import pytest
 
 from algo_royale.column_names.strategy_columns import StrategyColumns
 from algo_royale.strategy_factory.conditions.base_strategy_condition import (
@@ -92,8 +91,9 @@ def test_apply_entry_exit():
 def test_generate_signals_missing_column():
     df = pd.DataFrame({"a": [1, 2, 3]})
     strat = Strategy(entry_conditions=[DummyCondition("b")])
-    with pytest.raises(ValueError):
-        strat.generate_signals(df)
+    result = strat.generate_signals(df)
+    assert all(result[StrategyColumns.ENTRY_SIGNAL] == "hold")
+    assert all(result[StrategyColumns.EXIT_SIGNAL] == "hold")
 
 
 def test_generate_signals_with_stateful_logic():

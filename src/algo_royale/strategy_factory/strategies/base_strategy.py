@@ -158,10 +158,10 @@ class Strategy(ABC):
                 continue
 
             # Default stateless logic
-            if trend_mask.iloc[i] and entry_mask.iloc[i]:
+            if trend_mask.iloc[i] and entry_mask.iloc[i] == SignalType.BUY.value:
                 signals.iloc[i] = SignalType.BUY.value
-            if exit_mask.iloc[i]:
-                signals.iloc[i] = SignalType.SELL.value
+            if exit_mask.iloc[i] == SignalType.SELL.value:
+                signals.iloc[i] = SignalType.SELL.valuee
 
             # Call stateful logic hook if present
             if self.stateful_logic is not None:
