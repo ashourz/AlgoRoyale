@@ -22,11 +22,13 @@ class MovingAverageExitCondition(StrategyCondition):
     def __init__(
         self,
         close_col: StrategyColumns = StrategyColumns.CLOSE_PRICE,
-        short_long_window: tuple[int, int] = (50, 200),
+        short_window: int = 50,
+        long_window: int = 200,
     ):
         super().__init__(close_col=close_col)
         self.close_col = close_col
-        self.short_window, self.long_window = short_long_window
+        self.short_window = short_window
+        self.long_window = long_window
 
     @property
     def required_columns(self):
@@ -67,20 +69,11 @@ class MovingAverageExitCondition(StrategyCondition):
 
     @classmethod
     def optuna_suggest(cls, trial: Trial, prefix: str = ""):
-        short_windows = [5, 10, 15, 20, 50]
-        long_windows = [30, 50, 100, 200]
-        valid_pairs = [
-            (short, long)
-            for short in short_windows
-            for long in long_windows
-            if short < long
-        ]
         return cls(
             close_col=trial.suggest_categorical(
                 f"{prefix}close_col",
                 [StrategyColumns.CLOSE_PRICE, StrategyColumns.OPEN_PRICE],
             ),
-            short_long_window=trial.suggest_categorical(
-                f"{prefix}short_long_window", valid_pairs
-            ),
+            short_window=trial.suggest_int(f"{prefix}short_window", 5, 50),
+            long_window=trial.suggest_int(f"{prefix}long_window", 30, 200),
         )

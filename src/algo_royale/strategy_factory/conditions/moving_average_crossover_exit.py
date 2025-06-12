@@ -20,22 +20,26 @@ class MovingAverageCrossoverExitCondition(StrategyCondition):
         self,
         close_col: StrategyColumns = StrategyColumns.CLOSE_PRICE,
         volume_col: StrategyColumns = StrategyColumns.VOLUME,
-        short_window_long_window_trend_window: tuple[int, int, int] = (10, 50, 200),
+        short_window: int = 10,
+        long_window: int = 50,
+        trend_window: int = 200,
         volume_ma_window=20,
         ma_type: MA_Type = MA_Type.EMA,
     ):
         super().__init__(
             close_col=close_col,
             volume_col=volume_col,
-            short_window_long_window_trend_window=short_window_long_window_trend_window,
+            short_window=short_window,
+            long_window=long_window,
+            trend_window=trend_window,
             volume_ma_window=volume_ma_window,
             ma_type=ma_type,
         )
         self.close_col = close_col
         self.volume_col = volume_col
-        self.short_window, self.long_window, self.trend_window = (
-            short_window_long_window_trend_window
-        )
+        self.short_window = short_window
+        self.long_window = long_window
+        self.trend_window = trend_window
         self.volume_ma_window = volume_ma_window
         self.ma_type = ma_type
 
@@ -81,36 +85,18 @@ class MovingAverageCrossoverExitCondition(StrategyCondition):
 
     @classmethod
     def available_param_grid(cls) -> dict:
-        short_windows = [5, 10, 15, 20]
-        long_windows = [30, 50, 100, 200]
-        trend_windows = [100, 200, 300]
-        valid_combos = [
-            (short, long, trend)
-            for short in short_windows
-            for long in long_windows
-            for trend in trend_windows
-            if short < long < trend
-        ]
         return {
             "close_col": [StrategyColumns.CLOSE_PRICE, StrategyColumns.OPEN_PRICE],
             "volume_col": [StrategyColumns.VOLUME],
-            "short_window_long_window_trend_window": valid_combos,
+            "short_window": [5, 10, 15, 20],
+            "long_window": [30, 50, 100, 200],
+            "trend_window": [100, 200, 300],
             "volume_ma_window": [10, 20, 30],
             "ma_type": [MA_Type.EMA, MA_Type.SMA],
         }
 
     @classmethod
     def optuna_suggest(cls, trial: Trial, prefix: str = ""):
-        short_windows = [5, 10, 15, 20]
-        long_windows = [30, 50, 100, 200]
-        trend_windows = [100, 200, 300]
-        valid_combos = [
-            (short, long, trend)
-            for short in short_windows
-            for long in long_windows
-            for trend in trend_windows
-            if short < long < trend
-        ]
         return cls(
             close_col=trial.suggest_categorical(
                 f"{prefix}close_col",
@@ -119,9 +105,9 @@ class MovingAverageCrossoverExitCondition(StrategyCondition):
             volume_col=trial.suggest_categorical(
                 f"{prefix}volume_col", [StrategyColumns.VOLUME]
             ),
-            short_window_long_window_trend_window=trial.suggest_categorical(
-                f"{prefix}short_window_long_window_trend_window", valid_combos
-            ),
+            short_window=trial.suggest_int(f"{prefix}short_window", 5, 20),
+            long_window=trial.suggest_int(f"{prefix}long_window", 30, 200),
+            trend_window=trial.suggest_int(f"{prefix}trend_window", 100, 300),
             volume_ma_window=trial.suggest_int(f"{prefix}volume_ma_window", 10, 30),
             ma_type=trial.suggest_categorical(
                 f"{prefix}ma_type", [MA_Type.EMA, MA_Type.SMA]

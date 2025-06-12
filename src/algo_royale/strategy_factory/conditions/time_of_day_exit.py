@@ -9,10 +9,19 @@ from algo_royale.strategy_factory.conditions.base_strategy_condition import (
 
 class TimeOfDayExitCondition(StrategyCondition):
     def __init__(
-        self, sell_hours={11, 15}, hour_col: StrategyColumns = StrategyColumns.HOUR
+        self,
+        sell_start_hour=10,
+        sell_end_hour=16,
+        hour_col: StrategyColumns = StrategyColumns.HOUR,
     ):
-        super().__init__(sell_hours=sell_hours, hour_col=hour_col)
-        self.sell_hours = set(sell_hours)
+        super().__init__(
+            sell_start_hour=sell_start_hour,
+            sell_end_hour=sell_end_hour,
+            hour_col=hour_col,
+        )
+        self.sell_start_hour = sell_start_hour
+        self.sell_end_hour = sell_end_hour
+        self.sell_hours = list(range(self.sell_start_hour, self.sell_end_hour + 1))
         self.hour_col = hour_col
 
     @property
@@ -25,29 +34,16 @@ class TimeOfDayExitCondition(StrategyCondition):
     @classmethod
     def available_param_grid(cls) -> dict:
         return {
-            "sell_hours": [
-                {11, 15},
-                {10, 12, 14},
-                {9, 13, 16},
-                {8, 10, 12, 14},
-            ],
+            "sell_start_hour": [8, 9, 10, 11],
+            "sell_end_hour": [12, 13, 14, 15, 16],
             "hour_col": [StrategyColumns.HOUR],
         }
 
     @classmethod
     def optuna_suggest(cls, trial: Trial, prefix=""):
-        sell_hours = {
-            hour
-            for hour in range(8, 17)
-            if trial.suggest_categorical(f"{prefix}hour_{hour}", [True, False])
-        }
-
-        if not sell_hours:
-            # Ensure at least one hour is selected (fallback or resample logic)
-            sell_hours.add(trial.suggest_int(f"{prefix}fallback_hour", 8, 16))
-
         return cls(
-            sell_hours=sell_hours,
+            sell_start_hour=trial.suggest_int(f"{prefix}sell_start_hour", 8, 11),
+            sell_end_hour=trial.suggest_int(f"{prefix}sell_end_hour", 12, 16),
             hour_col=trial.suggest_categorical(
                 f"{prefix}hour_col", [StrategyColumns.HOUR]
             ),

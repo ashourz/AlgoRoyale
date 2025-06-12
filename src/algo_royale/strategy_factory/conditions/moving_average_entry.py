@@ -68,20 +68,11 @@ class MovingAverageEntryCondition(StrategyCondition):
 
     @classmethod
     def optuna_suggest(cls, trial: Trial, prefix: str = ""):
-        short_windows = [5, 10, 15, 20, 50]
-        long_windows = [30, 50, 100, 200]
-        valid_pairs = [
-            (short, long)
-            for short in short_windows
-            for long in long_windows
-            if short < long
-        ]
         return cls(
             close_col=trial.suggest_categorical(
                 f"{prefix}close_col",
                 [StrategyColumns.CLOSE_PRICE, StrategyColumns.OPEN_PRICE],
             ),
-            short_long_window=trial.suggest_categorical(
-                f"{prefix}short_long_window", valid_pairs
-            ),
+            short_window=trial.suggest_int(f"{prefix}short_window", 5, 50),
+            long_window=trial.suggest_int(f"{prefix}long_window", 30, 200),
         )
