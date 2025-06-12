@@ -19,7 +19,8 @@ class PullbackEntryStrategy(Strategy):
         Parameters:
         - entry_conditions: List of entry conditions for the strategy.
         """
-        self.entry_condition = entry_conditions.first() if entry_conditions else None
+        self.entry_conditions = entry_conditions
+        self.entry_condition = entry_conditions[0] if entry_conditions else None
         if not self.entry_condition:
             raise ValueError("Entry conditions must not be empty.")
         self.exit_conditions = [

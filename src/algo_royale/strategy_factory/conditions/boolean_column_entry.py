@@ -17,9 +17,11 @@ class BooleanColumnEntryCondition(StrategyCondition):
 
     @property
     def required_columns(self):
-        return [self.entry_col]
+        return []
 
     def _apply(self, df: pd.DataFrame) -> pd.Series:
+        if self.entry_col not in df.columns:
+            return pd.Series(False, index=df.index)
         return df[self.entry_col].astype(bool)
 
     @classmethod

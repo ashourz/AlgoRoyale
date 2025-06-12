@@ -29,14 +29,14 @@ class VolumeSurgeStrategy(Strategy):
         Parameters:
         - entry_conditions: List of entry conditions for the strategy.
         """
-        self.entry_condition = entry_conditions.first()
+        self.entry_conditions = entry_conditions
         if not self.entry_conditions:
             raise ValueError("At least one entry condition must be provided.")
+        self.entry_condition = self.entry_conditions[0]
         self.exit_condition = VolumeSurgeExitCondition(
             entry_condition=self.entry_condition
         )
 
-        self.entry_conditions = [self.entry_condition]
         self.exit_conditions = [self.exit_condition]
 
         super().__init__(

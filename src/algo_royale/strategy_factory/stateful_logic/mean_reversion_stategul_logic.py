@@ -28,8 +28,11 @@ class MeanReversionStatefulLogic(StatefulLogic):
         self.profit_target_pct = profit_target_pct
         self.reentry_cooldown = reentry_cooldown
         self.close_col = close_col
+        self.debug = False
 
     def __call_impl(self, i, df, signals, state, trend_mask, entry_mask, exit_mask):
+        if self.debug:
+            print(f"Processing index {i} with state: {state}")
         if not state:
             state = {
                 "in_position": False,
@@ -46,6 +49,10 @@ class MeanReversionStatefulLogic(StatefulLogic):
         if not state["in_position"]:
             if (i - state["last_exit_idx"]) > self.reentry_cooldown:
                 if deviation < -self.threshold and trend_mask.iloc[i]:
+                    if self.debug:
+                        print(
+                            f"Buy signal at index {i}: price={price}, ma={ma}, deviation={deviation}"
+                        )
                     signals.iloc[i] = SignalType.BUY.value
                     state["in_position"] = True
                     state["entry_price"] = price
@@ -59,6 +66,11 @@ class MeanReversionStatefulLogic(StatefulLogic):
             sell_signal = deviation > self.threshold or hit_stop or hit_profit
 
             if sell_signal:
+                if self.debug:
+                    print(
+                        f"Sell signal at index {i}: price={price}, entry_price={state['entry_price']}, "
+                        f"trailing_stop={state['trailing_stop']}, deviation={deviation}"
+                    )
                 signals.iloc[i] = SignalType.SELL.value
                 state["in_position"] = False
                 state["entry_price"] = None

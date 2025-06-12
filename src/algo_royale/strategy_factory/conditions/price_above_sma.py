@@ -13,6 +13,7 @@ def price_crosses_above_sma(
     prev_row,
     sma_col: StrategyColumns = StrategyColumns.SMA_20,
     close_col: StrategyColumns = StrategyColumns.CLOSE_PRICE,
+    debug: bool = False,
 ):
     """
     Returns True if the price crosses above the SMA between the previous and current rows.
@@ -27,10 +28,18 @@ def price_crosses_above_sma(
     Returns:
         bool: True if price crosses above SMA, else False.
     """
-    return (
+    crossed = (
         prev_row[close_col] <= prev_row[sma_col]
         and current_row[close_col] > current_row[sma_col]
     )
+    if crossed:
+        if debug:
+            print(
+                f"Cross above detected at index {current_row.name}: "
+                f"prev_close={prev_row[close_col]}, prev_sma={prev_row[sma_col]}, "
+                f"curr_close={current_row[close_col]}, curr_sma={current_row[sma_col]}"
+            )
+    return crossed
 
 
 class PriceAboveSMACondition(StrategyCondition):
@@ -60,11 +69,12 @@ class PriceAboveSMACondition(StrategyCondition):
         super().__init__(close_col=close_col, sma_col=sma_col)
         self.close_col = close_col
         self.sma_col = sma_col
+        self.debug = False
 
     def _apply(self, df: pd.DataFrame) -> pd.Series:
         return df.apply(
             lambda row: price_crosses_above_sma(
-                row, df.shift(1).loc[row.name], self.sma_col, self.close_col
+                row, df.shift(1).loc[row.name], self.sma_col, self.close_col, self.debug
             ),
             axis=1,
         )

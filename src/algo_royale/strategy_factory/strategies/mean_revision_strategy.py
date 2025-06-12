@@ -28,7 +28,7 @@ class MeanReversionStrategy(Strategy):
 
     def __init__(
         self,
-        trend_conditions: list[MeanReversionStatefulLogic] = [
+        trend_conditions: list[PriceAboveSMACondition] = [
             PriceAboveSMACondition(
                 close_col=StrategyColumns.CLOSE_PRICE, sma_col=StrategyColumns.SMA_200
             )
