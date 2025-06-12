@@ -38,7 +38,7 @@ class StrategyOptimizer:
         self,
         symbol: str,
         df: pd.DataFrame,
-        n_trials: int = 1,  ## TODO: change back to 50
+        n_trials: int = 1000,
     ) -> Dict[str, Any]:
         """
         Run the optimization process for a given symbol and DataFrame.
