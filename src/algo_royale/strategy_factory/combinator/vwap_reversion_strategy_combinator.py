@@ -7,7 +7,7 @@ from algo_royale.strategy_factory.conditions.vwap_reversion_entry import (
 from algo_royale.strategy_factory.conditions.vwap_reversion_exit import (
     VWAPReversionExitCondition,
 )
-from algo_royale.strategy_factory.strategies.vwap_reversion_strategy import (
+from algo_royale.strategy_factory.strategies.vwap_reversion_Strategy import (
     VWAPReversionStrategy,
 )
 

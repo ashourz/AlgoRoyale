@@ -21,10 +21,14 @@ class TimeOfDayBiasStrategy(Strategy):
     def __init__(
         self,
         entry_conditions: list[TimeOfDayEntryCondition] = [
-            TimeOfDayEntryCondition(buy_hours={10, 14}, hour_col=StrategyColumns.HOUR)
+            TimeOfDayEntryCondition(
+                buy_start_hour=10, buy_end_hour=14, hour_col=StrategyColumns.HOUR
+            )
         ],
         exit_conditions: list[TimeOfDayExitCondition] = [
-            TimeOfDayExitCondition(sell_hours={11, 15}, hour_col=StrategyColumns.HOUR)
+            TimeOfDayExitCondition(
+                sell_start_hour=11, sell_end_hour=15, hour_col=StrategyColumns.HOUR
+            )
         ],
     ):
         """Initialize the Time of Day Bias Strategy with entry and exit conditions.
