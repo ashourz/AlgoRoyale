@@ -23,11 +23,15 @@ class MovingAverageEntryCondition(StrategyCondition):
     def __init__(
         self,
         close_col: StrategyColumns = StrategyColumns.CLOSE_PRICE,
-        short_long_window: tuple[int, int] = (50, 200),
+        short_window: int = 50,
+        long_window: int = 200,
     ):
-        super().__init__(close_col=close_col)
+        super().__init__(
+            close_col=close_col, short_window=short_window, long_window=long_window
+        )
         self.close_col = close_col
-        self.short_window, self.long_window = short_long_window
+        self.short_window = short_window
+        self.long_window = long_window
 
     @property
     def required_columns(self):
@@ -63,7 +67,8 @@ class MovingAverageEntryCondition(StrategyCondition):
         ]
         return {
             "close_col": [StrategyColumns.CLOSE_PRICE, StrategyColumns.OPEN_PRICE],
-            "short_long_window": valid_pairs,
+            "short_window": [pair[0] for pair in valid_pairs],
+            "long_window": [pair[1] for pair in valid_pairs],
         }
 
     @classmethod

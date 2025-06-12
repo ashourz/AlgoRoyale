@@ -31,7 +31,9 @@ class MovingAverageCrossoverStrategy(Strategy):
             MovingAverageCrossoverEntryCondition(
                 close_col=StrategyColumns.CLOSE_PRICE,
                 volume_col=StrategyColumns.VOLUME,
-                short_window_long_window_trend_window=(10, 50, 200),
+                short_window=10,
+                long_window=50,
+                trend_window=200,
                 volume_ma_window=20,
                 ma_type=MA_Type.EMA,
             )
@@ -40,7 +42,9 @@ class MovingAverageCrossoverStrategy(Strategy):
             MovingAverageCrossoverExitCondition(
                 close_col=StrategyColumns.CLOSE_PRICE,
                 volume_col=StrategyColumns.VOLUME,
-                short_window_long_window_trend_window=(10, 50, 200),
+                short_window=10,
+                long_window=50,
+                trend_window=200,
                 volume_ma_window=20,
                 ma_type=MA_Type.EMA,
             )

@@ -21,7 +21,8 @@ class TrendScraperStrategy(Strategy):
         self,
         trend_conditions: list[EMAAboveSMARollingCondition] = [
             EMAAboveSMARollingCondition(
-                ema_sma_pair=(StrategyColumns.EMA_20, StrategyColumns.SMA_50),
+                ema_col=StrategyColumns.EMA_20,
+                sma_col=StrategyColumns.SMA_50,
                 window=3,
             )
         ],

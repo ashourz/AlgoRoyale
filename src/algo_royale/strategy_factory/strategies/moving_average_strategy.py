@@ -18,12 +18,16 @@ class MovingAverageStrategy(Strategy):
         self,
         entry_conditions: list[MovingAverageEntryCondition] = [
             MovingAverageEntryCondition(
-                close_col=StrategyColumns.CLOSE_PRICE, short_long_window=(50, 200)
+                close_col=StrategyColumns.CLOSE_PRICE,
+                short_window=50,
+                long_window=200,
             )
         ],
         exit_conditions: list[MovingAverageExitCondition] = [
             MovingAverageExitCondition(
-                close_col=StrategyColumns.CLOSE_PRICE, short_long_window=(50, 200)
+                close_col=StrategyColumns.CLOSE_PRICE,
+                short_window=50,
+                long_window=200,
             )
         ],
     ):
