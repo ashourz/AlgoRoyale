@@ -40,44 +40,48 @@ class DataIngestStageCoordinator(StageCoordinator):
         watchlist_path_string = config.get("paths.backtester", "watchlist_path")
         if not watchlist_path_string:
             raise ValueError("Watchlist path not specified in config")
-        start_date = config.get("backtest", "start_date")
-        if not start_date:
-            raise ValueError("Start date not specified in config")
-        end_date = config.get("backtest", "end_date")
-        if not end_date:
-            raise ValueError("End date not specified in config")
         self.watchlist = load_watchlist(watchlist_path_string)
         if not self.watchlist:
             raise ValueError("Watchlist is empty or could not be loaded")
-        self.start_date = dateutil.parser.parse(start_date)
-        if not self.start_date:
-            raise ValueError("Invalid start date format in config")
-        self.end_date = dateutil.parser.parse(end_date)
-        if not self.end_date:
-            raise ValueError("Invalid end date format in config")
 
         self.quote_service = quote_service
+
+    async def run(
+        self, start_date: dateutil.datetime, end_date: dateutil.datetime
+    ) -> bool:
+        """
+        Run the data ingest stage.
+        This method is called by the pipeline coordinator.
+        """
+        self.logger.info("Running Data Ingest Stage")
+        self.start_date = start_date
+        self.end_date = end_date
+        return await super().run()
 
     async def process(
         self,
         prepared_data: Optional[
             Dict[str, Callable[[], AsyncIterator[pd.DataFrame]]]
         ] = None,
-    ) -> Dict[str, Dict[None, Callable[[], AsyncIterator[pd.DataFrame]]]]:
+    ) -> Dict[str, Dict[str, Callable[[], AsyncIterator[pd.DataFrame]]]]:
         """
         Fetch data for all symbols and return as async iterators of DataFrames.
         The StageCoordinator._write method will handle saving.
         """
-        result: Dict[str, Dict[None, Callable[[], AsyncIterator[pd.DataFrame]]]] = {}
+        result: Dict[str, Dict[str, Callable[[], AsyncIterator[pd.DataFrame]]]] = {}
+        date_str = f"{self.start_date:%Y%m%d}_{self.end_date:%Y%m%d}"
 
         for symbol in self.watchlist:
             # Wrap the factory in a dict with None as the strategy name
             result[symbol] = {
-                None: (lambda symbol=symbol: self._fetch_symbol_data(symbol))
+                date_str: (lambda symbol=symbol: self._fetch_symbol_data(symbol=symbol))
             }
         return result
 
-    async def _fetch_symbol_data(self, symbol: str) -> AsyncIterator[pd.DataFrame]:
+    async def _fetch_symbol_data(
+        self,
+        symbol: str,
+    ) -> AsyncIterator[pd.DataFrame]:
         """
         Async generator that yields DataFrames for each page of fetched data for a symbol.
         No saving is done here; saving is handled by StageCoordinator._write.
