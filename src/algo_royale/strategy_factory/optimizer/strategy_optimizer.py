@@ -136,7 +136,7 @@ class StrategyOptimizer:
         results = {
             "strategy": self.strategy_class.__name__,
             "best_value": study.best_value,
-            "best_params": self._strip_prefixes(study.best_params, symbol),
+            "best_params": self._strip_prefixes(study.best_params),
             "meta": {
                 "run_time_sec": duration,
                 "n_trials": n_trials,
@@ -150,7 +150,7 @@ class StrategyOptimizer:
         self.logger.debug(f"Optimization results: {results}")
         return results
 
-    def _strip_prefixes(self, params: dict, symbol: str) -> dict:
+    def _strip_prefixes(self, params: dict) -> dict:
         grouped = {
             "entry_conditions": {},
             "exit_conditions": {},

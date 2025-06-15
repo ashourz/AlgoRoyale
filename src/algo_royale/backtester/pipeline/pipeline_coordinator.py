@@ -12,6 +12,7 @@ from algo_royale.backtester.stage_coordinator.data_ingest_stage_coordinator impo
 from algo_royale.backtester.stage_coordinator.feature_engineering_stage_coordinator import (
     FeatureEngineeringStageCoordinator,
 )
+from algo_royale.backtester.stage_coordinator.optimization_stage_coordinator import OptimizationStageCoordinator
 
 
 class PipelineCoordinator:
@@ -19,6 +20,7 @@ class PipelineCoordinator:
         self,
         data_ingest_stage_coordinator: DataIngestStageCoordinator,
         feature_engineering_stage_coordinator: FeatureEngineeringStageCoordinator,
+        optimization_stage_coordinator: OptimizationStageCoordinator,
         backtest_stage_coordinator: BacktestStageCoordinator,
         logger: Logger,
     ):

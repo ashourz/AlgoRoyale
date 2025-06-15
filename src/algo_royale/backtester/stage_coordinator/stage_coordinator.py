@@ -2,6 +2,7 @@ from abc import ABC, abstractmethod
 from logging import Logger
 from typing import AsyncIterator, Callable, Dict, Optional
 
+import dateutil
 import pandas as pd
 
 from algo_royale.backtester.data_preparer.async_data_preparer import AsyncDataPreparer
@@ -49,11 +50,20 @@ class StageCoordinator(ABC):
         """
         pass
 
-    async def run(self, load_in_reverse=False) -> bool:
+    async def run(
+        self,
+        start_date: dateutil.datetime,
+        end_date: dateutil.datetime,
+        load_in_reverse=False,
+    ) -> bool:
         """
         Orchestrate the stage: load, prepare, process, write.
         """
-        self.logger.info(f"Starting stage: {self.stage}")
+        self.start_date = start_date
+        self.end_date = end_date
+        self.logger.info(
+            f"Starting stage: {self.stage} | start_date: {start_date} | end_date: {end_date}"
+        )
         if not self.stage.incoming_stage:
             """ If no incoming stage is defined, skip loading data """
             self.logger.error(f"Stage {self.stage} has no incoming stage defined.")

@@ -27,6 +27,9 @@ from algo_royale.backtester.stage_coordinator.data_ingest_stage_coordinator impo
 from algo_royale.backtester.stage_coordinator.feature_engineering_stage_coordinator import (
     FeatureEngineeringStageCoordinator,
 )
+from algo_royale.backtester.stage_coordinator.optimization_stage_coordinator import (
+    OptimizationStageCoordinator,
+)
 from algo_royale.backtester.stage_data.stage_data_loader import StageDataLoader
 from algo_royale.backtester.stage_data.stage_data_manager import StageDataManager
 from algo_royale.backtester.stage_data.stage_data_writer import StageDataWriter
@@ -365,6 +368,37 @@ class DIContainer(containers.DeclarativeContainer):
         config=config,
         logger=logger_backtest_prod,
     )
+
+    optimization_stage_coordinator = providers.Singleton(
+        OptimizationStageCoordinator,
+        config=config,
+        data_loader=stage_data_loader,
+        data_preparer=async_data_preparer,
+        data_writer=stage_data_writer,
+        stage_data_manager=stage_data_manager,
+        strategy_executor=strategy_executor,
+        strategy_evaluator=strategy_evaluator,
+        logger=logger_backtest_prod,
+        strategy_combinators=[
+            BollingerBandsStrategyCombinator,
+            ComboStrategyCombinator,
+            MACDTrailingStrategyCombinator,
+            MeanReversionStrategyCombinator,
+            MomentumStrategyCombinator,
+            MovingAverageCrossoverStrategyCombinator,
+            MovingAverageStrategyCombinator,
+            PullbackEntryStrategyCombinator,
+            RSIStrategyCombinator,
+            TimeOfDayBiasStrategyCombinator,
+            TrailingStopStrategyCombinator,
+            TrendScraperStrategyCombinator,
+            VolatilityBreakoutStrategyCombinator,
+            VolumeSurgeStrategyCombinator,
+            VWAPReversionStrategyCombinator,
+            WickReversalStrategyCombinator,
+        ],
+    )
+
     # Strategy backtest coordinator
     # This is where we define the backtest stage coordinator with the strategy executor
     backtest_stage_coordinator = providers.Singleton(
@@ -402,6 +436,7 @@ class DIContainer(containers.DeclarativeContainer):
         PipelineCoordinator,
         data_ingest_stage_coordinator=data_ingest_stage_coordinator,
         feature_engineering_stage_coordinator=feature_engineering_stage_coordinator,
+        optimization_stage_coordinator=optimization_stage_coordinator,
         backtest_stage_coordinator=backtest_stage_coordinator,
         logger=logger_backtest_prod,
     )

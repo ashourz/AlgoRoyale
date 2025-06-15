@@ -1,7 +1,6 @@
 from logging import Logger
 from typing import AsyncIterator, Callable, Dict, Optional
 
-import dateutil
 import pandas as pd
 from alpaca.common.enums import SupportedCurrencies
 
@@ -45,18 +44,6 @@ class DataIngestStageCoordinator(StageCoordinator):
             raise ValueError("Watchlist is empty or could not be loaded")
 
         self.quote_service = quote_service
-
-    async def run(
-        self, start_date: dateutil.datetime, end_date: dateutil.datetime
-    ) -> bool:
-        """
-        Run the data ingest stage.
-        This method is called by the pipeline coordinator.
-        """
-        self.logger.info("Running Data Ingest Stage")
-        self.start_date = start_date
-        self.end_date = end_date
-        return await super().run()
 
     async def process(
         self,

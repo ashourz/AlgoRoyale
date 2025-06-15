@@ -12,6 +12,8 @@ class BacktestStageName(str):
     FEATURE_ENGINEERING = "feature_engineering"
     BACKTEST = "backtest"
     STRATEGY_OPTIMIZATION = "strategy_optimization"
+    OPTIMIZATION = "optimization"
+    TESTING = "testing"
     RESULTS_ANALYSIS = "results_analysis"
     STRATEGY_METRICS = "strategy_metrics"
     STRATEGY_SELECTION = "strategy_selection"
@@ -86,6 +88,20 @@ class BacktestStage(Enum):
             DataIngestColumns.VOLUME_WEIGHTED_PRICE: FeatureEngineeringColumns.VOLUME_WEIGHTED_PRICE,
             DataIngestColumns.SYMBOL: FeatureEngineeringColumns.SYMBOL,
         },
+    )
+    OPTIMIZATION = (
+        BacktestStageName.OPTIMIZATION,
+        "Optimizing strategies using historical data",
+        BacktestStageName.FEATURE_ENGINEERING,
+        [],
+        {},
+    )
+    TESTING = (
+        BacktestStageName.TESTING,
+        "Testing strategies using historical data",
+        BacktestStageName.FEATURE_ENGINEERING,
+        [],
+        {},
     )
     BACKTEST = (
         BacktestStageName.BACKTEST,
