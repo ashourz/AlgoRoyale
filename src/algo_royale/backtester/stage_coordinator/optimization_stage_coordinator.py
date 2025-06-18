@@ -96,9 +96,15 @@ class OptimizationStageCoordinator(StageCoordinator):
             for strategy_name in self.strategy_names:
                 # Run optimization
                 strategy = self.strategy_factory.get_strategy_class(strategy_name)
-                optimization_result = self.optimizer.optimize(
-                    symbol, train_df, strategy
-                )
+                try:
+                    optimization_result = self.optimizer.optimize(
+                        symbol, train_df, strategy
+                    )
+                except Exception as e:
+                    self.logger.error(
+                        f"Optimization failed for symbol {symbol}, strategy {strategy_name}: {e}"
+                    )
+                    continue
 
                 # Save optimization metrics to optimization_result.json under window_id
                 out_dir = self.stage_data_manager.get_directory_path(

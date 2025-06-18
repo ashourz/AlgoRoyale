@@ -146,6 +146,8 @@ class TestingStageCoordinator(StageCoordinator):
                 metrics = self.evaluator.evaluate(strategy, full_df)
 
                 # Save test metrics to optimization_result.json under window_id
+                if self.window_id not in opt_results:
+                    opt_results[self.window_id] = {}
                 opt_results[self.window_id]["test"] = {
                     "metrics": metrics,
                     "window": {
