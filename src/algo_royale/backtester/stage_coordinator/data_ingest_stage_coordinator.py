@@ -111,6 +111,11 @@ class DataIngestStageCoordinator(StageCoordinator):
                 if not page_token:
                     break
 
+            if total_rows == 0:
+                self.logger.warning(
+                    f"No data found for {symbol} in the specified date range."
+                )
+
             self.logger.info(
                 f"Finished fetching {symbol}: {page_count} pages, {total_rows} rows"
             )

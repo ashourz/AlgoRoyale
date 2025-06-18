@@ -1,7 +1,10 @@
 import asyncio
-from datetime import datetime, timedelta
+import fnmatch
+import os
+from datetime import datetime
 from logging import Logger
 
+from algo_royale.backtester.enum.backtest_stage import BacktestStage
 from algo_royale.backtester.stage_coordinator.data_ingest_stage_coordinator import (
     DataIngestStageCoordinator,
 )
@@ -44,103 +47,188 @@ class PipelineCoordinator:
             self.logger.error(f"Backtest failed: {e}")
             return False
 
-    async def run_walk_forward(self, years_back: int = 5, test_window_years: int = 1):
-        try:
-            today = datetime.today()
-            self.logger.info(
-                f"Running walk-forward analysis for {years_back} years back and {test_window_years} years test window"
+    def walk_forward_windows(
+        self, end_date: datetime, n_trials: int = 5, window_size: int = 1
+    ):
+        """Generate walk-forward windows for backtesting."""
+        windows = []
+        train_start = end_date.replace(year=end_date.year - (n_trials + window_size))
+        train_start = train_start.replace(month=1, day=1)
+        for i in range(n_trials):
+            train_end = train_start.replace(year=train_start.year + window_size)
+            test_start = train_end
+            test_end = test_start.replace(year=test_start.year + window_size)
+            windows.append(
+                {
+                    "train_start": train_start,
+                    "train_end": train_end,
+                    "test_start": test_start,
+                    "test_end": test_end,
+                }
             )
-            # Calculate the earliest date for walk-forward
-            first_date = today - timedelta(days=365 * years_back)
-            last_date = today - timedelta(days=365 * test_window_years)
-            # Walk forward in yearly steps
-            while first_date < last_date:
-                train_start = first_date
-                train_end = train_start + timedelta(days=365 * years_back)
-                test_start = train_end
-                test_end = test_start + timedelta(days=365 * test_window_years)
-                if test_end > today:
-                    test_end = today
+            train_start = train_start.replace(year=train_start.year + 1)
+        return windows
 
-                self.logger.info(
-                    f"Walk-forward: Train: {train_start.date()} to {train_end.date()} | Test: {test_start.date()} to {test_end.date()}"
-                )
+    async def run_walk_forward(
+        self,
+        end_date: datetime = datetime.now(),
+        n_trials: int = 5,
+        window_size: int = 1,
+    ):
+        try:
+            if end_date is None:
+                end_date = datetime.now()
+            # Go back n_trials + 1 years for the initial train window
+            for window in self.walk_forward_windows(
+                end_date=end_date, n_trials=n_trials, window_size=window_size
+            ):
+                train_start = window["train_start"]
+                train_end = window["train_end"]
+                test_start = window["test_start"]
+                test_end = window["test_end"]
 
-                # Data ingest for train window
+                # Optionally: log or print the window
                 self.logger.info(
-                    f"Running data ingest for train window: {train_start.date()} to {train_end.date()}"
+                    f"Train {train_start.date()} to {train_end.date()}, "
+                    f"Test {test_start.date()} to {test_end.date()}"
                 )
-                ingest_success = await self.data_ingest_stage_coordinator.run(
-                    start_date=train_start, end_date=train_end
+                # Run the pipeline for this window
+                window_result = await self.run_window(
+                    train_start=train_start,
+                    train_end=train_end,
+                    test_start=test_start,
+                    test_end=test_end,
                 )
-                if not ingest_success:
+                if not window_result:
                     self.logger.error(
-                        f"Data ingest stage failed for train window: {train_start.date()} to {train_end.date()}"
+                        f"Walk-forward failed: "
+                        f"Train {train_start.date()} to {train_end.date()}, "
+                        f"Test {test_start.date()} to {test_end.date()}"
                     )
-                    break
-                # Data ingest for test window
-                self.logger.info(
-                    f"Running data ingest for test window: {test_start.date()} to {test_end.date()}"
-                )
-                ingest_success = await self.data_ingest_stage_coordinator.run(
-                    start_date=test_start, end_date=test_end
-                )
-                if not ingest_success:
-                    self.logger.error(
-                        f"Data ingest stage failed for test window: {test_start.date()} to {test_end.date()}"
-                    )
-                    break
-                # Feature engineering for train window
-                self.logger.info(
-                    f"Running feature engineering for train window: {train_start.date()} to {train_end.date()}"
-                )
-                fe_success = await self.feature_engineering_stage_coordinator.run(
-                    start_date=train_start, end_date=train_end, load_in_reverse=True
-                )
-                if not fe_success:
-                    self.logger.error("Feature engineering stage failed")
-                    break
-                # Feature engineering for test window
-                self.logger.info(
-                    f"Running feature engineering for test window: {test_start.date()} to {test_end.date()}"
-                )
-                fe_success = await self.feature_engineering_stage_coordinator.run(
-                    start_date=test_start, end_date=test_end, load_in_reverse=True
-                )
-                if not fe_success:
-                    self.logger.error("Feature engineering stage failed")
-                    break
-                # Optimize on train window
-                self.logger.info(
-                    f"Running optimization for train window: {train_start.date()} to {train_end.date()}"
-                )
-                optimization_success = await self.optimization_stage_coordinator.run(
-                    start_date=train_start, end_date=train_end
-                )
-                if not optimization_success:
-                    self.logger.error("Optimization stage failed")
-                    break
-                # Test on test window using best params from train_results
-                self.logger.info(
-                    f"Running backtest for test window: {test_start.date()} to {test_end.date()}"
-                )
-                testing_results = await self.testing_stage_coordinator.run(
-                    train_start_date=train_start,
-                    train_end_date=train_end,
-                    test_start_date=test_start,
-                    test_end_date=test_end,
-                )
-                if not testing_results:
-                    self.logger.error("Testing stage failed")
-                    break
-
-                # Move window forward
-                first_date += timedelta(days=365 * test_window_years)
-            self.logger.info("Walk-forward completed successfully")
+                    continue  # Skip to the next window
+                self.logger.info("Walk-forward completed successfully")
             return True
         except Exception as e:
             self.logger.error(f"Walk-forward failed: {e}")
             return False
+
+    async def run_window(self, train_start, train_end, test_start, test_end):
+        """Run the pipeline for a single walk-forward window."""
+        self.logger.info(
+            f"Walk-forward: Train: {train_start.date()} to {train_end.date()} | Test: {test_start.date()} to {test_end.date()}"
+        )
+        # Data ingest for train window
+        self.logger.info(
+            f"Running data ingest for train window: {train_start.date()} to {train_end.date()}"
+        )
+        ingest_success = await self.data_ingest_stage_coordinator.run(
+            start_date=train_start, end_date=train_end
+        )
+        if not ingest_success:
+            self.logger.error(
+                f"Data ingest stage failed for train window: {train_start.date()} to {train_end.date()}"
+            )
+            # If ingest fails, skip the rest of the pipeline
+            return False
+        # Check if data has been ingested for the test window
+        if not self.has_ingested_data(train_start, train_end):
+            self.logger.error(
+                f"Data not ingested for train window: {train_start.date()} to {train_end.date()}"
+            )
+            return False
+
+        # Feature engineering for train window
+        self.logger.info(
+            f"Running feature engineering for train window: {train_start.date()} to {train_end.date()}"
+        )
+        fe_success = await self.feature_engineering_stage_coordinator.run(
+            start_date=train_start, end_date=train_end, load_in_reverse=True
+        )
+        if not fe_success:
+            self.logger.error("Feature engineering stage failed")
+            return False
+
+        # Optimize on train window
+        self.logger.info(
+            f"Running optimization for train window: {train_start.date()} to {train_end.date()}"
+        )
+        optimization_success = await self.optimization_stage_coordinator.run(
+            start_date=train_start, end_date=train_end
+        )
+        if not optimization_success:
+            self.logger.error("Optimization stage failed")
+            return False
+
+        # Data ingest for test window
+        self.logger.info(
+            f"Running data ingest for test window: {test_start.date()} to {test_end.date()}"
+        )
+        ingest_success = await self.data_ingest_stage_coordinator.run(
+            start_date=test_start, end_date=test_end
+        )
+        if not ingest_success:
+            self.logger.error(
+                f"Data ingest stage failed for test window: {test_start.date()} to {test_end.date()}"
+            )
+            return False
+
+        # Check if data has been ingested for the test window
+        if not self.has_ingested_data(test_start, test_end):
+            self.logger.error(
+                f"Data not ingested for test window: {test_start.date()} to {test_end.date()}"
+            )
+            return False
+
+        # Feature engineering for test window
+        self.logger.info(
+            f"Running feature engineering for test window: {test_start.date()} to {test_end.date()}"
+        )
+        fe_success = await self.feature_engineering_stage_coordinator.run(
+            start_date=test_start, end_date=test_end, load_in_reverse=True
+        )
+        if not fe_success:
+            self.logger.error("Feature engineering stage failed")
+            return False
+
+        # Test on test window using best params from train_results
+        self.logger.info(
+            f"Running backtest for test window: {test_start.date()} to {test_end.date()}"
+        )
+        testing_results = await self.testing_stage_coordinator.run(
+            train_start_date=train_start,
+            train_end_date=train_end,
+            test_start_date=test_start,
+            test_end_date=test_end,
+        )
+        if not testing_results:
+            self.logger.error("Testing stage failed")
+            return False
+
+        return True
+
+    def has_ingested_data(self, start_date, end_date):
+        """
+        Returns True if any symbol has a non-empty data file for the given stage and window.
+        """
+
+        for symbol in self.data_ingest_stage_coordinator.get_watchlist():
+            data_dir = self.data_ingest_stage_coordinator.stage_data_manager.get_directory_path(
+                stage=BacktestStage.DATA_INGEST,
+                strategy_name=None,
+                symbol=symbol,
+                start_date=start_date,
+                end_date=end_date,
+            )
+            symbol_dir = os.path.join(data_dir, symbol)
+            if os.path.isdir(symbol_dir):
+                for fname in os.listdir(symbol_dir):
+                    # Ignore files like 'something.done.csv' or 'something.error.csv'
+                    if fnmatch.fnmatch(fname, "*.*.csv"):
+                        continue
+                    fpath = os.path.join(symbol_dir, fname)
+                    if os.path.isfile(fpath) and os.path.getsize(fpath) > 0:
+                        return True
+        return False
 
     def run(self):
         return asyncio.run(self.run_async())
