@@ -44,6 +44,21 @@ class StageDataManager:
         self.logger.debug(f"Generated file path: {path}")
         return path
 
+    def get_window_id(
+        self,
+        start_date: datetime,
+        end_date: datetime,
+    ) -> str:
+        """Generate a unique identifier for the date window."""
+        if start_date and end_date:
+            date_window_id = (
+                f"{start_date.strftime('%Y%m%d')}_{end_date.strftime('%Y%m%d')}"
+            )
+            self.logger.debug(f"Generated date window ID: {date_window_id}")
+            return date_window_id
+        else:
+            raise ValueError("Start and end dates must be provided.")
+
     def get_directory_path(
         self,
         stage: BacktestStage,
@@ -62,10 +77,8 @@ class StageDataManager:
         if symbol:
             path = path / symbol
         if start_date and end_date:
-            path = (
-                path
-                / f"{start_date.strftime('%Y-%m-%d')}_{end_date.strftime('%Y-%m-%d')}"
-            )
+            date_window_id = self.get_window_id(start_date, end_date)
+            path = path / date_window_id
 
         self.logger.debug(f"Generated directory path: {path}")
         return path

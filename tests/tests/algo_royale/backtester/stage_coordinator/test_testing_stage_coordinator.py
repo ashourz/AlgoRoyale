@@ -138,8 +138,8 @@ async def test_process_returns_metrics(
     opt_dir = tmp_path / "optimization_StrategyA_AAPL"
     opt_dir.mkdir(parents=True, exist_ok=True)
     opt_path = opt_dir / "optimization_result.json"
-    train_window_id = "2024-01-01_2024-01-31"
-    test_window_id = "2024-02-01_2024-02-28"
+    train_window_id = "20240101_20240131"
+    test_window_id = "20240201_20240228"
     with open(opt_path, "w") as f:
         import json
 
@@ -220,8 +220,8 @@ async def test_process_warns_on_missing_optimization(
             type("CombA", (), {"strategy_class": type("StrategyA", (), {})})
         ],
     )
-    coordinator.train_window_id = "2024-01-01_2024-01-31"
-    coordinator.window_id = "2024-02-01_2024-02-28"
+    coordinator.train_window_id = "20240101_20240131"
+    coordinator.window_id = "20240201_2024-02-28"
     coordinator.start_date = datetime(2024, 2, 1)
     coordinator.end_date = datetime(2024, 2, 28)
 
@@ -270,8 +270,8 @@ async def test_process_warns_on_no_data(
         logger=mock_logger,
         strategy_combinators=[DummyCombinator],
     )
-    coordinator.train_window_id = "2024-01-01_2024-01-31"
-    coordinator.window_id = "2024-02-01_2024-02-28"
+    coordinator.train_window_id = "20240101_20240131"
+    coordinator.window_id = "20240201_20240228"
     coordinator.start_date = datetime(2024, 2, 1)
     coordinator.end_date = datetime(2024, 2, 28)
 

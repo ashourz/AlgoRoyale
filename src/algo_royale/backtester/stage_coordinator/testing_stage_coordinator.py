@@ -73,7 +73,9 @@ class TestingStageCoordinator(StageCoordinator):
         """Run the backtest stage."""
         self.train_start_date = train_start_date
         self.train_end_date = train_end_date
-        self.train_window_id = f"{train_start_date.strftime('%Y-%m-%d')}_{train_end_date.strftime('%Y-%m-%d')}"
+        self.train_window_id = (
+            f"{train_start_date.strftime('%Y%m%d')}_{train_end_date.strftime('%Y%m%d')}"
+        )
         return super().run(start_date=test_start_date, end_date=test_end_date)
 
     async def process(

@@ -61,7 +61,10 @@ class StageCoordinator(ABC):
         """
         self.start_date = start_date
         self.end_date = end_date
-        self.window_id = f"{self.start_date:%Y%m%d}_{self.end_date:%Y%m%d}"
+        self.window_id = self.stage_data_manager.get_window_id(
+            start_date=self.start_date,
+            end_date=self.end_date,
+        )
 
         self.logger.info(
             f"Starting stage: {self.stage} | start_date: {start_date} | end_date: {end_date}"

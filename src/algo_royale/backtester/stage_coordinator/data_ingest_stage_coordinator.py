@@ -58,12 +58,11 @@ class DataIngestStageCoordinator(StageCoordinator):
         The StageCoordinator._write method will handle saving.
         """
         result: Dict[str, Dict[str, Callable[[], AsyncIterator[pd.DataFrame]]]] = {}
-        date_str = f"{self.start_date:%Y%m%d}_{self.end_date:%Y%m%d}"
 
         for symbol in self.get_watchlist():
             # Wrap the factory in a dict with None as the strategy name
             result[symbol] = {
-                date_str: (lambda symbol=symbol: self._fetch_symbol_data(symbol=symbol))
+                None: (lambda symbol=symbol: self._fetch_symbol_data(symbol=symbol))
             }
         return result
 

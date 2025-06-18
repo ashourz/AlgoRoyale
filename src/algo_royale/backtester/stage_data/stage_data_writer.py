@@ -30,13 +30,20 @@ class StageDataWriter:
         self.logger = logger
 
     def has_existing_results(
-        self, stage: BacktestStage, strategy_name: Optional[str], symbol: str
+        self,
+        stage: BacktestStage,
+        strategy_name: Optional[str],
+        symbol: str,
+        start_date: Optional[str] = None,
+        end_date: Optional[str] = None,
     ) -> bool:
         """
         Check if results already exist for the given stage, strategy, and symbol.
         This is useful to avoid overwriting existing results.
         """
-        search_dir = self._get_stage_symbol_dir(stage, strategy_name, symbol)
+        search_dir = self._get_stage_symbol_dir(
+            stage, strategy_name, symbol, start_date, end_date
+        )
         pattern = str(search_dir / f"{strategy_name}_{symbol}_*.csv")
         return len(glob.glob(pattern)) > 0
 
