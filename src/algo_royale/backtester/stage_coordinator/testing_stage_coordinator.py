@@ -1,8 +1,8 @@
 import json
+from datetime import datetime
 from logging import Logger
 from typing import AsyncIterator, Callable, Dict, Optional, Sequence
 
-import dateutil
 import pandas as pd
 
 from algo_royale.backtester.backtest.strategy_backtest_executor import (
@@ -65,10 +65,10 @@ class TestingStageCoordinator(StageCoordinator):
 
     async def run(
         self,
-        train_start_date: dateutil.datetime,
-        train_end_date: dateutil.datetime,
-        test_start_date: dateutil.datetime,
-        test_end_date: dateutil.datetime,
+        train_start_date: datetime,
+        train_end_date: datetime,
+        test_start_date: datetime,
+        test_end_date: datetime,
     ) -> bool:
         """Run the backtest stage."""
         self.train_start_date = train_start_date

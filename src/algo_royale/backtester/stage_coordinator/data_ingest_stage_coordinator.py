@@ -38,6 +38,10 @@ class DataIngestStageCoordinator(StageCoordinator):
         self.load_watchlist = load_watchlist
         self.watchlist_path = watchlist_path_string
         self.quote_service = quote_service
+        if not watchlist_path_string:
+            raise ValueError("watchlist_path_string must be provided")
+        if not self.get_watchlist():
+            raise ValueError("Watchlist is empty")
 
     def get_watchlist(self):
         """

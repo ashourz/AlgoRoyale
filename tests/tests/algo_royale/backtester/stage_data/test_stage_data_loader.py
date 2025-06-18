@@ -32,12 +32,12 @@ def test_init_success(mock_config, mock_logger, mock_stage_data_manager):
     from algo_royale.backtester.stage_data.stage_data_loader import StageDataLoader
 
     loader = StageDataLoader(
-        mock_config,
-        mock_logger,
-        mock_stage_data_manager,
+        logger=mock_logger,
+        stage_data_manager=mock_stage_data_manager,
         load_watchlist=lambda path: ["AAPL", "GOOG"],
+        watchlist_path_string="mock_watchlist_path",
     )
-    assert loader.watchlist == ["AAPL", "GOOG"]
+    assert loader.get_watchlist() == ["AAPL", "GOOG"]
     mock_logger.info.assert_called_with("BacktestDataLoader initialized")
 
 
@@ -45,14 +45,12 @@ def test_init_missing_watchlist_path(mock_logger, mock_stage_data_manager):
     """Test initialization fails with missing watchlist path."""
     from algo_royale.backtester.stage_data.stage_data_loader import StageDataLoader
 
-    config = MagicMock()
-    config.get.return_value = ""
     with pytest.raises(RuntimeError) as excinfo:
         StageDataLoader(
-            config,
-            mock_logger,
-            mock_stage_data_manager,
+            logger=mock_logger,
+            stage_data_manager=mock_stage_data_manager,
             load_watchlist=lambda path: ["AAPL", "GOOG"],
+            watchlist_path_string="",  # <-- pass empty string here!
         )
     assert "Watchlist path not specified in config" in str(excinfo.value)
 
@@ -63,10 +61,10 @@ def test_init_empty_watchlist(mock_config, mock_logger, mock_stage_data_manager)
 
     with pytest.raises(RuntimeError) as excinfo:
         StageDataLoader(
-            mock_config,
-            mock_logger,
-            mock_stage_data_manager,
+            logger=mock_logger,
+            stage_data_manager=mock_stage_data_manager,
             load_watchlist=lambda path: [],
+            watchlist_path_string="mock_watchlist_path",
         )
     assert "Watchlist is empty" in str(excinfo.value)
 
@@ -77,10 +75,10 @@ async def test_load_all_stage_data(mock_config, mock_logger, mock_stage_data_man
     from algo_royale.backtester.stage_data.stage_data_loader import StageDataLoader
 
     loader = StageDataLoader(
-        mock_config,
-        mock_logger,
-        mock_stage_data_manager,
+        logger=mock_logger,
+        stage_data_manager=mock_stage_data_manager,
         load_watchlist=lambda path: ["AAPL", "GOOG"],
+        watchlist_path_string="mock_watchlist_path",
     )
     loader._ensure_all_data_exists = AsyncMock()
     loader.load_symbol = AsyncMock()
@@ -100,10 +98,10 @@ async def test_load_symbol_no_data(mock_config, mock_logger, mock_stage_data_man
     from algo_royale.backtester.stage_data.stage_data_loader import StageDataLoader
 
     loader = StageDataLoader(
-        mock_config,
-        mock_logger,
-        mock_stage_data_manager,
+        logger=mock_logger,
+        stage_data_manager=mock_stage_data_manager,
         load_watchlist=lambda path: ["AAPL"],
+        watchlist_path_string="mock_watchlist_path",
     )
     loader._get_stage_symbol_dir = MagicMock(return_value=MagicMock())
     loader._has_existing_data = MagicMock(return_value=False)  # <-- Use MagicMock here
@@ -119,10 +117,10 @@ async def test_load_symbol_with_data(mock_config, mock_logger, mock_stage_data_m
     from algo_royale.backtester.stage_data.stage_data_loader import StageDataLoader
 
     loader = StageDataLoader(
-        mock_config,
-        mock_logger,
-        mock_stage_data_manager,
+        logger=mock_logger,
+        stage_data_manager=mock_stage_data_manager,
         load_watchlist=lambda path: ["AAPL"],
+        watchlist_path_string="mock_watchlist_path",
     )
     loader._get_stage_symbol_dir = MagicMock(return_value=MagicMock())
     loader._has_existing_data = AsyncMock(return_value=True)

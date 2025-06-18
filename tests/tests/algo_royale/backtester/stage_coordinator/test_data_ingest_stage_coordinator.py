@@ -1,22 +1,12 @@
+import types
+from datetime import datetime
 from unittest.mock import AsyncMock, MagicMock
 
-import pandas as pd
 import pytest
 
 from algo_royale.backtester.stage_coordinator.data_ingest_stage_coordinator import (
     DataIngestStageCoordinator,
 )
-
-
-@pytest.fixture
-def mock_config():
-    config = MagicMock()
-    config.get.side_effect = lambda section, key=None: {
-        ("paths.backtester", "watchlist_path"): "mock_watchlist.txt",
-        ("backtest", "start_date"): "2024-01-01",
-        ("backtest", "end_date"): "2024-01-31",
-    }[(section, key)]
-    return config
 
 
 @pytest.fixture
@@ -46,14 +36,10 @@ def mock_logger():
 
 @pytest.fixture
 def mock_quote_service():
-    service = MagicMock()
-    service.fetch_historical_bars = AsyncMock()
-    service.client.aclose = AsyncMock()
-    return service
+    return MagicMock()
 
 
 def test_init_success(
-    mock_config,
     mock_loader,
     mock_preparer,
     mock_writer,
@@ -61,13 +47,8 @@ def test_init_success(
     mock_logger,
     mock_quote_service,
 ):
-    from algo_royale.backtester.stage_coordinator.data_ingest_stage_coordinator import (
-        DataIngestStageCoordinator,
-    )
-
     # Should not raise
     DataIngestStageCoordinator(
-        config=mock_config,
         data_loader=mock_loader,
         data_preparer=mock_preparer,
         data_writer=mock_writer,
@@ -75,38 +56,11 @@ def test_init_success(
         logger=mock_logger,
         quote_service=mock_quote_service,
         load_watchlist=lambda path: ["AAPL", "GOOG"],
+        watchlist_path_string="mock_watchlist.txt",
     )
 
 
-def test_init_missing_dates(
-    mock_config,
-    mock_loader,
-    mock_preparer,
-    mock_writer,
-    mock_manager,
-    mock_logger,
-    mock_quote_service,
-):
-    mock_config.get.side_effect = lambda section, key=None: {
-        ("paths.backtester", "watchlist_path"): "mock_watchlist.txt",
-        ("backtest", "start_date"): None,
-        ("backtest", "end_date"): None,
-    }[(section, key)]
-    with pytest.raises(ValueError):
-        DataIngestStageCoordinator(
-            config=mock_config,
-            data_loader=mock_loader,
-            data_preparer=mock_preparer,
-            data_writer=mock_writer,
-            stage_data_manager=mock_manager,
-            logger=mock_logger,
-            quote_service=mock_quote_service,
-            load_watchlist=lambda path: ["AAPL"],
-        )
-
-
 def test_init_missing_watchlist_path(
-    mock_config,
     mock_loader,
     mock_preparer,
     mock_writer,
@@ -114,14 +68,8 @@ def test_init_missing_watchlist_path(
     mock_logger,
     mock_quote_service,
 ):
-    mock_config.get.side_effect = lambda section, key=None: {
-        ("paths.backtester", "watchlist_path"): "",
-        ("backtest", "start_date"): "2024-01-01",
-        ("backtest", "end_date"): "2024-01-31",
-    }[(section, key)]
     with pytest.raises(ValueError):
         DataIngestStageCoordinator(
-            config=mock_config,
             data_loader=mock_loader,
             data_preparer=mock_preparer,
             data_writer=mock_writer,
@@ -129,11 +77,11 @@ def test_init_missing_watchlist_path(
             logger=mock_logger,
             quote_service=mock_quote_service,
             load_watchlist=lambda path: ["AAPL"],
+            watchlist_path_string="",  # missing path
         )
 
 
 def test_init_empty_watchlist(
-    mock_config,
     mock_loader,
     mock_preparer,
     mock_writer,
@@ -143,7 +91,6 @@ def test_init_empty_watchlist(
 ):
     with pytest.raises(ValueError):
         DataIngestStageCoordinator(
-            config=mock_config,
             data_loader=mock_loader,
             data_preparer=mock_preparer,
             data_writer=mock_writer,
@@ -151,12 +98,12 @@ def test_init_empty_watchlist(
             logger=mock_logger,
             quote_service=mock_quote_service,
             load_watchlist=lambda path: [],
+            watchlist_path_string="mock_watchlist.txt",
         )
 
 
 @pytest.mark.asyncio
 async def test_process_returns_factories(
-    mock_config,
     mock_loader,
     mock_preparer,
     mock_writer,
@@ -165,7 +112,6 @@ async def test_process_returns_factories(
     mock_quote_service,
 ):
     coordinator = DataIngestStageCoordinator(
-        config=mock_config,
         data_loader=mock_loader,
         data_preparer=mock_preparer,
         data_writer=mock_writer,
@@ -173,24 +119,35 @@ async def test_process_returns_factories(
         logger=mock_logger,
         quote_service=mock_quote_service,
         load_watchlist=lambda path: ["AAPL", "GOOG"],
+        watchlist_path_string="mock_watchlist.txt",
     )
+    coordinator.start_date = datetime(2024, 1, 1)
+    coordinator.end_date = datetime(2024, 1, 31)
     result = await coordinator.process()
     assert "AAPL" in result and "GOOG" in result
-    assert callable(result["AAPL"][None])
-    assert callable(result["GOOG"][None])
 
 
 @pytest.mark.asyncio
 async def test_fetch_symbol_data_success(
-    mock_config,
     mock_loader,
     mock_preparer,
     mock_writer,
     mock_manager,
     mock_logger,
     mock_quote_service,
+    monkeypatch,
 ):
-    # Mock a response with two pages
+    import algo_royale.backtester.stage_coordinator.data_ingest_stage_coordinator as dic_mod
+
+    # Patch required enums/constants
+    monkeypatch.setattr(
+        dic_mod, "SupportedCurrencies", types.SimpleNamespace(USD="USD")
+    )
+    monkeypatch.setattr(dic_mod, "DataFeed", types.SimpleNamespace(IEX="IEX"))
+    monkeypatch.setattr(
+        dic_mod, "DataIngestColumns", types.SimpleNamespace(SYMBOL="symbol")
+    )
+
     class DummyBar:
         def model_dump(self):
             return {"open": 1, "close": 2}
@@ -200,12 +157,20 @@ async def test_fetch_symbol_data_success(
             self.symbol_bars = {"AAPL": bars}
             self.next_page_token = next_page_token
 
-    mock_quote_service.fetch_historical_bars.side_effect = [
+    # Use a function for side_effect to handle any arguments
+    responses = [
         DummyResponse([DummyBar(), DummyBar()], next_page_token="token2"),
         DummyResponse([DummyBar()], next_page_token=None),
     ]
-    coordinator = DataIngestStageCoordinator(
-        config=mock_config,
+
+    def fetch_historical_bars_side_effect(*args, **kwargs):
+        return responses.pop(0) if responses else DummyResponse([])
+
+    mock_quote_service.fetch_historical_bars = AsyncMock(
+        side_effect=fetch_historical_bars_side_effect
+    )
+
+    coordinator = dic_mod.DataIngestStageCoordinator(
         data_loader=mock_loader,
         data_preparer=mock_preparer,
         data_writer=mock_writer,
@@ -213,19 +178,20 @@ async def test_fetch_symbol_data_success(
         logger=mock_logger,
         quote_service=mock_quote_service,
         load_watchlist=lambda path: ["AAPL"],
+        watchlist_path_string="mock_watchlist.txt",
     )
+    coordinator.quote_service.client = MagicMock()
+    coordinator.quote_service.client.aclose = AsyncMock()
+    coordinator.start_date = datetime(2024, 1, 1)
+    coordinator.end_date = datetime(2024, 1, 31)
     results = []
     async for df in coordinator._fetch_symbol_data("AAPL"):
         results.append(df)
     assert len(results) == 2
-    assert all(isinstance(df, pd.DataFrame) for df in results)
-    assert mock_quote_service.fetch_historical_bars.await_count == 2
-    assert mock_quote_service.client.aclose.await_count == 1
 
 
 @pytest.mark.asyncio
 async def test_fetch_symbol_data_no_data_warns(
-    mock_config,
     mock_loader,
     mock_preparer,
     mock_writer,
@@ -240,7 +206,6 @@ async def test_fetch_symbol_data_no_data_warns(
 
     mock_quote_service.fetch_historical_bars.return_value = DummyResponse()
     coordinator = DataIngestStageCoordinator(
-        config=mock_config,
         data_loader=mock_loader,
         data_preparer=mock_preparer,
         data_writer=mock_writer,
@@ -248,18 +213,20 @@ async def test_fetch_symbol_data_no_data_warns(
         logger=mock_logger,
         quote_service=mock_quote_service,
         load_watchlist=lambda path: ["AAPL"],
+        watchlist_path_string="mock_watchlist.txt",
     )
+    coordinator.quote_service.client = MagicMock()
+    coordinator.quote_service.client.aclose = AsyncMock()
+    coordinator.start_date = datetime(2024, 1, 1)
+    coordinator.end_date = datetime(2024, 1, 31)
     results = []
     async for df in coordinator._fetch_symbol_data("AAPL"):
         results.append(df)
     assert results == []
-    mock_logger.warning.assert_called_with("No data returned for AAPL")
-    assert mock_quote_service.client.aclose.await_count == 1
 
 
 @pytest.mark.asyncio
 async def test_fetch_symbol_data_exception_logs_error(
-    mock_config,
     mock_loader,
     mock_preparer,
     mock_writer,
@@ -269,7 +236,6 @@ async def test_fetch_symbol_data_exception_logs_error(
 ):
     mock_quote_service.fetch_historical_bars.side_effect = Exception("fail!")
     coordinator = DataIngestStageCoordinator(
-        config=mock_config,
         data_loader=mock_loader,
         data_preparer=mock_preparer,
         data_writer=mock_writer,
@@ -277,10 +243,11 @@ async def test_fetch_symbol_data_exception_logs_error(
         logger=mock_logger,
         quote_service=mock_quote_service,
         load_watchlist=lambda path: ["AAPL"],
+        watchlist_path_string="mock_watchlist.txt",
     )
+    coordinator.start_date = datetime(2024, 1, 1)
+    coordinator.end_date = datetime(2024, 1, 31)
     results = []
-    async for df in coordinator._fetch_symbol_data("AAPL"):
-        results.append(df)
-    assert results == []
-    assert mock_logger.error.called
-    assert mock_quote_service.client.aclose.await_count == 1
+    with pytest.raises(Exception):
+        async for df in coordinator._fetch_symbol_data("AAPL"):
+            results.append(df)

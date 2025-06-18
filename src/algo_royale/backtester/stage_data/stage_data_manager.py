@@ -1,10 +1,9 @@
 import os
 import shutil
+from datetime import datetime
 from logging import Logger
 from pathlib import Path
 from typing import Any, Optional
-
-import dateutil
 
 from algo_royale.backtester.enum.backtest_stage import BacktestStage
 from algo_royale.backtester.enum.data_extension import DataExtension
@@ -50,8 +49,8 @@ class StageDataManager:
         stage: BacktestStage,
         strategy_name: Optional[str],
         symbol: Optional[str],
-        start_date: Optional[dateutil.datetime] = None,
-        end_date: Optional[dateutil.datetime] = None,
+        start_date: Optional[datetime] = None,
+        end_date: Optional[datetime] = None,
     ) -> Path:
         """Generate the directory path for a given stage, strategy, and symbol.
         If strategy_name is None, it will not include it in the path.
@@ -90,11 +89,11 @@ class StageDataManager:
         stage: BacktestStage,
         strategy_name: Optional[str],
         symbol: str,
-        start_date: Optional[dateutil.datetime] = None,
-        end_date: Optional[dateutil.datetime] = None,
+        start_date: Optional[datetime] = None,
+        end_date: Optional[datetime] = None,
     ) -> bool:
         done_file = (
-            self.get_directory_path(stage, strategy_name, symbol)
+            self.get_directory_path(stage, strategy_name, symbol, start_date, end_date)
             / f"{stage.value}.{DataExtension.DONE.value}.csv"
         )
         exists = done_file.exists()
@@ -121,8 +120,8 @@ class StageDataManager:
         strategy_name: Optional[str],
         symbol: str,
         statusExtension: DataExtension,
-        start_date: Optional[dateutil.datetime] = None,
-        end_date: Optional[dateutil.datetime] = None,
+        start_date: Optional[datetime] = None,
+        end_date: Optional[datetime] = None,
     ) -> None:
         stage_path = self.get_directory_path(
             stage, strategy_name, symbol, start_date, end_date
@@ -210,8 +209,8 @@ class StageDataManager:
         symbol: Optional[str],
         filename: str,
         error_message: str,
-        start_date: Optional[dateutil.datetime] = None,
-        end_date: Optional[dateutil.datetime] = None,
+        start_date: Optional[datetime] = None,
+        end_date: Optional[datetime] = None,
     ) -> None:
         dir_path = self.get_directory_path(
             stage, strategy_name, symbol, start_date, end_date
@@ -255,8 +254,8 @@ class StageDataManager:
         stage: BacktestStage,
         strategy_name: Optional[str],
         symbol: str,
-        start_date: Optional[dateutil.datetime] = None,
-        end_date: Optional[dateutil.datetime] = None,
+        start_date: Optional[datetime] = None,
+        end_date: Optional[datetime] = None,
     ) -> None:
         path = self.get_directory_path(
             stage, strategy_name, symbol, start_date, end_date

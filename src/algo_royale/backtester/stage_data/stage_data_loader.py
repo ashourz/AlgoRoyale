@@ -1,10 +1,10 @@
 import asyncio
 import re
+from datetime import datetime
 from logging import Logger
 from pathlib import Path
 from typing import AsyncIterator, Callable, Dict, Optional
 
-import dateutil
 import pandas as pd
 
 from algo_royale.backtester.enum.backtest_stage import BacktestStage
@@ -28,7 +28,11 @@ class StageDataLoader:
             # Initialize logger
             self.logger = logger
             self.logger.info("BacktestDataLoader initialized")
-
+            if not self.watchlist_path:
+                raise RuntimeError("Watchlist path not specified in config")
+            watchlist = self.get_watchlist()
+            if not watchlist:
+                raise RuntimeError("Watchlist is empty")
         except KeyError as e:
             raise ValueError(f"Missing required configuration key: {e}")
         except Exception as e:
@@ -44,8 +48,8 @@ class StageDataLoader:
         self,
         stage: BacktestStage,
         strategy_name: Optional[str] = None,
-        start_date: Optional[dateutil.datetime] = None,
-        end_date: Optional[dateutil.datetime] = None,
+        start_date: Optional[datetime] = None,
+        end_date: Optional[datetime] = None,
         reverse_pages: bool = False,
     ) -> Dict[str, Callable[[], AsyncIterator[pd.DataFrame]]]:
         """Returns async data generators with automatic data fetching
@@ -167,8 +171,8 @@ class StageDataLoader:
         self,
         stage: BacktestStage,
         strategy_name: str,
-        start_date: Optional[dateutil.datetime] = None,
-        end_date: Optional[dateutil.datetime] = None,
+        start_date: Optional[datetime] = None,
+        end_date: Optional[datetime] = None,
     ) -> list[str]:
         """
         Ensure that data exists for all symbols in the watchlist for the current stage.

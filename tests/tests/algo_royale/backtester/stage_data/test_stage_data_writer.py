@@ -15,9 +15,9 @@ def mock_logger():
 @pytest.fixture
 def mock_stage_data_manager(tmp_path):
     mgr = MagicMock()
-    # Always return a real temp directory for file operations, including strategy_name
+    # Accept any extra keyword arguments
     mgr.get_directory_path.side_effect = (
-        lambda stage, strategy_name, symbol: tmp_path
+        lambda stage, strategy_name, symbol, **kwargs: tmp_path
         / f"{stage}_{strategy_name}_{symbol}"
     )
     return mgr

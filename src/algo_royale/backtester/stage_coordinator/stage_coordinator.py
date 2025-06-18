@@ -1,8 +1,8 @@
 from abc import ABC, abstractmethod
+from datetime import datetime
 from logging import Logger
 from typing import AsyncIterator, Callable, Dict, Optional
 
-import dateutil
 import pandas as pd
 
 from algo_royale.backtester.data_preparer.async_data_preparer import AsyncDataPreparer
@@ -52,8 +52,8 @@ class StageCoordinator(ABC):
 
     async def run(
         self,
-        start_date: Optional[dateutil.datetime] = None,
-        end_date: Optional[dateutil.datetime] = None,
+        start_date: Optional[datetime] = None,
+        end_date: Optional[datetime] = None,
         load_in_reverse=False,
     ) -> bool:
         """
