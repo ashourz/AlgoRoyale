@@ -1,5 +1,5 @@
 from logging import Logger
-from typing import AsyncIterator, Callable, Dict
+from typing import AsyncIterator, Callable, Dict, Optional
 
 import pandas as pd
 from alpaca.common.enums import SupportedCurrencies
@@ -51,6 +51,7 @@ class DataIngestStageCoordinator(StageCoordinator):
 
     async def process(
         self,
+        prepared_data: Optional[Dict[str, Callable[[], AsyncIterator[pd.DataFrame]]]],
     ) -> Dict[str, Dict[str, Callable[[], AsyncIterator[pd.DataFrame]]]]:
         """
         Fetch data for all symbols and return as async iterators of DataFrames.

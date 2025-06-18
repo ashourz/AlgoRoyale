@@ -1,6 +1,5 @@
 import asyncio
-import datetime
-from datetime import timedelta
+from datetime import datetime, timedelta
 from logging import Logger
 
 from algo_royale.backtester.stage_coordinator.data_ingest_stage_coordinator import (
@@ -38,7 +37,7 @@ class PipelineCoordinator:
         try:
             self.logger.info("Starting Backtest Pipeline...")
             # Run the pipeline stages in sequence
-            self.run_walk_forward()
+            await self.run_walk_forward()
             self.logger.info("Backtest Pipeline completed successfully.")
             return True
         except Exception as e:
