@@ -8,7 +8,9 @@ def load_watchlist(path: str):
 
     with open(path, "r") as f:
         watchlist = [
-            line.strip() for line in f if line.strip()
+            line.strip()
+            for line in f
+            if line.strip() and not line.strip().startswith("#")
         ]  # Read each line as a separate symbol
 
     return watchlist

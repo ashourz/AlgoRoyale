@@ -4,18 +4,12 @@ from typing import AsyncIterator, Callable, Dict, Optional, Sequence
 
 import pandas as pd
 
-from algo_royale.backtester.backtest.strategy_backtest_executor import (
-    StrategyBacktestExecutor,
-)
 from algo_royale.backtester.data_preparer.async_data_preparer import AsyncDataPreparer
 from algo_royale.backtester.enum.backtest_stage import BacktestStage
-from algo_royale.backtester.evaluator.base_backtest_evaluator import BacktestEvaluator
 from algo_royale.backtester.stage_coordinator.stage_coordinator import StageCoordinator
 from algo_royale.backtester.stage_data.stage_data_loader import StageDataLoader
 from algo_royale.backtester.stage_data.stage_data_manager import StageDataManager
 from algo_royale.backtester.stage_data.stage_data_writer import StageDataWriter
-from algo_royale.backtester.watchlist.watchlist import load_watchlist
-from algo_royale.config.config import Config
 from algo_royale.strategy_factory.combinator.base_strategy_combinator import (
     StrategyCombinator,
 )
@@ -42,13 +36,10 @@ class OptimizationStageCoordinator(StageCoordinator):
 
     def __init__(
         self,
-        config: Config,
         data_loader: StageDataLoader,
         data_preparer: AsyncDataPreparer,
         data_writer: StageDataWriter,
         stage_data_manager: StageDataManager,
-        strategy_executor: StrategyBacktestExecutor,
-        strategy_evaluator: BacktestEvaluator,
         logger: Logger,
         strategy_combinators: Optional[Sequence[type[StrategyCombinator]]] = None,
     ):
@@ -70,17 +61,9 @@ class OptimizationStageCoordinator(StageCoordinator):
             stage_data_manager=stage_data_manager,
             logger=logger,
         )
-        watchlist_path = config.get("paths.backtester", "watchlist_path", [])
-        if not watchlist_path:
-            raise ValueError("Watchlist path not specified in config")
-        self.watchlist = load_watchlist(watchlist_path)
-        if not self.watchlist:
-            raise ValueError("Watchlist is empty or could not be loaded")
         self.strategy_combinators = strategy_combinators
         if not self.strategy_combinators:
             raise ValueError("No strategy combinators provided")
-        self.executor = strategy_executor
-        self.evaluator = strategy_evaluator
         self.strategy_names = [
             combinator.strategy_class.__name__
             for combinator in self.strategy_combinators
@@ -95,13 +78,13 @@ class OptimizationStageCoordinator(StageCoordinator):
         """Process the optimization stage."""
         results = {}
 
-        for symbol in self.watchlist:
+        for symbol, df_iter_factory in prepared_data.items():
             if symbol not in prepared_data:
                 self.logger.warning(f"No prepared data for symbol: {symbol}")
                 continue
 
             dfs = []
-            async for df in prepared_data[symbol]():
+            async for df in df_iter_factory():
                 dfs.append(df)
             if not dfs:
                 self.logger.warning(

@@ -10,27 +10,19 @@ import pandas as pd
 from algo_royale.backtester.enum.backtest_stage import BacktestStage
 from algo_royale.backtester.enum.data_extension import DataExtension
 from algo_royale.backtester.stage_data.stage_data_manager import StageDataManager
-from algo_royale.config.config import Config
 
 
 class StageDataLoader:
     def __init__(
         self,
-        config: Config,
         logger: Logger,
         stage_data_manager: StageDataManager,
         load_watchlist: Callable[[str], list[str]],
+        watchlist_path_string: str,
     ):
         try:
-            # Initialize directories and services
-            watchlist_path_string = config.get("paths.backtester", "watchlist_path")
-            if not watchlist_path_string:
-                raise ValueError("Watchlist path not specified in config")
-            self.watchlist = load_watchlist(watchlist_path_string)
-            # Ensure watchlist is not empty
-            if not self.watchlist:
-                raise ValueError("Watchlist is empty")
-
+            self.load_watchlist = load_watchlist
+            self.watchlist_path = watchlist_path_string
             self.stage_data_manager = stage_data_manager
 
             # Initialize logger
@@ -41,6 +33,12 @@ class StageDataLoader:
             raise ValueError(f"Missing required configuration key: {e}")
         except Exception as e:
             raise RuntimeError(f"Failed to initialize BacktestDataLoader: {e}")
+
+    def get_watchlist(self):
+        """
+        Load the watchlist from the specified path.
+        """
+        return self.load_watchlist(self.watchlist_path)
 
     async def load_all_stage_data(
         self,
@@ -91,7 +89,7 @@ class StageDataLoader:
         data = {}
         for symbol in existing_symbols:
             # Skip if symbol is not in watchlist
-            if symbol not in self.watchlist:
+            if symbol not in self.get_watchlist():
                 self.logger.warning(
                     f"Symbol {symbol} not in watchlist, skipping for stage: {stage} | strategy: {strategy_name}"
                 )
@@ -181,7 +179,7 @@ class StageDataLoader:
         not_done = []
         missing = []
         done = []
-        for symbol in self.watchlist:
+        for symbol in self.get_watchlist():
             symbol_dir = self._get_stage_symbol_dir(
                 stage=stage, symbol=symbol, strategy_name=strategy_name
             )

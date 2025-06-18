@@ -11,7 +11,6 @@ from algo_royale.backtester.stage_data.stage_data_loader import StageDataLoader
 from algo_royale.backtester.stage_data.stage_data_manager import StageDataManager
 from algo_royale.backtester.stage_data.stage_data_writer import StageDataWriter
 from algo_royale.column_names.data_ingest_columns import DataIngestColumns
-from algo_royale.config.config import Config
 from algo_royale.models.alpaca_market_data.enums import DataFeed
 from algo_royale.services.market_data.alpaca_stock_service import AlpacaQuoteService
 
@@ -19,7 +18,6 @@ from algo_royale.services.market_data.alpaca_stock_service import AlpacaQuoteSer
 class DataIngestStageCoordinator(StageCoordinator):
     def __init__(
         self,
-        config: Config,
         data_loader: StageDataLoader,
         data_preparer: AsyncDataPreparer,
         data_writer: StageDataWriter,
@@ -27,6 +25,7 @@ class DataIngestStageCoordinator(StageCoordinator):
         logger: Logger,
         quote_service: AlpacaQuoteService,
         load_watchlist: Callable[[str], list[str]],
+        watchlist_path_string: str,
     ):
         super().__init__(
             stage=BacktestStage.DATA_INGEST,
@@ -36,14 +35,15 @@ class DataIngestStageCoordinator(StageCoordinator):
             stage_data_manager=stage_data_manager,
             logger=logger,
         )
-        watchlist_path_string = config.get("paths.backtester", "watchlist_path")
-        if not watchlist_path_string:
-            raise ValueError("Watchlist path not specified in config")
-        self.watchlist = load_watchlist(watchlist_path_string)
-        if not self.watchlist:
-            raise ValueError("Watchlist is empty or could not be loaded")
-
+        self.load_watchlist = load_watchlist
+        self.watchlist_path = watchlist_path_string
         self.quote_service = quote_service
+
+    def get_watchlist(self):
+        """
+        Load the watchlist from the specified path.
+        """
+        return self.load_watchlist(self.watchlist_path)
 
     async def process(
         self,
@@ -55,7 +55,7 @@ class DataIngestStageCoordinator(StageCoordinator):
         result: Dict[str, Dict[str, Callable[[], AsyncIterator[pd.DataFrame]]]] = {}
         date_str = f"{self.start_date:%Y%m%d}_{self.end_date:%Y%m%d}"
 
-        for symbol in self.watchlist:
+        for symbol in self.get_watchlist():
             # Wrap the factory in a dict with None as the strategy name
             result[symbol] = {
                 date_str: (lambda symbol=symbol: self._fetch_symbol_data(symbol=symbol))

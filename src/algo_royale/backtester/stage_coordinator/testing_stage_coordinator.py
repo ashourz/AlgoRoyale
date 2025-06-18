@@ -15,8 +15,6 @@ from algo_royale.backtester.stage_coordinator.stage_coordinator import StageCoor
 from algo_royale.backtester.stage_data.stage_data_loader import StageDataLoader
 from algo_royale.backtester.stage_data.stage_data_manager import StageDataManager
 from algo_royale.backtester.stage_data.stage_data_writer import StageDataWriter
-from algo_royale.backtester.watchlist.watchlist import load_watchlist
-from algo_royale.config.config import Config
 from algo_royale.strategy_factory.combinator.base_strategy_combinator import (
     StrategyCombinator,
 )
@@ -26,7 +24,6 @@ from algo_royale.strategy_factory.strategy_factory import StrategyFactory
 class TestingStageCoordinator(StageCoordinator):
     def __init__(
         self,
-        config: Config,
         data_loader: StageDataLoader,
         data_preparer: AsyncDataPreparer,
         data_writer: StageDataWriter,
@@ -55,12 +52,6 @@ class TestingStageCoordinator(StageCoordinator):
             stage_data_manager=stage_data_manager,
             logger=logger,
         )
-        watchlist_path = config.get("paths.backtester", "watchlist_path", [])
-        if not watchlist_path:
-            raise ValueError("Watchlist path not specified in config")
-        self.watchlist = load_watchlist(watchlist_path)
-        if not self.watchlist:
-            raise ValueError("Watchlist is empty or could not be loaded")
         self.strategy_combinators = strategy_combinators
         if not self.strategy_combinators:
             raise ValueError("No strategy combinators provided")
@@ -94,13 +85,13 @@ class TestingStageCoordinator(StageCoordinator):
         """Run backtests for all strategies in the watchlist using the best parameters from optimization."""
         results = {}
 
-        for symbol in self.watchlist:
+        for symbol, df_iter_factory in prepared_data.items():
             if symbol not in prepared_data:
                 self.logger.warning(f"No prepared data for symbol: {symbol}")
                 continue
 
             dfs = []
-            async for df in prepared_data[symbol]():
+            async for df in df_iter_factory():
                 dfs.append(df)
             if not dfs:
                 self.logger.warning(

@@ -18,9 +18,6 @@ from algo_royale.backtester.feature_engineering.feature_engineering import (
     feature_engineering,
 )
 from algo_royale.backtester.pipeline.pipeline_coordinator import PipelineCoordinator
-from algo_royale.backtester.stage_coordinator.backtest_stage_coordinator import (
-    BacktestStageCoordinator,
-)
 from algo_royale.backtester.stage_coordinator.data_ingest_stage_coordinator import (
     DataIngestStageCoordinator,
 )
@@ -29,6 +26,9 @@ from algo_royale.backtester.stage_coordinator.feature_engineering_stage_coordina
 )
 from algo_royale.backtester.stage_coordinator.optimization_stage_coordinator import (
     OptimizationStageCoordinator,
+)
+from algo_royale.backtester.stage_coordinator.testing_stage_coordinator import (
+    TestingStageCoordinator,
 )
 from algo_royale.backtester.stage_data.stage_data_loader import StageDataLoader
 from algo_royale.backtester.stage_data.stage_data_manager import StageDataManager
@@ -94,51 +94,6 @@ from algo_royale.services.db.trade_signal_service import TradeSignalService
 from algo_royale.services.market_data.alpaca_stock_service import AlpacaQuoteService
 from algo_royale.strategy_factory.combinator.bollinger_bands_strategy_combinator import (
     BollingerBandsStrategyCombinator,
-)
-from algo_royale.strategy_factory.combinator.combo_strategy_combinator import (
-    ComboStrategyCombinator,
-)
-from algo_royale.strategy_factory.combinator.macd_trailing_strategy_combinator import (
-    MACDTrailingStrategyCombinator,
-)
-from algo_royale.strategy_factory.combinator.mean_reversion_strategy_combinator import (
-    MeanReversionStrategyCombinator,
-)
-from algo_royale.strategy_factory.combinator.momentum_strategy_combinator import (
-    MomentumStrategyCombinator,
-)
-from algo_royale.strategy_factory.combinator.moving_average_crossover_strategy_combinator import (
-    MovingAverageCrossoverStrategyCombinator,
-)
-from algo_royale.strategy_factory.combinator.moving_average_strategy_combinator import (
-    MovingAverageStrategyCombinator,
-)
-from algo_royale.strategy_factory.combinator.pullback_entry_strategy_combinator import (
-    PullbackEntryStrategyCombinator,
-)
-from algo_royale.strategy_factory.combinator.rsi_strategy_combinator import (
-    RSIStrategyCombinator,
-)
-from algo_royale.strategy_factory.combinator.time_of_day_bias_strategy_combinator import (
-    TimeOfDayBiasStrategyCombinator,
-)
-from algo_royale.strategy_factory.combinator.trailing_stop_strategy_combinator import (
-    TrailingStopStrategyCombinator,
-)
-from algo_royale.strategy_factory.combinator.trend_scraper_strategy_combinator import (
-    TrendScraperStrategyCombinator,
-)
-from algo_royale.strategy_factory.combinator.volatility_breakout_strategy_combinator import (
-    VolatilityBreakoutStrategyCombinator,
-)
-from algo_royale.strategy_factory.combinator.volume_surge_strategy_combinator import (
-    VolumeSurgeStrategyCombinator,
-)
-from algo_royale.strategy_factory.combinator.vwap_reversion_strategy_combinator import (
-    VWAPReversionStrategyCombinator,
-)
-from algo_royale.strategy_factory.combinator.wick_reversal_strategy_combinator import (
-    WickReversalStrategyCombinator,
 )
 from algo_royale.strategy_factory.strategy_factory import StrategyFactory
 from algo_royale.visualization.dashboard import BacktestDashboard
@@ -298,15 +253,18 @@ class DIContainer(containers.DeclarativeContainer):
         logger=logger_backtest_prod,
     )
 
+    watchlist_path_string = providers.Object(
+        config.get("paths.backtester", "watchlist_path")
+    )
     load_watchlist_func = providers.Object(load_watchlist)
     save_watchlist_func = providers.Object(save_watchlist)
 
     stage_data_loader = providers.Singleton(
         StageDataLoader,
-        config=config,
         logger=logger_backtest_prod,
         stage_data_manager=stage_data_manager,
         load_watchlist=load_watchlist_func,
+        watchlist_path_string=watchlist_path_string,
     )
 
     stage_data_writer = providers.Singleton(
@@ -332,7 +290,6 @@ class DIContainer(containers.DeclarativeContainer):
 
     data_ingest_stage_coordinator = providers.Singleton(
         DataIngestStageCoordinator,
-        config=config,
         data_loader=stage_data_loader,
         data_preparer=async_data_preparer,
         data_writer=stage_data_writer,
@@ -340,6 +297,7 @@ class DIContainer(containers.DeclarativeContainer):
         logger=logger_backtest_prod,
         quote_service=alpaca_quote_service,
         load_watchlist=load_watchlist_func,
+        watchlist_path_string=watchlist_path_string,
     )
 
     feature_engineering_stage_coordinator = providers.Singleton(
@@ -369,41 +327,39 @@ class DIContainer(containers.DeclarativeContainer):
         logger=logger_backtest_prod,
     )
 
+    strategy_combinators = [
+        BollingerBandsStrategyCombinator,
+        # ComboStrategyCombinator,
+        # MACDTrailingStrategyCombinator,
+        # MeanReversionStrategyCombinator,
+        # MomentumStrategyCombinator,
+        # MovingAverageCrossoverStrategyCombinator,
+        # MovingAverageStrategyCombinator,
+        # PullbackEntryStrategyCombinator,
+        # RSIStrategyCombinator,
+        # TimeOfDayBiasStrategyCombinator,
+        # TrailingStopStrategyCombinator,
+        # TrendScraperStrategyCombinator,
+        # VolatilityBreakoutStrategyCombinator,
+        # VolumeSurgeStrategyCombinator,
+        # VWAPReversionStrategyCombinator,
+        # WickReversalStrategyCombinator,
+    ]
+
     optimization_stage_coordinator = providers.Singleton(
         OptimizationStageCoordinator,
-        config=config,
         data_loader=stage_data_loader,
         data_preparer=async_data_preparer,
         data_writer=stage_data_writer,
         stage_data_manager=stage_data_manager,
-        strategy_executor=strategy_executor,
-        strategy_evaluator=strategy_evaluator,
         logger=logger_backtest_prod,
-        strategy_combinators=[
-            BollingerBandsStrategyCombinator,
-            ComboStrategyCombinator,
-            MACDTrailingStrategyCombinator,
-            MeanReversionStrategyCombinator,
-            MomentumStrategyCombinator,
-            MovingAverageCrossoverStrategyCombinator,
-            MovingAverageStrategyCombinator,
-            PullbackEntryStrategyCombinator,
-            RSIStrategyCombinator,
-            TimeOfDayBiasStrategyCombinator,
-            TrailingStopStrategyCombinator,
-            TrendScraperStrategyCombinator,
-            VolatilityBreakoutStrategyCombinator,
-            VolumeSurgeStrategyCombinator,
-            VWAPReversionStrategyCombinator,
-            WickReversalStrategyCombinator,
-        ],
+        strategy_combinators=strategy_combinators,
     )
 
     # Strategy backtest coordinator
     # This is where we define the backtest stage coordinator with the strategy executor
-    backtest_stage_coordinator = providers.Singleton(
-        BacktestStageCoordinator,
-        config=config,
+    testing_stage_coordinator = providers.Singleton(
+        TestingStageCoordinator,
         data_loader=stage_data_loader,
         data_preparer=async_data_preparer,
         data_writer=stage_data_writer,
@@ -412,24 +368,7 @@ class DIContainer(containers.DeclarativeContainer):
         strategy_evaluator=strategy_evaluator,
         strategy_factory=strategy_factory,
         logger=logger_backtest_prod,
-        strategy_combinators=[
-            BollingerBandsStrategyCombinator,
-            ComboStrategyCombinator,
-            MACDTrailingStrategyCombinator,
-            MeanReversionStrategyCombinator,
-            MomentumStrategyCombinator,
-            MovingAverageCrossoverStrategyCombinator,
-            MovingAverageStrategyCombinator,
-            PullbackEntryStrategyCombinator,
-            RSIStrategyCombinator,
-            TimeOfDayBiasStrategyCombinator,
-            TrailingStopStrategyCombinator,
-            TrendScraperStrategyCombinator,
-            VolatilityBreakoutStrategyCombinator,
-            VolumeSurgeStrategyCombinator,
-            VWAPReversionStrategyCombinator,
-            WickReversalStrategyCombinator,
-        ],
+        strategy_combinators=strategy_combinators,
     )
 
     pipeline_coordinator = providers.Singleton(
@@ -437,7 +376,7 @@ class DIContainer(containers.DeclarativeContainer):
         data_ingest_stage_coordinator=data_ingest_stage_coordinator,
         feature_engineering_stage_coordinator=feature_engineering_stage_coordinator,
         optimization_stage_coordinator=optimization_stage_coordinator,
-        backtest_stage_coordinator=backtest_stage_coordinator,
+        testing_stage_coordinator=testing_stage_coordinator,
         logger=logger_backtest_prod,
     )
 

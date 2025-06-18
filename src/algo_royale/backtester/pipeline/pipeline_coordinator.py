@@ -34,45 +34,23 @@ class PipelineCoordinator:
         self.optimization_stage_coordinator = optimization_stage_coordinator
         self.testing_stage_coordinator = testing_stage_coordinator
 
-    # async def run_async(self, config=None):
-    #     try:
-    #         self.logger.info("Starting Backtest Pipeline...")
-    #         # Data Ingest Stage
-    #         self.logger.info("Running data ingest stage...")
-    #         ingest_success = await self.data_ingest_stage_coordinator.run(
-    #             start_date= ,
-    #             end_date=
-    #         )
-    #         if not ingest_success:
-    #             self.logger.error("Data ingest stage failed")
-    #             return False
-
-    #         # Feature Engineering Stage
-    #         self.logger.info("Running feature engineering stage...")
-    #         fe_success = await self.feature_engineering_stage_coordinator.run(
-    #             load_in_reverse=True
-    #         )
-    #         if not fe_success:
-    #             self.logger.error("Feature engineering stage failed")
-    #             return False
-
-    #         # Backtest Stage
-    #         self.logger.info("Running backtest stage...")
-    #         backtest_success = await self.backtest_stage_coordinator.run()
-    #         if not backtest_success:
-    #             self.logger.error("Backtest stage failed")
-    #             return False
-
-    #         self.logger.info("Backtest Pipeline completed successfully")
-    #         return True
-    #     except Exception as e:
-    #         self.logger.error(f"Backtest failed: {e}")
-    #         return False
+    async def run_async(self, config=None):
+        try:
+            self.logger.info("Starting Backtest Pipeline...")
+            # Run the pipeline stages in sequence
+            self.run_walk_forward()
+            self.logger.info("Backtest Pipeline completed successfully.")
+            return True
+        except Exception as e:
+            self.logger.error(f"Backtest failed: {e}")
+            return False
 
     async def run_walk_forward(self, years_back: int = 5, test_window_years: int = 1):
-        today = datetime.today()
-        for symbol in self.data_ingest_stage_coordinator.watchlist:
-            self.logger.info(f"Running walk-forward for {symbol}...")
+        try:
+            today = datetime.today()
+            self.logger.info(
+                f"Running walk-forward analysis for {years_back} years back and {test_window_years} years test window"
+            )
             # Calculate the earliest date for walk-forward
             first_date = today - timedelta(days=365 * years_back)
             last_date = today - timedelta(days=365 * test_window_years)
@@ -86,7 +64,7 @@ class PipelineCoordinator:
                     test_end = today
 
                 self.logger.info(
-                    f"Walk-forward: {symbol} | Train: {train_start.date()} to {train_end.date()} | Test: {test_start.date()} to {test_end.date()}"
+                    f"Walk-forward: Train: {train_start.date()} to {train_end.date()} | Test: {test_start.date()} to {test_end.date()}"
                 )
 
                 # Data ingest for train window
@@ -159,7 +137,11 @@ class PipelineCoordinator:
 
                 # Move window forward
                 first_date += timedelta(days=365 * test_window_years)
-        self.logger.info("Walk-forward completed successfully")
+            self.logger.info("Walk-forward completed successfully")
+            return True
+        except Exception as e:
+            self.logger.error(f"Walk-forward failed: {e}")
+            return False
 
     def run(self):
         return asyncio.run(self.run_async())
