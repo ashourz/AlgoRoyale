@@ -1,18 +1,20 @@
 import asyncio
-from datetime import timedelta
 import datetime
+from datetime import timedelta
 from logging import Logger
 
-from algo_royale.backtester.stage_coordinator.backtest_stage_coordinator import (
-    BacktestStageCoordinator,
-)
 from algo_royale.backtester.stage_coordinator.data_ingest_stage_coordinator import (
     DataIngestStageCoordinator,
 )
 from algo_royale.backtester.stage_coordinator.feature_engineering_stage_coordinator import (
     FeatureEngineeringStageCoordinator,
 )
-from algo_royale.backtester.stage_coordinator.optimization_stage_coordinator import OptimizationStageCoordinator
+from algo_royale.backtester.stage_coordinator.optimization_stage_coordinator import (
+    OptimizationStageCoordinator,
+)
+from algo_royale.backtester.stage_coordinator.testing_stage_coordinator import (
+    TestingStageCoordinator,
+)
 
 
 class PipelineCoordinator:
@@ -21,7 +23,7 @@ class PipelineCoordinator:
         data_ingest_stage_coordinator: DataIngestStageCoordinator,
         feature_engineering_stage_coordinator: FeatureEngineeringStageCoordinator,
         optimization_stage_coordinator: OptimizationStageCoordinator,
-        backtest_stage_coordinator: BacktestStageCoordinator,
+        testing_stage_coordinator: TestingStageCoordinator,
         logger: Logger,
     ):
         self.logger = logger
@@ -29,47 +31,47 @@ class PipelineCoordinator:
         self.feature_engineering_stage_coordinator = (
             feature_engineering_stage_coordinator
         )
-        self.backtest_stage_coordinator = backtest_stage_coordinator
+        self.optimization_stage_coordinator = optimization_stage_coordinator
+        self.testing_stage_coordinator = testing_stage_coordinator
 
-    async def run_async(self, config=None):
-        try:
-            self.logger.info("Starting Backtest Pipeline...")
-            # Data Ingest Stage
-            self.logger.info("Running data ingest stage...")
-            ingest_success = await self.data_ingest_stage_coordinator.run( 
-                start_date= , 
-                end_date= 
-            )
-            if not ingest_success:
-                self.logger.error("Data ingest stage failed")
-                return False
+    # async def run_async(self, config=None):
+    #     try:
+    #         self.logger.info("Starting Backtest Pipeline...")
+    #         # Data Ingest Stage
+    #         self.logger.info("Running data ingest stage...")
+    #         ingest_success = await self.data_ingest_stage_coordinator.run(
+    #             start_date= ,
+    #             end_date=
+    #         )
+    #         if not ingest_success:
+    #             self.logger.error("Data ingest stage failed")
+    #             return False
 
-            # Feature Engineering Stage
-            self.logger.info("Running feature engineering stage...")
-            fe_success = await self.feature_engineering_stage_coordinator.run(
-                load_in_reverse=True
-            )
-            if not fe_success:
-                self.logger.error("Feature engineering stage failed")
-                return False
+    #         # Feature Engineering Stage
+    #         self.logger.info("Running feature engineering stage...")
+    #         fe_success = await self.feature_engineering_stage_coordinator.run(
+    #             load_in_reverse=True
+    #         )
+    #         if not fe_success:
+    #             self.logger.error("Feature engineering stage failed")
+    #             return False
 
-            # Backtest Stage
-            self.logger.info("Running backtest stage...")
-            backtest_success = await self.backtest_stage_coordinator.run()
-            if not backtest_success:
-                self.logger.error("Backtest stage failed")
-                return False
+    #         # Backtest Stage
+    #         self.logger.info("Running backtest stage...")
+    #         backtest_success = await self.backtest_stage_coordinator.run()
+    #         if not backtest_success:
+    #             self.logger.error("Backtest stage failed")
+    #             return False
 
-            self.logger.info("Backtest Pipeline completed successfully")
-            return True
-        except Exception as e:
-            self.logger.error(f"Backtest failed: {e}")
-            return False
+    #         self.logger.info("Backtest Pipeline completed successfully")
+    #         return True
+    #     except Exception as e:
+    #         self.logger.error(f"Backtest failed: {e}")
+    #         return False
 
-    
     async def run_walk_forward(self, years_back: int = 5, test_window_years: int = 1):
         today = datetime.today()
-        for symbol in self.data_ingest_stage_coordinator.watchlist: ## TODO: get watchlist from config
+        for symbol in self.data_ingest_stage_coordinator.watchlist:
             self.logger.info(f"Running walk-forward for {symbol}...")
             # Calculate the earliest date for walk-forward
             first_date = today - timedelta(days=365 * years_back)
@@ -95,38 +97,69 @@ class PipelineCoordinator:
                     start_date=train_start, end_date=train_end
                 )
                 if not ingest_success:
-                    self.logger.error("Data ingest stage failed")
+                    self.logger.error(
+                        f"Data ingest stage failed for train window: {train_start.date()} to {train_end.date()}"
+                    )
+                    break
+                # Data ingest for test window
+                self.logger.info(
+                    f"Running data ingest for test window: {test_start.date()} to {test_end.date()}"
+                )
+                ingest_success = await self.data_ingest_stage_coordinator.run(
+                    start_date=test_start, end_date=test_end
+                )
+                if not ingest_success:
+                    self.logger.error(
+                        f"Data ingest stage failed for test window: {test_start.date()} to {test_end.date()}"
+                    )
                     break
                 # Feature engineering for train window
                 self.logger.info(
                     f"Running feature engineering for train window: {train_start.date()} to {train_end.date()}"
                 )
-                fe_success = await self.feature_engineering_stage_coordinator.run(load_in_reverse=True)
+                fe_success = await self.feature_engineering_stage_coordinator.run(
+                    start_date=train_start, end_date=train_end, load_in_reverse=True
+                )
                 if not fe_success:
                     self.logger.error("Feature engineering stage failed")
                     break
-                # Backtest/optimize on train window
-                self.logger.info(
-                    f"Running backtest/optimization for train window: {train_start.date()} to {train_end.date()}"
-                )
-                backtest_success = await self.backtest_stage_coordinator.run()
-                if not backtest_success:
-                    self.logger.error("Backtest stage failed")
-                    break
-                # Data ingest for test window
-                await self.data_ingest_stage_coordinator.run(
-                    start_date=test_start, end_date=test_end
-                )
                 # Feature engineering for test window
-                await self.feature_engineering_stage_coordinator.run(load_in_reverse=True)
-                # Backtest on test window using best params from train_results
-                await self.backtest_stage_coordinator.run(
-                    params=train_results["best_params"]
+                self.logger.info(
+                    f"Running feature engineering for test window: {test_start.date()} to {test_end.date()}"
                 )
+                fe_success = await self.feature_engineering_stage_coordinator.run(
+                    start_date=test_start, end_date=test_end, load_in_reverse=True
+                )
+                if not fe_success:
+                    self.logger.error("Feature engineering stage failed")
+                    break
+                # Optimize on train window
+                self.logger.info(
+                    f"Running optimization for train window: {train_start.date()} to {train_end.date()}"
+                )
+                optimization_success = await self.optimization_stage_coordinator.run(
+                    start_date=train_start, end_date=train_end
+                )
+                if not optimization_success:
+                    self.logger.error("Optimization stage failed")
+                    break
+                # Test on test window using best params from train_results
+                self.logger.info(
+                    f"Running backtest for test window: {test_start.date()} to {test_end.date()}"
+                )
+                testing_results = await self.testing_stage_coordinator.run(
+                    train_start_date=train_start,
+                    train_end_date=train_end,
+                    test_start_date=test_start,
+                    test_end_date=test_end,
+                )
+                if not testing_results:
+                    self.logger.error("Testing stage failed")
+                    break
+
                 # Move window forward
                 first_date += timedelta(days=365 * test_window_years)
         self.logger.info("Walk-forward completed successfully")
-        
-        
+
     def run(self):
         return asyncio.run(self.run_async())

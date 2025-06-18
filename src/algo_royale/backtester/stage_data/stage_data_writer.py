@@ -47,6 +47,8 @@ class StageDataWriter:
         symbol: str,
         results_df: pd.DataFrame,
         page_idx: int,
+        start_date: Optional[str] = None,
+        end_date: Optional[str] = None,
     ) -> list[str]:
         """
         Save the results DataFrame to CSV files, splitting if necessary.
@@ -56,7 +58,9 @@ class StageDataWriter:
         if not isinstance(results_df, pd.DataFrame):
             raise TypeError(f"Expected DataFrame, got {type(results_df)}")
 
-        output_dir = self._get_stage_symbol_dir(stage, strategy_name, symbol)
+        output_dir = self._get_stage_symbol_dir(
+            stage, strategy_name, symbol, start_date, end_date
+        )
         output_dir.mkdir(parents=True, exist_ok=True)
         if strategy_name is not None and "strategy" not in results_df.columns:
             results_df = results_df.assign(strategy=strategy_name)
@@ -88,16 +92,25 @@ class StageDataWriter:
                 filepaths.append(str(filepath))
             except Exception as e:
                 self.logger.error(
-                    f"Failed to save page{page_idx} chunk{chunk_idx + 1} for {strategy_name}/{symbol}: {e}"
+                    f"Failed to save page{page_idx} chunk{chunk_idx + 1} for {strategy_name}/{symbol}/{start_date}_{end_date}: {e}"
                 )
                 raise
 
         return filepaths
 
     def _get_stage_symbol_dir(
-        self, stage: BacktestStage, strategy_name: Optional[str], symbol: str
+        self,
+        stage: BacktestStage,
+        strategy_name: Optional[str],
+        symbol: str,
+        start_date: Optional[str] = None,
+        end_date: Optional[str] = None,
     ) -> Path:
         """Get the directory for a symbol in the stage, optionally with strategy_name."""
         return self.stage_data_manager.get_directory_path(
-            stage=stage, strategy_name=strategy_name, symbol=symbol
+            stage=stage,
+            strategy_name=strategy_name,
+            symbol=symbol,
+            start_date=start_date,
+            end_date=end_date,
         )

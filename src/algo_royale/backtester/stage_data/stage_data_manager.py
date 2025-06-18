@@ -4,6 +4,8 @@ from logging import Logger
 from pathlib import Path
 from typing import Any, Optional
 
+import dateutil
+
 from algo_royale.backtester.enum.backtest_stage import BacktestStage
 from algo_royale.backtester.enum.data_extension import DataExtension
 from algo_royale.utils.path_utils import get_data_dir
@@ -44,7 +46,12 @@ class StageDataManager:
         return path
 
     def get_directory_path(
-        self, stage: BacktestStage, strategy_name: Optional[str], symbol: Optional[str]
+        self,
+        stage: BacktestStage,
+        strategy_name: Optional[str],
+        symbol: Optional[str],
+        start_date: Optional[dateutil.datetime] = None,
+        end_date: Optional[dateutil.datetime] = None,
     ) -> Path:
         """Generate the directory path for a given stage, strategy, and symbol.
         If strategy_name is None, it will not include it in the path.
@@ -55,6 +62,11 @@ class StageDataManager:
             path = path / strategy_name
         if symbol:
             path = path / symbol
+        if start_date and end_date:
+            path = (
+                path
+                / f"{start_date.strftime('%Y-%m-%d')}_{end_date.strftime('%Y-%m-%d')}"
+            )
 
         self.logger.debug(f"Generated directory path: {path}")
         return path
@@ -74,7 +86,12 @@ class StageDataManager:
         return exists
 
     def is_symbol_stage_done(
-        self, stage: BacktestStage, strategy_name: Optional[str], symbol: str
+        self,
+        stage: BacktestStage,
+        strategy_name: Optional[str],
+        symbol: str,
+        start_date: Optional[dateutil.datetime] = None,
+        end_date: Optional[dateutil.datetime] = None,
     ) -> bool:
         done_file = (
             self.get_directory_path(stage, strategy_name, symbol)
@@ -104,8 +121,12 @@ class StageDataManager:
         strategy_name: Optional[str],
         symbol: str,
         statusExtension: DataExtension,
+        start_date: Optional[dateutil.datetime] = None,
+        end_date: Optional[dateutil.datetime] = None,
     ) -> None:
-        stage_path = self.get_directory_path(stage, strategy_name, symbol)
+        stage_path = self.get_directory_path(
+            stage, strategy_name, symbol, start_date, end_date
+        )
         stage_path.mkdir(parents=True, exist_ok=True)
         for ext in DataExtension:
             marker_file = stage_path / f"{stage.value}.{ext.value}.csv"
@@ -189,8 +210,12 @@ class StageDataManager:
         symbol: Optional[str],
         filename: str,
         error_message: str,
+        start_date: Optional[dateutil.datetime] = None,
+        end_date: Optional[dateutil.datetime] = None,
     ) -> None:
-        dir_path = self.get_directory_path(stage, strategy_name, symbol)
+        dir_path = self.get_directory_path(
+            stage, strategy_name, symbol, start_date, end_date
+        )
         dir_path.mkdir(parents=True, exist_ok=True)
         error_file = dir_path / f"{filename}.{DataExtension.ERROR.value}.csv"
         with open(error_file, "w") as f:
@@ -226,9 +251,16 @@ class StageDataManager:
         return files
 
     def clear_directory(
-        self, stage: BacktestStage, strategy_name: Optional[str], symbol: str
+        self,
+        stage: BacktestStage,
+        strategy_name: Optional[str],
+        symbol: str,
+        start_date: Optional[dateutil.datetime] = None,
+        end_date: Optional[dateutil.datetime] = None,
     ) -> None:
-        path = self.get_directory_path(stage, strategy_name, symbol)
+        path = self.get_directory_path(
+            stage, strategy_name, symbol, start_date, end_date
+        )
         if not path.exists():
             self.logger.warning(f"Tried to clear non-existent directory: {path}")
             return

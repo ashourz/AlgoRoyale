@@ -4,6 +4,7 @@ from logging import Logger
 from pathlib import Path
 from typing import AsyncIterator, Callable, Dict, Optional
 
+import dateutil
 import pandas as pd
 
 from algo_royale.backtester.enum.backtest_stage import BacktestStage
@@ -45,6 +46,8 @@ class StageDataLoader:
         self,
         stage: BacktestStage,
         strategy_name: Optional[str] = None,
+        start_date: Optional[dateutil.datetime] = None,
+        end_date: Optional[dateutil.datetime] = None,
         reverse_pages: bool = False,
     ) -> Dict[str, Callable[[], AsyncIterator[pd.DataFrame]]]:
         """Returns async data generators with automatic data fetching
@@ -67,7 +70,10 @@ class StageDataLoader:
 
         # First ensure we have data for all symbols
         existing_symbols = await self._get_all_existing_data_symbols(
-            stage=stage, strategy_name=strategy_name
+            stage=stage,
+            strategy_name=strategy_name,
+            start_date=start_date,
+            end_date=end_date,
         )
         if not existing_symbols:
             self.logger.error(
@@ -160,7 +166,11 @@ class StageDataLoader:
             yield df
 
     async def _get_all_existing_data_symbols(
-        self, stage: BacktestStage, strategy_name: str
+        self,
+        stage: BacktestStage,
+        strategy_name: str,
+        start_date: Optional[dateutil.datetime] = None,
+        end_date: Optional[dateutil.datetime] = None,
     ) -> list[str]:
         """
         Ensure that data exists for all symbols in the watchlist for the current stage.
@@ -178,7 +188,11 @@ class StageDataLoader:
             if not self._has_existing_data(symbol_dir):
                 missing.append(symbol)
             elif not self.stage_data_manager.is_symbol_stage_done(
-                stage=stage, strategy_name=strategy_name, symbol=symbol
+                stage=stage,
+                strategy_name=strategy_name,
+                symbol=symbol,
+                start_date=start_date,
+                end_date=end_date,
             ):
                 not_done.append(symbol)
             else:
@@ -195,6 +209,8 @@ class StageDataLoader:
                 symbol=symbol,
                 filename="_ensure_all_data_exists",
                 error_message=f"Missing data for symbols: {missing} in directory. stage: {stage} | strategy: {strategy_name}",
+                start_date=start_date,
+                end_date=end_date,
             )
 
         if not_done:
@@ -208,6 +224,8 @@ class StageDataLoader:
                 symbol=symbol,
                 filename="_ensure_all_data_exists",
                 error_message=f"Symbols not marked as done: {not_done} in directory. stage: {stage} | strategy: {strategy_name}",
+                start_date=start_date,
+                end_date=end_date,
             )
 
         return done

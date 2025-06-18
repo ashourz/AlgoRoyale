@@ -1,4 +1,3 @@
-import asyncio
 import json
 from logging import Logger
 from typing import AsyncIterator, Callable, Dict, Optional, Sequence
@@ -20,8 +19,6 @@ from algo_royale.config.config import Config
 from algo_royale.strategy_factory.combinator.base_strategy_combinator import (
     StrategyCombinator,
 )
-from algo_royale.strategy_factory.optimizer.strategy_optimizer import StrategyOptimizer
-from algo_royale.strategy_factory.strategies.base_strategy import Strategy
 
 
 class OptimizationStageCoordinator(StageCoordinator):
@@ -84,6 +81,10 @@ class OptimizationStageCoordinator(StageCoordinator):
             raise ValueError("No strategy combinators provided")
         self.executor = strategy_executor
         self.evaluator = strategy_evaluator
+        self.strategy_names = [
+            combinator.strategy_class.__name__
+            for combinator in self.strategy_combinators
+        ]
 
     async def process(
         self,
@@ -91,132 +92,61 @@ class OptimizationStageCoordinator(StageCoordinator):
             Dict[str, Callable[[], AsyncIterator[pd.DataFrame]]]
         ] = None,
     ) -> Dict[str, Dict[str, dict]]:
+        """Process the optimization stage."""
         results = {}
-        tasks = []
 
         for symbol in self.watchlist:
             if symbol not in prepared_data:
                 self.logger.warning(f"No prepared data for symbol: {symbol}")
                 continue
 
-            # Fetch and cache data once per symbol
-            dfs: list[pd.DataFrame] = []
+            dfs = []
             async for df in prepared_data[symbol]():
                 dfs.append(df)
-            self.logger.debug(f"Fetched {len(dfs)} dataframes for symbol: {symbol}")
-            df: pd.DataFrame = pd.concat(dfs, ignore_index=True)
-
-            for strategy_combinator in self.strategy_combinators:
-                task = asyncio.to_thread(
-                    self._optimize, symbol, df, strategy_combinator
+            if not dfs:
+                self.logger.warning(
+                    f"No data for symbol: {symbol} in window {self.window_id}"
                 )
-                tasks.append(task)
+                continue
+            train_df = pd.concat(dfs, ignore_index=True)
 
-        results_list = await asyncio.gather(*tasks)
+            for strategy_name in self.strategy_names:
+                # Run optimization
+                strategy = self.strategy_factory.get_strategy_class(strategy_name)
+                optimization_result = self.optimizer.optimize(
+                    symbol, train_df, strategy
+                )
 
-        for optimization_result in results_list:
-            if optimization_result:
-                symbol = optimization_result.get("symbol", "unknown")
-                strategy_name = optimization_result.get("strategy", "unknown")
-                results.setdefault(symbol, {})[strategy_name] = optimization_result
-            else:
-                self.logger.error("Optimization failed for a strategy.")
+                # Save optimization metrics to optimization_result.json under window_id
+                out_dir = self.stage_data_manager.get_directory_path(
+                    BacktestStage.OPTIMIZATION, strategy_name, symbol
+                )
+                out_dir.mkdir(parents=True, exist_ok=True)
+                out_path = out_dir / "optimization_result.json"
+
+                # Load existing results if present
+                if out_path.exists():
+                    with open(out_path, "r") as f:
+                        opt_results = json.load(f)
+                else:
+                    opt_results = {}
+
+                opt_results[self.window_id] = {
+                    "optimization": optimization_result,
+                    "window": {
+                        "start_date": str(self.start_date),
+                        "end_date": str(self.end_date),
+                    },
+                }
+                with open(out_path, "w") as f:
+                    json.dump(opt_results, f, indent=2, default=str)
+
+                results.setdefault(symbol, {})[strategy_name] = {
+                    self.window_id: optimization_result
+                }
 
         return results
 
-    def make_factory(
-        self,
-        dfs: list[pd.DataFrame],
-    ) -> Callable[[], AsyncIterator[pd.DataFrame]]:
-        """Creates a factory that yields the given list of DataFrames asynchronously."""
-
-        async def factory() -> AsyncIterator[pd.DataFrame]:
-            for df in dfs:
-                yield df
-
-        return factory
-
-    def _optimize(
-        self,
-        symbol: str,
-        df: pd.DataFrame,
-        strategy_combinator: type[StrategyCombinator],
-    ) -> dict:
-        """Optimize and backtest a strategy for a given symbol and data.
-        Args:
-            symbol: The stock symbol.
-            df: The historical data as a DataFrame.
-            strategy_combinator: The strategy combinator class.
-            data_factory: Factory function to produce the data asynchronously.
-        Returns:
-            A tuple of (symbol, strategy_name, list of backtest result DataFrames).
-        """
-        try:
-            self.logger.info(
-                f"Optimizing and backtesting for {symbol} with {strategy_combinator}"
-            )
-            optimizer = StrategyOptimizer(
-                strategy_class=strategy_combinator.strategy_class,
-                condition_types=strategy_combinator.get_condition_types(),
-                backtest_fn=lambda strat, df_: self._backtest_and_evaluate(
-                    symbol, strat, df_
-                ),
-                logger=self.logger,
-            )
-
-            optimization_result = optimizer.optimize(symbol, df)
-            self.logger.info(
-                f"Optimization result for {symbol} with {strategy_combinator}: {optimization_result}"
-            )
-            best_params = optimization_result["best_params"]
-            self.logger.info(f"Best params: {best_params}")
-
-            return optimization_result
-        except Exception as e:
-            self.logger.error(
-                f"Error optimizing/backtesting for {symbol} with {strategy_combinator}: {str(e)}"
-            )
-            return {}
-
-    async def _backtest_and_evaluate(
-        self,
-        symbol: str,
-        strategy: Strategy,
-        df: pd.DataFrame,
-    ):
-        # We wrap df into an async factory as your executor expects
-        async def data_factory():
-            yield df
-
-        raw_results = await self.executor.run_backtest(
-            [strategy], {symbol: data_factory}
-        )
-        self.logger.debug(f"Raw backtest results: line count: {len(raw_results)}")
-        dfs = raw_results.get(symbol, [])
-        if not dfs:
-            return {}
-        self.logger.debug(f"Backtest result DataFrames: {len(dfs)}")
-        full_df = pd.concat(dfs, ignore_index=True)
-        metrics = self.evaluator.evaluate(strategy, full_df)
-        return metrics
-
-    async def _write(
-        self,
-        stage: BacktestStage,
-        processed_data: dict,
-    ):
-        """Write optimization results as JSON files."""
-        self.logger.info(f"Writing optimization results for stage: {stage}")
-        try:
-            for symbol, strategies in processed_data.items():
-                for strategy_name, result in strategies.items():
-                    out_dir = self.stage_data_manager.get_directory_path(
-                        stage, strategy_name, symbol
-                    )
-                    out_dir.mkdir(parents=True, exist_ok=True)
-                    out_path = out_dir / "optimization_result.json"
-                    with open(out_path, "w") as f:
-                        json.dump(result, f, indent=2, default=str)
-                    self.logger.info(f"Saved optimization result to {out_path}")
-        except Exception as e:
-            self.logger.error(f"Failed to write optimization results: {e}")
+    async def _write(self, stage, processed_data):
+        # No-op: writing is handled in process()
+        pass

@@ -52,8 +52,8 @@ class StageCoordinator(ABC):
 
     async def run(
         self,
-        start_date: dateutil.datetime,
-        end_date: dateutil.datetime,
+        start_date: Optional[dateutil.datetime] = None,
+        end_date: Optional[dateutil.datetime] = None,
         load_in_reverse=False,
     ) -> bool:
         """
@@ -61,6 +61,8 @@ class StageCoordinator(ABC):
         """
         self.start_date = start_date
         self.end_date = end_date
+        self.window_id = f"{self.start_date:%Y%m%d}_{self.end_date:%Y%m%d}"
+
         self.logger.info(
             f"Starting stage: {self.stage} | start_date: {start_date} | end_date: {end_date}"
         )
@@ -107,22 +109,28 @@ class StageCoordinator(ABC):
         """Load data based on the configuration"""
         try:
             self.logger.info(
-                f"Loading data for stage:{stage} | strategy:{strategy_name}"
+                f"Loading data for stage:{stage} | strategy:{strategy_name} | start_date:{self.start_date} | end_date:{self.end_date}"
             )
             data = await self.data_loader.load_all_stage_data(
-                stage=stage, strategy_name=strategy_name, reverse_pages=reverse_pages
+                stage=stage,
+                strategy_name=strategy_name,
+                start_date=self.start_date,
+                end_date=self.end_date,
+                reverse_pages=reverse_pages,
             )
             return data
         except Exception as e:
             self.logger.error(
-                f"stage:{stage} | strategy:{strategy_name} data loading failed: {e}"
+                f"stage:{stage} | strategy:{strategy_name} | start_date:{self.start_date} | end_date:{self.end_date} data loading failed: {e}"
             )
             self.stage_data_manager.write_error_file(
                 stage=stage,
                 strategy_name=strategy_name,
                 symbol="",
                 filename="load_data",
-                error_message=f"stage:{stage} | strategy:{strategy_name} data loading failed: {e}",
+                error_message=f"stage:{stage} | strategy:{strategy_name} | start_date:{self.start_date} | end_date:{self.end_date} data loading failed: {e}",
+                start_date=self.start_date,
+                end_date=self.end_date,
             )
             return {}
 
@@ -194,29 +202,41 @@ class StageCoordinator(ABC):
                             )
                             # Check if symbol/stage is already marked as done
                             if self.stage_data_manager.is_symbol_stage_done(
-                                stage, strategy_name, symbol
+                                stage,
+                                strategy_name,
+                                symbol,
+                                self.start_date,
+                                self.end_date,
                             ):
                                 self.logger.info(
-                                    f"Skipping {symbol} for stage:{stage} | strategy:{strategy_name} (already marked as done)"
+                                    f"Skipping {symbol} for stage:{stage} | strategy:{strategy_name} | start_date:{self.start_date} | end_date:{self.end_date} (already marked as done)"
                                 )
                                 continue
 
                             # If folder has data but is not marked as done, clear it
                             out_dir = self.stage_data_manager.get_directory_path(
-                                stage, strategy_name, symbol
+                                stage,
+                                strategy_name,
+                                symbol,
+                                self.start_date,
+                                self.end_date,
                             )
                             if out_dir.exists() and any(out_dir.iterdir()):
                                 self.logger.info(
-                                    f"Clearing existing data for {symbol} at stage:{stage} | strategy:{strategy_name} (not marked as done)"
+                                    f"Clearing existing data for {symbol} at stage:{stage} | strategy:{strategy_name} | start_date:{self.start_date} | end_date:{self.end_date}"
                                 )
                                 self.stage_data_manager.clear_directory(
-                                    stage, strategy_name, symbol
+                                    stage,
+                                    strategy_name,
+                                    symbol,
+                                    self.start_date,
+                                    self.end_date,
                                 )
 
                             gen = df_iter_factory()
                             if not hasattr(gen, "__aiter__"):
                                 self.logger.error(
-                                    f"Factory for {symbol}/{strategy_name} did not return an async iterator. Got: {type(gen)} Value: {gen}"
+                                    f"Factory for {symbol}/{strategy_name}/{self.start_date}_{self.end_date} did not return an async iterator. Got: {type(gen)} Value: {gen}"
                                 )
                                 raise TypeError(
                                     f"Expected async iterator, got {type(gen)}"
@@ -231,6 +251,8 @@ class StageCoordinator(ABC):
                                     symbol=symbol,
                                     results_df=df,
                                     page_idx=page_idx,
+                                    start_date=self.start_date,
+                                    end_date=self.end_date,
                                 )
                                 page_idx += 1
                             self.stage_data_manager.mark_symbol_stage(
@@ -238,10 +260,12 @@ class StageCoordinator(ABC):
                                 strategy_name=strategy_name,
                                 symbol=symbol,
                                 statusExtension=DataExtension.DONE,
+                                start_date=self.start_date,
+                                end_date=self.end_date,
                             )
                         except Exception as e:
                             self.logger.error(
-                                f"stage:{stage} | strategy:{strategy_name} data writing failed for symbol {symbol}: {e}"
+                                f"stage:{stage} | strategy:{strategy_name} | start_date:{self.start_date} | end_date:{self.end_date} data writing failed for symbol {symbol}: {e}"
                             )
                             self.stage_data_manager.write_error_file(
                                 stage=stage,
@@ -249,6 +273,8 @@ class StageCoordinator(ABC):
                                 symbol=symbol,
                                 filename="write",
                                 error_message=f"stage:{stage} | strategy:{strategy_name} data writing failed for symbol {symbol}: {e}",
+                                start_date=self.start_date,
+                                end_date=self.end_date,
                             )
                             continue
                 except Exception as e:
@@ -261,6 +287,8 @@ class StageCoordinator(ABC):
                         symbol=symbol,
                         filename="write",
                         error_message=f"stage:{stage} data writing failed for symbol {symbol}: {e}",
+                        start_date=self.start_date,
+                        end_date=self.end_date,
                     )
                     continue
         except Exception as e:
@@ -271,5 +299,7 @@ class StageCoordinator(ABC):
                 symbol=symbol,
                 filename="write",
                 error_message=f"stage:{stage} data writing failed: {e}",
+                start_date=self.start_date,
+                end_date=self.end_date,
             )
             return False
