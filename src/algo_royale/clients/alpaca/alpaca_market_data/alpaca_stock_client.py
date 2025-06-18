@@ -61,11 +61,12 @@ class AlpacaStockClient(AlpacaBaseClient):
             raise ValueError("start_date must be a datetime object")
         if not isinstance(end_date, datetime):
             raise ValueError("end_date must be a datetime object")
-
+        start_str = start_date.strftime("%Y-%m-%d")
+        end_str = end_date.strftime("%Y-%m-%d")
         params = {
             "symbols": ",".join(symbols),
-            "start": start_date.isoformat(),
-            "end": end_date.isoformat(),
+            "start": start_str,
+            "end": end_str,
             "currency": currency,
             "sort": sort_order,
             "limit": page_limit,
@@ -113,11 +114,12 @@ class AlpacaStockClient(AlpacaBaseClient):
             raise ValueError("start_date must be a datetime object")
         if not isinstance(end_date, datetime):
             raise ValueError("end_date must be a datetime object")
-
+        start_str = start_date.strftime("%Y-%m-%d")
+        end_str = end_date.strftime("%Y-%m-%d")
         params = {
             "symbols": ",".join(symbols),
-            "start": start_date.isoformat(),
-            "end": end_date.isoformat(),
+            "start": start_str,
+            "end": end_str,
             "currency": currency,
             "sort": sort_order,
             "limit": min(page_limit, 1000),
@@ -151,11 +153,12 @@ class AlpacaStockClient(AlpacaBaseClient):
             raise ValueError("start_date must be a datetime object")
         if not isinstance(end_date, datetime):
             raise ValueError("end_date must be a datetime object")
-
+        start_str = start_date.strftime("%Y-%m-%d")
+        end_str = end_date.strftime("%Y-%m-%d")
         params = {
             "symbols": ",".join(symbols),
-            "start": start_date.isoformat(),
-            "end": end_date.isoformat(),
+            "start": start_str,
+            "end": end_str,
             "currency": currency,
             "feed": feed,
             "timeframe": timeframe,
@@ -225,11 +228,12 @@ class AlpacaStockClient(AlpacaBaseClient):
         page_token: Optional[str] = None,
     ) -> Optional[HistoricalTradesResponse]:
         """Fetch historical stock trades from Alpaca between the specified dates for given symbols."""
-
+        start_str = start_date.strftime("%Y-%m-%d")
+        end_str = end_date.strftime("%Y-%m-%d")
         params = {
             "symbols": ",".join(symbols),
-            "start": start_date.isoformat(),
-            "end": end_date.isoformat(),
+            "start": start_str,
+            "end": end_str,
             "currency": currency,
             "limit": min(limit, 1000),
             "feed": feed,
