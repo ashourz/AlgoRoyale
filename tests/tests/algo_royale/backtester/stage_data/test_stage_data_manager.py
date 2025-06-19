@@ -73,7 +73,7 @@ def test_write_error_file(temp_stage_data_manager):
     dir_path = mgr.get_directory_path(BacktestStage.DATA_INGEST, None, "AAPL")
     error_file = dir_path / "errfile.error.csv"
     assert error_file.exists()
-    assert error_file.read_text() == "error!"
+    assert error_file.read_text().strip() == "error!"
 
 
 def test_get_file_path_and_directory_path(temp_stage_data_manager):

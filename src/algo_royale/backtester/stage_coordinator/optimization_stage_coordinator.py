@@ -13,6 +13,9 @@ from algo_royale.backtester.stage_data.stage_data_writer import StageDataWriter
 from algo_royale.strategy_factory.combinator.base_strategy_combinator import (
     StrategyCombinator,
 )
+from algo_royale.strategy_factory.optimizer.strategy_optimizer import StrategyOptimizer
+from algo_royale.strategy_factory.strategies.base_strategy import Strategy
+from algo_royale.strategy_factory.strategy_factory import StrategyFactory
 
 
 class OptimizationStageCoordinator(StageCoordinator):
@@ -40,6 +43,7 @@ class OptimizationStageCoordinator(StageCoordinator):
         data_preparer: AsyncDataPreparer,
         data_writer: StageDataWriter,
         stage_data_manager: StageDataManager,
+        strategy_factory: StrategyFactory,
         logger: Logger,
         strategy_combinators: Optional[Sequence[type[StrategyCombinator]]] = None,
     ):
@@ -64,10 +68,7 @@ class OptimizationStageCoordinator(StageCoordinator):
         self.strategy_combinators = strategy_combinators
         if not self.strategy_combinators:
             raise ValueError("No strategy combinators provided")
-        self.strategy_names = [
-            combinator.strategy_class.__name__
-            for combinator in self.strategy_combinators
-        ]
+        self.strategy_factory = strategy_factory
 
     async def process(
         self,
@@ -93,22 +94,29 @@ class OptimizationStageCoordinator(StageCoordinator):
                 continue
             train_df = pd.concat(dfs, ignore_index=True)
 
-            for strategy_name in self.strategy_names:
+            for strategy_combinator in self.strategy_combinators:
+                strategy_class = strategy_combinator.strategy_class
                 # Run optimization
-                strategy = self.strategy_factory.get_strategy_class(strategy_name)
                 try:
-                    optimization_result = self.optimizer.optimize(
-                        symbol, train_df, strategy
+                    optimizer = StrategyOptimizer(
+                        strategy_class=strategy_class,
+                        condition_types=strategy_combinator.get_condition_types(),
+                        backtest_fn=lambda strat, df_: self._backtest_and_evaluate(
+                            symbol, strat, df_
+                        ),
+                        logger=self.logger,
                     )
+                    optimization_result = optimizer.optimize(symbol, train_df)
+
                 except Exception as e:
                     self.logger.error(
-                        f"Optimization failed for symbol {symbol}, strategy {strategy_name}: {e}"
+                        f"Optimization failed for symbol {symbol}, strategy {strategy_class}: {e}"
                     )
                     continue
 
                 # Save optimization metrics to optimization_result.json under window_id
                 out_dir = self.stage_data_manager.get_directory_path(
-                    BacktestStage.OPTIMIZATION, strategy_name, symbol
+                    BacktestStage.OPTIMIZATION, strategy_class, symbol
                 )
                 out_dir.mkdir(parents=True, exist_ok=True)
                 out_path = out_dir / "optimization_result.json"
@@ -130,11 +138,33 @@ class OptimizationStageCoordinator(StageCoordinator):
                 with open(out_path, "w") as f:
                     json.dump(opt_results, f, indent=2, default=str)
 
-                results.setdefault(symbol, {})[strategy_name] = {
+                results.setdefault(symbol, {})[strategy_class] = {
                     self.window_id: optimization_result
                 }
 
         return results
+
+    async def _backtest_and_evaluate(
+        self,
+        symbol: str,
+        strategy: Strategy,
+        df: pd.DataFrame,
+    ):
+        # We wrap df into an async factory as your executor expects
+        async def data_factory():
+            yield df
+
+        raw_results = await self.executor.run_backtest(
+            [strategy], {symbol: data_factory}
+        )
+        self.logger.debug(f"Raw backtest results: line count: {len(raw_results)}")
+        dfs = raw_results.get(symbol, [])
+        if not dfs:
+            return {}
+        self.logger.debug(f"Backtest result DataFrames: {len(dfs)}")
+        full_df = pd.concat(dfs, ignore_index=True)
+        metrics = self.evaluator.evaluate(strategy, full_df)
+        return metrics
 
     async def _write(self, stage, processed_data):
         # No-op: writing is handled in process()

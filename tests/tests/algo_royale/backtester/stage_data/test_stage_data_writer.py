@@ -97,5 +97,7 @@ def test_has_existing_results(writer, tmp_path):
     file = dir_path / f"{strategy_name}_{symbol}_123456.csv"
     file.write_text("col1,col2\n1,2\n")
     # Patch _get_stage_symbol_dir to use our temp dir with strategy_name
-    writer._get_stage_symbol_dir = lambda stage, strategy_name, symbol: dir_path
+    writer._get_stage_symbol_dir = (
+        lambda stage, strategy_name, symbol, start_date=None, end_date=None: dir_path
+    )
     assert writer.has_existing_results(stage, strategy_name, symbol)

@@ -230,8 +230,12 @@ class StageDataManager:
         )
         dir_path.mkdir(parents=True, exist_ok=True)
         error_file = dir_path / f"{filename}.{DataExtension.ERROR.value}.csv"
-        with open(error_file, "w") as f:
+        # Use append mode if file exists, else write mode
+        mode = "a" if error_file.exists() else "w"
+        with open(error_file, mode) as f:
             f.write(error_message)
+            if not error_message.endswith("\n"):
+                f.write("\n")
         self.logger.error(f"Wrote error file: {error_file}")
 
     def delete_file(

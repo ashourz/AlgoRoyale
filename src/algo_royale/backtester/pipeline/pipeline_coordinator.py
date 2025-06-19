@@ -210,7 +210,6 @@ class PipelineCoordinator:
         """
         Returns True if any symbol has a non-empty data file for the given stage and window.
         """
-
         for symbol in self.data_ingest_stage_coordinator.get_watchlist():
             data_dir = self.data_ingest_stage_coordinator.stage_data_manager.get_directory_path(
                 stage=BacktestStage.DATA_INGEST,
@@ -219,13 +218,12 @@ class PipelineCoordinator:
                 start_date=start_date,
                 end_date=end_date,
             )
-            symbol_dir = os.path.join(data_dir, symbol)
-            if os.path.isdir(symbol_dir):
-                for fname in os.listdir(symbol_dir):
+            if os.path.isdir(data_dir):
+                for fname in os.listdir(data_dir):
                     # Ignore files like 'something.done.csv' or 'something.error.csv'
                     if fnmatch.fnmatch(fname, "*.*.csv"):
                         continue
-                    fpath = os.path.join(symbol_dir, fname)
+                    fpath = os.path.join(data_dir, fname)
                     if os.path.isfile(fpath) and os.path.getsize(fpath) > 0:
                         return True
         return False

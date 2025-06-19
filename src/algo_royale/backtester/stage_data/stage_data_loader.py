@@ -106,6 +106,8 @@ class StageDataLoader:
                         symbol=s,
                         strategy_name=str,
                         reverse_pages=reverse_pages,
+                        start_date=start_date,
+                        end_date=end_date,
                     )
                 )
 
@@ -124,10 +126,23 @@ class StageDataLoader:
 
         return data
 
-    def _symbol_data_gen(self, stage, symbol, strategy_name, reverse_pages=False):
+    def _symbol_data_gen(
+        self,
+        stage,
+        symbol,
+        strategy_name,
+        reverse_pages=False,
+        start_date: Optional[datetime] = None,
+        end_date: Optional[datetime] = None,
+    ):
         async def gen():
             async for df in self.load_symbol(
-                stage, symbol, strategy_name, reverse_pages=reverse_pages
+                stage,
+                symbol=symbol,
+                strategy_name=strategy_name,
+                reverse_pages=reverse_pages,
+                start_date=start_date,
+                end_date=end_date,
             ):
                 yield df
 
@@ -139,10 +154,16 @@ class StageDataLoader:
         symbol: str,
         strategy_name: Optional[str] = None,
         reverse_pages: bool = False,
+        start_date: Optional[datetime] = None,
+        end_date: Optional[datetime] = None,
     ) -> AsyncIterator[pd.DataFrame]:
         """Async generator yielding DataFrames, fetching data if needed"""
         symbol_dir = self._get_stage_symbol_dir(
-            stage=stage, strategy_name=strategy_name, symbol=symbol
+            stage=stage,
+            strategy_name=strategy_name,
+            symbol=symbol,
+            start_date=start_date,
+            end_date=end_date,
         )
 
         # First ensure we have data
@@ -153,6 +174,8 @@ class StageDataLoader:
                 symbol=symbol,
                 filename="load_symbol",
                 error_message=f"No data available for {stage} | {symbol} | {strategy_name}",
+                start_date=start_date,
+                end_date=end_date,
             )
             raise ValueError(
                 f"No data available for {stage} | {symbol} | {strategy_name}"
@@ -185,7 +208,11 @@ class StageDataLoader:
         done = []
         for symbol in self.get_watchlist():
             symbol_dir = self._get_stage_symbol_dir(
-                stage=stage, symbol=symbol, strategy_name=strategy_name
+                stage=stage,
+                symbol=symbol,
+                strategy_name=strategy_name,
+                start_date=start_date,
+                end_date=end_date,
             )
             if not self._has_existing_data(symbol_dir):
                 missing.append(symbol)
@@ -233,11 +260,20 @@ class StageDataLoader:
         return done
 
     def _get_stage_symbol_dir(
-        self, stage: BacktestStage, symbol: str, strategy_name: Optional[str] = None
+        self,
+        stage: BacktestStage,
+        symbol: str,
+        strategy_name: Optional[str] = None,
+        start_date: Optional[datetime] = None,
+        end_date: Optional[datetime] = None,
     ) -> Path:
         """Get the directory for a symbol in the stage"""
         return self.stage_data_manager.get_directory_path(
-            stage=stage, strategy_name=strategy_name, symbol=symbol
+            stage=stage,
+            strategy_name=strategy_name,
+            symbol=symbol,
+            start_date=start_date,
+            end_date=end_date,
         )
 
     def _has_existing_data(self, symbol_dir: Path) -> bool:

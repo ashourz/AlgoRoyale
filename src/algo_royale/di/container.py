@@ -352,6 +352,7 @@ class DIContainer(containers.DeclarativeContainer):
         data_preparer=async_data_preparer,
         data_writer=stage_data_writer,
         stage_data_manager=stage_data_manager,
+        strategy_factory=strategy_factory,
         logger=logger_backtest_prod,
         strategy_combinators=strategy_combinators,
     )
