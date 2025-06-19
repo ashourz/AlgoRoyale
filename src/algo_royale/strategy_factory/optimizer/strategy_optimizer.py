@@ -38,7 +38,7 @@ class StrategyOptimizer:
         self,
         symbol: str,
         df: pd.DataFrame,
-        n_trials: int = 1000,
+        n_trials: int = 1,
     ) -> Dict[str, Any]:
         """
         Run the optimization process for a given symbol and DataFrame.
@@ -108,9 +108,11 @@ class StrategyOptimizer:
             }
 
             strategy = self.strategy_class(**strategy_kwargs)
-
-            coro = self.backtest_fn(strategy, df)
-            result = asyncio.run(coro)
+            logger.debug(
+                f"[{symbol}] Strategy class: {self.strategy_class.__name__} | Params: {strategy_kwargs}"
+            )
+            # coro = self.run_async(self.backtest_fn(strategy, df))
+            result = self.run_async(self.backtest_fn(strategy, df))
             logger.debug(
                 f"[{symbol}] Strategy params: {strategy_kwargs} | Backtest result: {result}"
             )
@@ -143,7 +145,7 @@ class StrategyOptimizer:
                 "symbol": symbol,
                 "direction": self.direction,
             },
-            "best_result": study.best_trial.user_attrs.get(
+            "metrics": study.best_trial.user_attrs.get(
                 "full_result"
             ),  # <-- add this line
         }
@@ -192,3 +194,28 @@ class StrategyOptimizer:
 
         # Remove empty lists for unused types
         return {k: v for k, v in grouped.items() if v}
+
+    def run_async(self, coro):
+        try:
+            loop = asyncio.get_running_loop()
+        except RuntimeError:
+            loop = None
+
+        if loop and loop.is_running():
+            # If we're in an event loop, run in a new thread
+            import threading
+
+            result_container = {}
+
+            def runner():
+                new_loop = asyncio.new_event_loop()
+                asyncio.set_event_loop(new_loop)
+                result_container["result"] = new_loop.run_until_complete(coro)
+                new_loop.close()
+
+            t = threading.Thread(target=runner)
+            t.start()
+            t.join()
+            return result_container["result"]
+        else:
+            return asyncio.run(coro)

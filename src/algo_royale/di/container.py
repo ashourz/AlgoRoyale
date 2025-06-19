@@ -355,6 +355,8 @@ class DIContainer(containers.DeclarativeContainer):
         strategy_factory=strategy_factory,
         logger=logger_backtest_prod,
         strategy_combinators=strategy_combinators,
+        strategy_executor=strategy_executor,
+        strategy_evaluator=strategy_evaluator,
     )
 
     # Strategy backtest coordinator

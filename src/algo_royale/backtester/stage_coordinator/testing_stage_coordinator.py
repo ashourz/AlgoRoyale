@@ -1,3 +1,4 @@
+import inspect
 import json
 from datetime import datetime
 from logging import Logger
@@ -58,10 +59,6 @@ class TestingStageCoordinator(StageCoordinator):
         self.executor = strategy_executor
         self.evaluator = strategy_evaluator
         self.strategy_factory = strategy_factory
-        self.strategy_names = [
-            combinator.strategy_class.__name__
-            for combinator in self.strategy_combinators
-        ]
 
     async def run(
         self,
@@ -76,7 +73,7 @@ class TestingStageCoordinator(StageCoordinator):
         self.train_window_id = (
             f"{train_start_date.strftime('%Y%m%d')}_{train_end_date.strftime('%Y%m%d')}"
         )
-        return super().run(start_date=test_start_date, end_date=test_end_date)
+        return await super().run(start_date=test_start_date, end_date=test_end_date)
 
     async def process(
         self,
@@ -102,7 +99,9 @@ class TestingStageCoordinator(StageCoordinator):
                 continue
             test_df = pd.concat(dfs, ignore_index=True)
 
-            for strategy_name in self.strategy_names:
+            for strategy_combinator in self.strategy_combinators:
+                strategy_class = strategy_combinator.strategy_class
+                strategy_name = strategy_class.__name__
                 # Load best params from optimization_result.json
                 out_dir = self.stage_data_manager.get_directory_path(
                     BacktestStage.OPTIMIZATION, strategy_name, symbol
@@ -126,10 +125,19 @@ class TestingStageCoordinator(StageCoordinator):
                 best_params = opt_results[self.train_window_id]["optimization"][
                     "best_params"
                 ]
-
+                # Only keep params accepted by the strategy's __init__
+                valid_params = set(
+                    inspect.signature(strategy_class.__init__).parameters
+                )
+                filtered_params = {
+                    k: v
+                    for k, v in best_params.items()
+                    if k in valid_params and k != "self"
+                }
+                self.logger.info(f"Filtered params: {filtered_params}")
                 # Instantiate strategy and run backtest
                 strategy = self.strategy_factory.build_strategy(
-                    strategy_name, best_params
+                    strategy_class, filtered_params
                 )
 
                 async def data_factory():

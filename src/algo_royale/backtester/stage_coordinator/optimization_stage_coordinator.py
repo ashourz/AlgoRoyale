@@ -4,8 +4,12 @@ from typing import AsyncIterator, Callable, Dict, Optional, Sequence
 
 import pandas as pd
 
+from algo_royale.backtester.backtest.strategy_backtest_executor import (
+    StrategyBacktestExecutor,
+)
 from algo_royale.backtester.data_preparer.async_data_preparer import AsyncDataPreparer
 from algo_royale.backtester.enum.backtest_stage import BacktestStage
+from algo_royale.backtester.evaluator.base_backtest_evaluator import BacktestEvaluator
 from algo_royale.backtester.stage_coordinator.stage_coordinator import StageCoordinator
 from algo_royale.backtester.stage_data.stage_data_loader import StageDataLoader
 from algo_royale.backtester.stage_data.stage_data_manager import StageDataManager
@@ -45,6 +49,8 @@ class OptimizationStageCoordinator(StageCoordinator):
         stage_data_manager: StageDataManager,
         strategy_factory: StrategyFactory,
         logger: Logger,
+        strategy_executor: StrategyBacktestExecutor,
+        strategy_evaluator: BacktestEvaluator,
         strategy_combinators: Optional[Sequence[type[StrategyCombinator]]] = None,
     ):
         """Coordinator for the backtest stage.
@@ -69,6 +75,8 @@ class OptimizationStageCoordinator(StageCoordinator):
         if not self.strategy_combinators:
             raise ValueError("No strategy combinators provided")
         self.strategy_factory = strategy_factory
+        self.executor = strategy_executor
+        self.evaluator = strategy_evaluator
 
     async def process(
         self,
@@ -96,6 +104,7 @@ class OptimizationStageCoordinator(StageCoordinator):
 
             for strategy_combinator in self.strategy_combinators:
                 strategy_class = strategy_combinator.strategy_class
+                strategy_name = strategy_class.__name__
                 # Run optimization
                 try:
                     optimizer = StrategyOptimizer(
@@ -110,13 +119,13 @@ class OptimizationStageCoordinator(StageCoordinator):
 
                 except Exception as e:
                     self.logger.error(
-                        f"Optimization failed for symbol {symbol}, strategy {strategy_class}: {e}"
+                        f"Optimization failed for symbol {symbol}, strategy {strategy_name}: {e}"
                     )
                     continue
 
                 # Save optimization metrics to optimization_result.json under window_id
                 out_dir = self.stage_data_manager.get_directory_path(
-                    BacktestStage.OPTIMIZATION, strategy_class, symbol
+                    BacktestStage.OPTIMIZATION, strategy_name, symbol
                 )
                 out_dir.mkdir(parents=True, exist_ok=True)
                 out_path = out_dir / "optimization_result.json"
@@ -138,7 +147,7 @@ class OptimizationStageCoordinator(StageCoordinator):
                 with open(out_path, "w") as f:
                     json.dump(opt_results, f, indent=2, default=str)
 
-                results.setdefault(symbol, {})[strategy_class] = {
+                results.setdefault(symbol, {})[strategy_name] = {
                     self.window_id: optimization_result
                 }
 
