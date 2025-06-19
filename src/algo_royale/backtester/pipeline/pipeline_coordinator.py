@@ -36,7 +36,7 @@ class PipelineCoordinator:
         self.optimization_stage_coordinator = optimization_stage_coordinator
         self.testing_stage_coordinator = testing_stage_coordinator
 
-    async def run_async(self, config=None):
+    async def run_async(self):
         try:
             self.logger.info("Starting Backtest Pipeline...")
             # Run the pipeline stages in sequence
