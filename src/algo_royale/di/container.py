@@ -17,7 +17,9 @@ from algo_royale.backtester.feature_engineering.feature_engineer import FeatureE
 from algo_royale.backtester.feature_engineering.feature_engineering import (
     feature_engineering,
 )
-from algo_royale.backtester.pipeline.pipeline_coordinator import PipelineCoordinator
+from algo_royale.backtester.pipeline.walk_forward_coordinator import (
+    WalkForwardCoordinator,
+)
 from algo_royale.backtester.stage_coordinator.data_ingest_stage_coordinator import (
     DataIngestStageCoordinator,
 )
@@ -374,8 +376,8 @@ class DIContainer(containers.DeclarativeContainer):
         strategy_combinators=strategy_combinators,
     )
 
-    pipeline_coordinator = providers.Singleton(
-        PipelineCoordinator,
+    walk_forward_coordinator = providers.Singleton(
+        WalkForwardCoordinator,
         data_ingest_stage_coordinator=data_ingest_stage_coordinator,
         feature_engineering_stage_coordinator=feature_engineering_stage_coordinator,
         optimization_stage_coordinator=optimization_stage_coordinator,

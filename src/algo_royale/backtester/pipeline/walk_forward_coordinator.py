@@ -19,7 +19,7 @@ from algo_royale.backtester.stage_coordinator.testing_stage_coordinator import (
 )
 
 
-class PipelineCoordinator:
+class WalkForwardCoordinator:
     def __init__(
         self,
         data_ingest_stage_coordinator: DataIngestStageCoordinator,
