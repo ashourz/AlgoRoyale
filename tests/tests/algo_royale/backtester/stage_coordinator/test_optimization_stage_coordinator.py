@@ -39,9 +39,32 @@ def mock_factory():
     return MagicMock()
 
 
+@pytest.fixture
+def mock_executor():
+    exec = MagicMock()
+    exec.run_backtest = AsyncMock(
+        return_value={"AAPL": [pd.DataFrame({"result": [1]})]}
+    )
+    return exec
+
+
+@pytest.fixture
+def mock_evaluator():
+    eval = MagicMock()
+    eval.evaluate.return_value = {"sharpe": 2.0}
+    return eval
+
+
 @pytest.mark.asyncio
 async def test_init_success(
-    mock_loader, mock_preparer, mock_writer, mock_manager, mock_logger, mock_factory
+    mock_loader,
+    mock_preparer,
+    mock_writer,
+    mock_manager,
+    mock_logger,
+    mock_factory,
+    mock_executor,
+    mock_evaluator,
 ):
     class DummyStrategy:
         pass
@@ -61,12 +84,21 @@ async def test_init_success(
         strategy_factory=mock_factory,
         logger=mock_logger,
         strategy_combinators=[DummyCombinator],
+        strategy_executor=mock_executor,
+        strategy_evaluator=mock_evaluator,
     )
 
 
 @pytest.mark.asyncio
 async def test_init_no_combinators(
-    mock_loader, mock_preparer, mock_writer, mock_manager, mock_logger, mock_factory
+    mock_loader,
+    mock_preparer,
+    mock_writer,
+    mock_manager,
+    mock_logger,
+    mock_factory,
+    mock_executor,
+    mock_evaluator,
 ):
     with pytest.raises(ValueError):
         OptimizationStageCoordinator(
@@ -77,12 +109,21 @@ async def test_init_no_combinators(
             strategy_factory=mock_factory,
             logger=mock_logger,
             strategy_combinators=None,
+            strategy_executor=mock_executor,
+            strategy_evaluator=mock_evaluator,
         )
 
 
 @pytest.mark.asyncio
 async def test_process_returns_factories(
-    mock_loader, mock_preparer, mock_writer, mock_manager, mock_logger, mock_factory
+    mock_loader,
+    mock_preparer,
+    mock_writer,
+    mock_manager,
+    mock_logger,
+    mock_factory,
+    mock_executor,
+    mock_evaluator,
 ):
     class StratA:
         pass
@@ -108,6 +149,8 @@ async def test_process_returns_factories(
         strategy_factory=mock_factory,
         logger=mock_logger,
         strategy_combinators=[DummyCombinator],
+        strategy_executor=mock_executor,
+        strategy_evaluator=mock_evaluator,
     )
     coordinator.start_date = datetime(2024, 1, 1)
     coordinator.end_date = datetime(2024, 1, 31)
@@ -136,13 +179,26 @@ async def test_process_returns_factories(
         MockOptimizer.return_value = mock_optimizer_instance
         result = await coordinator.process(prepared_data)
         assert "AAPL" in result
-        assert DummyStrategy in result["AAPL"]
-        assert coordinator.window_id in result["AAPL"][DummyStrategy]
+        assert "DummyStrategy" in result["AAPL"]
+        # The result should be a dict with window_id as a key for the DummyStrategy
+        assert coordinator.window_id in result["AAPL"]["DummyStrategy"]
+        # The value should be the optimization result
+        assert result["AAPL"]["DummyStrategy"][coordinator.window_id] == {
+            "param": 1,
+            "score": 0.95,
+        }
 
 
 @pytest.mark.asyncio
 async def test_fetch_symbol_optimization_exception_logs_error(
-    mock_loader, mock_preparer, mock_writer, mock_manager, mock_logger, mock_factory
+    mock_loader,
+    mock_preparer,
+    mock_writer,
+    mock_manager,
+    mock_logger,
+    mock_factory,
+    mock_executor,
+    mock_evaluator,
 ):
     class DummyStrategy:
         pass
@@ -162,6 +218,8 @@ async def test_fetch_symbol_optimization_exception_logs_error(
         strategy_factory=mock_factory,
         logger=mock_logger,
         strategy_combinators=[DummyCombinator],
+        strategy_executor=mock_executor,
+        strategy_evaluator=mock_evaluator,
     )
     coordinator.start_date = datetime(2024, 1, 1)
     coordinator.end_date = datetime(2024, 1, 31)
@@ -192,7 +250,14 @@ async def test_fetch_symbol_optimization_exception_logs_error(
 
 @pytest.mark.asyncio
 async def test_process_skips_symbol_with_no_data(
-    mock_loader, mock_preparer, mock_writer, mock_manager, mock_logger, mock_factory
+    mock_loader,
+    mock_preparer,
+    mock_writer,
+    mock_manager,
+    mock_logger,
+    mock_factory,
+    mock_executor,
+    mock_evaluator,
 ):
     class DummyStrategy:
         pass
@@ -212,6 +277,8 @@ async def test_process_skips_symbol_with_no_data(
         strategy_factory=mock_factory,
         logger=mock_logger,
         strategy_combinators=[DummyCombinator],
+        strategy_executor=mock_executor,
+        strategy_evaluator=mock_evaluator,
     )
     coordinator.start_date = datetime(2024, 1, 1)
     coordinator.end_date = datetime(2024, 1, 31)
@@ -245,7 +312,14 @@ async def test_process_skips_symbol_with_no_data(
 
 @pytest.mark.asyncio
 async def test_process_multiple_strategies(
-    mock_loader, mock_preparer, mock_writer, mock_manager, mock_logger, mock_factory
+    mock_loader,
+    mock_preparer,
+    mock_writer,
+    mock_manager,
+    mock_logger,
+    mock_factory,
+    mock_executor,
+    mock_evaluator,
 ):
     class StratA:
         pass
@@ -275,6 +349,8 @@ async def test_process_multiple_strategies(
         strategy_factory=mock_factory,
         logger=mock_logger,
         strategy_combinators=[CombA, CombB],
+        strategy_executor=mock_executor,
+        strategy_evaluator=mock_evaluator,
     )
     coordinator.start_date = datetime(2024, 1, 1)
     coordinator.end_date = datetime(2024, 1, 31)
@@ -303,13 +379,20 @@ async def test_process_multiple_strategies(
         MockOptimizer.return_value = mock_optimizer_instance
         result = await coordinator.process(prepared_data)
         assert "AAPL" in result
-        assert StratA in result["AAPL"]
-        assert StratB in result["AAPL"]
+        assert "StratA" in result["AAPL"]
+        assert "StratB" in result["AAPL"]
 
 
 @pytest.mark.asyncio
 async def test_process_optimizer_exception_logs_error(
-    mock_loader, mock_preparer, mock_writer, mock_manager, mock_logger, mock_factory
+    mock_loader,
+    mock_preparer,
+    mock_writer,
+    mock_manager,
+    mock_logger,
+    mock_factory,
+    mock_executor,
+    mock_evaluator,
 ):
     class DummyStrategy:
         pass
@@ -329,6 +412,8 @@ async def test_process_optimizer_exception_logs_error(
         strategy_factory=mock_factory,
         logger=mock_logger,
         strategy_combinators=[DummyCombinator],
+        strategy_executor=mock_executor,
+        strategy_evaluator=mock_evaluator,
     )
     coordinator.start_date = datetime(2024, 1, 1)
     coordinator.end_date = datetime(2024, 1, 31)
@@ -354,12 +439,21 @@ async def test_process_optimizer_exception_logs_error(
         instance = MockOptimizer.return_value
         instance.optimize.side_effect = Exception("Test error")
         result = await coordinator.process(prepared_data)
-        assert result == {}
+        assert "AAPL" in result
+        assert "DummyStrategy" in result["AAPL"]
+        assert coordinator.window_id in result["AAPL"]["DummyStrategy"]
 
 
 @pytest.mark.asyncio
 async def test_write_is_noop(
-    mock_loader, mock_preparer, mock_writer, mock_manager, mock_logger, mock_factory
+    mock_loader,
+    mock_preparer,
+    mock_writer,
+    mock_manager,
+    mock_logger,
+    mock_factory,
+    mock_executor,
+    mock_evaluator,
 ):
     class DummyStrategy:
         pass
@@ -379,6 +473,8 @@ async def test_write_is_noop(
         strategy_factory=mock_factory,
         logger=mock_logger,
         strategy_combinators=[DummyCombinator],
+        strategy_executor=mock_executor,
+        strategy_evaluator=mock_evaluator,
     )
     result = await coordinator._write(None, None)
     assert result is None
