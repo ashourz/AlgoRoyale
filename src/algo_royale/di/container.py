@@ -17,9 +17,6 @@ from algo_royale.backtester.feature_engineering.feature_engineer import FeatureE
 from algo_royale.backtester.feature_engineering.feature_engineering import (
     feature_engineering,
 )
-from algo_royale.backtester.pipeline.walk_forward_coordinator import (
-    WalkForwardCoordinator,
-)
 from algo_royale.backtester.stage_coordinator.data_ingest_stage_coordinator import (
     DataIngestStageCoordinator,
 )
@@ -35,6 +32,9 @@ from algo_royale.backtester.stage_coordinator.testing_stage_coordinator import (
 from algo_royale.backtester.stage_data.stage_data_loader import StageDataLoader
 from algo_royale.backtester.stage_data.stage_data_manager import StageDataManager
 from algo_royale.backtester.stage_data.stage_data_writer import StageDataWriter
+from algo_royale.backtester.walkforward.walk_forward_coordinator import (
+    WalkForwardCoordinator,
+)
 from algo_royale.backtester.watchlist.watchlist import load_watchlist, save_watchlist
 from algo_royale.clients.alpaca.alpaca_client_config import TradingConfig
 from algo_royale.clients.alpaca.alpaca_market_data.alpaca_corporate_action_client import (

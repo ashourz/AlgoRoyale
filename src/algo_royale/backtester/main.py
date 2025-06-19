@@ -1,6 +1,6 @@
 import asyncio
 
-from algo_royale.backtester.pipeline.walk_forward_coordinator import (
+from algo_royale.backtester.walkforward.walk_forward_coordinator import (
     WalkForwardCoordinator,
 )
 
