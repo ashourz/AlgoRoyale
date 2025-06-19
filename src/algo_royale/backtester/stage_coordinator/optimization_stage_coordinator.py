@@ -125,7 +125,11 @@ class OptimizationStageCoordinator(StageCoordinator):
 
                 # Save optimization metrics to optimization_result.json under window_id
                 out_dir = self.stage_data_manager.get_directory_path(
-                    BacktestStage.OPTIMIZATION, strategy_name, symbol
+                    BacktestStage.OPTIMIZATION,
+                    strategy_name,
+                    symbol,
+                    self.start_date,
+                    self.end_date,
                 )
                 out_dir.mkdir(parents=True, exist_ok=True)
                 out_path = out_dir / "optimization_result.json"
@@ -137,13 +141,19 @@ class OptimizationStageCoordinator(StageCoordinator):
                 else:
                     opt_results = {}
 
-                opt_results[self.window_id] = {
-                    "optimization": optimization_result,
-                    "window": {
-                        "start_date": str(self.start_date),
-                        "end_date": str(self.end_date),
-                    },
+                if self.window_id not in opt_results:
+                    opt_results[self.window_id] = {}
+
+                opt_results[self.window_id]["optimization"] = (
+                    optimization_result  # or "test" for test results
+                )
+
+                opt_results[self.window_id]["window"] = {
+                    "start_date": str(self.start_date),
+                    "end_date": str(self.end_date),
                 }
+
+                # Save the updated results
                 with open(out_path, "w") as f:
                     json.dump(opt_results, f, indent=2, default=str)
 

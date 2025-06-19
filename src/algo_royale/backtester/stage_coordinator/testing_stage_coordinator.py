@@ -2,6 +2,7 @@ import inspect
 import json
 from datetime import datetime
 from logging import Logger
+from pathlib import Path
 from typing import AsyncIterator, Callable, Dict, Optional, Sequence
 
 import pandas as pd
@@ -73,6 +74,11 @@ class TestingStageCoordinator(StageCoordinator):
         self.train_window_id = (
             f"{train_start_date.strftime('%Y%m%d')}_{train_end_date.strftime('%Y%m%d')}"
         )
+        self.test_start_date = test_start_date
+        self.test_end_date = test_end_date
+        self.test_window_id = (
+            f"{test_start_date.strftime('%Y%m%d')}_{test_end_date.strftime('%Y%m%d')}"
+        )
         return await super().run(start_date=test_start_date, end_date=test_end_date)
 
     async def process(
@@ -102,27 +108,28 @@ class TestingStageCoordinator(StageCoordinator):
             for strategy_combinator in self.strategy_combinators:
                 strategy_class = strategy_combinator.strategy_class
                 strategy_name = strategy_class.__name__
-                # Load best params from optimization_result.json
-                out_dir = self.stage_data_manager.get_directory_path(
-                    BacktestStage.OPTIMIZATION, strategy_name, symbol
+                train_opt_results = self.get_optimization_results(
+                    strategy_name,
+                    symbol,
+                    self.train_start_date,
+                    self.train_end_date,
                 )
-                out_path = out_dir / "optimization_result.json"
-                if not out_path.exists():
+                if not train_opt_results:
                     self.logger.warning(
                         f"No optimization result for {symbol} {strategy_name} {self.train_window_id}"
                     )
                     continue
-                with open(out_path, "r") as f:
-                    opt_results = json.load(f)
+
                 if (
-                    self.train_window_id not in opt_results
-                    or "optimization" not in opt_results[self.train_window_id]
+                    self.train_window_id not in train_opt_results
+                    or "optimization" not in train_opt_results[self.train_window_id]
                 ):
                     self.logger.warning(
                         f"No optimization result for {symbol} {strategy_name} {self.train_window_id}"
                     )
                     continue
-                best_params = opt_results[self.train_window_id]["optimization"][
+
+                best_params = train_opt_results[self.train_window_id]["optimization"][
                     "best_params"
                 ]
                 # Only keep params accepted by the strategy's __init__
@@ -149,30 +156,64 @@ class TestingStageCoordinator(StageCoordinator):
                 dfs = raw_results.get(symbol, [])
                 if not dfs:
                     self.logger.warning(
-                        f"No test results for {symbol} {strategy_name} {self.window_id}"
+                        f"No test results for {symbol} {strategy_name} {self.test_window_id}"
                     )
                     continue
                 full_df = pd.concat(dfs, ignore_index=True)
                 metrics = self.evaluator.evaluate(strategy, full_df)
 
+                test_opt_results = self.get_optimization_results(
+                    strategy_name,
+                    symbol,
+                    self.test_start_date,
+                    self.test_end_date,
+                )
                 # Save test metrics to optimization_result.json under window_id
-                if self.window_id not in opt_results:
-                    opt_results[self.window_id] = {}
-                opt_results[self.window_id]["test"] = {
-                    "metrics": metrics,
-                    "window": {
-                        "start_date": self.start_date.strftime("%Y-%m-%d"),
-                        "end_date": self.end_date.strftime("%Y-%m-%d"),
-                    },
-                }
-                with open(out_path, "w") as f:
-                    json.dump(opt_results, f, indent=2, default=str)
+                if self.test_window_id not in test_opt_results:
+                    test_opt_results[self.test_window_id] = {}
+
+                test_opt_results[self.test_window_id]["test"] = {"metrics": metrics}
+
+                test_opt_results_path = self.get_optimization_result_path(
+                    strategy_name, symbol, self.test_start_date, self.test_end_date
+                )
+
+                with open(test_opt_results_path, "w") as f:
+                    json.dump(test_opt_results, f, indent=2, default=str)
 
                 results.setdefault(symbol, {})[strategy_name] = {
-                    self.window_id: metrics
+                    self.test_window_id: metrics
                 }
 
         return results
+
+    def get_optimization_results(
+        self, strategy_name: str, symbol: str, start_date: datetime, end_date: datetime
+    ) -> Optional[Dict]:
+        """Load optimization results for a given strategy and symbol."""
+        # Load best params from optimization_result.json
+        json_path = self.get_optimization_result_path(
+            strategy_name, symbol, start_date, end_date
+        )
+        if not json_path.exists():
+            self.logger.warning(
+                f"No optimization result for {symbol} {strategy_name} {self.train_window_id}"
+            )
+            return None
+        with open(json_path, "r") as f:
+            opt_results = json.load(f)
+
+        return opt_results
+
+    def get_optimization_result_path(
+        self, strategy_name: str, symbol: str, start_date: datetime, end_date: datetime
+    ) -> Path:
+        """Get the path to the optimization result file."""
+        out_dir = self.stage_data_manager.get_directory_path(
+            BacktestStage.OPTIMIZATION, strategy_name, symbol, start_date, end_date
+        )
+        json_path = out_dir / "optimization_result.json"
+        return json_path
 
     async def _write(self, stage, processed_data):
         # No-op: writing is handled in process()
