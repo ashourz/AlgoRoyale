@@ -4,6 +4,9 @@ from logging import Logger
 from algo_royale.backtester.walkforward.walk_forward_coordinator import (
     WalkForwardCoordinator,
 )
+from algo_royale.backtester.walkforward.walk_forward_evaluation_coordinator import (
+    WalkForwardEvaluationCoordinator,
+)
 
 
 class PipelineCoordinator:
@@ -20,12 +23,12 @@ class PipelineCoordinator:
     def __init__(
         self,
         walk_forward_coordinator: WalkForwardCoordinator,
-        # walk_forward_evaluation_coordinator: WalkForwardEvaluationCoordinator,
+        walk_forward_evaluation_coordinator: WalkForwardEvaluationCoordinator,
         logger: Logger,
     ):
         self.logger = logger
         self.walk_forward_coordinator = walk_forward_coordinator
-        # self.walk_forward_evaluation_coordinator = walk_forward_evaluation_coordinator
+        self.walk_forward_evaluation_coordinator = walk_forward_evaluation_coordinator
 
     async def run_async(self):
         try:
@@ -43,7 +46,7 @@ class PipelineCoordinator:
     ):
         try:
             self.walk_forward_coordinator.run()
-            # self.walk_forward_evaluation_coordinator.run()
+            self.walk_forward_evaluation_coordinator.run()
         except Exception as e:
             self.logger.error(f"Pipeline failed: {e}")
             return False

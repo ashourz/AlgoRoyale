@@ -36,6 +36,12 @@ from algo_royale.backtester.stage_data.stage_data_writer import StageDataWriter
 from algo_royale.backtester.walkforward.walk_forward_coordinator import (
     WalkForwardCoordinator,
 )
+from algo_royale.backtester.walkforward.walk_forward_evaluation_coordinator import (
+    WalkForwardEvaluationCoordinator,
+)
+from algo_royale.backtester.walkforward.walk_forward_evaluation_type import (
+    WalkForwardEvaluationType,
+)
 from algo_royale.backtester.watchlist.watchlist import load_watchlist, save_watchlist
 from algo_royale.clients.alpaca.alpaca_client_config import TradingConfig
 from algo_royale.clients.alpaca.alpaca_market_data.alpaca_corporate_action_client import (
@@ -386,19 +392,19 @@ class DIContainer(containers.DeclarativeContainer):
         logger=logger_backtest_prod,
     )
 
-    # walk_forward_evaluation_coordinator = providers.Singleton(
-    #     WalkForwardEvaluationCoordinator,
-    #     optimization_root_path=providers.Object(
-    #         config().get("paths.backtester", "optimization_root_path")
-    #     ),
-    #     evaluation_type=WalkForwardEvaluationType.BOTH,
-    #     optimization_json_filename=providers.Object(
-    #         config().get("backtest", "optimization_json_filename")
-    #     ),
-    #     evaluation_json_filename=providers.Object(
-    #         config().get("backtest", "evaluation_json_filename")
-    #     ),
-    # )
+    walk_forward_evaluation_coordinator = providers.Singleton(
+        WalkForwardEvaluationCoordinator,
+        optimization_root_path=providers.Object(
+            config().get("paths.backtester", "optimization_root_path")
+        ),
+        evaluation_type=WalkForwardEvaluationType.BOTH,
+        optimization_json_filename=providers.Object(
+            config().get("paths.backtest", "optimization_json_filename")
+        ),
+        evaluation_json_filename=providers.Object(
+            config().get("paths.backtest", "evaluation_json_filename")
+        ),
+    )
 
     pipeline_coordinator = providers.Singleton(
         PipelineCoordinator,

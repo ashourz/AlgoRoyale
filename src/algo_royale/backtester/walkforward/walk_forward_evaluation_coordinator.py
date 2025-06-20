@@ -48,6 +48,7 @@ class WalkForwardEvaluationCoordinator:
         for opt_json_path in self._find_optimization_result_files():
             symbol_dir = opt_json_path.parent
             try:
+                self.logger.info(f"Evaluating {opt_json_path}...")
                 report = self.evaluate_results(opt_json_path)
                 self.write_evaluation_report(symbol_dir, report)
             except Exception as e:

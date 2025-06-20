@@ -205,7 +205,7 @@ class TestingStageCoordinator(StageCoordinator):
         )
         if not json_path.exists() or json_path.stat().st_size == 0:
             self.logger.warning(
-                f"No optimization result for {symbol} {strategy_name} {self.train_window_id} (file missing or empty)"
+                f"No optimization result for {symbol} {strategy_name} start_date={start_date}, end_date={end_date} (optimization result file does not exist or is empty)"
             )
             # Optionally create an empty file for consistency
             json_path.parent.mkdir(parents=True, exist_ok=True)
