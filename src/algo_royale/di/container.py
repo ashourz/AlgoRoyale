@@ -10,7 +10,7 @@ from algo_royale.backtester.data_preparer.data_preparer import DataPreparer
 from algo_royale.backtester.data_stream.normalized_data_stream_factory import (
     NormalizedDataStreamFactory,
 )
-from algo_royale.backtester.evaluator.simple_backtest_evaluator import (
+from algo_royale.backtester.evaluator.backtest.simple_backtest_evaluator import (
     SimpleBacktestEvaluator,
 )
 from algo_royale.backtester.feature_engineering.feature_engineer import FeatureEngineer

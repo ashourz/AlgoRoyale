@@ -9,7 +9,9 @@ from algo_royale.backtester.backtest.strategy_backtest_executor import (
 )
 from algo_royale.backtester.data_preparer.async_data_preparer import AsyncDataPreparer
 from algo_royale.backtester.enum.backtest_stage import BacktestStage
-from algo_royale.backtester.evaluator.base_backtest_evaluator import BacktestEvaluator
+from algo_royale.backtester.evaluator.backtest.base_backtest_evaluator import (
+    BacktestEvaluator,
+)
 from algo_royale.backtester.stage_coordinator.stage_coordinator import StageCoordinator
 from algo_royale.backtester.stage_data.stage_data_loader import StageDataLoader
 from algo_royale.backtester.stage_data.stage_data_manager import StageDataManager
