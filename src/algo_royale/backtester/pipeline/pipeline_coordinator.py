@@ -45,7 +45,7 @@ class PipelineCoordinator:
         self,
     ):
         try:
-            self.walk_forward_coordinator.run()
+            await self.walk_forward_coordinator.run_async()
             self.walk_forward_evaluation_coordinator.run()
         except Exception as e:
             self.logger.error(f"Pipeline failed: {e}")

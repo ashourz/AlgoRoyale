@@ -394,21 +394,23 @@ class DIContainer(containers.DeclarativeContainer):
 
     walk_forward_evaluation_coordinator = providers.Singleton(
         WalkForwardEvaluationCoordinator,
+        logger=logger_backtest_prod,
         optimization_root_path=providers.Object(
             config().get("paths.backtester", "optimization_root_path")
         ),
         evaluation_type=WalkForwardEvaluationType.BOTH,
         optimization_json_filename=providers.Object(
-            config().get("paths.backtest", "optimization_json_filename")
+            config().get("paths.backtester", "optimization_json_filename")
         ),
         evaluation_json_filename=providers.Object(
-            config().get("paths.backtest", "evaluation_json_filename")
+            config().get("paths.backtester", "evaluation_json_filename")
         ),
     )
 
     pipeline_coordinator = providers.Singleton(
         PipelineCoordinator,
         walk_forward_coordinator=walk_forward_coordinator,
+        walk_forward_evaluation_coordinator=walk_forward_evaluation_coordinator,
         logger=logger_backtest_prod,
     )
 
