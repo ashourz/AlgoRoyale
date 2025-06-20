@@ -1,8 +1,9 @@
 import asyncio
-import fnmatch
 import os
 from datetime import datetime
 from logging import Logger
+
+from matplotlib.dates import relativedelta
 
 from algo_royale.backtester.enum.backtest_stage import BacktestStage
 from algo_royale.backtester.stage_coordinator.data_ingest_stage_coordinator import (
@@ -50,14 +51,15 @@ class WalkForwardCoordinator:
     def walk_forward_windows(
         self, end_date: datetime, n_trials: int = 5, window_size: int = 1
     ):
-        """Generate walk-forward windows for backtesting."""
+        """Generate walk-forward windows for backtesting using relativedelta for robust date arithmetic."""
         windows = []
-        train_start = end_date.replace(year=end_date.year - (n_trials + window_size))
+        # Go back n_trials + window_size years for the initial train window
+        train_start = end_date - relativedelta(years=(n_trials + window_size))
         train_start = train_start.replace(month=1, day=1)
         for i in range(n_trials):
-            train_end = train_start.replace(year=train_start.year + window_size)
+            train_end = train_start + relativedelta(years=window_size)
             test_start = train_end
-            test_end = test_start.replace(year=test_start.year + window_size)
+            test_end = test_start + relativedelta(years=window_size)
             windows.append(
                 {
                     "train_start": train_start,
@@ -66,7 +68,7 @@ class WalkForwardCoordinator:
                     "test_end": test_end,
                 }
             )
-            train_start = train_start.replace(year=train_start.year + 1)
+            train_start = train_start + relativedelta(years=1)
         return windows
 
     async def run_walk_forward(
@@ -221,7 +223,7 @@ class WalkForwardCoordinator:
             if os.path.isdir(data_dir):
                 for fname in os.listdir(data_dir):
                     # Ignore files like 'something.done.csv' or 'something.error.csv'
-                    if fnmatch.fnmatch(fname, "*.*.csv"):
+                    if fname.endswith(".done.csv") or fname.endswith(".error.csv"):
                         continue
                     fpath = os.path.join(data_dir, fname)
                     if os.path.isfile(fpath) and os.path.getsize(fpath) > 0:

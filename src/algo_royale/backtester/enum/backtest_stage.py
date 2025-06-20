@@ -8,12 +8,18 @@ from algo_royale.column_names.feature_engineering_columns import (
 
 
 class BacktestStageName(str):
+    STRATEGY_WALK_FORWARD = "walk_forward"
     DATA_INGEST = "data_ingest"
     FEATURE_ENGINEERING = "feature_engineering"
     BACKTEST = "backtest"
     STRATEGY_OPTIMIZATION = "strategy_optimization"
     OPTIMIZATION = "optimization"
     TESTING = "testing"
+    STRATEGY_EVALUATION = "evaluation"
+    PORTFOLIO_OPTIMIZATION = "portfolio_optimization"
+    PORTFOLIO_TESTING = "portfolio_testing"
+    PORTFOLIO_EVALUATION = "portfolio_evaluation"
+
     RESULTS_ANALYSIS = "results_analysis"
     STRATEGY_METRICS = "strategy_metrics"
     STRATEGY_SELECTION = "strategy_selection"
@@ -45,6 +51,13 @@ class BacktestStage(Enum):
         DEPLOYMENT: Deploying the selected strategy for live trading
     """
 
+    STRATEGY_WALK_FORWARD = (
+        BacktestStageName.STRATEGY_WALK_FORWARD,
+        "Walk forward evaluation of strategies",
+        None,
+        [],
+        {},
+    )
     DATA_INGEST = (
         BacktestStageName.DATA_INGEST,
         "Loading and staging raw/unprocessed data (from API, files, DB, etc.)",
@@ -100,6 +113,34 @@ class BacktestStage(Enum):
         BacktestStageName.TESTING,
         "Testing strategies using historical data",
         BacktestStageName.FEATURE_ENGINEERING,
+        [],
+        {},
+    )
+    STRATEGY_EVALUATION = (
+        BacktestStageName.STRATEGY_EVALUATION,
+        "Evaluating strategies based on performance metrics",
+        None,
+        [],
+        {},
+    )
+    PORTFOLIO_OPTIMIZATION = (
+        BacktestStageName.PORTFOLIO_OPTIMIZATION,
+        "Optimizing a portfolio of strategies",
+        None,
+        [],
+        {},
+    )
+    PORTFOLIO_TESTING = (
+        BacktestStageName.PORTFOLIO_TESTING,
+        "Testing a portfolio of strategies on historical data",
+        None,
+        [],
+        {},
+    )
+    PORTFOLIO_EVALUATION = (
+        BacktestStageName.PORTFOLIO_EVALUATION,
+        "Evaluating a portfolio of strategies based on performance metrics",
+        None,
         [],
         {},
     )

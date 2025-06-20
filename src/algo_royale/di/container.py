@@ -17,6 +17,7 @@ from algo_royale.backtester.feature_engineering.feature_engineer import FeatureE
 from algo_royale.backtester.feature_engineering.feature_engineering import (
     feature_engineering,
 )
+from algo_royale.backtester.pipeline.pipeline_coordinator import PipelineCoordinator
 from algo_royale.backtester.stage_coordinator.data_ingest_stage_coordinator import (
     DataIngestStageCoordinator,
 )
@@ -382,6 +383,26 @@ class DIContainer(containers.DeclarativeContainer):
         feature_engineering_stage_coordinator=feature_engineering_stage_coordinator,
         optimization_stage_coordinator=optimization_stage_coordinator,
         testing_stage_coordinator=testing_stage_coordinator,
+        logger=logger_backtest_prod,
+    )
+
+    # walk_forward_evaluation_coordinator = providers.Singleton(
+    #     WalkForwardEvaluationCoordinator,
+    #     optimization_root_path=providers.Object(
+    #         config().get("paths.backtester", "optimization_root_path")
+    #     ),
+    #     evaluation_type=WalkForwardEvaluationType.BOTH,
+    #     optimization_json_filename=providers.Object(
+    #         config().get("backtest", "optimization_json_filename")
+    #     ),
+    #     evaluation_json_filename=providers.Object(
+    #         config().get("backtest", "evaluation_json_filename")
+    #     ),
+    # )
+
+    pipeline_coordinator = providers.Singleton(
+        PipelineCoordinator,
+        walk_forward_coordinator=walk_forward_coordinator,
         logger=logger_backtest_prod,
     )
 

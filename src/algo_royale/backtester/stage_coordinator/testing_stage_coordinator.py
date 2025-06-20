@@ -74,10 +74,16 @@ class TestingStageCoordinator(StageCoordinator):
         self.train_window_id = (
             f"{train_start_date.strftime('%Y%m%d')}_{train_end_date.strftime('%Y%m%d')}"
         )
+        self.logger.info(
+            f"Running backtest for window {self.train_window_id} from {train_start_date} to {train_end_date}"
+        )
         self.test_start_date = test_start_date
         self.test_end_date = test_end_date
         self.test_window_id = (
             f"{test_start_date.strftime('%Y%m%d')}_{test_end_date.strftime('%Y%m%d')}"
+        )
+        self.logger.info(
+            f"Running backtest for test window {self.test_window_id} from {test_start_date} to {test_end_date}"
         )
         return await super().run(start_date=test_start_date, end_date=test_end_date)
 
@@ -189,20 +195,31 @@ class TestingStageCoordinator(StageCoordinator):
 
     def get_optimization_results(
         self, strategy_name: str, symbol: str, start_date: datetime, end_date: datetime
-    ) -> Optional[Dict]:
+    ) -> Dict:
         """Load optimization results for a given strategy and symbol."""
-        # Load best params from optimization_result.json
         json_path = self.get_optimization_result_path(
             strategy_name, symbol, start_date, end_date
         )
-        if not json_path.exists():
+        self.logger.debug(
+            f"Loading optimization results from {json_path} for {symbol} {strategy_name}"
+        )
+        if not json_path.exists() or json_path.stat().st_size == 0:
             self.logger.warning(
-                f"No optimization result for {symbol} {strategy_name} {self.train_window_id}"
+                f"No optimization result for {symbol} {strategy_name} {self.train_window_id} (file missing or empty)"
             )
-            return None
+            # Optionally create an empty file for consistency
+            json_path.parent.mkdir(parents=True, exist_ok=True)
+            with open(json_path, "w") as f:
+                json.dump({}, f)
+            return {}
         with open(json_path, "r") as f:
-            opt_results = json.load(f)
-
+            try:
+                opt_results = json.load(f)
+            except json.JSONDecodeError:
+                self.logger.warning(
+                    f"Optimization result file {json_path} is not valid JSON. Returning empty dict."
+                )
+                return {}
         return opt_results
 
     def get_optimization_result_path(

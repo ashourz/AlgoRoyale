@@ -133,7 +133,9 @@ class OptimizationStageCoordinator(StageCoordinator):
                 )
                 out_dir.mkdir(parents=True, exist_ok=True)
                 out_path = out_dir / "optimization_result.json"
-
+                self.logger.info(
+                    f"Saving optimization results for {symbol} {strategy_name} to {out_path}"
+                )
                 # Load existing results if present
                 if out_path.exists():
                     with open(out_path, "r") as f:

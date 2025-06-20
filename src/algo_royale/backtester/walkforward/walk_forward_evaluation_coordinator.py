@@ -9,7 +9,18 @@ from algo_royale.backtester.walkforward.walk_forward_evaluation_type import (
 from .walk_forward_evaluator import WalkForwardEvaluator
 
 
-class WalkForwardEvaluationStageCoordinator:
+class WalkForwardEvaluationCoordinator:
+    """Coordinator for evaluating walk-forward optimization results.
+    This class finds all optimization result files, evaluates them,
+    and writes the evaluation reports to JSON files.
+    It supports different evaluation types: test, optimization, or both.
+    Parameters:
+        optimization_root_path (Path): Path to the root directory containing optimization results.
+        evaluation_type (WalkForwardEvaluationType): Type of evaluation to perform (test, optimization, or both).
+        optimization_json_filename (str): Name of the optimization result JSON file.
+        evaluation_json_filename (str): Name of the evaluation report JSON file.
+    """
+
     def __init__(
         self,
         optimization_root_path: Path,
@@ -71,7 +82,7 @@ class WalkForwardEvaluationStageCoordinator:
 
 
 # Example usage:
-# coordinator = WalkForwardEvaluationStageCoordinator(
+# coordinator = WalkForwardEvaluationCoordinator(
 #     optimization_root="c:/Users/ashou/AlgoRoyale/data/optimization/BollingerBandsStrategy",
 #     metric_type="both"
 # )
