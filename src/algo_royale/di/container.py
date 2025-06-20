@@ -412,7 +412,6 @@ class DIContainer(containers.DeclarativeContainer):
 
     symbol_evaluation_coordinator = providers.Singleton(
         SymbolEvaluationCoordinator,
-        symbol=providers.Object("AAPL"),  # Example symbol, can be parameterized
         optimization_root=providers.Object(
             config().get("paths.backtester", "optimization_root_path")
         ),
@@ -429,6 +428,7 @@ class DIContainer(containers.DeclarativeContainer):
         PipelineCoordinator,
         walk_forward_coordinator=walk_forward_coordinator,
         strategy_evaluation_coordinator=strategy_evaluation_coordinator,
+        symbol_evaluation_coordinator=symbol_evaluation_coordinator,
         logger=logger_backtest_prod,
     )
 
