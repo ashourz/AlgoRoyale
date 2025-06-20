@@ -5,14 +5,14 @@ from typing import List
 
 import numpy as np
 
-from algo_royale.backtester.walkforward.walk_forward_evaluation_type import (
-    WalkForwardEvaluationType,
+from algo_royale.backtester.walkforward.strategy_evaluation_type import (
+    StrategyEvaluationType,
 )
 
-from .walk_forward_evaluator import WalkForwardEvaluator
+from .strategy_evaluator import StrategyEvaluator
 
 
-class WalkForwardEvaluationCoordinator:
+class StrategyEvaluationCoordinator:
     """Coordinator for evaluating walk-forward optimization results.
     This class finds all optimization result files, evaluates them,
     and writes the evaluation reports to JSON files.
@@ -29,7 +29,7 @@ class WalkForwardEvaluationCoordinator:
         self,
         logger: Logger,
         optimization_root_path: Path,
-        evaluation_type: WalkForwardEvaluationType,
+        evaluation_type: StrategyEvaluationType,
         optimization_json_filename: str = "optimization_result.json",
         evaluation_json_filename: str = "walk_forward_evaluation.json",
     ):
@@ -61,7 +61,7 @@ class WalkForwardEvaluationCoordinator:
                 continue
             try:
                 self.logger.info(f"Evaluating {opt_json_path}...")
-                evaluator = WalkForwardEvaluator(
+                evaluator = StrategyEvaluator(
                     opt_json_path, metric_type=self.evaluation_type
                 )
                 all_metrics.extend(evaluator.metrics)
@@ -153,9 +153,7 @@ class WalkForwardEvaluationCoordinator:
 
     def evaluate_results(self, opt_json_path: Path) -> dict:
         """Evaluate a single optimization result file."""
-        evaluator = WalkForwardEvaluator(
-            opt_json_path, metric_type=self.evaluation_type
-        )
+        evaluator = StrategyEvaluator(opt_json_path, metric_type=self.evaluation_type)
         summary = evaluator.summary()
         viability_score = evaluator.viability_score()
         is_viable = evaluator.is_viable()

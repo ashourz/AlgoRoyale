@@ -33,14 +33,14 @@ from algo_royale.backtester.stage_coordinator.testing_stage_coordinator import (
 from algo_royale.backtester.stage_data.stage_data_loader import StageDataLoader
 from algo_royale.backtester.stage_data.stage_data_manager import StageDataManager
 from algo_royale.backtester.stage_data.stage_data_writer import StageDataWriter
+from algo_royale.backtester.walkforward.strategy_evaluation_coordinator import (
+    StrategyEvaluationCoordinator,
+)
+from algo_royale.backtester.walkforward.strategy_evaluation_type import (
+    StrategyEvaluationType,
+)
 from algo_royale.backtester.walkforward.walk_forward_coordinator import (
     WalkForwardCoordinator,
-)
-from algo_royale.backtester.walkforward.walk_forward_evaluation_coordinator import (
-    WalkForwardEvaluationCoordinator,
-)
-from algo_royale.backtester.walkforward.walk_forward_evaluation_type import (
-    WalkForwardEvaluationType,
 )
 from algo_royale.backtester.watchlist.watchlist import load_watchlist, save_watchlist
 from algo_royale.clients.alpaca.alpaca_client_config import TradingConfig
@@ -392,13 +392,13 @@ class DIContainer(containers.DeclarativeContainer):
         logger=logger_backtest_prod,
     )
 
-    walk_forward_evaluation_coordinator = providers.Singleton(
-        WalkForwardEvaluationCoordinator,
+    strategy_evaluation_coordinator = providers.Singleton(
+        StrategyEvaluationCoordinator,
         logger=logger_backtest_prod,
         optimization_root_path=providers.Object(
             config().get("paths.backtester", "optimization_root_path")
         ),
-        evaluation_type=WalkForwardEvaluationType.BOTH,
+        evaluation_type=StrategyEvaluationType.BOTH,
         optimization_json_filename=providers.Object(
             config().get("paths.backtester", "optimization_json_filename")
         ),
@@ -410,7 +410,7 @@ class DIContainer(containers.DeclarativeContainer):
     pipeline_coordinator = providers.Singleton(
         PipelineCoordinator,
         walk_forward_coordinator=walk_forward_coordinator,
-        walk_forward_evaluation_coordinator=walk_forward_evaluation_coordinator,
+        strategy_evaluation_coordinator=strategy_evaluation_coordinator,
         logger=logger_backtest_prod,
     )
 

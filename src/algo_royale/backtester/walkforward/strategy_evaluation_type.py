@@ -1,4 +1,4 @@
-class WalkForwardEvaluationType:
+class StrategyEvaluationType:
     """
     Enum representing the type of walk forward evaluation.
     - TEST: Evaluate the test set.

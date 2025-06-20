@@ -3,12 +3,12 @@ from pathlib import Path
 
 import numpy as np
 
-from algo_royale.backtester.walkforward.walk_forward_evaluation_type import (
-    WalkForwardEvaluationType,
+from algo_royale.backtester.walkforward.strategy_evaluation_type import (
+    StrategyEvaluationType,
 )
 
 
-class WalkForwardEvaluator:
+class StrategyEvaluator:
     """
     Class to evaluate the results of a walk-forward optimization.
     It reads the optimization results from a JSON file and computes various metrics.
@@ -17,7 +17,7 @@ class WalkForwardEvaluator:
     def __init__(
         self,
         results_path: Path,
-        metric_type: WalkForwardEvaluationType = WalkForwardEvaluationType.BOTH,
+        metric_type: StrategyEvaluationType = StrategyEvaluationType.BOTH,
     ):
         """
         Args:
