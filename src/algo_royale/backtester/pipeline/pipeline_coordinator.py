@@ -1,7 +1,7 @@
 import asyncio
 from logging import Logger
 
-from algo_royale.backtester.walkforward.strategy_evaluation_coordinator import (
+from algo_royale.backtester.evaluator.strategy.strategy_evaluation_coordinator import (
     StrategyEvaluationCoordinator,
 )
 from algo_royale.backtester.walkforward.walk_forward_coordinator import (

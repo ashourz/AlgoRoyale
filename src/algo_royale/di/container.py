@@ -13,6 +13,12 @@ from algo_royale.backtester.data_stream.normalized_data_stream_factory import (
 from algo_royale.backtester.evaluator.backtest.simple_backtest_evaluator import (
     SimpleBacktestEvaluator,
 )
+from algo_royale.backtester.evaluator.strategy.strategy_evaluation_coordinator import (
+    StrategyEvaluationCoordinator,
+)
+from algo_royale.backtester.evaluator.strategy.strategy_evaluation_type import (
+    StrategyEvaluationType,
+)
 from algo_royale.backtester.feature_engineering.feature_engineer import FeatureEngineer
 from algo_royale.backtester.feature_engineering.feature_engineering import (
     feature_engineering,
@@ -33,12 +39,6 @@ from algo_royale.backtester.stage_coordinator.testing_stage_coordinator import (
 from algo_royale.backtester.stage_data.stage_data_loader import StageDataLoader
 from algo_royale.backtester.stage_data.stage_data_manager import StageDataManager
 from algo_royale.backtester.stage_data.stage_data_writer import StageDataWriter
-from algo_royale.backtester.walkforward.strategy_evaluation_coordinator import (
-    StrategyEvaluationCoordinator,
-)
-from algo_royale.backtester.walkforward.strategy_evaluation_type import (
-    StrategyEvaluationType,
-)
 from algo_royale.backtester.walkforward.walk_forward_coordinator import (
     WalkForwardCoordinator,
 )
