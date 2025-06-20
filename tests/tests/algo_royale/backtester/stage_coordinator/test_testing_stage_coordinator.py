@@ -149,7 +149,7 @@ async def test_process_returns_metrics(
 
     # Patch get_directory_path to point to our temp dir
     mock_manager.get_directory_path.side_effect = (
-        lambda stage, strategy_name, symbol: tmp_path
+        lambda stage, strategy_name, symbol, *args, **kwargs: tmp_path
         / f"optimization_{strategy_name}_{symbol}"
     )
 
@@ -167,9 +167,11 @@ async def test_process_returns_metrics(
         ],
     )
     coordinator.train_window_id = train_window_id
-    coordinator.window_id = test_window_id
-    coordinator.start_date = datetime(2024, 2, 1)
-    coordinator.end_date = datetime(2024, 2, 28)
+    coordinator.test_window_id = test_window_id  # <-- add this line
+    coordinator.train_start_date = datetime(2024, 1, 1)
+    coordinator.train_end_date = datetime(2024, 1, 31)
+    coordinator.test_start_date = datetime(2024, 2, 1)
+    coordinator.test_end_date = datetime(2024, 2, 28)
 
     async def df_iter():
         yield pd.DataFrame({"a": [1]})
@@ -203,7 +205,7 @@ async def test_process_warns_on_missing_optimization(
 
     # Patch get_directory_path to point to a non-existent file
     mock_manager.get_directory_path.side_effect = (
-        lambda stage, strategy_name, symbol: tmp_path
+        lambda stage, strategy_name, symbol, *args, **kwargs: tmp_path
         / f"optimization_{strategy_name}_{symbol}"
     )
 
@@ -222,8 +224,10 @@ async def test_process_warns_on_missing_optimization(
     )
     coordinator.train_window_id = "20240101_20240131"
     coordinator.window_id = "20240201_2024-02-28"
-    coordinator.start_date = datetime(2024, 2, 1)
-    coordinator.end_date = datetime(2024, 2, 28)
+    coordinator.train_start_date = datetime(2024, 1, 1)
+    coordinator.train_end_date = datetime(2024, 1, 31)
+    coordinator.test_start_date = datetime(2024, 2, 1)
+    coordinator.test_end_date = datetime(2024, 2, 28)
 
     async def df_iter():
         yield pd.DataFrame({"a": [1]})
