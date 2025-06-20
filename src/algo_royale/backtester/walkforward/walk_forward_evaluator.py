@@ -1,12 +1,28 @@
 import json
+from pathlib import Path
 
 import numpy as np
 
+from algo_royale.backtester.walkforward.walk_forward_evaluation_type import (
+    WalkForwardEvaluationType,
+)
+
 
 class WalkForwardEvaluator:
-    def __init__(self, results_path, metric_type="test"):
+    """
+    Class to evaluate the results of a walk-forward optimization.
+    It reads the optimization results from a JSON file and computes various metrics.
+    """
+
+    def __init__(
+        self,
+        results_path: Path,
+        metric_type: WalkForwardEvaluationType = WalkForwardEvaluationType.BOTH,
+    ):
         """
-        metric_type: "test", "optimization", or "both"
+        Args:
+            results_path: Path to the JSON file containing optimization results.
+            metric_type: Type of metrics to extract (test, optimization, or both).
         """
         with open(results_path, "r") as f:
             self.results = json.load(f)
