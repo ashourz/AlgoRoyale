@@ -3,7 +3,7 @@ from pathlib import Path
 
 import numpy as np
 
-from algo_royale.backtester.walkforward.strategy_evaluation_type import (
+from algo_royale.backtester.evaluator.strategy.strategy_evaluation_type import (
     StrategyEvaluationType,
 )
 

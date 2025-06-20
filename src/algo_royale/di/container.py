@@ -19,6 +19,9 @@ from algo_royale.backtester.evaluator.strategy.strategy_evaluation_coordinator i
 from algo_royale.backtester.evaluator.strategy.strategy_evaluation_type import (
     StrategyEvaluationType,
 )
+from algo_royale.backtester.evaluator.symbol.symbol_evaluation_coordinator import (
+    SymbolEvaluationCoordinator,
+)
 from algo_royale.backtester.feature_engineering.feature_engineer import FeatureEngineer
 from algo_royale.backtester.feature_engineering.feature_engineering import (
     feature_engineering,
@@ -405,6 +408,21 @@ class DIContainer(containers.DeclarativeContainer):
         evaluation_json_filename=providers.Object(
             config().get("paths.backtester", "evaluation_json_filename")
         ),
+    )
+
+    symbol_evaluation_coordinator = providers.Singleton(
+        SymbolEvaluationCoordinator,
+        symbol=providers.Object("AAPL"),  # Example symbol, can be parameterized
+        optimization_root=providers.Object(
+            config().get("paths.backtester", "optimization_root_path")
+        ),
+        evaluation_json_filename=providers.Object(
+            config().get("paths.backtester", "evaluation_json_filename")
+        ),
+        summary_json_filename=providers.Object(
+            config().get("paths.backtester", "summary_json_filename")
+        ),
+        viability_threshold=0.75,
     )
 
     pipeline_coordinator = providers.Singleton(

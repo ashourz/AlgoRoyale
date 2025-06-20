@@ -72,10 +72,10 @@ class StageDataManager:
         If symbol is None, it will not include it in the path.
         """
         path = self.base_dir / stage.value
-        if strategy_name:
-            path = path / strategy_name
         if symbol:
             path = path / symbol
+        if strategy_name:
+            path = path / strategy_name
         if start_date and end_date:
             date_window_id = self.get_window_id(start_date, end_date)
             path = path / date_window_id
