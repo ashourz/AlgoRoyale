@@ -3,10 +3,12 @@ from algo_royale.strategy_factory.conditions.pullback_entry import (
     PullbackEntryCondition,
 )
 from algo_royale.strategy_factory.conditions.pullback_exit import PullbackExitCondition
-from algo_royale.strategy_factory.strategies.base_strategy import Strategy
+from algo_royale.strategy_factory.strategies.base_signal_strategy import (
+    BaseSignalStrategy,
+)
 
 
-class PullbackEntryStrategy(Strategy):
+class PullbackEntryStrategy(BaseSignalStrategy):
     def __init__(
         self,
         entry_conditions: list[PullbackEntryCondition] = [

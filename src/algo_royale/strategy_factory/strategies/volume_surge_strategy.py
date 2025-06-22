@@ -6,10 +6,10 @@ from algo_royale.strategy_factory.conditions.volume_surge_exit import (
     VolumeSurgeExitCondition,
 )
 
-from .base_strategy import Strategy
+from .base_signal_strategy import BaseSignalStrategy
 
 
-class VolumeSurgeStrategy(Strategy):
+class VolumeSurgeStrategy(BaseSignalStrategy):
     """
     Volume Surge Strategy:
     - Buy when current volume exceeds a multiple of the moving average volume.

@@ -1,5 +1,5 @@
-from algo_royale.strategy_factory.combinator.base_strategy_combinator import (
-    StrategyCombinator,
+from algo_royale.strategy_factory.combinator.base_signal_strategy_combinator import (
+    SignalStrategyCombinator,
 )
 from algo_royale.strategy_factory.conditions.wick_reversal_entry import (
     WickReversalEntryCondition,
@@ -12,7 +12,7 @@ from algo_royale.strategy_factory.strategies.wick_reversal_strategy import (
 )
 
 
-class WickReversalStrategyCombinator(StrategyCombinator):
+class WickReversalStrategyCombinator(SignalStrategyCombinator):
     """
     Combines conditions and logic for a Wick Reversal strategy.
     This strategy uses a combination of entry conditions based on wick reversals,

@@ -1,5 +1,5 @@
-from algo_royale.strategy_factory.combinator.base_strategy_combinator import (
-    StrategyCombinator,
+from algo_royale.strategy_factory.combinator.base_signal_strategy_combinator import (
+    SignalStrategyCombinator,
 )
 from algo_royale.strategy_factory.conditions.volume_surge_entry import (
     VolumeSurgeEntryCondition,
@@ -9,7 +9,7 @@ from algo_royale.strategy_factory.strategies.volume_surge_strategy import (
 )
 
 
-class VolumeSurgeStrategyCombinator(StrategyCombinator):
+class VolumeSurgeStrategyCombinator(SignalStrategyCombinator):
     """Combines conditions and logic for a Volume Surge strategy.
     This strategy uses a combination of entry conditions based on volume surges.
     It does not include any filter conditions, trend conditions, or exit conditions,

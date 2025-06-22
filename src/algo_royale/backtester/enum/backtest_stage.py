@@ -13,6 +13,7 @@ class BacktestStageName(str):
     FEATURE_ENGINEERING = "feature_engineering"
     BACKTEST = "backtest"
     STRATEGY_OPTIMIZATION = "strategy_optimization"
+    STRATEGY_TESTING = "strategy_testing"
     OPTIMIZATION = "optimization"
     TESTING = "testing"
     STRATEGY_EVALUATION = "evaluation"
@@ -109,6 +110,20 @@ class BacktestStage(Enum):
         [],
         {},
     )
+    STRATEGY_OPTIMIZATION = (
+        BacktestStageName.STRATEGY_OPTIMIZATION,
+        "Optimizing strategies using historical data",
+        BacktestStageName.FEATURE_ENGINEERING,
+        [],
+        {},
+    )
+    STRATEGY_TESTING = (
+        BacktestStageName.STRATEGY_TESTING,
+        "Testing strategies using historical data",
+        BacktestStageName.FEATURE_ENGINEERING,
+        [],
+        {},
+    )
     TESTING = (
         BacktestStageName.TESTING,
         "Testing strategies using historical data",
@@ -149,20 +164,6 @@ class BacktestStage(Enum):
         "Backtesting strategies on historical data",
         BacktestStageName.FEATURE_ENGINEERING,
         [],
-        {},
-    )
-    STRATEGY_OPTIMIZATION = (
-        BacktestStageName.STRATEGY_OPTIMIZATION,
-        "Optimizing strategies using historical data",
-        BacktestStageName.BACKTEST,
-        [
-            "timestamp",
-            "open",
-            "high",
-            "low",
-            "close",
-            "volume",
-        ],
         {},
     )
     RESULTS_ANALYSIS = (

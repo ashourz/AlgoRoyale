@@ -1,5 +1,5 @@
-from algo_royale.strategy_factory.combinator.base_strategy_combinator import (
-    StrategyCombinator,
+from algo_royale.strategy_factory.combinator.base_signal_strategy_combinator import (
+    SignalStrategyCombinator,
 )
 from algo_royale.strategy_factory.conditions.moving_average_crossover_entry import (
     MovingAverageCrossoverEntryCondition,
@@ -12,7 +12,7 @@ from algo_royale.strategy_factory.strategies.moving_average_crossover_strategy i
 )
 
 
-class MovingAverageCrossoverStrategyCombinator(StrategyCombinator):
+class MovingAverageCrossoverStrategyCombinator(SignalStrategyCombinator):
     """
     Combines conditions and logic for a Moving Average Crossover strategy.
     This strategy uses a combination of entry and exit conditions based on moving average crossovers.

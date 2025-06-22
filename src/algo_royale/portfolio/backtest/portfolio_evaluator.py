@@ -1,27 +1,71 @@
 from typing import Any, Dict
 
+import numpy as np
 import pandas as pd
 
 
-class PortfolioEvaluator:
+class PortfolioBacktestEvaluator:
     """
     Evaluates portfolio backtest results and computes performance metrics.
     """
 
     def evaluate(self, strategy, results: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Evaluate portfolio backtest results and compute key performance metrics.
+
+        Parameters:
+            strategy: The portfolio strategy instance (not used in evaluation, but included for interface consistency).
+            results (dict): Dictionary containing backtest results. Expected keys:
+                - "portfolio_values": List or array of portfolio values over time (preferred).
+                  OR
+                - "portfolio_returns": List, array, or pd.Series of periodic returns (if values not available).
+                - "trades" (optional): List of trades or transactions (for number of trades).
+
+        Returns:
+            metrics (dict): Dictionary with the following keys:
+                - "total_return": Total return over the period (float).
+                - "mean_return": Mean periodic return (float).
+                - "volatility": Standard deviation of periodic returns (float).
+                - "sharpe_ratio": Mean return divided by volatility (float).
+                - "max_drawdown": Maximum drawdown over the period (float, negative).
+                - "sortino_ratio": Mean return divided by downside deviation (float).
+                - "calmar_ratio": Total return divided by abs(max_drawdown) (float).
+                - "win_rate": Fraction of periods with positive return (float).
+                - "profit_factor": Sum of positive returns divided by sum of negative returns (float).
+                - "num_trades": Number of trades (int, if trade data provided).
+        """
         # Use portfolio_values if available, else fallback to portfolio_returns
         if "portfolio_values" in results:
             values = pd.Series(results["portfolio_values"])
             returns = values.pct_change().fillna(0)
         else:
-            returns = results["portfolio_returns"]
+            returns = pd.Series(results["portfolio_returns"])
+        # Metrics
+        total_return = float((returns + 1).prod() - 1)
+        mean_return = float(returns.mean())
+        volatility = float(returns.std())
+        sharpe_ratio = float(returns.mean() / (returns.std() + 1e-8))
+        max_dd = float(self.max_drawdown(returns))
+        sortino_ratio = float(self.sortino_ratio(returns))
+        calmar_ratio = float(total_return / abs(max_dd)) if max_dd != 0 else np.nan
+        win_rate = float((returns > 0).sum() / len(returns))
+        profit_factor = self.profit_factor(returns)
+        num_trades = None
+        if "trades" in results and results["trades"] is not None:
+            num_trades = len(results["trades"])
         metrics = {
-            "total_return": float((returns + 1).prod() - 1),
-            "mean_return": float(returns.mean()),
-            "volatility": float(returns.std()),
-            "sharpe_ratio": float(returns.mean() / (returns.std() + 1e-8)),
-            "max_drawdown": float(self.max_drawdown(returns)),
+            "total_return": total_return,
+            "mean_return": mean_return,
+            "volatility": volatility,
+            "sharpe_ratio": sharpe_ratio,
+            "max_drawdown": max_dd,
+            "sortino_ratio": sortino_ratio,
+            "calmar_ratio": calmar_ratio,
+            "win_rate": win_rate,
+            "profit_factor": profit_factor,
         }
+        if num_trades is not None:
+            metrics["num_trades"] = num_trades
         return metrics
 
     @staticmethod
@@ -30,3 +74,19 @@ class PortfolioEvaluator:
         peak = cum_returns.cummax()
         drawdown = (cum_returns - peak) / peak
         return drawdown.min()
+
+    @staticmethod
+    def sortino_ratio(returns: pd.Series, risk_free_rate: float = 0.0) -> float:
+        downside = returns[returns < risk_free_rate]
+        downside_std = downside.std() if len(downside) > 0 else 0.0
+        if downside_std == 0:
+            return np.nan
+        return (returns.mean() - risk_free_rate) / (downside_std + 1e-8)
+
+    @staticmethod
+    def profit_factor(returns: pd.Series) -> float:
+        gains = returns[returns > 0].sum()
+        losses = -returns[returns < 0].sum()
+        if losses == 0:
+            return np.inf
+        return float(gains / losses)

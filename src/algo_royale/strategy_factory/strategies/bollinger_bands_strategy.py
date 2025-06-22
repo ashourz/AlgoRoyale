@@ -4,10 +4,12 @@ from algo_royale.strategy_factory.conditions.bollinger_bands_entry import (
 from algo_royale.strategy_factory.conditions.bollinger_bands_exit import (
     BollingerBandsExitCondition,
 )
-from algo_royale.strategy_factory.strategies.base_strategy import Strategy
+from algo_royale.strategy_factory.strategies.base_signal_strategy import (
+    BaseSignalStrategy,
+)
 
 
-class BollingerBandsStrategy(Strategy):
+class BollingerBandsStrategy(BaseSignalStrategy):
     """
     Bollinger Bands Strategy using the modular function approach.
     Buy when price falls below the lower band,

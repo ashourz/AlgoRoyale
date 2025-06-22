@@ -1,12 +1,12 @@
-from algo_royale.strategy_factory.combinator.base_strategy_combinator import (
-    StrategyCombinator,
+from algo_royale.strategy_factory.combinator.base_signal_strategy_combinator import (
+    SignalStrategyCombinator,
 )
 from algo_royale.strategy_factory.conditions.rsi_entry import RSIEntryCondition
 from algo_royale.strategy_factory.conditions.rsi_exit import RSIExitCondition
 from algo_royale.strategy_factory.strategies.rsi_strategy import RSIStrategy
 
 
-class RSIStrategyCombinator(StrategyCombinator):
+class RSIStrategyCombinator(SignalStrategyCombinator):
     """Combines conditions and logic for an RSI strategy.
     This strategy uses a combination of entry and exit conditions based on the Relative Strength Index (RSI).
     It does not include any filter conditions or trend conditions, focusing solely on the RSI logic.

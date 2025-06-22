@@ -1,7 +1,7 @@
 from logging import Logger
 
-from algo_royale.strategy_factory.combinator.base_strategy_combinator import (
-    StrategyCombinator,
+from algo_royale.strategy_factory.combinator.base_signal_strategy_combinator import (
+    SignalStrategyCombinator,
 )
 
 
@@ -40,7 +40,7 @@ def make_combinator(
     allow_empty_exit=False,
     allow_empty_stateful_logic=False,
 ):
-    class TestCombinator(StrategyCombinator):
+    class TestCombinator(SignalStrategyCombinator):
         pass
 
     TestCombinator.filter_condition_types = filter_types

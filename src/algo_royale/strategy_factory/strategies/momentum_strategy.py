@@ -3,10 +3,12 @@ from algo_royale.strategy_factory.conditions.momentum_entry import (
     MomentumEntryCondition,
 )
 from algo_royale.strategy_factory.conditions.momentum_exit import MomentumExitCondition
-from algo_royale.strategy_factory.strategies.base_strategy import Strategy
+from algo_royale.strategy_factory.strategies.base_signal_strategy import (
+    BaseSignalStrategy,
+)
 
 
-class MomentumStrategy(Strategy):
+class MomentumStrategy(BaseSignalStrategy):
     """
     Enhanced Momentum Strategy using modular entry/exit conditions.
     Buy when momentum exceeds a threshold after smoothing,

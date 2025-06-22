@@ -1,5 +1,5 @@
-from algo_royale.strategy_factory.combinator.base_strategy_combinator import (
-    StrategyCombinator,
+from algo_royale.strategy_factory.combinator.base_signal_strategy_combinator import (
+    SignalStrategyCombinator,
 )
 from algo_royale.strategy_factory.conditions.time_of_day_entry import (
     TimeOfDayEntryCondition,
@@ -12,7 +12,7 @@ from algo_royale.strategy_factory.strategies.time_of_day_bias_strategy import (
 )
 
 
-class TimeOfDayBiasStrategyCombinator(StrategyCombinator):
+class TimeOfDayBiasStrategyCombinator(SignalStrategyCombinator):
     """Combines conditions and logic for a Time of Day Bias strategy.
     This strategy uses a combination of entry and exit conditions based on specific hours of the day.
     It does not include any filter conditions or trend conditions, focusing solely on the time of day logic.

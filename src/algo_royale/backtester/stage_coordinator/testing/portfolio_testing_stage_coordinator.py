@@ -12,6 +12,9 @@ from algo_royale.backtester.enum.backtest_stage import BacktestStage
 from algo_royale.backtester.executor.portfolio_backtest_executor import (
     PortfolioBacktestExecutor,
 )
+from algo_royale.backtester.stage_coordinator.testing.base_testing_stage_coordinator import (
+    BaseTestingStageCoordinator,
+)
 from algo_royale.backtester.stage_data.stage_data_loader import StageDataLoader
 from algo_royale.backtester.stage_data.stage_data_manager import StageDataManager
 from algo_royale.backtester.stage_data.stage_data_writer import StageDataWriter
@@ -20,9 +23,6 @@ from algo_royale.portfolio.backtest.portfolio_evaluator import (
 )
 from algo_royale.portfolio.optimizer.portfolio_strategy_combinator import (
     PortfolioStrategyCombinator,
-)
-from algo_royale.portfolio.stage_coordinator.base_testing_stage_coordinator import (
-    BaseTestingStageCoordinator,
 )
 
 
@@ -35,22 +35,20 @@ class PortfolioTestingStageCoordinator(BaseTestingStageCoordinator):
         stage_data_manager: StageDataManager,
         logger: Logger,
         strategy_combinators: Sequence[type[PortfolioStrategyCombinator]],
-        executor: PortfolioBacktestExecutor,  # PortfolioBacktestExecutor instance injected
-        evaluator: PortfolioBacktestEvaluator,  # PortfolioEvaluator instance injected
+        executor: PortfolioBacktestExecutor,
+        evaluator: PortfolioBacktestEvaluator,
     ):
         super().__init__(
-            stage=BacktestStage.BACKTEST,
+            stage=BacktestStage.PORTFOLIO_TESTING,
             data_loader=data_loader,
             data_preparer=data_preparer,
             data_writer=data_writer,
             stage_data_manager=stage_data_manager,
             logger=logger,
+            executor=executor,
+            evaluator=evaluator,
+            strategy_combinators=strategy_combinators,
         )
-        self.strategy_combinators = strategy_combinators
-        if not self.strategy_combinators:
-            raise ValueError("No portfolio strategy combinators provided")
-        self.executor = executor
-        self.evaluator = evaluator
 
     async def run(
         self,

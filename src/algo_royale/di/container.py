@@ -2,9 +2,6 @@ from functools import partial
 
 from dependency_injector import containers, providers
 
-from algo_royale.backtester.backtest.strategy_backtest_executor import (
-    StrategyBacktestExecutor,
-)
 from algo_royale.backtester.data_preparer.async_data_preparer import AsyncDataPreparer
 from algo_royale.backtester.data_preparer.data_preparer import DataPreparer
 from algo_royale.backtester.data_stream.normalized_data_stream_factory import (
@@ -22,6 +19,9 @@ from algo_royale.backtester.evaluator.strategy.strategy_evaluation_type import (
 from algo_royale.backtester.evaluator.symbol.symbol_evaluation_coordinator import (
     SymbolEvaluationCoordinator,
 )
+from algo_royale.backtester.executor.strategy_backtest_executor import (
+    StrategyBacktestExecutor,
+)
 from algo_royale.backtester.feature_engineering.feature_engineer import FeatureEngineer
 from algo_royale.backtester.feature_engineering.feature_engineering import (
     feature_engineering,
@@ -33,11 +33,17 @@ from algo_royale.backtester.stage_coordinator.data_ingest_stage_coordinator impo
 from algo_royale.backtester.stage_coordinator.feature_engineering_stage_coordinator import (
     FeatureEngineeringStageCoordinator,
 )
-from algo_royale.backtester.stage_coordinator.optimization_stage_coordinator import (
-    OptimizationStageCoordinator,
+from algo_royale.backtester.stage_coordinator.optimization.portfolio_optimization_stage_coordinator import (
+    PortfolioOptimizationStageCoordinator,
 )
-from algo_royale.backtester.stage_coordinator.testing_stage_coordinator import (
-    TestingStageCoordinator,
+from algo_royale.backtester.stage_coordinator.optimization.strategy_optimization_stage_coordinator import (
+    StrategyOptimizationStageCoordinator,
+)
+from algo_royale.backtester.stage_coordinator.testing.portfolio_testing_stage_coordinator import (
+    PortfolioTestingStageCoordinator,
+)
+from algo_royale.backtester.stage_coordinator.testing.strategy_testing_stage_coordinator import (
+    StrategyTestingStageCoordinator,
 )
 from algo_royale.backtester.stage_data.stage_data_loader import StageDataLoader
 from algo_royale.backtester.stage_data.stage_data_manager import StageDataManager
@@ -358,8 +364,8 @@ class DIContainer(containers.DeclarativeContainer):
         # WickReversalStrategyCombinator,
     ]
 
-    optimization_stage_coordinator = providers.Singleton(
-        OptimizationStageCoordinator,
+    strategy_optimization_stage_coordinator = providers.Singleton(
+        StrategyOptimizationStageCoordinator,
         data_loader=stage_data_loader,
         data_preparer=async_data_preparer,
         data_writer=stage_data_writer,
@@ -371,10 +377,8 @@ class DIContainer(containers.DeclarativeContainer):
         strategy_evaluator=strategy_evaluator,
     )
 
-    # Strategy backtest coordinator
-    # This is where we define the backtest stage coordinator with the strategy executor
-    testing_stage_coordinator = providers.Singleton(
-        TestingStageCoordinator,
+    strategy_testing_stage_coordinator = providers.Singleton(
+        StrategyTestingStageCoordinator,
         data_loader=stage_data_loader,
         data_preparer=async_data_preparer,
         data_writer=stage_data_writer,
@@ -386,12 +390,47 @@ class DIContainer(containers.DeclarativeContainer):
         strategy_combinators=strategy_combinators,
     )
 
-    walk_forward_coordinator = providers.Singleton(
+    strategy_walk_forward_coordinator = providers.Singleton(
         WalkForwardCoordinator,
         data_ingest_stage_coordinator=data_ingest_stage_coordinator,
         feature_engineering_stage_coordinator=feature_engineering_stage_coordinator,
-        optimization_stage_coordinator=optimization_stage_coordinator,
-        testing_stage_coordinator=testing_stage_coordinator,
+        optimization_stage_coordinator=strategy_optimization_stage_coordinator,
+        testing_stage_coordinator=strategy_testing_stage_coordinator,
+        logger=logger_backtest_prod,
+    )
+
+    portfolio_optimization_stage_coordinator = providers.Singleton(
+        PortfolioOptimizationStageCoordinator,
+        data_loader=stage_data_loader,
+        data_preparer=async_data_preparer,
+        data_writer=stage_data_writer,
+        stage_data_manager=stage_data_manager,
+        strategy_factory=strategy_factory,
+        logger=logger_backtest_prod,
+        strategy_combinators=strategy_combinators,
+        strategy_executor=strategy_executor,
+        strategy_evaluator=strategy_evaluator,
+    )
+
+    portfolio_testing_stage_coordinator = providers.Singleton(
+        PortfolioTestingStageCoordinator,
+        data_loader=stage_data_loader,
+        data_preparer=async_data_preparer,
+        data_writer=stage_data_writer,
+        stage_data_manager=stage_data_manager,
+        strategy_executor=strategy_executor,
+        strategy_evaluator=strategy_evaluator,
+        strategy_factory=strategy_factory,
+        logger=logger_backtest_prod,
+        strategy_combinators=strategy_combinators,
+    )
+
+    portfolio_walk_forward_coordinator = providers.Singleton(
+        WalkForwardCoordinator,
+        data_ingest_stage_coordinator=data_ingest_stage_coordinator,
+        feature_engineering_stage_coordinator=feature_engineering_stage_coordinator,
+        optimization_stage_coordinator=strategy_optimization_stage_coordinator,
+        testing_stage_coordinator=strategy_testing_stage_coordinator,
         logger=logger_backtest_prod,
     )
 
@@ -426,7 +465,7 @@ class DIContainer(containers.DeclarativeContainer):
 
     pipeline_coordinator = providers.Singleton(
         PipelineCoordinator,
-        walk_forward_coordinator=walk_forward_coordinator,
+        walk_forward_coordinator=strategy_walk_forward_coordinator,
         strategy_evaluation_coordinator=strategy_evaluation_coordinator,
         symbol_evaluation_coordinator=symbol_evaluation_coordinator,
         logger=logger_backtest_prod,

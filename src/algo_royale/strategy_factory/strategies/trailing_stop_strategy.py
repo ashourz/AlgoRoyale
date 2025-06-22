@@ -5,10 +5,12 @@ from algo_royale.strategy_factory.conditions.boolean_column_entry import (
 from algo_royale.strategy_factory.conditions.trend_above_sma import (
     TrendAboveSMACondition,
 )
-from algo_royale.strategy_factory.strategies.base_strategy import Strategy
+from algo_royale.strategy_factory.strategies.base_signal_strategy import (
+    BaseSignalStrategy,
+)
 
 
-class TrailingStopStrategy(Strategy):
+class TrailingStopStrategy(BaseSignalStrategy):
     """
     Combines conditions and logic for a Trailing Stop strategy.
     This strategy uses a combination of entry conditions based on boolean columns,

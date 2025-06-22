@@ -1,13 +1,15 @@
-from abc import ABC
 from functools import partial
 from typing import Callable, Generator, List, Type
 
+from algo_royale.backtester.strategy_combinator.base_strategy_combinator import (
+    BaseStrategyCombinator,
+)
 from algo_royale.portfolio.strategies.base_portfolio_strategy import (
     BasePortfolioStrategy,
 )
 
 
-class PortfolioStrategyCombinator(ABC):
+class PortfolioStrategyCombinator(BaseStrategyCombinator):
     """
     Base class to generate all combinations of portfolio strategy classes and their parameterizations.
     Subclass and set the class attribute `portfolio_strategy_classes` to a list of strategy classes.

@@ -1,11 +1,13 @@
-from abc import ABC, abstractmethod
+from abc import abstractmethod
 from typing import Any, Dict
 
 import pandas as pd
 from optuna import Trial
 
+from algo_royale.backtester.strategy.base_strategy import BaseStrategy
 
-class BasePortfolioStrategy(ABC):
+
+class BasePortfolioStrategy(BaseStrategy):
     """
     Abstract base class for portfolio allocation strategies.
     """

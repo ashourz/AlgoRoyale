@@ -4,7 +4,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pandas as pd
 import pytest
 
-from src.algo_royale.backtester.stage_coordinator.optimization_stage_coordinator import (
+from algo_royale.backtester.stage_coordinator.optimization.strategy_optimization_stage_coordinator import (
     OptimizationStageCoordinator,
 )
 

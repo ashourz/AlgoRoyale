@@ -1,5 +1,5 @@
-from algo_royale.strategy_factory.combinator.base_strategy_combinator import (
-    StrategyCombinator,
+from algo_royale.strategy_factory.combinator.base_signal_strategy_combinator import (
+    SignalStrategyCombinator,
 )
 from algo_royale.strategy_factory.conditions.sma_trend import SMATrendCondition
 from algo_royale.strategy_factory.conditions.volume_surge_entry import (
@@ -13,7 +13,7 @@ from algo_royale.strategy_factory.strategies.macd_trailing_strategy import (
 )
 
 
-class MACDTrailingStrategyCombinator(StrategyCombinator):
+class MACDTrailingStrategyCombinator(SignalStrategyCombinator):
     """Combines conditions and logic for a MACD Trailing Stop strategy.
     This strategy uses a combination of entry conditions based on volume surges,
     trend conditions based on SMA, and stateful logic for MACD trailing stops.

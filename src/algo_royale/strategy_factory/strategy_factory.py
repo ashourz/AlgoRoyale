@@ -4,14 +4,16 @@ from logging import Logger
 from typing import Callable, Optional
 
 from algo_royale.config.config import Config
-from algo_royale.strategy_factory.combinator.base_strategy_combinator import (
-    StrategyCombinator,
+from algo_royale.strategy_factory.combinator.base_signal_strategy_combinator import (
+    SignalStrategyCombinator,
 )
 from algo_royale.strategy_factory.maps.condition_class_map import CONDITION_CLASS_MAP
 from algo_royale.strategy_factory.maps.stateful_logic_map import (
     STATEFUL_LOGIC_CLASS_MAP,
 )
-from algo_royale.strategy_factory.strategies.base_strategy import Strategy
+from algo_royale.strategy_factory.strategies.base_signal_strategy import (
+    BaseSignalStrategy,
+)
 
 
 class StrategyFactory:
@@ -30,17 +32,17 @@ class StrategyFactory:
         self,
         config: Config,
         logger: Logger,
-        strategy_combinators: Optional[list[type[StrategyCombinator]]] = None,
+        strategy_combinators: Optional[list[type[SignalStrategyCombinator]]] = None,
     ):
         self.strategy_map_path = config.get("paths.backtester", "strategy_map_path")
         self.strategy_combinators = strategy_combinators
-        self._all_strategy_combinations: Optional[list[Strategy]] = None
+        self._all_strategy_combinations: Optional[list[BaseSignalStrategy]] = None
         self.logger = logger
         self._strategy_map_lock = threading.Lock()
 
     def get_all_strategy_combination_lambdas(
         self,
-    ) -> list[Callable[[], list[Strategy]]]:
+    ) -> list[Callable[[], list[BaseSignalStrategy]]]:
         """
         Returns a list of callables, each of which generates all strategies for a combinator,
         saves them to the strategy map, and returns the list.
@@ -52,7 +54,7 @@ class StrategyFactory:
         combination_lambdas = []
 
         for combinator in self.strategy_combinators:
-            if issubclass(combinator, StrategyCombinator):
+            if issubclass(combinator, SignalStrategyCombinator):
                 self.logger.info("Using strategy combinator: %s", combinator.__name__)
 
                 def make_lambda(c=combinator):
@@ -82,7 +84,7 @@ class StrategyFactory:
 
         return combination_lambdas
 
-    def _save_strategy_map(self, strategies: list[Strategy]) -> None:
+    def _save_strategy_map(self, strategies: list[BaseSignalStrategy]) -> None:
         """
         Generates and saves a mapping of {strategy_class: {hash_id: description}}
         to the path specified by self.strategy_map_path.

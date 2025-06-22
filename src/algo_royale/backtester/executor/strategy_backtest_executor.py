@@ -5,12 +5,15 @@ from typing import AsyncIterator, Callable, Dict, Union
 import pandas as pd
 
 from algo_royale.backtester.enum.backtest_stage import BacktestStage
+from algo_royale.backtester.executor.base_backtest_executor import BacktestExecutor
 from algo_royale.backtester.stage_data.stage_data_manager import StageDataManager
 from algo_royale.column_names.strategy_columns import StrategyColumns
-from algo_royale.strategy_factory.strategies.base_strategy import Strategy
+from algo_royale.strategy_factory.strategies.base_signal_strategy import (
+    BaseSignalStrategy,
+)
 
 
-class StrategyBacktestExecutor:
+class StrategyBacktestExecutor(BacktestExecutor):
     def __init__(self, stage_data_manager: StageDataManager, logger: Logger):
         self.logger = logger
         self.stage_data_manager = stage_data_manager
@@ -19,7 +22,7 @@ class StrategyBacktestExecutor:
 
     async def run_backtest(
         self,
-        strategies: list[Strategy],
+        strategies: list[BaseSignalStrategy],
         data: Dict[str, Callable[[], AsyncIterator[pd.DataFrame]]],
     ) -> Dict[str, list[pd.DataFrame]]:
         """Pure async implementation for processing streaming data"""
@@ -81,7 +84,11 @@ class StrategyBacktestExecutor:
             raise
 
     async def _process_single_page(
-        self, symbol: str, strategy: Strategy, page_df: pd.DataFrame, page_num: int
+        self,
+        symbol: str,
+        strategy: BaseSignalStrategy,
+        page_df: pd.DataFrame,
+        page_num: int,
     ) -> Union[pd.DataFrame, None]:
         """Process a single page of data with proper signal handling"""
         strategy_name = strategy.get_hash_id()
@@ -164,7 +171,7 @@ class StrategyBacktestExecutor:
             raise ValueError("Timestamp column must be datetime type")
 
     def _validate_strategy_output(
-        self, strategy: Strategy, df: pd.DataFrame, signals_df: pd.DataFrame
+        self, strategy: BaseSignalStrategy, df: pd.DataFrame, signals_df: pd.DataFrame
     ) -> None:
         strategy_name = strategy.get_hash_id()
         if len(signals_df) != len(df):

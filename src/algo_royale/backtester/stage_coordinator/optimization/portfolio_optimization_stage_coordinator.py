@@ -47,18 +47,16 @@ class PortfolioOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
         evaluator: PortfolioBacktestEvaluator,
     ):
         super().__init__(
-            stage=BacktestStage.OPTIMIZATION,
+            stage=BacktestStage.PORTFOLIO_OPTIMIZATION,
             data_loader=data_loader,
             data_preparer=data_preparer,
             data_writer=data_writer,
             stage_data_manager=stage_data_manager,
             logger=logger,
+            executor=executor,
+            evaluator=evaluator,
+            strategy_combinators=strategy_combinators,
         )
-        self.strategy_combinators = strategy_combinators
-        if not self.strategy_combinators:
-            raise ValueError("No portfolio strategy combinators provided")
-        self.executor = executor
-        self.evaluator = evaluator
 
     def get_output_path(self, strategy_name, symbol):
         out_dir = self.stage_data_manager.get_directory_path(

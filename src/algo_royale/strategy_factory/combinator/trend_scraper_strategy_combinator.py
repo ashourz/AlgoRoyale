@@ -1,5 +1,5 @@
-from algo_royale.strategy_factory.combinator.base_strategy_combinator import (
-    StrategyCombinator,
+from algo_royale.strategy_factory.combinator.base_signal_strategy_combinator import (
+    SignalStrategyCombinator,
 )
 from algo_royale.strategy_factory.conditions.ema_above_sma_rolling import (
     EMAAboveSMARollingCondition,
@@ -12,7 +12,7 @@ from algo_royale.strategy_factory.strategies.trend_scraper_strategy import (
 )
 
 
-class TrendScraperStrategyCombinator(StrategyCombinator):
+class TrendScraperStrategyCombinator(SignalStrategyCombinator):
     """Combines conditions and logic for a Trend Scraper strategy.
     This strategy uses a combination of trend conditions and exit conditions.
     It does not include any filter conditions or entry conditions, focusing solely on the trend and exit logic.

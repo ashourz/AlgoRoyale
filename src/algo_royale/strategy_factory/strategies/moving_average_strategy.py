@@ -5,10 +5,12 @@ from algo_royale.strategy_factory.conditions.moving_average_entry import (
 from algo_royale.strategy_factory.conditions.moving_average_exit import (
     MovingAverageExitCondition,
 )
-from algo_royale.strategy_factory.strategies.base_strategy import Strategy
+from algo_royale.strategy_factory.strategies.base_signal_strategy import (
+    BaseSignalStrategy,
+)
 
 
-class MovingAverageStrategy(Strategy):
+class MovingAverageStrategy(BaseSignalStrategy):
     """Combines conditions and logic for a Moving Average strategy.
     This strategy uses a combination of entry and exit conditions based on moving averages.
     It does not include any filter conditions or trend conditions, focusing solely on the moving average logic.

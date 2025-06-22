@@ -5,10 +5,12 @@ from algo_royale.strategy_factory.conditions.volatility_breakout_entry import (
 from algo_royale.strategy_factory.conditions.volatility_breakout_exit import (
     VolatilityBreakoutExitCondition,
 )
-from algo_royale.strategy_factory.strategies.base_strategy import Strategy
+from algo_royale.strategy_factory.strategies.base_signal_strategy import (
+    BaseSignalStrategy,
+)
 
 
-class VolatilityBreakoutStrategy(Strategy):
+class VolatilityBreakoutStrategy(BaseSignalStrategy):
     """
     Volatility Breakout Strategy:
     - Buy when price breaks above a volatility threshold and is above SMA.

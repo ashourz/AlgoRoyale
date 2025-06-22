@@ -7,7 +7,9 @@ from algo_royale.strategy_factory.conditions.base_strategy_condition import (
 from algo_royale.strategy_factory.stateful_logic.base_stateful_logic import (
     StatefulLogic,
 )
-from algo_royale.strategy_factory.strategies.base_strategy import Strategy
+from algo_royale.strategy_factory.strategies.base_signal_strategy import (
+    BaseSignalStrategy,
+)
 
 
 class DummyCondition(StrategyCondition):
@@ -54,7 +56,7 @@ def make_df():
 
 
 def test_required_columns():
-    strat = Strategy(
+    strat = BaseSignalStrategy(
         filter_conditions=[DummyCondition("a")],
         trend_conditions=[DummyCondition("b")],
         entry_conditions=[DummyCondition("a")],
@@ -66,7 +68,7 @@ def test_required_columns():
 
 def test_apply_filters_and_trend():
     df = make_df()
-    strat = Strategy(
+    strat = BaseSignalStrategy(
         filter_conditions=[DummyCondition("a", value=True)],
         trend_conditions=[DummyCondition("b", value=True)],
         entry_conditions=[DummyCondition("a", value=True)],
@@ -78,7 +80,7 @@ def test_apply_filters_and_trend():
 
 def test_apply_entry_exit():
     df = make_df()
-    strat = Strategy(
+    strat = BaseSignalStrategy(
         entry_conditions=[DummyCondition("a", value=True)],
         exit_conditions=[DummyCondition("b", value=True)],
     )
@@ -90,7 +92,7 @@ def test_apply_entry_exit():
 
 def test_generate_signals_missing_column():
     df = pd.DataFrame({"a": [1, 2, 3]})
-    strat = Strategy(entry_conditions=[DummyCondition("b")])
+    strat = BaseSignalStrategy(entry_conditions=[DummyCondition("b")])
     result = strat.generate_signals(df)
     assert all(result[StrategyColumns.ENTRY_SIGNAL] == "hold")
     assert all(result[StrategyColumns.EXIT_SIGNAL] == "hold")
@@ -98,7 +100,7 @@ def test_generate_signals_missing_column():
 
 def test_generate_signals_with_stateful_logic():
     df = make_df()
-    strat = Strategy(
+    strat = BaseSignalStrategy(
         entry_conditions=[DummyCondition("a", value=True)],
         stateful_logic=DummyStatefulLogic(),
     )
@@ -107,7 +109,7 @@ def test_generate_signals_with_stateful_logic():
 
 
 def test_get_description_and_hash_id():
-    strat = Strategy(
+    strat = BaseSignalStrategy(
         entry_conditions=[DummyCondition("a", value=True)],
         exit_conditions=[DummyCondition("b", value=False)],
     )
