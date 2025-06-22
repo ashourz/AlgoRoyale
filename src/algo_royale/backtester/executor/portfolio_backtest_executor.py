@@ -30,7 +30,7 @@ class PortfolioBacktestExecutor(BacktestExecutor):
     ):
         self.initial_balance = initial_balance
         self.transaction_cost = transaction_cost
-        self.min_lot = min_lot
+        self.min_lot = max(1, int(min_lot))
         self.leverage = leverage
         self.slippage = slippage
 

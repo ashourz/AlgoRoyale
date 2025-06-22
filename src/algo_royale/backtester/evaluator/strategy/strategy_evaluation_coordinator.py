@@ -30,8 +30,8 @@ class StrategyEvaluationCoordinator:
         logger: Logger,
         optimization_root_path: Path,
         evaluation_type: StrategyEvaluationType,
-        optimization_json_filename: str = "optimization_result.json",
-        evaluation_json_filename: str = "walk_forward_evaluation.json",
+        optimization_json_filename: str,
+        evaluation_json_filename: str,
     ):
         """
         Args:

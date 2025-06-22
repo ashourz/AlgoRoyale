@@ -281,7 +281,7 @@ class DIContainer(containers.DeclarativeContainer):
     )
 
     watchlist_path_string = providers.Object(
-        config().get("paths.backtester", "watchlist_path")
+        config().get("[backtester.paths", "watchlist_path")
     )
     load_watchlist_func = providers.Object(load_watchlist)
     save_watchlist_func = providers.Object(save_watchlist)
@@ -350,7 +350,9 @@ class DIContainer(containers.DeclarativeContainer):
 
     strategy_factory = providers.Singleton(
         StrategyFactory,
-        config=config,
+        strategy_map_path=providers.Object(
+            config().get("backtester.signal.paths", "signal_strategy_map_path")
+        ),
         logger=logger_backtest_prod,
     )
 
@@ -410,11 +412,17 @@ class DIContainer(containers.DeclarativeContainer):
 
     portfolio_executor = providers.Singleton(
         PortfolioBacktestExecutor,
-        initial_balance=1_000_000.0,
-        transaction_cost=0.0,
-        min_lot=1,
-        leverage=1.0,
-        slippage=0.0,
+        initial_balance=providers.Object(
+            config().get("backtester.portfolio", "initial_portfolio_value")
+        ),
+        transaction_cost=providers.Object(
+            config().get("backtester.portfolio", "transaction_costs")
+        ),
+        min_lot=providers.Object(
+            config().get("backtester.portfolio", "minimum_lot_size")
+        ),
+        leverage=providers.Object(config().get("backtester.portfolio", "leverage")),
+        slippage=providers.Object(config().get("backtester.portfolio", "slippage")),
         stage_data_manager=stage_data_manager,
         logger=logger_backtest_prod,
     )
@@ -474,29 +482,39 @@ class DIContainer(containers.DeclarativeContainer):
         StrategyEvaluationCoordinator,
         logger=logger_backtest_prod,
         optimization_root_path=providers.Object(
-            config().get("paths.backtester", "optimization_root_path")
+            config().get("backtester.signal.paths", "signal_optimization_root_path")
         ),
         evaluation_type=StrategyEvaluationType.BOTH,
         optimization_json_filename=providers.Object(
-            config().get("paths.backtester", "optimization_json_filename")
+            config().get(
+                "backtester.signal.filename", "signal_optimization_json_filename"
+            )
         ),
         evaluation_json_filename=providers.Object(
-            config().get("paths.backtester", "evaluation_json_filename")
+            config().get(
+                "backtester.signal.filename", "signal_evaluation_json_filename"
+            )
         ),
     )
 
     symbol_evaluation_coordinator = providers.Singleton(
         SymbolEvaluationCoordinator,
         optimization_root=providers.Object(
-            config().get("paths.backtester", "optimization_root_path")
+            config().get("backtester.signal.paths", "signal_optimization_root_path")
         ),
         evaluation_json_filename=providers.Object(
-            config().get("paths.backtester", "evaluation_json_filename")
+            config().get(
+                "backtester.signal.filename", "signal_evaluation_json_filename"
+            )
         ),
         summary_json_filename=providers.Object(
-            config().get("paths.backtester", "summary_json_filename")
+            config().get("backtester.signal.filename", "signal_summary_json_filename")
         ),
-        viability_threshold=0.75,
+        viability_threshold=providers.Object(
+            config().getfloat(
+                "backtester.signal", "signal_evaluation_viability_threshold"
+            )
+        ),
     )
 
     pipeline_coordinator = providers.Singleton(

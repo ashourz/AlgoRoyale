@@ -1,9 +1,8 @@
 import json
 import threading
 from logging import Logger
-from typing import Callable, Optional
+from typing import Callable, Optional, Sequence
 
-from algo_royale.config.config import Config
 from algo_royale.strategy_factory.combinator.base_signal_strategy_combinator import (
     SignalStrategyCombinator,
 )
@@ -24,17 +23,17 @@ class StrategyFactory:
     It uses various strategy combinators to create complex strategies based on simple ones.
     The strategy combinations can be used for backtesting or live trading.
     Parameters:
-        config (Config): Configuration object containing paths and settings.
+        strategy_map_path (str): Path to save the strategy map JSON file.
+        logger (Logger): Logger instance for logging messages.
         strategy_combinators (Optional[list[type[StrategyCombinator]]]): List of strategy combinators to use.
     """
 
     def __init__(
         self,
-        config: Config,
+        strategy_map_path: str,
+        strategy_combinators: Sequence[type[SignalStrategyCombinator]],
         logger: Logger,
-        strategy_combinators: Optional[list[type[SignalStrategyCombinator]]] = None,
     ):
-        self.strategy_map_path = config.get("paths.backtester", "strategy_map_path")
         self.strategy_combinators = strategy_combinators
         self._all_strategy_combinations: Optional[list[BaseSignalStrategy]] = None
         self.logger = logger
