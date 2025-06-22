@@ -413,16 +413,22 @@ class DIContainer(containers.DeclarativeContainer):
     portfolio_executor = providers.Singleton(
         PortfolioBacktestExecutor,
         initial_balance=providers.Object(
-            config().get("backtester.portfolio", "initial_portfolio_value")
+            config().get_float(
+                "backtester.portfolio", "initial_portfolio_value", 1_000_000.0
+            )
         ),
         transaction_cost=providers.Object(
-            config().get("backtester.portfolio", "transaction_costs")
+            config().get_float("backtester.portfolio", "transaction_costs", 0.0)
         ),
         min_lot=providers.Object(
-            config().get("backtester.portfolio", "minimum_lot_size")
+            config().get_int("backtester.portfolio", "minimum_lot_size", 1)
         ),
-        leverage=providers.Object(config().get("backtester.portfolio", "leverage")),
-        slippage=providers.Object(config().get("backtester.portfolio", "slippage")),
+        leverage=providers.Object(
+            config().get_float("backtester.portfolio", "leverage", 1.0)
+        ),
+        slippage=providers.Object(
+            config().get_float("backtester.portfolio", "slippage", 0.0)
+        ),
         stage_data_manager=stage_data_manager,
         logger=logger_backtest_prod,
     )
@@ -519,7 +525,8 @@ class DIContainer(containers.DeclarativeContainer):
 
     pipeline_coordinator = providers.Singleton(
         PipelineCoordinator,
-        walk_forward_coordinator=strategy_walk_forward_coordinator,
+        strategy_walk_forward_coordinator=strategy_walk_forward_coordinator,
+        portfolio_walk_forward_coordinator=portfolio_walk_forward_coordinator,
         strategy_evaluation_coordinator=strategy_evaluation_coordinator,
         symbol_evaluation_coordinator=symbol_evaluation_coordinator,
         logger=logger_backtest_prod,

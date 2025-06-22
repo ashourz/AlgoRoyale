@@ -18,22 +18,24 @@ class PipelineCoordinator:
     including walk-forward evaluation and performance analysis.
 
     Parameters:
-        walk_forward_coordinator (WalkForwardCoordinator): Coordinator for walk-forward evaluation.
-        walk_forward_evaluation_coordinator (WalkForwardEvaluationCoordinator): Coordinator for evaluation of walk-forward results.
-        strategy_evaluation_coordinator (StrategyEvaluationCoordinator): Coordinator for strategy evaluation.
-        symbol_evaluation_coordinator (SymbolEvaluationCoordinator): Coordinator for symbol evaluation.
-        logger (Logger): Logger instance for logging messages.
+        strategy_walk_forward_coordinator (WalkForwardCoordinator): Coordinator for strategy walk-forward evaluation.
+        portfolio_walk_forward_coordinator (WalkForwardCoordinator): Coordinator for portfolio walk-forward evaluation.
+        strategy_evaluation_coordinator (StrategyEvaluationCoordinator): Coordinator for strategy performance evaluation.
+        symbol_evaluation_coordinator (SymbolEvaluationCoordinator): Coordinator for symbol performance evaluation.
+        logger (Logger): Logger instance for logging messages and errors.
     """
 
     def __init__(
         self,
-        walk_forward_coordinator: WalkForwardCoordinator,
+        strategy_walk_forward_coordinator: WalkForwardCoordinator,
+        portfolio_walk_forward_coordinator: WalkForwardCoordinator,
         strategy_evaluation_coordinator: StrategyEvaluationCoordinator,
         symbol_evaluation_coordinator: SymbolEvaluationCoordinator,
         logger: Logger,
     ):
         self.logger = logger
-        self.walk_forward_coordinator = walk_forward_coordinator
+        self.strategy_walk_forward_coordinator = strategy_walk_forward_coordinator
+        self.portfolio_walk_forward_coordinator = portfolio_walk_forward_coordinator
         self.strategy_evaluation_coordinator = strategy_evaluation_coordinator
         self.symbol_evaluation_coordinator = symbol_evaluation_coordinator
 
@@ -52,9 +54,10 @@ class PipelineCoordinator:
         self,
     ):
         try:
-            await self.walk_forward_coordinator.run_async()
+            await self.strategy_walk_forward_coordinator.run_async()
             self.strategy_evaluation_coordinator.run()
             self.symbol_evaluation_coordinator.run()
+            await self.portfolio_walk_forward_coordinator.run_async()
             self.logger.info("Pipeline stages completed successfully.")
         except Exception as e:
             self.logger.error(f"Pipeline failed: {e}")
