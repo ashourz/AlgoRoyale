@@ -1,11 +1,11 @@
 # strategies/base_strategy.py
 
 import hashlib
-from abc import ABC
 from typing import Optional
 
 import pandas as pd
 
+from algo_royale.backtester.strategy.base_strategy import BaseStrategy
 from algo_royale.column_names.strategy_columns import StrategyColumns
 from algo_royale.strategy_factory.conditions.base_strategy_condition import (
     StrategyCondition,
@@ -16,7 +16,7 @@ from algo_royale.strategy_factory.stateful_logic.base_stateful_logic import (
 )
 
 
-class Strategy(ABC):
+class BaseSignalStrategy(BaseStrategy):
     """
     Base class for trading strategies.
     This class provides a framework for implementing trading strategies

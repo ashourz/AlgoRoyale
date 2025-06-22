@@ -4,27 +4,31 @@ from typing import AsyncIterator, Callable, Dict, Optional, Sequence
 
 import pandas as pd
 
-from algo_royale.backtester.backtest.strategy_backtest_executor import (
-    StrategyBacktestExecutor,
-)
 from algo_royale.backtester.data_preparer.async_data_preparer import AsyncDataPreparer
 from algo_royale.backtester.enum.backtest_stage import BacktestStage
 from algo_royale.backtester.evaluator.backtest.base_backtest_evaluator import (
     BacktestEvaluator,
 )
-from algo_royale.backtester.stage_coordinator.stage_coordinator import StageCoordinator
+from algo_royale.backtester.executor.strategy_backtest_executor import (
+    StrategyBacktestExecutor,
+)
+from algo_royale.backtester.stage_coordinator.optimization.base_optimization_stage_coordinator import (
+    BaseOptimizationStageCoordinator,
+)
 from algo_royale.backtester.stage_data.stage_data_loader import StageDataLoader
 from algo_royale.backtester.stage_data.stage_data_manager import StageDataManager
 from algo_royale.backtester.stage_data.stage_data_writer import StageDataWriter
-from algo_royale.strategy_factory.combinator.base_strategy_combinator import (
-    StrategyCombinator,
+from algo_royale.strategy_factory.combinator.base_signal_strategy_combinator import (
+    SignalStrategyCombinator,
 )
 from algo_royale.strategy_factory.optimizer.strategy_optimizer import StrategyOptimizer
-from algo_royale.strategy_factory.strategies.base_strategy import Strategy
+from algo_royale.strategy_factory.strategies.base_signal_strategy import (
+    BaseSignalStrategy,
+)
 from algo_royale.strategy_factory.strategy_factory import StrategyFactory
 
 
-class OptimizationStageCoordinator(StageCoordinator):
+class StrategyOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
     """Coordinator for the optimization stage of the backtest pipeline.
     This class is responsible for optimizing and backtesting strategies
     for a list of symbols using the provided data loader, data preparer,
@@ -32,14 +36,14 @@ class OptimizationStageCoordinator(StageCoordinator):
     It also handles the evaluation of the backtest results.
 
     Parameters:
-        config: Configuration object.
         data_loader: Data loader for the stage.
         data_preparer: Data preparer for the stage.
         data_writer: Data writer for the stage.
         stage_data_manager: Stage data manager.
+        strategy_factory: StrategyFactory instance for creating strategies.
+        logger: Logger instance.
         strategy_executor: StrategyBacktestExecutor instance for executing backtests.
         strategy_evaluator: BacktestEvaluator instance for evaluating backtest results.
-        logger: Logger instance.
         strategy_combinators: List of strategy combinator classes to use.
     """
 
@@ -53,7 +57,7 @@ class OptimizationStageCoordinator(StageCoordinator):
         logger: Logger,
         strategy_executor: StrategyBacktestExecutor,
         strategy_evaluator: BacktestEvaluator,
-        strategy_combinators: Optional[Sequence[type[StrategyCombinator]]] = None,
+        strategy_combinators: Sequence[type[SignalStrategyCombinator]],
     ):
         """Coordinator for the backtest stage.
         Args:
@@ -66,19 +70,17 @@ class OptimizationStageCoordinator(StageCoordinator):
             strategy_combinators: List of strategy combinator classes to use.
         """
         super().__init__(
-            stage=BacktestStage.OPTIMIZATION,
+            stage=BacktestStage.STRATEGY_OPTIMIZATION,
             data_loader=data_loader,
             data_preparer=data_preparer,
             data_writer=data_writer,
             stage_data_manager=stage_data_manager,
+            strategy_factory=strategy_factory,
+            executor=strategy_executor,
+            evaluator=strategy_evaluator,
+            strategy_combinators=strategy_combinators,
             logger=logger,
         )
-        self.strategy_combinators = strategy_combinators
-        if not self.strategy_combinators:
-            raise ValueError("No strategy combinators provided")
-        self.strategy_factory = strategy_factory
-        self.executor = strategy_executor
-        self.evaluator = strategy_evaluator
 
     async def process(
         self,
@@ -170,7 +172,7 @@ class OptimizationStageCoordinator(StageCoordinator):
     async def _backtest_and_evaluate(
         self,
         symbol: str,
-        strategy: Strategy,
+        strategy: BaseSignalStrategy,
         df: pd.DataFrame,
     ):
         # We wrap df into an async factory as your executor expects

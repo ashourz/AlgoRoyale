@@ -2,6 +2,7 @@ import asyncio
 import os
 from datetime import datetime
 from logging import Logger
+from typing import TYPE_CHECKING
 
 from matplotlib.dates import relativedelta
 
@@ -12,12 +13,15 @@ from algo_royale.backtester.stage_coordinator.data_ingest_stage_coordinator impo
 from algo_royale.backtester.stage_coordinator.feature_engineering_stage_coordinator import (
     FeatureEngineeringStageCoordinator,
 )
-from algo_royale.backtester.stage_coordinator.optimization_stage_coordinator import (
-    OptimizationStageCoordinator,
+from algo_royale.backtester.stage_coordinator.optimization.base_optimization_stage_coordinator import (
+    BaseOptimizationStageCoordinator,
 )
-from algo_royale.backtester.stage_coordinator.testing_stage_coordinator import (
-    TestingStageCoordinator,
+from algo_royale.backtester.stage_coordinator.testing.base_testing_stage_coordinator import (
+    BaseTestingStageCoordinator,
 )
+
+if TYPE_CHECKING:
+    pass
 
 
 class WalkForwardCoordinator:
@@ -25,8 +29,8 @@ class WalkForwardCoordinator:
         self,
         data_ingest_stage_coordinator: DataIngestStageCoordinator,
         feature_engineering_stage_coordinator: FeatureEngineeringStageCoordinator,
-        optimization_stage_coordinator: OptimizationStageCoordinator,
-        testing_stage_coordinator: TestingStageCoordinator,
+        optimization_stage_coordinator: BaseOptimizationStageCoordinator,
+        testing_stage_coordinator: BaseTestingStageCoordinator,
         logger: Logger,
     ):
         self.logger = logger

@@ -1,5 +1,5 @@
-from algo_royale.strategy_factory.combinator.base_strategy_combinator import (
-    StrategyCombinator,
+from algo_royale.strategy_factory.combinator.base_signal_strategy_combinator import (
+    SignalStrategyCombinator,
 )
 from algo_royale.strategy_factory.conditions.price_above_sma import (
     PriceAboveSMACondition,
@@ -12,7 +12,7 @@ from algo_royale.strategy_factory.strategies.mean_revision_strategy import (
 )
 
 
-class MeanReversionStrategyCombinator(StrategyCombinator):
+class MeanReversionStrategyCombinator(SignalStrategyCombinator):
     """Combines conditions and logic for a Mean Reversion strategy.
     This strategy uses a combination of trend conditions and stateful logic for mean reversion.
     It does not include any filter conditions, entry conditions, or exit conditions.

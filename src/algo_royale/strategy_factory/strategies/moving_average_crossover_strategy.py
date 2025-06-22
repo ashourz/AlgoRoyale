@@ -6,10 +6,12 @@ from algo_royale.strategy_factory.conditions.moving_average_crossover_exit impor
     MovingAverageCrossoverExitCondition,
 )
 from algo_royale.strategy_factory.enum.ma_type import MA_Type
-from algo_royale.strategy_factory.strategies.base_strategy import Strategy
+from algo_royale.strategy_factory.strategies.base_signal_strategy import (
+    BaseSignalStrategy,
+)
 
 
-class MovingAverageCrossoverStrategy(Strategy):
+class MovingAverageCrossoverStrategy(BaseSignalStrategy):
     """
     Moving Average Crossover Strategy with trend and volume confirmation.
     This strategy uses a short-term and long-term moving average crossover

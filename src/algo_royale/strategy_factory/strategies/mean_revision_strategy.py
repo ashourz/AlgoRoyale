@@ -5,10 +5,12 @@ from algo_royale.strategy_factory.conditions.price_above_sma import (
 from algo_royale.strategy_factory.stateful_logic.mean_reversion_stategul_logic import (
     MeanReversionStatefulLogic,
 )
-from algo_royale.strategy_factory.strategies.base_strategy import Strategy
+from algo_royale.strategy_factory.strategies.base_signal_strategy import (
+    BaseSignalStrategy,
+)
 
 
-class MeanReversionStrategy(Strategy):
+class MeanReversionStrategy(BaseSignalStrategy):
     """
     Mean Reversion Strategy with trailing stop, profit target, trend filter, and re-entry cooldown.
     This strategy identifies mean reversion opportunities based on the deviation of the price

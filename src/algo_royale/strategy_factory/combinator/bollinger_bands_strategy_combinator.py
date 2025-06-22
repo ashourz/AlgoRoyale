@@ -1,5 +1,5 @@
-from algo_royale.strategy_factory.combinator.base_strategy_combinator import (
-    StrategyCombinator,
+from algo_royale.strategy_factory.combinator.base_signal_strategy_combinator import (
+    SignalStrategyCombinator,
 )
 from algo_royale.strategy_factory.conditions.bollinger_bands_entry import (
     BollingerBandsEntryCondition,
@@ -13,7 +13,7 @@ from algo_royale.strategy_factory.strategies.bollinger_bands_strategy import (
 )
 
 
-class BollingerBandsStrategyCombinator(StrategyCombinator):
+class BollingerBandsStrategyCombinator(SignalStrategyCombinator):
     """Combines conditions and logic for a Bollinger Bands strategy.
     This strategy uses a combination of entry conditions based on Bollinger Bands,
     trend conditions based on SMA, and exit conditions based on Bollinger Bands.

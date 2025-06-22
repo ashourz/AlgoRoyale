@@ -1,13 +1,17 @@
 import inspect
 import itertools
-from abc import ABC
 from logging import Logger
 from typing import Callable, Generator
 
-from algo_royale.strategy_factory.strategies.base_strategy import Strategy
+from algo_royale.backtester.strategy_combinator.base_strategy_combinator import (
+    BaseStrategyCombinator,
+)
+from algo_royale.strategy_factory.strategies.base_signal_strategy import (
+    BaseSignalStrategy,
+)
 
 
-class StrategyCombinator(ABC):
+class SignalStrategyCombinator(BaseStrategyCombinator):
     """
     Base class to generate all combinations of entry, trend, exit conditions and stateful logic.
     Subclass and set the class attributes below to lists of types/classes that implement
@@ -29,7 +33,7 @@ class StrategyCombinator(ABC):
     @classmethod
     def all_strategy_combinations(
         cls, logger: Logger, max_filter=1, max_entry=1, max_trend=1, max_exit=1
-    ) -> Generator[Callable[[], Strategy], None, None]:
+    ) -> Generator[Callable[[], BaseSignalStrategy], None, None]:
         """
         Generate all possible strategy combinations based on the defined condition types.
         This method combines all possible conditions from the specified types and generates

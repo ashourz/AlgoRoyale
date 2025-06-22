@@ -1,5 +1,5 @@
-from algo_royale.strategy_factory.combinator.base_strategy_combinator import (
-    StrategyCombinator,
+from algo_royale.strategy_factory.combinator.base_signal_strategy_combinator import (
+    SignalStrategyCombinator,
 )
 from algo_royale.strategy_factory.conditions.momentum_entry import (
     MomentumEntryCondition,
@@ -8,7 +8,7 @@ from algo_royale.strategy_factory.conditions.momentum_exit import MomentumExitCo
 from algo_royale.strategy_factory.strategies.momentum_strategy import MomentumStrategy
 
 
-class MomentumStrategyCombinator(StrategyCombinator):
+class MomentumStrategyCombinator(SignalStrategyCombinator):
     """
     Combines conditions and logic for a Momentum strategy.
     This strategy uses a combination of entry and exit conditions based on momentum indicators.

@@ -5,10 +5,12 @@ from algo_royale.strategy_factory.conditions.wick_reversal_entry import (
 from algo_royale.strategy_factory.conditions.wick_reversal_exit import (
     WickReversalExitCondition,
 )
-from algo_royale.strategy_factory.strategies.base_strategy import Strategy
+from algo_royale.strategy_factory.strategies.base_signal_strategy import (
+    BaseSignalStrategy,
+)
 
 
-class WickReversalStrategy(Strategy):
+class WickReversalStrategy(BaseSignalStrategy):
     """
     Wick Reversal Strategy:
     - Buy when the lower wick is significantly larger than the body of the candle.

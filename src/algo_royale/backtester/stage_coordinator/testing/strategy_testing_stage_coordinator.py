@@ -7,25 +7,27 @@ from typing import AsyncIterator, Callable, Dict, Optional, Sequence
 
 import pandas as pd
 
-from algo_royale.backtester.backtest.strategy_backtest_executor import (
-    StrategyBacktestExecutor,
-)
 from algo_royale.backtester.data_preparer.async_data_preparer import AsyncDataPreparer
 from algo_royale.backtester.enum.backtest_stage import BacktestStage
 from algo_royale.backtester.evaluator.backtest.base_backtest_evaluator import (
     BacktestEvaluator,
 )
-from algo_royale.backtester.stage_coordinator.stage_coordinator import StageCoordinator
+from algo_royale.backtester.executor.strategy_backtest_executor import (
+    StrategyBacktestExecutor,
+)
+from algo_royale.backtester.stage_coordinator.testing.base_testing_stage_coordinator import (
+    BaseTestingStageCoordinator,
+)
 from algo_royale.backtester.stage_data.stage_data_loader import StageDataLoader
 from algo_royale.backtester.stage_data.stage_data_manager import StageDataManager
 from algo_royale.backtester.stage_data.stage_data_writer import StageDataWriter
-from algo_royale.strategy_factory.combinator.base_strategy_combinator import (
-    StrategyCombinator,
+from algo_royale.strategy_factory.combinator.base_signal_strategy_combinator import (
+    SignalStrategyCombinator,
 )
 from algo_royale.strategy_factory.strategy_factory import StrategyFactory
 
 
-class TestingStageCoordinator(StageCoordinator):
+class StrategyTestingStageCoordinator(BaseTestingStageCoordinator):
     def __init__(
         self,
         data_loader: StageDataLoader,
@@ -36,32 +38,33 @@ class TestingStageCoordinator(StageCoordinator):
         strategy_evaluator: BacktestEvaluator,
         strategy_factory: StrategyFactory,
         logger: Logger,
-        strategy_combinators: Optional[Sequence[type[StrategyCombinator]]] = None,
+        strategy_combinators: Sequence[type[SignalStrategyCombinator]],
     ):
-        """Coordinator for the backtest stage.
-        Args:
-            config: Configuration object.
-            data_loader: Data loader for the stage.
-            data_preparer: Data preparer for the stage.
-            data_writer: Data writer for the stage.
-            stage_data_manager: Stage data manager.
-            logger: Logger instance.
-            strategy_combinators: List of strategy combinator classes to use.
+        """Coordinator for the strategy testing stage of the backtest pipeline.
+        Params:
+            data_loader: StageDataLoader instance for loading data.
+            data_preparer: AsyncDataPreparer instance for preparing data.
+            data_writer: StageDataWriter instance for writing data.
+            stage_data_manager: StageDataManager instance for managing stage data.
+            strategy_executor: StrategyBacktestExecutor instance for executing backtests.
+            strategy_evaluator: BacktestEvaluator instance for evaluating backtest results.
+            strategy_factory: StrategyFactory instance for creating strategies.
+            logger: Logger instance for logging.
+            strategy_combinators: Sequence of StrategyCombinator classes to use.
         """
+
         super().__init__(
-            stage=BacktestStage.BACKTEST,
             data_loader=data_loader,
             data_preparer=data_preparer,
             data_writer=data_writer,
             stage_data_manager=stage_data_manager,
+            strategy_factory=strategy_factory,
+            stage=BacktestStage.STRATEGY_TESTING,
             logger=logger,
+            executor=strategy_executor,
+            evaluator=strategy_evaluator,
+            strategy_combinators=strategy_combinators,
         )
-        self.strategy_combinators = strategy_combinators
-        if not self.strategy_combinators:
-            raise ValueError("No strategy combinators provided")
-        self.executor = strategy_executor
-        self.evaluator = strategy_evaluator
-        self.strategy_factory = strategy_factory
 
     async def run(
         self,

@@ -1,5 +1,5 @@
-from algo_royale.strategy_factory.combinator.base_strategy_combinator import (
-    StrategyCombinator,
+from algo_royale.strategy_factory.combinator.base_signal_strategy_combinator import (
+    SignalStrategyCombinator,
 )
 from algo_royale.strategy_factory.conditions.boolean_column_entry import (
     BooleanColumnEntryCondition,
@@ -33,7 +33,7 @@ from algo_royale.strategy_factory.strategies.trailing_stop_strategy import (
 )
 
 
-class TrailingStopStrategyCombinator(StrategyCombinator):
+class TrailingStopStrategyCombinator(SignalStrategyCombinator):
     """Combines conditions and logic for a Trailing Stop strategy.
     This strategy uses a combination of entry conditions based on boolean columns,
     trend conditions based on price above a simple moving average (SMA),

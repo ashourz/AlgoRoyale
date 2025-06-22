@@ -1,12 +1,12 @@
-from algo_royale.strategy_factory.combinator.base_strategy_combinator import (
-    StrategyCombinator,
+from algo_royale.strategy_factory.combinator.base_signal_strategy_combinator import (
+    SignalStrategyCombinator,
 )
 from algo_royale.strategy_factory.conditions.combo_entry import ComboEntryCondition
 from algo_royale.strategy_factory.conditions.combo_exit import ComboExitCondition
 from algo_royale.strategy_factory.strategies.combo_strategy import ComboStrategy
 
 
-class ComboStrategyCombinator(StrategyCombinator):
+class ComboStrategyCombinator(SignalStrategyCombinator):
     """Combines conditions and logic for a Combo strategy.
     This strategy uses a combination of entry and exit conditions based on multiple indicators.
     It does not include any filter conditions or trend conditions, focusing solely on the combo logic.

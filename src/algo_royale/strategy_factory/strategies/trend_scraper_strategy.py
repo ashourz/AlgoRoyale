@@ -5,10 +5,12 @@ from algo_royale.strategy_factory.conditions.ema_above_sma_rolling import (
 from algo_royale.strategy_factory.conditions.return_volatility_exit import (
     ReturnVolatilityExitCondition,
 )
-from algo_royale.strategy_factory.strategies.base_strategy import Strategy
+from algo_royale.strategy_factory.strategies.base_signal_strategy import (
+    BaseSignalStrategy,
+)
 
 
-class TrendScraperStrategy(Strategy):
+class TrendScraperStrategy(BaseSignalStrategy):
     """
     Trend Scraper Strategy with flexible trend confirmation and exit conditions.
 

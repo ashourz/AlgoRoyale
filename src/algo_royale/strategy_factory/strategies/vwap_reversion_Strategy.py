@@ -5,10 +5,12 @@ from algo_royale.strategy_factory.conditions.vwap_reversion_entry import (
 from algo_royale.strategy_factory.conditions.vwap_reversion_exit import (
     VWAPReversionExitCondition,
 )
-from algo_royale.strategy_factory.strategies.base_strategy import Strategy
+from algo_royale.strategy_factory.strategies.base_signal_strategy import (
+    BaseSignalStrategy,
+)
 
 
-class VWAPReversionStrategy(Strategy):
+class VWAPReversionStrategy(BaseSignalStrategy):
     """
     VWAP Reversion Strategy:
     - Buy when volume-weighted price is significantly below the VWAP.

@@ -6,10 +6,10 @@ from algo_royale.strategy_factory.conditions.time_of_day_exit import (
     TimeOfDayExitCondition,
 )
 
-from .base_strategy import Strategy
+from .base_signal_strategy import BaseSignalStrategy
 
 
-class TimeOfDayBiasStrategy(Strategy):
+class TimeOfDayBiasStrategy(BaseSignalStrategy):
     """
     Time of Day Bias Strategy:
     - Buy at specific hours of the day.

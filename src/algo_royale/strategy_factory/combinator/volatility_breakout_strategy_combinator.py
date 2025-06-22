@@ -1,5 +1,5 @@
-from algo_royale.strategy_factory.combinator.base_strategy_combinator import (
-    StrategyCombinator,
+from algo_royale.strategy_factory.combinator.base_signal_strategy_combinator import (
+    SignalStrategyCombinator,
 )
 from algo_royale.strategy_factory.conditions.volatility_breakout_entry import (
     VolatilityBreakoutEntryCondition,
@@ -12,7 +12,7 @@ from algo_royale.strategy_factory.strategies.volatility_breakout_strategy import
 )
 
 
-class VolatilityBreakoutStrategyCombinator(StrategyCombinator):
+class VolatilityBreakoutStrategyCombinator(SignalStrategyCombinator):
     """Combines conditions and logic for a Volatility Breakout strategy.
     This strategy uses a combination of entry and exit conditions based on volatility indicators.
     It does not include any filter conditions or trend conditions, focusing solely on the volatility breakout logic.

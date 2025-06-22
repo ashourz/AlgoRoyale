@@ -1,9 +1,11 @@
 from algo_royale.strategy_factory.conditions.combo_entry import ComboEntryCondition
 from algo_royale.strategy_factory.conditions.combo_exit import ComboExitCondition
-from algo_royale.strategy_factory.strategies.base_strategy import Strategy
+from algo_royale.strategy_factory.strategies.base_signal_strategy import (
+    BaseSignalStrategy,
+)
 
 
-class ComboStrategy(Strategy):
+class ComboStrategy(BaseSignalStrategy):
     """
     Combo Strategy using RSI, MACD, and volume conditions for trading decisions.
     Buy when all entry conditions are met.

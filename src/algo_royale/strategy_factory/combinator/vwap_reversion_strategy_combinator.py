@@ -1,5 +1,5 @@
-from algo_royale.strategy_factory.combinator.base_strategy_combinator import (
-    StrategyCombinator,
+from algo_royale.strategy_factory.combinator.base_signal_strategy_combinator import (
+    SignalStrategyCombinator,
 )
 from algo_royale.strategy_factory.conditions.vwap_reversion_entry import (
     VWAPReversionEntryCondition,
@@ -12,7 +12,7 @@ from algo_royale.strategy_factory.strategies.vwap_reversion_strategy import (
 )
 
 
-class VWAPReversionStrategyCombinator(StrategyCombinator):
+class VWAPReversionStrategyCombinator(SignalStrategyCombinator):
     """Combines conditions and logic for a VWAP Reversion strategy.
     This strategy uses a combination of entry conditions based on VWAP reversion,
     trend conditions based on volume surges, and exit conditions based on VWAP reversion.

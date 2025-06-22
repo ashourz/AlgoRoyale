@@ -1,5 +1,5 @@
-from algo_royale.strategy_factory.combinator.base_strategy_combinator import (
-    StrategyCombinator,
+from algo_royale.strategy_factory.combinator.base_signal_strategy_combinator import (
+    SignalStrategyCombinator,
 )
 from algo_royale.strategy_factory.conditions.pullback_entry import (
     PullbackEntryCondition,
@@ -9,7 +9,7 @@ from algo_royale.strategy_factory.strategies.pullback_entry_strategy import (
 )
 
 
-class PullbackEntryStrategyCombinator(StrategyCombinator):
+class PullbackEntryStrategyCombinator(SignalStrategyCombinator):
     """Combines conditions and logic for a Pullback Entry strategy.
     This strategy uses a combination of entry conditions based on pullback entries.
     It does not include any filter conditions, trend conditions, or exit conditions, focusing solely on the pullback entry logic.

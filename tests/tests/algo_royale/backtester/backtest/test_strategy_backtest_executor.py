@@ -3,7 +3,7 @@ from unittest.mock import MagicMock
 import pandas as pd
 import pytest
 
-from algo_royale.backtester.backtest.strategy_backtest_executor import (
+from algo_royale.backtester.executor.strategy_backtest_executor import (
     StrategyBacktestExecutor,
 )
 from algo_royale.column_names.strategy_columns import StrategyColumns

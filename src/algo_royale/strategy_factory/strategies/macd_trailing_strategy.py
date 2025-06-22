@@ -8,10 +8,12 @@ from algo_royale.strategy_factory.conditions.sma_trend import SMATrendCondition
 from algo_royale.strategy_factory.stateful_logic.macd_trailing_stateful_logic import (
     MACDTrailingStatefulLogic,
 )
-from algo_royale.strategy_factory.strategies.base_strategy import Strategy
+from algo_royale.strategy_factory.strategies.base_signal_strategy import (
+    BaseSignalStrategy,
+)
 
 
-class MACDTrailingStopStrategy(Strategy):
+class MACDTrailingStopStrategy(BaseSignalStrategy):
     """
     MACD Strategy with Trailing Stop and Modular Trend Conditions.
 

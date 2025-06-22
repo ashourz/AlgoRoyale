@@ -1,10 +1,12 @@
 from algo_royale.column_names.strategy_columns import StrategyColumns
 from algo_royale.strategy_factory.conditions.rsi_entry import RSIEntryCondition
 from algo_royale.strategy_factory.conditions.rsi_exit import RSIExitCondition
-from algo_royale.strategy_factory.strategies.base_strategy import Strategy
+from algo_royale.strategy_factory.strategies.base_signal_strategy import (
+    BaseSignalStrategy,
+)
 
 
-class RSIStrategy(Strategy):
+class RSIStrategy(BaseSignalStrategy):
     """
     Relative Strength Index (RSI) Strategy
 
