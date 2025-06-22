@@ -533,12 +533,42 @@ class DIContainer(containers.DeclarativeContainer):
         ),
     )
 
+    portfolio_evaluation_coordinator = providers.Singleton(
+        StrategyEvaluationCoordinator,
+        logger=logger_backtest_prod,
+        optimization_root=providers.Object(
+            config().get(
+                "backtester.portfolio.paths", "portfolio_optimization_json_filename"
+            )
+        ),
+        strategy_window_evaluation_json_filename=providers.Object(
+            config().get(
+                "backtester.portfolio.filenames",
+                "portfolio_evaluation_json_filename",
+            )
+        ),
+        strategy_summary_json_filename=providers.Object(
+            config().get(
+                "backtester.portfolio.filenames", "portfolio_summary_json_filename"
+            )
+        ),
+        global_summary_json_filename=providers.Object(
+            config().get(
+                "backtester.portfolio.filenames",
+                "portfolio_global_summary_json_filename",
+            )
+        ),
+        viability_threshold=providers.Object(
+            config().getfloat("backtester.portfolio", "strategy_viability_threshold")
+        ),
+    )
     pipeline_coordinator = providers.Singleton(
         PipelineCoordinator,
         strategy_walk_forward_coordinator=strategy_walk_forward_coordinator,
         portfolio_walk_forward_coordinator=portfolio_walk_forward_coordinator,
         strategy_evaluation_coordinator=strategy_evaluation_coordinator,
         symbol_evaluation_coordinator=symbol_evaluation_coordinator,
+        portfolio_evaluation_coordinator=portfolio_evaluation_coordinator,
         logger=logger_backtest_prod,
     )
 

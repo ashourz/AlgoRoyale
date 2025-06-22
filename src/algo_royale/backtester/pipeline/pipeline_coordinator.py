@@ -10,6 +10,9 @@ from algo_royale.backtester.evaluator.symbol.symbol_evaluation_coordinator impor
 from algo_royale.backtester.walkforward.walk_forward_coordinator import (
     WalkForwardCoordinator,
 )
+from algo_royale.portfolio.evaluator.portfolio_evaluation_coordinator import (
+    PortfolioEvaluationCoordinator,
+)
 
 
 class PipelineCoordinator:
@@ -31,6 +34,7 @@ class PipelineCoordinator:
         portfolio_walk_forward_coordinator: WalkForwardCoordinator,
         strategy_evaluation_coordinator: StrategyEvaluationCoordinator,
         symbol_evaluation_coordinator: SymbolEvaluationCoordinator,
+        portfolio_evaluation_coordinator: PortfolioEvaluationCoordinator,
         logger: Logger,
     ):
         self.logger = logger
@@ -38,6 +42,7 @@ class PipelineCoordinator:
         self.portfolio_walk_forward_coordinator = portfolio_walk_forward_coordinator
         self.strategy_evaluation_coordinator = strategy_evaluation_coordinator
         self.symbol_evaluation_coordinator = symbol_evaluation_coordinator
+        self.portfolio_evaluation_coordinator = portfolio_evaluation_coordinator
 
     async def run_async(self):
         try:
@@ -58,6 +63,7 @@ class PipelineCoordinator:
             self.strategy_evaluation_coordinator.run()
             self.symbol_evaluation_coordinator.run()
             await self.portfolio_walk_forward_coordinator.run_async()
+            self.portfolio_evaluation_coordinator.run()
             self.logger.info("Pipeline stages completed successfully.")
         except Exception as e:
             self.logger.error(f"Pipeline failed: {e}")

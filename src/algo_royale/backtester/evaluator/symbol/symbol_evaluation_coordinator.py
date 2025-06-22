@@ -16,8 +16,8 @@ class SymbolEvaluationCoordinator:
     def __init__(
         self,
         optimization_root: Path,
-        evaluation_json_filename: str = "walk_forward_evaluation.json",
-        summary_json_filename: str = "symbol_evaluation.json",
+        evaluation_json_filename: str,
+        summary_json_filename: str,
         viability_threshold: float = 0.75,
     ):
         self.optimization_root = Path(optimization_root)
