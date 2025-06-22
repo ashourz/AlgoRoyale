@@ -1,21 +1,28 @@
+from logging import Logger
 from typing import Any, Dict
 
 import numpy as np
 import pandas as pd
 
+from algo_royale.backtester.evaluator.backtest.base_backtest_evaluator import (
+    BacktestEvaluator,
+)
 
-class PortfolioBacktestEvaluator:
+
+class PortfolioBacktestEvaluator(BacktestEvaluator):
     """
     Evaluates portfolio backtest results and computes performance metrics.
     """
 
-    def evaluate(self, strategy, results: Dict[str, Any]) -> Dict[str, Any]:
+    def __init__(self, logger: Logger):
+        super().__init__(logger)
+
+    def _evaluate_signals(self, signals_df: pd.DataFrame) -> Dict[str, Any]:
         """
         Evaluate portfolio backtest results and compute key performance metrics.
 
         Parameters:
-            strategy: The portfolio strategy instance (not used in evaluation, but included for interface consistency).
-            results (dict): Dictionary containing backtest results. Expected keys:
+            signals_df (pd.DataFrame): DataFrame containing backtest results. Expected columns:
                 - "portfolio_values": List or array of portfolio values over time (preferred).
                   OR
                 - "portfolio_returns": List, array, or pd.Series of periodic returns (if values not available).
@@ -35,11 +42,11 @@ class PortfolioBacktestEvaluator:
                 - "num_trades": Number of trades (int, if trade data provided).
         """
         # Use portfolio_values if available, else fallback to portfolio_returns
-        if "portfolio_values" in results:
-            values = pd.Series(results["portfolio_values"])
+        if "portfolio_values" in signals_df:
+            values = pd.Series(signals_df["portfolio_values"])
             returns = values.pct_change().fillna(0)
         else:
-            returns = pd.Series(results["portfolio_returns"])
+            returns = pd.Series(signals_df["portfolio_returns"])
         # Metrics
         total_return = float((returns + 1).prod() - 1)
         mean_return = float(returns.mean())
@@ -51,8 +58,8 @@ class PortfolioBacktestEvaluator:
         win_rate = float((returns > 0).sum() / len(returns))
         profit_factor = self.profit_factor(returns)
         num_trades = None
-        if "trades" in results and results["trades"] is not None:
-            num_trades = len(results["trades"])
+        if "trades" in signals_df and signals_df["trades"] is not None:
+            num_trades = len(signals_df["trades"])
         metrics = {
             "total_return": total_return,
             "mean_return": mean_return,

@@ -9,16 +9,16 @@ import pandas as pd
 
 from algo_royale.backtester.data_preparer.async_data_preparer import AsyncDataPreparer
 from algo_royale.backtester.enum.backtest_stage import BacktestStage
+from algo_royale.backtester.evaluator.backtest.portfolio_backtest_evaluator import (
+    PortfolioBacktestEvaluator,
+)
 from algo_royale.backtester.executor.portfolio_backtest_executor import (
     PortfolioBacktestExecutor,
 )
 from algo_royale.backtester.stage_data.stage_data_loader import StageDataLoader
 from algo_royale.backtester.stage_data.stage_data_manager import StageDataManager
 from algo_royale.backtester.stage_data.stage_data_writer import StageDataWriter
-from algo_royale.portfolio.backtest.portfolio_evaluator import (
-    PortfolioBacktestEvaluator,
-)
-from algo_royale.portfolio.combinator.portfolio_strategy_combinator import (
+from algo_royale.portfolio.combinator.base_portfolio_strategy_combinator import (
     PortfolioStrategyCombinator,
 )
 from algo_royale.portfolio.stage_coordinator.base_testing_stage_coordinator import (

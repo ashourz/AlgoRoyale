@@ -7,8 +7,11 @@ from algo_royale.backtester.data_preparer.data_preparer import DataPreparer
 from algo_royale.backtester.data_stream.normalized_data_stream_factory import (
     NormalizedDataStreamFactory,
 )
-from algo_royale.backtester.evaluator.backtest.simple_backtest_evaluator import (
-    SimpleBacktestEvaluator,
+from algo_royale.backtester.evaluator.backtest.portfolio_backtest_evaluator import (
+    PortfolioBacktestEvaluator,
+)
+from algo_royale.backtester.evaluator.backtest.signal_backtest_evaluator import (
+    SignalBacktestEvaluator,
 )
 from algo_royale.backtester.evaluator.strategy.strategy_evaluation_coordinator import (
     StrategyEvaluationCoordinator,
@@ -18,6 +21,9 @@ from algo_royale.backtester.evaluator.strategy.strategy_evaluation_type import (
 )
 from algo_royale.backtester.evaluator.symbol.symbol_evaluation_coordinator import (
     SymbolEvaluationCoordinator,
+)
+from algo_royale.backtester.executor.portfolio_backtest_executor import (
+    PortfolioBacktestExecutor,
 )
 from algo_royale.backtester.executor.strategy_backtest_executor import (
     StrategyBacktestExecutor,
@@ -103,6 +109,9 @@ from algo_royale.logging.logger_singleton import (
     Environment,
     LoggerSingleton,
     LoggerType,
+)
+from algo_royale.portfolio.combinator.equal_risk_contribution_portfolio_strategy_combinator import (
+    EqualRiskContributionPortfolioStrategyCombinator,
 )
 from algo_royale.services.db.indicator_service import IndicatorService
 from algo_royale.services.db.news_sentiment_service import NewsSentimentService
@@ -335,7 +344,7 @@ class DIContainer(containers.DeclarativeContainer):
         logger=logger_backtest_prod,
     )
     strategy_evaluator = providers.Singleton(
-        SimpleBacktestEvaluator,
+        SignalBacktestEvaluator,
         logger=logger_backtest_prod,
     )
 
@@ -399,7 +408,34 @@ class DIContainer(containers.DeclarativeContainer):
         logger=logger_backtest_prod,
     )
 
-    portfolio_strategy_combinators = []
+    portfolio_executor = providers.Singleton(
+        PortfolioBacktestExecutor,
+        initial_balance=1_000_000.0,
+        transaction_cost=0.0,
+        min_lot=1,
+        leverage=1.0,
+        slippage=0.0,
+        stage_data_manager=stage_data_manager,
+        logger=logger_backtest_prod,
+    )
+
+    portfolio_evaluator = providers.Singleton(
+        PortfolioBacktestEvaluator,
+        logger=logger_backtest_prod,
+    )
+
+    portfolio_strategy_combinators = [
+        EqualRiskContributionPortfolioStrategyCombinator,
+        # EqualWeightPortfolioStrategyCombinator,
+        # InverseVolatilityPortfolioStrategyCombinator,
+        # MaxSharpePortfolioStrategyCombinator,
+        # MeanVariancePortfolioStrategyCombinator,
+        # MinimumVariancePortfolioStrategyCombinator,
+        # MomentumPortfolioStrategyCombinator,
+        # RiskParityPortfolioStrategyCombinator,
+        # VolatilityWeightedPortfolioStrategyCombinator,
+        # WinnerTakesAllPortfolioStrategyCombinator,
+    ]
 
     portfolio_optimization_stage_coordinator = providers.Singleton(
         PortfolioOptimizationStageCoordinator,
@@ -407,11 +443,10 @@ class DIContainer(containers.DeclarativeContainer):
         data_preparer=async_data_preparer,
         data_writer=stage_data_writer,
         stage_data_manager=stage_data_manager,
-        strategy_factory=strategy_factory,
+        executor=portfolio_executor,
+        evaluator=portfolio_evaluator,
         logger=logger_backtest_prod,
-        strategy_combinators=signal_strategy_combinators,
-        strategy_executor=strategy_executor,
-        strategy_evaluator=strategy_evaluator,
+        strategy_combinators=portfolio_strategy_combinators,
     )
 
     portfolio_testing_stage_coordinator = providers.Singleton(
@@ -420,11 +455,10 @@ class DIContainer(containers.DeclarativeContainer):
         data_preparer=async_data_preparer,
         data_writer=stage_data_writer,
         stage_data_manager=stage_data_manager,
-        strategy_executor=strategy_executor,
-        strategy_evaluator=strategy_evaluator,
-        strategy_factory=strategy_factory,
+        executor=portfolio_executor,
+        evaluator=portfolio_evaluator,
         logger=logger_backtest_prod,
-        strategy_combinators=signal_strategy_combinators,
+        strategy_combinators=portfolio_strategy_combinators,
     )
 
     portfolio_walk_forward_coordinator = providers.Singleton(

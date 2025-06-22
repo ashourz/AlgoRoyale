@@ -10,7 +10,7 @@ from algo_royale.column_names.strategy_columns import StrategyColumns
 from algo_royale.strategy_factory.enum.signal_type import SignalType
 
 
-class SimpleBacktestEvaluator(BacktestEvaluator):
+class SignalBacktestEvaluator(BacktestEvaluator):
     def __init__(self, logger: Logger):
         super().__init__(logger)
 
@@ -19,7 +19,7 @@ class SimpleBacktestEvaluator(BacktestEvaluator):
             self.logger.debug(
                 f"Evaluating signals DataFrame with {len(signals_df)} rows"
             )
-            trades = self.simulate_trades(signals_df)
+            trades = self._simulate_trades(signals_df)
             self.logger.debug(f"Trades simulated: {len(trades)}")
             if not trades:
                 return {
@@ -49,7 +49,7 @@ class SimpleBacktestEvaluator(BacktestEvaluator):
             self.logger.error(f"Evaluation failed: {e}")
             raise
 
-    def simulate_trades(self, df: pd.DataFrame) -> list[dict]:
+    def _simulate_trades(self, df: pd.DataFrame) -> list[dict]:
         """Simulate trades based on entry and exit signals in the DataFrame."""
         entry_col = StrategyColumns.ENTRY_SIGNAL
         exit_col = StrategyColumns.EXIT_SIGNAL
