@@ -9,9 +9,14 @@ class PortfolioEvaluator:
     """
 
     def evaluate(self, strategy, results: Dict[str, Any]) -> Dict[str, Any]:
-        returns = results["portfolio_returns"]
+        # Use portfolio_values if available, else fallback to portfolio_returns
+        if "portfolio_values" in results:
+            values = pd.Series(results["portfolio_values"])
+            returns = values.pct_change().fillna(0)
+        else:
+            returns = results["portfolio_returns"]
         metrics = {
-            "total_return": float(returns.sum()),
+            "total_return": float((returns + 1).prod() - 1),
             "mean_return": float(returns.mean()),
             "volatility": float(returns.std()),
             "sharpe_ratio": float(returns.mean() / (returns.std() + 1e-8)),

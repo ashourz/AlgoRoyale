@@ -13,6 +13,10 @@ from algo_royale.backtester.stage_coordinator.stage_coordinator import StageCoor
 from algo_royale.backtester.stage_data.stage_data_loader import StageDataLoader
 from algo_royale.backtester.stage_data.stage_data_manager import StageDataManager
 from algo_royale.backtester.stage_data.stage_data_writer import StageDataWriter
+from algo_royale.portfolio.backtest.portfolio_backtest_executor import (
+    PortfolioBacktestExecutor,
+)
+from algo_royale.portfolio.backtest.portfolio_evaluator import PortfolioEvaluator
 from algo_royale.portfolio.optimizer.portfolio_strategy_combinator import (
     PortfolioStrategyCombinator,
 )
@@ -29,6 +33,8 @@ class PortfolioTestingStageCoordinator(StageCoordinator):
         strategy_combinators: Optional[
             Sequence[type[PortfolioStrategyCombinator]]
         ] = None,
+        executor: Optional[PortfolioBacktestExecutor] = None,
+        evaluator: Optional[PortfolioEvaluator] = None,
     ):
         super().__init__(
             stage=BacktestStage.BACKTEST,
@@ -41,6 +47,8 @@ class PortfolioTestingStageCoordinator(StageCoordinator):
         self.strategy_combinators = strategy_combinators
         if not self.strategy_combinators:
             raise ValueError("No portfolio strategy combinators provided")
+        self.executor = executor or PortfolioBacktestExecutor()
+        self.evaluator = evaluator or PortfolioEvaluator()
 
     async def run(
         self,
@@ -74,6 +82,11 @@ class PortfolioTestingStageCoordinator(StageCoordinator):
         ] = None,
     ) -> Dict[str, Dict[str, Dict[str, float]]]:
         results = {}
+        initial_balance = 1_000_000.0  # or make this configurable
+        transaction_cost = 0.001  # 0.1% per trade, example
+        min_lot = 1  # or set to 100 for round lots
+        leverage = 1.0  # or set >1 for margin
+        slippage = 0.0  # or set to a value for slippage simulation
         for symbol, df_iter_factory in prepared_data.items():
             if symbol not in prepared_data:
                 self.logger.warning(f"No prepared data for symbol: {symbol}")
@@ -86,6 +99,7 @@ class PortfolioTestingStageCoordinator(StageCoordinator):
                     f"No data for symbol: {symbol} in window {self.train_window_id}"
                 )
                 continue
+            data = pd.concat(dfs)
             for strategy_combinator in self.strategy_combinators:
                 for strat_factory in strategy_combinator.all_strategy_combinations():
                     strategy_class = (
@@ -130,9 +144,20 @@ class PortfolioTestingStageCoordinator(StageCoordinator):
                     }
                     self.logger.info(f"Filtered params: {filtered_params}")
 
-                    # This should call your portfolio backtest executor and evaluator
-                    # Placeholder: return empty dict
-                    metrics = {}
+                    # Instantiate strategy with filtered_params
+                    strategy = strategy_class(**filtered_params)
+                    # Run backtest with cash constraints, partial fills, transaction cost, min lot, leverage, slippage
+                    backtest_results = self.executor.run_backtest(
+                        strategy,
+                        data,
+                        initial_balance=initial_balance,
+                        transaction_cost=transaction_cost,
+                        min_lot=min_lot,
+                        leverage=leverage,
+                        slippage=slippage,
+                    )
+                    # Evaluate metrics
+                    metrics = self.evaluator.evaluate(strategy, backtest_results)
                     test_opt_results = self.get_optimization_results(
                         strategy_name, symbol, self.test_start_date, self.test_end_date
                     )
