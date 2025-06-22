@@ -461,6 +461,11 @@ class DIContainer(containers.DeclarativeContainer):
         evaluator=portfolio_evaluator,
         logger=logger_backtest_prod,
         strategy_combinators=portfolio_strategy_combinators,
+        optimization_json_filename=providers.Object(
+            config().get(
+                "backtester.portfolio.filenames", "portfolio_optimization_json_filename"
+            )
+        ),
     )
 
     portfolio_testing_stage_coordinator = providers.Singleton(
@@ -473,6 +478,11 @@ class DIContainer(containers.DeclarativeContainer):
         evaluator=portfolio_evaluator,
         logger=logger_backtest_prod,
         strategy_combinators=portfolio_strategy_combinators,
+        optimization_json_filename=providers.Object(
+            config().get(
+                "backtester.portfolio.filenames", "portfolio_optimization_json_filename"
+            )
+        ),
     )
 
     portfolio_walk_forward_coordinator = providers.Singleton(

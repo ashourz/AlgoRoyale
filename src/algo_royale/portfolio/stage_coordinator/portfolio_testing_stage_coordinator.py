@@ -15,14 +15,14 @@ from algo_royale.backtester.evaluator.backtest.portfolio_backtest_evaluator impo
 from algo_royale.backtester.executor.portfolio_backtest_executor import (
     PortfolioBacktestExecutor,
 )
+from algo_royale.backtester.stage_coordinator.testing.base_testing_stage_coordinator import (
+    BaseTestingStageCoordinator,
+)
 from algo_royale.backtester.stage_data.stage_data_loader import StageDataLoader
 from algo_royale.backtester.stage_data.stage_data_manager import StageDataManager
 from algo_royale.backtester.stage_data.stage_data_writer import StageDataWriter
 from algo_royale.portfolio.combinator.base_portfolio_strategy_combinator import (
     PortfolioStrategyCombinator,
-)
-from algo_royale.portfolio.stage_coordinator.base_testing_stage_coordinator import (
-    BaseTestingStageCoordinator,
 )
 
 
@@ -35,22 +35,22 @@ class PortfolioTestingStageCoordinator(BaseTestingStageCoordinator):
         stage_data_manager: StageDataManager,
         logger: Logger,
         strategy_combinators: Sequence[type[PortfolioStrategyCombinator]],
-        executor: PortfolioBacktestExecutor,  # PortfolioBacktestExecutor instance injected
-        evaluator: PortfolioBacktestEvaluator,  # PortfolioEvaluator instance injected
+        executor: PortfolioBacktestExecutor,
+        evaluator: PortfolioBacktestEvaluator,
+        optimization_json_filename: str,
     ):
         super().__init__(
-            stage=BacktestStage.BACKTEST,
+            stage=BacktestStage.PORTFOLIO_TESTING,
             data_loader=data_loader,
             data_preparer=data_preparer,
             data_writer=data_writer,
             stage_data_manager=stage_data_manager,
             logger=logger,
+            evaluator=evaluator,
+            executor=executor,
+            strategy_combinators=strategy_combinators,
         )
-        self.strategy_combinators = strategy_combinators
-        if not self.strategy_combinators:
-            raise ValueError("No portfolio strategy combinators provided")
-        self.executor = executor
-        self.evaluator = evaluator
+        self.optimization_json_filename = optimization_json_filename
 
     async def run(
         self,
@@ -204,9 +204,13 @@ class PortfolioTestingStageCoordinator(BaseTestingStageCoordinator):
         self, strategy_name: str, symbol: str, start_date: datetime, end_date: datetime
     ) -> Path:
         out_dir = self.stage_data_manager.get_directory_path(
-            BacktestStage.OPTIMIZATION, strategy_name, symbol, start_date, end_date
+            BacktestStage.PORTFOLIO_OPTIMIZATION,
+            strategy_name,
+            symbol,
+            start_date,
+            end_date,
         )
-        json_path = out_dir / "portfolio_optimization_result.json"
+        json_path = out_dir / self.optimization_json_filename
         return json_path
 
     def get_output_path(self, strategy_name, symbol):
@@ -215,7 +219,7 @@ class PortfolioTestingStageCoordinator(BaseTestingStageCoordinator):
         )
         out_dir.mkdir(parents=True, exist_ok=True)
         # Portfolio uses a different filename
-        return out_dir / "portfolio_optimization_result.json"
+        return out_dir / self.optimization_json_filename
 
     async def _write(self, stage, processed_data):
         # No-op: writing is handled in process()

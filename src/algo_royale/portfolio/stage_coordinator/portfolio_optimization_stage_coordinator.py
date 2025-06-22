@@ -45,20 +45,20 @@ class PortfolioOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
         strategy_combinators: Sequence[type[PortfolioStrategyCombinator]],
         executor: PortfolioBacktestExecutor,
         evaluator: PortfolioBacktestEvaluator,
+        optimization_json_filename: str,
     ):
         super().__init__(
-            stage=BacktestStage.OPTIMIZATION,
+            stage=BacktestStage.PORTFOLIO_OPTIMIZATION,
             data_loader=data_loader,
             data_preparer=data_preparer,
             data_writer=data_writer,
             stage_data_manager=stage_data_manager,
             logger=logger,
+            evaluator=evaluator,
+            executor=executor,
+            strategy_combinators=strategy_combinators,
         )
-        self.strategy_combinators = strategy_combinators
-        if not self.strategy_combinators:
-            raise ValueError("No portfolio strategy combinators provided")
-        self.executor = executor
-        self.evaluator = evaluator
+        self.optimization_json_filename = optimization_json_filename
 
     def get_output_path(self, strategy_name, symbol):
         out_dir = self.stage_data_manager.get_directory_path(
@@ -66,7 +66,7 @@ class PortfolioOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
         )
         out_dir.mkdir(parents=True, exist_ok=True)
         # Portfolio uses a different filename
-        return out_dir / "portfolio_optimization_result.json"
+        return out_dir / self.optimization_json_filename
 
     async def process(
         self,
