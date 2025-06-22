@@ -345,7 +345,7 @@ class DIContainer(containers.DeclarativeContainer):
         logger=logger_backtest_prod,
     )
 
-    strategy_combinators = [
+    signal_strategy_combinators = [
         BollingerBandsStrategyCombinator,
         # ComboStrategyCombinator,
         # MACDTrailingStrategyCombinator,
@@ -372,7 +372,7 @@ class DIContainer(containers.DeclarativeContainer):
         stage_data_manager=stage_data_manager,
         strategy_factory=strategy_factory,
         logger=logger_backtest_prod,
-        strategy_combinators=strategy_combinators,
+        strategy_combinators=signal_strategy_combinators,
         strategy_executor=strategy_executor,
         strategy_evaluator=strategy_evaluator,
     )
@@ -387,7 +387,7 @@ class DIContainer(containers.DeclarativeContainer):
         strategy_evaluator=strategy_evaluator,
         strategy_factory=strategy_factory,
         logger=logger_backtest_prod,
-        strategy_combinators=strategy_combinators,
+        strategy_combinators=signal_strategy_combinators,
     )
 
     strategy_walk_forward_coordinator = providers.Singleton(
@@ -399,6 +399,8 @@ class DIContainer(containers.DeclarativeContainer):
         logger=logger_backtest_prod,
     )
 
+    portfolio_strategy_combinators = []
+
     portfolio_optimization_stage_coordinator = providers.Singleton(
         PortfolioOptimizationStageCoordinator,
         data_loader=stage_data_loader,
@@ -407,7 +409,7 @@ class DIContainer(containers.DeclarativeContainer):
         stage_data_manager=stage_data_manager,
         strategy_factory=strategy_factory,
         logger=logger_backtest_prod,
-        strategy_combinators=strategy_combinators,
+        strategy_combinators=signal_strategy_combinators,
         strategy_executor=strategy_executor,
         strategy_evaluator=strategy_evaluator,
     )
@@ -422,15 +424,15 @@ class DIContainer(containers.DeclarativeContainer):
         strategy_evaluator=strategy_evaluator,
         strategy_factory=strategy_factory,
         logger=logger_backtest_prod,
-        strategy_combinators=strategy_combinators,
+        strategy_combinators=signal_strategy_combinators,
     )
 
     portfolio_walk_forward_coordinator = providers.Singleton(
         WalkForwardCoordinator,
         data_ingest_stage_coordinator=data_ingest_stage_coordinator,
         feature_engineering_stage_coordinator=feature_engineering_stage_coordinator,
-        optimization_stage_coordinator=strategy_optimization_stage_coordinator,
-        testing_stage_coordinator=strategy_testing_stage_coordinator,
+        optimization_stage_coordinator=portfolio_optimization_stage_coordinator,
+        testing_stage_coordinator=portfolio_testing_stage_coordinator,
         logger=logger_backtest_prod,
     )
 

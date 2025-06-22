@@ -18,7 +18,7 @@ from algo_royale.backtester.stage_data.stage_data_writer import StageDataWriter
 from algo_royale.portfolio.backtest.portfolio_evaluator import (
     PortfolioBacktestEvaluator,
 )
-from algo_royale.portfolio.optimizer.portfolio_strategy_combinator import (
+from algo_royale.portfolio.combinator.portfolio_strategy_combinator import (
     PortfolioStrategyCombinator,
 )
 from algo_royale.portfolio.optimizer.portfolio_strategy_optimizer import (
