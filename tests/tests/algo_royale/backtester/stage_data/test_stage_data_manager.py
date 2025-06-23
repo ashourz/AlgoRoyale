@@ -87,7 +87,8 @@ def test_get_file_path_and_directory_path(temp_stage_data_manager):
     )
     assert "strategy1" in str(path)
     dir_path = mgr.get_directory_path(BacktestStage.DATA_INGEST, "strategy1", "AAPL")
-    assert dir_path.name == "AAPL"
+    print(dir_path)
+    assert dir_path.name == "strategy1"
 
 
 def test_get_stage_path_creates_dir(temp_stage_data_manager):

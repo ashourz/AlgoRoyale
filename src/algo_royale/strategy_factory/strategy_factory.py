@@ -37,6 +37,7 @@ class StrategyFactory:
         self.strategy_combinators = strategy_combinators
         self._all_strategy_combinations: Optional[list[BaseSignalStrategy]] = None
         self.logger = logger
+        self.strategy_map_path = strategy_map_path
         self._strategy_map_lock = threading.Lock()
 
     def get_all_strategy_combination_lambdas(

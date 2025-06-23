@@ -1,7 +1,8 @@
 # src/algo_royale/config/config.py
-import os
 import configparser
+import os
 from pathlib import Path
+
 
 class Config:
     def __init__(self, config_file="config.ini", environment=None):
@@ -78,7 +79,7 @@ class Config:
         if value is None:
             return fallback
         return str(value).lower() in ["true", "1", "yes"]
-    
+
     def get_section(self, section) -> dict:
         """
         Get an entire section as a dictionary.
@@ -89,4 +90,6 @@ class Config:
         if self.parser.has_section(section):
             return self.parser[section]
         else:
-            raise ValueError(f"Section '{section}' not found in the configuration file.")
+            raise ValueError(
+                f"Section '{section}' not found in the configuration file."
+            )

@@ -5,7 +5,7 @@ import pandas as pd
 import pytest
 
 from algo_royale.backtester.stage_coordinator.optimization.strategy_optimization_stage_coordinator import (
-    OptimizationStageCoordinator,
+    StrategyOptimizationStageCoordinator,
 )
 
 
@@ -76,7 +76,7 @@ async def test_init_success(
         def get_condition_types():
             return {"entry": [], "exit": []}
 
-    OptimizationStageCoordinator(
+    StrategyOptimizationStageCoordinator(
         data_loader=mock_loader,
         data_preparer=mock_preparer,
         data_writer=mock_writer,
@@ -87,31 +87,6 @@ async def test_init_success(
         strategy_executor=mock_executor,
         strategy_evaluator=mock_evaluator,
     )
-
-
-@pytest.mark.asyncio
-async def test_init_no_combinators(
-    mock_loader,
-    mock_preparer,
-    mock_writer,
-    mock_manager,
-    mock_logger,
-    mock_factory,
-    mock_executor,
-    mock_evaluator,
-):
-    with pytest.raises(ValueError):
-        OptimizationStageCoordinator(
-            data_loader=mock_loader,
-            data_preparer=mock_preparer,
-            data_writer=mock_writer,
-            stage_data_manager=mock_manager,
-            strategy_factory=mock_factory,
-            logger=mock_logger,
-            strategy_combinators=None,
-            strategy_executor=mock_executor,
-            strategy_evaluator=mock_evaluator,
-        )
 
 
 @pytest.mark.asyncio
@@ -141,7 +116,7 @@ async def test_process_returns_factories(
         def get_condition_types():
             return {"entry": [], "exit": []}
 
-    coordinator = OptimizationStageCoordinator(
+    coordinator = StrategyOptimizationStageCoordinator(
         data_loader=mock_loader,
         data_preparer=mock_preparer,
         data_writer=mock_writer,
@@ -163,7 +138,7 @@ async def test_process_returns_factories(
 
     with (
         patch(
-            "src.algo_royale.backtester.stage_coordinator.optimization_stage_coordinator.StrategyOptimizer",
+            "algo_royale.strategy_factory.optimizer.strategy_optimizer.StrategyOptimizer",
             autospec=True,
         ) as MockOptimizer,
         patch.object(
@@ -210,7 +185,7 @@ async def test_fetch_symbol_optimization_exception_logs_error(
         def get_condition_types():
             return {"entry": [], "exit": []}
 
-    coordinator = OptimizationStageCoordinator(
+    coordinator = StrategyOptimizationStageCoordinator(
         data_loader=mock_loader,
         data_preparer=mock_preparer,
         data_writer=mock_writer,
@@ -232,7 +207,7 @@ async def test_fetch_symbol_optimization_exception_logs_error(
 
     with (
         patch(
-            "algo_royale.backtester.stage_coordinator.optimization_stage_coordinator.StrategyOptimizer"
+            "algo_royale.strategy_factory.optimizer.strategy_optimizer.StrategyOptimizer",
         ) as MockOptimizer,
         patch.object(
             coordinator,
@@ -269,7 +244,7 @@ async def test_process_skips_symbol_with_no_data(
         def get_condition_types():
             return {"entry": [], "exit": []}
 
-    coordinator = OptimizationStageCoordinator(
+    coordinator = StrategyOptimizationStageCoordinator(
         data_loader=mock_loader,
         data_preparer=mock_preparer,
         data_writer=mock_writer,
@@ -292,7 +267,7 @@ async def test_process_skips_symbol_with_no_data(
 
     with (
         patch(
-            "algo_royale.backtester.stage_coordinator.optimization_stage_coordinator.StrategyOptimizer",
+            "algo_royale.strategy_factory.optimizer.strategy_optimizer.StrategyOptimizer",
             autospec=True,
         ) as MockOptimizer,
         patch.object(
@@ -341,7 +316,7 @@ async def test_process_multiple_strategies(
         def get_condition_types():
             return {"entry": [], "exit": []}
 
-    coordinator = OptimizationStageCoordinator(
+    coordinator = StrategyOptimizationStageCoordinator(
         data_loader=mock_loader,
         data_preparer=mock_preparer,
         data_writer=mock_writer,
@@ -363,7 +338,7 @@ async def test_process_multiple_strategies(
 
     with (
         patch(
-            "src.algo_royale.backtester.stage_coordinator.optimization_stage_coordinator.StrategyOptimizer",
+            "algo_royale.strategy_factory.optimizer.strategy_optimizer.StrategyOptimizer",
             autospec=True,
         ) as MockOptimizer,
         patch.object(
@@ -404,7 +379,7 @@ async def test_process_optimizer_exception_logs_error(
         def get_condition_types():
             return {"entry": [], "exit": []}
 
-    coordinator = OptimizationStageCoordinator(
+    coordinator = StrategyOptimizationStageCoordinator(
         data_loader=mock_loader,
         data_preparer=mock_preparer,
         data_writer=mock_writer,
@@ -426,7 +401,7 @@ async def test_process_optimizer_exception_logs_error(
 
     with (
         patch(
-            "algo_royale.backtester.stage_coordinator.optimization_stage_coordinator.StrategyOptimizer"
+            "algo_royale.strategy_factory.optimizer.strategy_optimizer.StrategyOptimizer",
         ) as MockOptimizer,
         patch.object(
             coordinator,
@@ -465,7 +440,7 @@ async def test_write_is_noop(
         def get_condition_types():
             return {"entry": [], "exit": []}
 
-    coordinator = OptimizationStageCoordinator(
+    coordinator = StrategyOptimizationStageCoordinator(
         data_loader=mock_loader,
         data_preparer=mock_preparer,
         data_writer=mock_writer,

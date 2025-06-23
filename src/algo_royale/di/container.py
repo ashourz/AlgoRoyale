@@ -527,8 +527,8 @@ class DIContainer(containers.DeclarativeContainer):
             config().get("backtester.signal.filename", "signal_summary_json_filename")
         ),
         viability_threshold=providers.Object(
-            config().getfloat(
-                "backtester.signal", "signal_evaluation_viability_threshold"
+            config().get_float(
+                "backtester.signal", "signal_evaluation_viability_threshold", 0.5
             )
         ),
     )
@@ -559,7 +559,9 @@ class DIContainer(containers.DeclarativeContainer):
             )
         ),
         viability_threshold=providers.Object(
-            config().getfloat("backtester.portfolio", "strategy_viability_threshold")
+            config().get_float(
+                "backtester.portfolio", "strategy_viability_threshold", 0.5
+            )
         ),
     )
     pipeline_coordinator = providers.Singleton(

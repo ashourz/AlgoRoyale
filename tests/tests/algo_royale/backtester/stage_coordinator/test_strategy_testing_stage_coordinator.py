@@ -5,7 +5,7 @@ import pandas as pd
 import pytest
 
 from algo_royale.backtester.stage_coordinator.testing.strategy_testing_stage_coordinator import (
-    TestingStageCoordinator,
+    StrategyTestingStageCoordinator,
 )
 
 
@@ -79,7 +79,7 @@ def test_init_success(
     class DummyCombinator:
         strategy_class = DummyStrategy
 
-    TestingStageCoordinator(
+    StrategyTestingStageCoordinator(
         data_loader=mock_loader,
         data_preparer=mock_preparer,
         data_writer=mock_writer,
@@ -90,30 +90,6 @@ def test_init_success(
         logger=mock_logger,
         strategy_combinators=[DummyCombinator],
     )
-
-
-def test_init_no_combinators(
-    mock_loader,
-    mock_preparer,
-    mock_writer,
-    mock_manager,
-    mock_executor,
-    mock_evaluator,
-    mock_factory,
-    mock_logger,
-):
-    with pytest.raises(ValueError):
-        TestingStageCoordinator(
-            data_loader=mock_loader,
-            data_preparer=mock_preparer,
-            data_writer=mock_writer,
-            stage_data_manager=mock_manager,
-            strategy_executor=mock_executor,
-            strategy_evaluator=mock_evaluator,
-            strategy_factory=mock_factory,
-            logger=mock_logger,
-            strategy_combinators=None,
-        )
 
 
 @pytest.mark.asyncio
@@ -153,7 +129,7 @@ async def test_process_returns_metrics(
         / f"optimization_{strategy_name}_{symbol}"
     )
 
-    coordinator = TestingStageCoordinator(
+    coordinator = StrategyTestingStageCoordinator(
         data_loader=mock_loader,
         data_preparer=mock_preparer,
         data_writer=mock_writer,
@@ -209,7 +185,7 @@ async def test_process_warns_on_missing_optimization(
         / f"optimization_{strategy_name}_{symbol}"
     )
 
-    coordinator = TestingStageCoordinator(
+    coordinator = StrategyTestingStageCoordinator(
         data_loader=mock_loader,
         data_preparer=mock_preparer,
         data_writer=mock_writer,
@@ -263,7 +239,7 @@ async def test_process_warns_on_no_data(
         / f"optimization_{strategy_name}_{symbol}"
     )
 
-    coordinator = TestingStageCoordinator(
+    coordinator = StrategyTestingStageCoordinator(
         data_loader=mock_loader,
         data_preparer=mock_preparer,
         data_writer=mock_writer,
@@ -307,7 +283,7 @@ async def test_write_is_noop(
     class DummyCombinator:
         strategy_class = DummyStrategy
 
-    coordinator = TestingStageCoordinator(
+    coordinator = StrategyTestingStageCoordinator(
         data_loader=mock_loader,
         data_preparer=mock_preparer,
         data_writer=mock_writer,

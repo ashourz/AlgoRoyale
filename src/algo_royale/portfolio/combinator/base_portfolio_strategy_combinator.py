@@ -1,7 +1,9 @@
 from functools import partial
 from typing import Type
 
-from algo_royale.backtester.strategy_combinator import BaseStrategyCombinator
+from algo_royale.backtester.strategy_combinator.base_strategy_combinator import (
+    BaseStrategyCombinator,
+)
 from algo_royale.portfolio.strategies.base_portfolio_strategy import (
     BasePortfolioStrategy,
 )

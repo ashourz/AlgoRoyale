@@ -9,8 +9,12 @@ from algo_royale.strategy_factory.strategy_factory import StrategyFactory
 class DummyConfig:
     def __init__(self, tmp_path):
         self._path = str(tmp_path / "strategy_map.json")
+        self.strategy_map_path = self._path  # Add this line
 
     def get(self, *args, **kwargs):
+        # Return the path if the key is "strategy_map_path"
+        if args and args[0] == "strategy_map_path":
+            return self.strategy_map_path
         return self._path
 
 
@@ -49,7 +53,9 @@ def config(tmp_path):
 def factory(config):
     # Inject DummyCombinator for testing
     return StrategyFactory(
-        config=config, logger=DummyLogger(), strategy_combinators=[DummyCombinator]
+        strategy_map_path=config.get("strategy_map_path"),
+        logger=DummyLogger(),
+        strategy_combinators=[DummyCombinator],
     )
 
 
