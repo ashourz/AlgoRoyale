@@ -37,6 +37,7 @@ class PortfolioTestingStageCoordinator(BaseTestingStageCoordinator):
         strategy_combinators: Sequence[type[PortfolioStrategyCombinator]],
         executor: PortfolioBacktestExecutor,
         evaluator: PortfolioBacktestEvaluator,
+        optimization_json_filename: str,
     ):
         super().__init__(
             stage=BacktestStage.PORTFOLIO_TESTING,
@@ -45,10 +46,11 @@ class PortfolioTestingStageCoordinator(BaseTestingStageCoordinator):
             data_writer=data_writer,
             stage_data_manager=stage_data_manager,
             logger=logger,
-            executor=executor,
             evaluator=evaluator,
+            executor=executor,
             strategy_combinators=strategy_combinators,
         )
+        self.optimization_json_filename = optimization_json_filename
 
     async def run(
         self,
@@ -202,9 +204,13 @@ class PortfolioTestingStageCoordinator(BaseTestingStageCoordinator):
         self, strategy_name: str, symbol: str, start_date: datetime, end_date: datetime
     ) -> Path:
         out_dir = self.stage_data_manager.get_directory_path(
-            BacktestStage.OPTIMIZATION, strategy_name, symbol, start_date, end_date
+            BacktestStage.PORTFOLIO_OPTIMIZATION,
+            strategy_name,
+            symbol,
+            start_date,
+            end_date,
         )
-        json_path = out_dir / "portfolio_optimization_result.json"
+        json_path = out_dir / self.optimization_json_filename
         return json_path
 
     def get_output_path(self, strategy_name, symbol):
@@ -213,7 +219,7 @@ class PortfolioTestingStageCoordinator(BaseTestingStageCoordinator):
         )
         out_dir.mkdir(parents=True, exist_ok=True)
         # Portfolio uses a different filename
-        return out_dir / "portfolio_optimization_result.json"
+        return out_dir / self.optimization_json_filename
 
     async def _write(self, stage, processed_data):
         # No-op: writing is handled in process()
