@@ -372,7 +372,7 @@ class DIContainer(containers.DeclarativeContainer):
         strategy_map_path=providers.Object(
             config().get("backtester.signal.paths", "signal_strategy_map_path")
         ),
-        strategy_combinators = signal_strategy_combinators
+        strategy_combinators=signal_strategy_combinators,
         logger=logger_backtest_prod,
     )
 
