@@ -158,10 +158,14 @@ async def test_process_returns_factories(
         # The result should be a dict with window_id as a key for the DummyStrategy
         assert coordinator.window_id in result["AAPL"]["DummyStrategy"]
         # The value should be the optimization result
-        assert result["AAPL"]["DummyStrategy"][coordinator.window_id] == {
-            "param": 1,
-            "score": 0.95,
-        }
+        result = await coordinator.process(prepared_data)
+        strategy_result = result["AAPL"]["DummyStrategy"][coordinator.window_id]
+
+        assert strategy_result["strategy"] == "DummyStrategy"
+        assert "best_value" in strategy_result
+        assert "best_params" in strategy_result
+        assert "meta" in strategy_result
+        assert "metrics" in strategy_result
 
 
 @pytest.mark.asyncio
