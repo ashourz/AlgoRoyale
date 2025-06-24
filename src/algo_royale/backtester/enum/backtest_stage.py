@@ -141,14 +141,14 @@ class BacktestStage(Enum):
     PORTFOLIO_OPTIMIZATION = (
         BacktestStageName.PORTFOLIO_OPTIMIZATION,
         "Optimizing a portfolio of strategies",
-        None,
+        BacktestStageName.FEATURE_ENGINEERING,
         [],
         {},
     )
     PORTFOLIO_TESTING = (
         BacktestStageName.PORTFOLIO_TESTING,
         "Testing a portfolio of strategies on historical data",
-        None,
+        BacktestStageName.FEATURE_ENGINEERING,
         [],
         {},
     )

@@ -7,5 +7,4 @@ from algo_royale.portfolio.strategies.equal_weight_portfolio_strategy import (
 
 
 class EqualWeightPortfolioStrategyCombinator(PortfolioStrategyCombinator):
-    def __init__(self):
-        super().__init__(EqualWeightPortfolioStrategy)
+    strategy_class = EqualWeightPortfolioStrategy

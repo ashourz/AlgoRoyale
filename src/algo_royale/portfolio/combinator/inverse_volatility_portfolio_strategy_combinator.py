@@ -7,5 +7,4 @@ from algo_royale.portfolio.strategies.inverse_volatility_portfolio_strategy impo
 
 
 class InverseVolatilityPortfolioStrategyCombinator(PortfolioStrategyCombinator):
-    def __init__(self):
-        super().__init__(InverseVolatilityPortfolioStrategy)
+    strategy_class = InverseVolatilityPortfolioStrategy

@@ -7,5 +7,4 @@ from algo_royale.portfolio.strategies.momentum_portfolio_strategy import (
 
 
 class MomentumPortfolioStrategyCombinator(PortfolioStrategyCombinator):
-    def __init__(self):
-        super().__init__(MomentumPortfolioStrategy)
+    strategy_class = MomentumPortfolioStrategy

@@ -7,5 +7,4 @@ from algo_royale.portfolio.strategies.equal_risk_contribution_portfolio_strategy
 
 
 class EqualRiskContributionPortfolioStrategyCombinator(PortfolioStrategyCombinator):
-    def __init__(self):
-        super().__init__(EqualRiskContributionPortfolioStrategy)
+    strategy_class = EqualRiskContributionPortfolioStrategy

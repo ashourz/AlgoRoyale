@@ -10,46 +10,36 @@ from algo_royale.portfolio.strategies.base_portfolio_strategy import (
 
 
 class PortfolioStrategyCombinator(BaseStrategyCombinator):
-    """Base class to generate all combinations of portfolio strategy classes and their parameterizations.
+    """
+    Base class to generate all combinations of portfolio strategy classes.
     Subclass and set the class attribute `portfolio_strategy_classes` to a list of strategy classes.
-    This class is primarily for compatibility with the base class.
     """
 
-    def __init__(self, strategy_class: Type[BasePortfolioStrategy]):
-        """
-        Initialize the combinator with a specific portfolio strategy class.
-        This is primarily for compatibility with the base class.
-        """
-        self.strategy_class = strategy_class
+    # List of portfolio strategy classes to enumerate
+    strategy_class: Type[BasePortfolioStrategy] = None
 
+    @classmethod
     def all_strategy_combinations(
-        self,
-        optuna_trial=None,
+        cls,
         logger=None,
     ) -> Generator[Callable[[], BasePortfolioStrategy], None, None]:
         """
-        Generate all possible portfolio strategy combinations (with parameterizations if optuna_trial is provided)
-        for the single strategy class provided in __init__.
-        If optuna_trial is None, yields strategies with default parameters.
-        If optuna_trial is provided, uses the strategy's optuna_suggest to generate parameterized strategies.
+        Yield a callable that instantiates the single strategy.
         """
-        strat_cls = self.strategy_class
+        if cls.strategy_class is None:
+            if logger:
+                logger.error(f"{cls.__name__} has no strategy_class attribute set.")
+            return
+
         try:
-            if optuna_trial is not None:
-                params = strat_cls.optuna_suggest(
-                    optuna_trial, prefix=f"{strat_cls.__name__}_"
-                )
-                if isinstance(params, dict):
-                    yield partial(strat_cls, **params)
-                else:
-                    yield lambda: params
-            else:
-                yield strat_cls
+            yield partial(cls.strategy_class)
         except Exception as e:
             if logger:
-                logger.error(f"Error creating portfolio strategy {strat_cls}: {e}")
+                logger.error(
+                    f"Error creating portfolio strategy {cls.strategy_class}: {e}"
+                )
 
     @classmethod
     def get_strategy_classes(cls):
         """Return the portfolio strategy classes for this combinator class."""
-        return cls.portfolio_strategy_classes or []
+        return [cls.strategy_class] or []

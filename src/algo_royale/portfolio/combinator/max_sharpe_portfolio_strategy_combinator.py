@@ -7,5 +7,4 @@ from algo_royale.portfolio.strategies.max_sharpe_portfolio_strategy import (
 
 
 class MaxSharpePortfolioStrategyCombinator(PortfolioStrategyCombinator):
-    def __init__(self):
-        super().__init__(MaxSharpePortfolioStrategy)
+    strategy_class = MaxSharpePortfolioStrategy

@@ -7,5 +7,4 @@ from algo_royale.portfolio.strategies.volatility_weighted_portfolio_strategy imp
 
 
 class VolatilityWeightedPortfolioStrategyCombinator(PortfolioStrategyCombinator):
-    def __init__(self):
-        super().__init__(VolatilityWeightedPortfolioStrategy)
+    strategy_class = VolatilityWeightedPortfolioStrategy

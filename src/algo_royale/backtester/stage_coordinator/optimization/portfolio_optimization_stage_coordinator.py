@@ -90,7 +90,9 @@ class PortfolioOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
                 continue
             train_df = pd.concat(dfs, ignore_index=True)
             for strategy_combinator in self.strategy_combinators:
-                for strat_factory in strategy_combinator.all_strategy_combinations():
+                for strat_factory in strategy_combinator.all_strategy_combinations(
+                    logger=self.logger
+                ):
                     strategy_class = (
                         strat_factory.func
                         if hasattr(strat_factory, "func")

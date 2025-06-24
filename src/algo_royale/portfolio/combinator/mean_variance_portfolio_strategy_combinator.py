@@ -7,5 +7,4 @@ from algo_royale.portfolio.strategies.mean_variance_portfolio_strategy import (
 
 
 class MeanVariancePortfolioStrategyCombinator(PortfolioStrategyCombinator):
-    def __init__(self):
-        super().__init__(MeanVariancePortfolioStrategy)
+    strategy_class = MeanVariancePortfolioStrategy

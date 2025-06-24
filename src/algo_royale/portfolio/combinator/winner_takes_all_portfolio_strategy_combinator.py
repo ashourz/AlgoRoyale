@@ -7,5 +7,4 @@ from algo_royale.portfolio.strategies.winner_takes_all_portfolio_strategy import
 
 
 class WinnerTakesAllPortfolioStrategyCombinator(PortfolioStrategyCombinator):
-    def __init__(self):
-        super().__init__(WinnerTakesAllPortfolioStrategy)
+    strategy_class = WinnerTakesAllPortfolioStrategy

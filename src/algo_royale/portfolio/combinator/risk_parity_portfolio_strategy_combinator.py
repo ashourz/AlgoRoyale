@@ -7,5 +7,4 @@ from algo_royale.portfolio.strategies.risk_parity_portfolio_strategy import (
 
 
 class RiskParityPortfolioStrategyCombinator(PortfolioStrategyCombinator):
-    def __init__(self):
-        super().__init__(RiskParityPortfolioStrategy)
+    strategy_class = RiskParityPortfolioStrategy
