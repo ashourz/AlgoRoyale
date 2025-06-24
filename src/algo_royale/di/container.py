@@ -348,14 +348,6 @@ class DIContainer(containers.DeclarativeContainer):
         logger=logger_backtest_prod,
     )
 
-    strategy_factory = providers.Singleton(
-        StrategyFactory,
-        strategy_map_path=providers.Object(
-            config().get("backtester.signal.paths", "signal_strategy_map_path")
-        ),
-        logger=logger_backtest_prod,
-    )
-
     signal_strategy_combinators = [
         BollingerBandsStrategyCombinator,
         # ComboStrategyCombinator,
@@ -374,6 +366,15 @@ class DIContainer(containers.DeclarativeContainer):
         # VWAPReversionStrategyCombinator,
         # WickReversalStrategyCombinator,
     ]
+
+    strategy_factory = providers.Singleton(
+        StrategyFactory,
+        strategy_map_path=providers.Object(
+            config().get("backtester.signal.paths", "signal_strategy_map_path")
+        ),
+        strategy_combinators = signal_strategy_combinators
+        logger=logger_backtest_prod,
+    )
 
     strategy_optimization_stage_coordinator = providers.Singleton(
         StrategyOptimizationStageCoordinator,
