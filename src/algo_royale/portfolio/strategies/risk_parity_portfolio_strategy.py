@@ -46,6 +46,9 @@ class RiskParityPortfolioStrategy(BasePortfolioStrategy):
         n = cov.shape[0]
         w = np.ones(n) / n
         for _ in range(self.max_iter):
+            if np.any(~np.isfinite(w)):
+                # If weights become NaN or inf, return uniform weights
+                return np.ones(n) / n
             risk_contrib = w * (cov @ w)
             avg_rc = risk_contrib.mean()
             diff = risk_contrib - avg_rc

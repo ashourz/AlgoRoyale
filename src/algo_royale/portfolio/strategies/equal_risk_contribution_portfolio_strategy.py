@@ -59,6 +59,8 @@ class EqualRiskContributionPortfolioStrategy(BasePortfolioStrategy):
 
             def risk_contribution(w):
                 port_var = w @ cov @ w
+                if port_var <= 0 or np.isnan(port_var):
+                    return np.inf  # Penalize invalid variance
                 rc = w * (cov @ w) / (np.sqrt(port_var) + 1e-8)
                 return np.sum((rc - rc.mean()) ** 2)
 

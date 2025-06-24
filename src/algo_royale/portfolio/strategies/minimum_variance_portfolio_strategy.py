@@ -58,7 +58,10 @@ class MinimumVariancePortfolioStrategy(BasePortfolioStrategy):
                 continue
 
             def obj(w):
-                return w @ cov @ w
+                var = w @ cov @ w
+                if np.isnan(var) or not np.isfinite(var) or var < 0:
+                    return np.inf
+                return var
 
             cons = {"type": "eq", "fun": lambda w: np.sum(w) - 1}
             bounds = [(0, 1)] * n

@@ -65,7 +65,10 @@ class MaxSharpePortfolioStrategy(BasePortfolioStrategy):
 
             def neg_sharpe(w):
                 port_ret = w @ mu
-                port_vol = np.sqrt(w @ cov @ w)
+                port_var = w @ cov @ w
+                if port_var <= 0 or np.isnan(port_var) or not np.isfinite(port_var):
+                    return np.inf
+                port_vol = np.sqrt(port_var)
                 return -(port_ret - self.risk_free_rate) / (port_vol + 1e-8)
 
             cons = {"type": "eq", "fun": lambda w: np.sum(w) - 1}
