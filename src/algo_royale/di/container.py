@@ -116,6 +116,7 @@ from algo_royale.portfolio.combinator.equal_risk_contribution_portfolio_strategy
 from algo_royale.portfolio.evaluator.portfolio_evaluation_coordinator import (
     PortfolioEvaluationCoordinator,
 )
+from algo_royale.portfolio.utils.asset_matrix_preparer import AssetMatrixPreparer
 from algo_royale.services.db.indicator_service import IndicatorService
 from algo_royale.services.db.news_sentiment_service import NewsSentimentService
 from algo_royale.services.db.stock_data_service import StockDataService
@@ -453,6 +454,11 @@ class DIContainer(containers.DeclarativeContainer):
         # WinnerTakesAllPortfolioStrategyCombinator,
     ]
 
+    portfolio_asset_matrix_preparer = providers.Singleton(
+        AssetMatrixPreparer,
+        logger=logger_backtest_prod,
+    )
+
     portfolio_optimization_stage_coordinator = providers.Singleton(
         PortfolioOptimizationStageCoordinator,
         data_loader=stage_data_loader,
@@ -468,6 +474,7 @@ class DIContainer(containers.DeclarativeContainer):
                 "backtester.portfolio.filenames", "portfolio_optimization_json_filename"
             )
         ),
+        asset_matrix_preparer=portfolio_asset_matrix_preparer,
     )
 
     portfolio_testing_stage_coordinator = providers.Singleton(

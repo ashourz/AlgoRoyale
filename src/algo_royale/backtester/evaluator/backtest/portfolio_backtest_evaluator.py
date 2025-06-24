@@ -41,6 +41,13 @@ class PortfolioBacktestEvaluator(BacktestEvaluator):
                 - "profit_factor": Sum of positive returns divided by sum of negative returns (float).
                 - "num_trades": Number of trades (int, if trade data provided).
         """
+        self.logger.info(
+            "Evaluating portfolio backtest results and computing performance metrics."
+        )
+        self.logger.debug(
+            f"Signals DataFrame shape: {signals_df.shape}\n"
+            f"Signals DataFrame columns: {signals_df.columns.tolist()}"
+        )
         # Use portfolio_values if available, else fallback to portfolio_returns
         if "portfolio_values" in signals_df:
             values = pd.Series(signals_df["portfolio_values"])

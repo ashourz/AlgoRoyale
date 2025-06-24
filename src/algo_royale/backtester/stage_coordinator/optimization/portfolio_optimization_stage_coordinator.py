@@ -24,6 +24,7 @@ from algo_royale.portfolio.combinator.base_portfolio_strategy_combinator import 
 from algo_royale.portfolio.optimizer.portfolio_strategy_optimizer import (
     PortfolioStrategyOptimizer,
 )
+from algo_royale.portfolio.utils.asset_matrix_preparer import AssetMatrixPreparer
 
 
 class PortfolioOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
@@ -43,6 +44,7 @@ class PortfolioOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
         executor: PortfolioBacktestExecutor,
         evaluator: PortfolioBacktestEvaluator,
         optimization_json_filename: str,
+        asset_matrix_preparer: AssetMatrixPreparer,  # NEW
     ):
         super().__init__(
             stage=BacktestStage.PORTFOLIO_OPTIMIZATION,
@@ -56,6 +58,7 @@ class PortfolioOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
             strategy_combinators=strategy_combinators,
         )
         self.optimization_json_filename = optimization_json_filename
+        self.asset_matrix_preparer = asset_matrix_preparer  # NEW
 
     def get_output_path(self, strategy_name, symbol):
         out_dir = self.stage_data_manager.get_directory_path(
@@ -83,7 +86,18 @@ class PortfolioOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
             return {}
 
         portfolio_df = pd.concat(all_dfs, ignore_index=True)
-
+        self.logger.debug(
+            f"Combined portfolio DataFrame shape: {portfolio_df.shape}, columns: {list(portfolio_df.columns)}"
+        )
+        self.logger.debug(f"Combined portfolio DataFrame index: {portfolio_df.index}")
+        # Prepare asset-matrix form for portfolio strategies
+        portfolio_matrix = self.asset_matrix_preparer.prepare(portfolio_df)
+        self.logger.info(
+            f"Asset-matrix DataFrame shape: {portfolio_matrix.shape}, columns: {portfolio_matrix.columns}"
+        )
+        self.logger.info(
+            f"Starting portfolio optimization for window {self.window_id} with {len(portfolio_matrix)} rows of data."
+        )
         for strategy_combinator in self.strategy_combinators:
             for strat_factory in strategy_combinator.all_strategy_combinations(
                 logger=self.logger
@@ -107,7 +121,7 @@ class PortfolioOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
                         logger=self.logger,
                     )
                     optimization_result = await optimizer.optimize(
-                        "PORTFOLIO", portfolio_df
+                        "PORTFOLIO", portfolio_matrix
                     )
                 except Exception as e:
                     self.logger.error(

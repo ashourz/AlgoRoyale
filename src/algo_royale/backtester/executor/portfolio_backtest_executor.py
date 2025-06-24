@@ -54,6 +54,18 @@ class PortfolioBacktestExecutor(BacktestExecutor):
             f"Starting portfolio backtest for strategy: {getattr(strategy, 'get_description', lambda: str(strategy))()}"
         )
         weights = strategy.allocate(data, data)
+        self.logger.debug(
+            f"Shape of data DataFrame: {data.shape}\n"
+            f"Data Columns: {data.columns.tolist()}\n"
+            f"Shape of weights DataFrame: {weights.shape}\n"
+            f"Weights Columns: {weights.columns.tolist()}\n"
+            f"Strategy weights:\n{weights.head()}\n"
+            f"Initial balance: {self.initial_balance}, "
+            f"Transaction cost: {self.transaction_cost}, "
+            f"Minimum lot size: {self.min_lot}, "
+            f"Leverage: {self.leverage}, "
+            f"Slippage: {self.slippage}"
+        )
         n_steps, n_assets = data.shape
         cash = self.initial_balance
         holdings = np.zeros(n_assets)
@@ -62,6 +74,12 @@ class PortfolioBacktestExecutor(BacktestExecutor):
         holdings_history = []
         transactions = []
         trade_id = 0
+        self.logger.debug(f"Data shape: {data.shape}, columns: {list(data.columns)}")
+        self.logger.debug(
+            f"Weights shape: {weights.shape}, columns: {list(weights.columns)}"
+        )
+        self.logger.debug(f"Data index: {data.index[:5]} ...")
+        self.logger.debug(f"Weights index: {weights.index[:5]} ...")
         for t in range(n_steps):
             target_weights = weights.iloc[t].values
             prices = data.iloc[t].values
