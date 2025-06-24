@@ -15,6 +15,7 @@ from algo_royale.strategy_factory.strategies.base_signal_strategy import (
 )
 
 
+##TODO: THERE IS LITTLE NEED FOR THIS CLASS AND SHOULD BE TRANSITIONED OUT
 class StrategyFactory:
     """
     Factory class to manage and generate strategy combinations.

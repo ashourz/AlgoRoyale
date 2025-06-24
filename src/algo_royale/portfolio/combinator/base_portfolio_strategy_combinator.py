@@ -1,5 +1,5 @@
 from functools import partial
-from typing import Type
+from typing import Callable, Generator, Type
 
 from algo_royale.backtester.strategy_combinator.base_strategy_combinator import (
     BaseStrategyCombinator,
@@ -26,7 +26,7 @@ class PortfolioStrategyCombinator(BaseStrategyCombinator):
         self,
         optuna_trial=None,
         logger=None,
-    ):
+    ) -> Generator[Callable[[], BasePortfolioStrategy], None, None]:
         """
         Generate all possible portfolio strategy combinations (with parameterizations if optuna_trial is provided)
         for the single strategy class provided in __init__.
