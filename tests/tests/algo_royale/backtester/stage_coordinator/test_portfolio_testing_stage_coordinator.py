@@ -1,20 +1,28 @@
+from datetime import datetime
 from unittest.mock import MagicMock
+
 import pandas as pd
 import pytest
-from datetime import datetime
-from algo_royale.backtester.stage_coordinator.testing.portfolio_testing_stage_coordinator import PortfolioTestingStageCoordinator
+
+from algo_royale.backtester.stage_coordinator.testing.portfolio_testing_stage_coordinator import (
+    PortfolioTestingStageCoordinator,
+)
+
 
 @pytest.fixture
 def mock_loader():
     return MagicMock()
 
+
 @pytest.fixture
 def mock_preparer():
     return MagicMock()
 
+
 @pytest.fixture
 def mock_writer():
     return MagicMock()
+
 
 @pytest.fixture
 def mock_manager(tmp_path):
@@ -22,24 +30,31 @@ def mock_manager(tmp_path):
     m.get_directory_path.return_value = tmp_path
     return m
 
+
 @pytest.fixture
 def mock_logger():
     return MagicMock()
+
 
 @pytest.fixture
 def mock_combinator():
     class DummyStrategy:
         __name__ = "DummyStrategy"
+
         def __init__(self):
             pass
+
         @staticmethod
         def optuna_suggest(trial, prefix=""):
             return {}
+
     class DummyCombinator:
         @staticmethod
         def all_strategy_combinations():
             return [DummyStrategy]
+
     return DummyCombinator
+
 
 @pytest.fixture
 def mock_executor():
@@ -47,11 +62,13 @@ def mock_executor():
     exec.run_backtest.return_value = {"transactions": []}
     return exec
 
+
 @pytest.fixture
 def mock_evaluator():
     eval = MagicMock()
     eval.evaluate.return_value = {"sharpe": 2.0}
     return eval
+
 
 @pytest.mark.asyncio
 async def test_portfolio_testing_process(
@@ -74,6 +91,7 @@ async def test_portfolio_testing_process(
     opt_json_path = tmp_path / "test_opt.json"
     opt_json_path.parent.mkdir(parents=True, exist_ok=True)
     import json
+
     with open(opt_json_path, "w") as f:
         json.dump({train_window_id: {"optimization": {"best_params": {}}}}, f)
 
@@ -88,16 +106,20 @@ async def test_portfolio_testing_process(
         evaluator=mock_evaluator,
         optimization_json_filename="test_opt.json",
     )
+
     # Simulate prepared data
     async def df_iter():
         yield pd.DataFrame({"a": [1, 2, 3]})
+
     prepared_data = {"AAPL": lambda: df_iter()}
     coordinator.train_start_date = train_start
     coordinator.train_end_date = train_end
     coordinator.train_window_id = train_window_id
     coordinator.test_start_date = test_start
     coordinator.test_end_date = test_end
-    coordinator.test_window_id = f"{test_start.strftime('%Y%m%d')}_{test_end.strftime('%Y%m%d')}"
+    coordinator.test_window_id = (
+        f"{test_start.strftime('%Y%m%d')}_{test_end.strftime('%Y%m%d')}"
+    )
     results = await coordinator.process(prepared_data=prepared_data)
     assert "AAPL" in results
     assert "DummyStrategy" in results["AAPL"]
