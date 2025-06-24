@@ -113,6 +113,9 @@ from algo_royale.logging.logger_singleton import (
 from algo_royale.portfolio.combinator.equal_risk_contribution_portfolio_strategy_combinator import (
     EqualRiskContributionPortfolioStrategyCombinator,
 )
+from algo_royale.portfolio.evaluator.portfolio_evaluation_coordinator import (
+    PortfolioEvaluationCoordinator,
+)
 from algo_royale.services.db.indicator_service import IndicatorService
 from algo_royale.services.db.news_sentiment_service import NewsSentimentService
 from algo_royale.services.db.stock_data_service import StockDataService
@@ -429,7 +432,6 @@ class DIContainer(containers.DeclarativeContainer):
         slippage=providers.Object(
             config().get_float("backtester.portfolio", "slippage", 0.0)
         ),
-        stage_data_manager=stage_data_manager,
         logger=logger_backtest_prod,
     )
 
@@ -497,7 +499,7 @@ class DIContainer(containers.DeclarativeContainer):
     strategy_evaluation_coordinator = providers.Singleton(
         StrategyEvaluationCoordinator,
         logger=logger_backtest_prod,
-        optimization_root_path=providers.Object(
+        optimization_root=providers.Object(
             config().get("backtester.signal.paths", "signal_optimization_root_path")
         ),
         evaluation_type=StrategyEvaluationType.BOTH,
@@ -534,7 +536,7 @@ class DIContainer(containers.DeclarativeContainer):
     )
 
     portfolio_evaluation_coordinator = providers.Singleton(
-        StrategyEvaluationCoordinator,
+        PortfolioEvaluationCoordinator,
         logger=logger_backtest_prod,
         optimization_root=providers.Object(
             config().get(

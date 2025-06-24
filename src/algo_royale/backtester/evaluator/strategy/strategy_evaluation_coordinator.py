@@ -28,7 +28,7 @@ class StrategyEvaluationCoordinator:
     def __init__(
         self,
         logger: Logger,
-        optimization_root_path: Path,
+        optimization_root: Path,
         evaluation_type: StrategyEvaluationType,
         optimization_json_filename: str,
         evaluation_json_filename: str,
@@ -40,7 +40,7 @@ class StrategyEvaluationCoordinator:
             optimization_result_json_filename: Name of the optimization result JSON file.
             evaluation_json_filename: Name of the evaluation report JSON file.
         """
-        self.opt_root_path = Path(optimization_root_path)
+        self.opt_root_path = Path(optimization_root)
         self.evaluation_type = evaluation_type
         self.opt_result_json_filename = optimization_json_filename
         self.eval_json_filename = evaluation_json_filename

@@ -1,3 +1,4 @@
+from logging import Logger
 from typing import Any, Dict
 
 import numpy as np
@@ -22,12 +23,14 @@ class PortfolioBacktestExecutor(BacktestExecutor):
 
     def __init__(
         self,
+        logger: Logger,
         initial_balance: float = 1_000_000.0,
         transaction_cost: float = 0.0,
         min_lot: int = 1,
         leverage: float = 1.0,
         slippage: float = 0.0,
     ):
+        self.logger = logger
         self.initial_balance = initial_balance
         self.transaction_cost = transaction_cost
         self.min_lot = max(1, int(min_lot))
@@ -47,6 +50,9 @@ class PortfolioBacktestExecutor(BacktestExecutor):
         Returns:
             : Dictionary containing portfolio values, cash history, holdings history, and transactions.
         """
+        self.logger.info(
+            f"Starting portfolio backtest for strategy: {getattr(strategy, 'get_description', lambda: str(strategy))()}"
+        )
         weights = strategy.allocate(data, data)
         n_steps, n_assets = data.shape
         cash = self.initial_balance
@@ -65,6 +71,9 @@ class PortfolioBacktestExecutor(BacktestExecutor):
             target_dollars = target_weights * max_investable
             current_dollars = holdings * prices
             trade_dollars = target_dollars - current_dollars
+            self.logger.debug(
+                f"Step {t}: cash={cash}, holdings={holdings}, prices={prices}, target_weights={target_weights}"
+            )
             for i in range(n_assets):
                 asset_name = data.columns[i] if hasattr(data, "columns") else str(i)
                 buy_price = prices[i] * (1 + self.slippage)
@@ -99,6 +108,9 @@ class PortfolioBacktestExecutor(BacktestExecutor):
                                 "holdings_after": float(holdings[i]),
                             }
                         )
+                        self.logger.debug(
+                            f"Buy: {shares_to_buy} of {asset_name} at {buy_price} (cost={cost})"
+                        )
                         trade_id += 1
                 elif trade_dollars[i] < 0:  # Sell
                     shares_to_sell = min(-trade_dollars[i] // sell_price, holdings[i])
@@ -121,11 +133,17 @@ class PortfolioBacktestExecutor(BacktestExecutor):
                                 "holdings_after": float(holdings[i]),
                             }
                         )
+                        self.logger.debug(
+                            f"Sell: {shares_to_sell} of {asset_name} at {sell_price} (proceeds={proceeds})"
+                        )
                         trade_id += 1
             portfolio_value = cash + np.sum(holdings * prices)
             portfolio_values.append(portfolio_value)
             cash_history.append(cash)
             holdings_history.append(holdings.copy())
+        self.logger.info(
+            f"Portfolio backtest complete. Final value: {portfolio_values[-1]}, Final cash: {cash}"
+        )
         results = {
             "portfolio_values": portfolio_values,
             "cash_history": cash_history,
