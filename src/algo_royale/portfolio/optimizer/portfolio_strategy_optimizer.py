@@ -1,4 +1,3 @@
-import asyncio
 import time
 from enum import Enum
 from logging import Logger
@@ -46,7 +45,7 @@ class PortfolioStrategyOptimizer:
         self.direction = direction
         self.logger = logger
 
-    def optimize(
+    async def optimize(
         self,
         symbol: str,
         df: pd.DataFrame,
@@ -90,7 +89,7 @@ class PortfolioStrategyOptimizer:
             logger.debug(
                 f"[{symbol}] PortfolioStrategy: {self.strategy_class.__name__} | Params: {params}"
             )
-            result = self.run_async(self.backtest_fn(strategy, df))
+            result = self.backtest_fn(strategy, df)
             logger.debug(
                 f"[{symbol}] PortfolioStrategy params: {params} | Backtest result: {result}"
             )
@@ -98,10 +97,10 @@ class PortfolioStrategyOptimizer:
                 if is_multi:
                     scores = []
                     for m in metric_names:
-                        scores.append(result[m])
+                        scores.append(result["metrics"][m])
                     score = tuple(scores)
                 else:
-                    score = result[metric_names]
+                    score = result["metrics"][metric_names]
             except Exception as e:
                 logger.error(
                     f"[{symbol}] Error extracting metric(s) '{self.metric_name}' from backtest result: {e} | Result: {result}"
@@ -156,26 +155,4 @@ class PortfolioStrategyOptimizer:
         self.logger.debug(f"Portfolio optimization results: {results}")
         return results
 
-    def run_async(self, coro):
-        try:
-            loop = asyncio.get_running_loop()
-        except RuntimeError:
-            loop = None
-
-        if loop and loop.is_running():
-            import threading
-
-            result_container = {}
-
-            def runner():
-                new_loop = asyncio.new_event_loop()
-                asyncio.set_event_loop(new_loop)
-                result_container["result"] = new_loop.run_until_complete(coro)
-                new_loop.close()
-
-            t = threading.Thread(target=runner)
-            t.start()
-            t.join()
-            return result_container["result"]
-        else:
-            return asyncio.run(coro)
+    # Removed run_async method, as all execution is now async-aware.

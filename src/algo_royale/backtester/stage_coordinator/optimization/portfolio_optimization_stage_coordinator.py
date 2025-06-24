@@ -24,9 +24,6 @@ from algo_royale.portfolio.combinator.base_portfolio_strategy_combinator import 
 from algo_royale.portfolio.optimizer.portfolio_strategy_optimizer import (
     PortfolioStrategyOptimizer,
 )
-from algo_royale.portfolio.strategies.base_portfolio_strategy import (
-    BasePortfolioStrategy,
-)
 
 
 class PortfolioOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
@@ -74,82 +71,80 @@ class PortfolioOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
             Dict[str, Callable[[], AsyncIterator[pd.DataFrame]]]
         ] = None,
     ) -> Dict[str, Dict[str, dict]]:
-        """Process the portfolio optimization stage."""
+        """Process the portfolio optimization stage by aggregating all symbol data and optimizing the portfolio as a whole."""
         results = {}
+        all_dfs = []
         for symbol, df_iter_factory in prepared_data.items():
-            if symbol not in prepared_data:
-                self.logger.warning(f"No prepared data for symbol: {symbol}")
-                continue
-            dfs = []
             async for df in df_iter_factory():
-                dfs.append(df)
-            if not dfs:
-                self.logger.warning(
-                    f"No data for symbol: {symbol} in window {self.window_id}"
+                df["symbol"] = symbol  # Optionally tag symbol
+                all_dfs.append(df)
+        if not all_dfs:
+            self.logger.warning("No data for portfolio optimization window.")
+            return {}
+
+        portfolio_df = pd.concat(all_dfs, ignore_index=True)
+
+        for strategy_combinator in self.strategy_combinators:
+            for strat_factory in strategy_combinator.all_strategy_combinations(
+                logger=self.logger
+            ):
+                strategy_class = (
+                    strat_factory.func
+                    if hasattr(strat_factory, "func")
+                    else strat_factory
                 )
-                continue
-            train_df = pd.concat(dfs, ignore_index=True)
-            for strategy_combinator in self.strategy_combinators:
-                for strat_factory in strategy_combinator.all_strategy_combinations(
-                    logger=self.logger
-                ):
-                    strategy_class = (
-                        strat_factory.func
-                        if hasattr(strat_factory, "func")
-                        else strat_factory
+                strategy_name = (
+                    strategy_class.__name__
+                    if hasattr(strategy_class, "__name__")
+                    else str(strategy_class)
+                )
+                try:
+                    optimizer = PortfolioStrategyOptimizer(
+                        strategy_class=strategy_class,
+                        backtest_fn=lambda strat, df_: self._backtest_and_evaluate(
+                            strat, df_
+                        ),
+                        logger=self.logger,
                     )
-                    strategy_name = (
-                        strategy_class.__name__
-                        if hasattr(strategy_class, "__name__")
-                        else str(strategy_class)
+                    optimization_result = await optimizer.optimize(
+                        "PORTFOLIO", portfolio_df
                     )
-                    try:
-                        optimizer = PortfolioStrategyOptimizer(
-                            strategy_class=strategy_class,
-                            backtest_fn=lambda strat, df_: self._backtest_and_evaluate(
-                                symbol, strat, df_
-                            ),
-                            logger=self.logger,
-                        )
-                        optimization_result = optimizer.optimize(symbol, train_df)
-                    except Exception as e:
-                        self.logger.error(
-                            f"Portfolio optimization failed for symbol {symbol}, strategy {strategy_name}: {e}"
-                        )
-                        continue
-                    out_path = self.get_output_path(strategy_name, symbol)
-                    self.logger.info(
-                        f"Saving portfolio optimization results for {symbol} {strategy_name} to {out_path}"
+                except Exception as e:
+                    self.logger.error(
+                        f"Portfolio optimization failed for strategy {strategy_name}: {e}"
                     )
-                    if out_path.exists():
-                        with open(out_path, "r") as f:
-                            opt_results = json.load(f)
-                    else:
-                        opt_results = {}
-                    if self.window_id not in opt_results:
-                        opt_results[self.window_id] = {}
-                    opt_results[self.window_id]["optimization"] = optimization_result
-                    opt_results[self.window_id]["window"] = {
-                        "start_date": str(self.start_date),
-                        "end_date": str(self.end_date),
-                    }
-                    with open(out_path, "w") as f:
-                        json.dump(opt_results, f, indent=2, default=str)
-                    results.setdefault(symbol, {})[strategy_name] = {
-                        self.window_id: optimization_result
-                    }
+                    continue
+                out_path = self.get_output_path(strategy_name, "PORTFOLIO")
+                self.logger.info(
+                    f"Saving portfolio optimization results for PORTFOLIO {strategy_name} to {out_path}"
+                )
+                if out_path.exists():
+                    with open(out_path, "r") as f:
+                        opt_results = json.load(f)
+                else:
+                    opt_results = {}
+                if self.window_id not in opt_results:
+                    opt_results[self.window_id] = {}
+                opt_results[self.window_id]["optimization"] = optimization_result
+                opt_results[self.window_id]["window"] = {
+                    "start_date": str(self.start_date),
+                    "end_date": str(self.end_date),
+                }
+                with open(out_path, "w") as f:
+                    json.dump(opt_results, f, indent=2, default=str)
+                results.setdefault("PORTFOLIO", {})[strategy_name] = {
+                    self.window_id: optimization_result
+                }
         return results
 
-    async def _backtest_and_evaluate(
-        self, symbol: str, strategy: BasePortfolioStrategy, df: pd.DataFrame
-    ):
-        # The injected executor should be pre-configured with initial_balance, transaction_cost, min_lot, leverage, and slippage.
-        backtest_results = self.executor.run_backtest(strategy, df)
-        metrics = self.evaluator.evaluate(strategy, backtest_results)
-        return {
-            "metrics": metrics,
-            "transactions": backtest_results.get("transactions", []),
-        }
+    def _backtest_and_evaluate(self, strategy, df):
+        try:
+            backtest_results = self.executor.run_backtest(strategy, df)
+            metrics = self.evaluator.evaluate(strategy, backtest_results)
+            return {"metrics": metrics}
+        except Exception as e:
+            self.logger.error(f"Portfolio backtest/evaluation failed: {e}")
+            return {"metrics": {}}
 
     async def _write(self, stage, processed_data):
         # No-op: writing is handled in process()
