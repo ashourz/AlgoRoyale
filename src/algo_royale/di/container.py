@@ -540,7 +540,7 @@ class DIContainer(containers.DeclarativeContainer):
         logger=logger_backtest_prod,
         optimization_root=providers.Object(
             config().get(
-                "backtester.portfolio.paths", "portfolio_optimization_json_filename"
+                "backtester.portfolio.paths", "portfolio_optimization_root_path"
             )
         ),
         strategy_window_evaluation_json_filename=providers.Object(

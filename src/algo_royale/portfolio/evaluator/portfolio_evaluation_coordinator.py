@@ -21,13 +21,17 @@ class PortfolioEvaluationCoordinator:
     def __init__(
         self,
         logger: Logger,
-        optimization_root: Path,
+        optimization_root: str,
         strategy_window_evaluation_json_filename: str,
         strategy_summary_json_filename: str,
         global_summary_json_filename: str,
         viability_threshold: float = 0.75,
     ):
         self.optimization_root = Path(optimization_root)
+        if not self.optimization_root.is_dir():
+            ## Create the directory if it does not exist
+            self.optimization_root.mkdir(parents=True, exist_ok=True)
+
         self.evaluation_json_filename = strategy_window_evaluation_json_filename
         self.summary_json_filename = strategy_summary_json_filename
         self.global_summary_json_filename = global_summary_json_filename

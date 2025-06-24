@@ -15,12 +15,16 @@ class SymbolEvaluationCoordinator:
 
     def __init__(
         self,
-        optimization_root: Path,
+        optimization_root: str,
         evaluation_json_filename: str,
         summary_json_filename: str,
         viability_threshold: float = 0.75,
     ):
         self.optimization_root = Path(optimization_root)
+        if not self.optimization_root.is_dir():
+            ## Create the directory if it doesn't exist
+            self.optimization_root.mkdir(parents=True, exist_ok=True)
+
         self.evaluation_json_filename = evaluation_json_filename
         self.summary_json_filename = summary_json_filename
         self.viability_threshold = viability_threshold

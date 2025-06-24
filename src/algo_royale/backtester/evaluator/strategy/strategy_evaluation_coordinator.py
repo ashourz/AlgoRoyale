@@ -28,7 +28,7 @@ class StrategyEvaluationCoordinator:
     def __init__(
         self,
         logger: Logger,
-        optimization_root: Path,
+        optimization_root: str,
         evaluation_type: StrategyEvaluationType,
         optimization_json_filename: str,
         evaluation_json_filename: str,
@@ -41,6 +41,10 @@ class StrategyEvaluationCoordinator:
             evaluation_json_filename: Name of the evaluation report JSON file.
         """
         self.opt_root_path = Path(optimization_root)
+        if not self.opt_root_path.is_dir():
+            ## Create the directory if it does not exist
+            self.opt_root_path.mkdir(parents=True, exist_ok=True)
+
         self.evaluation_type = evaluation_type
         self.opt_result_json_filename = optimization_json_filename
         self.eval_json_filename = evaluation_json_filename
