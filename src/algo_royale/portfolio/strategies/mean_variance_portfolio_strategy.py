@@ -66,10 +66,15 @@ class MeanVariancePortfolioStrategy(BasePortfolioStrategy):
                 continue
 
             def obj(w):
+                if np.any(~np.isfinite(w)):
+                    return np.inf
                 var = w @ cov @ w
                 if np.isnan(var) or not np.isfinite(var) or var < 0:
                     return np.inf
-                return -w @ mu + self.risk_aversion * var
+                result = -w @ mu + self.risk_aversion * var
+                if np.isnan(result) or not np.isfinite(result):
+                    return np.inf
+                return result
 
             cons = {"type": "eq", "fun": lambda w: np.sum(w) - 1}
             bounds = [(0, 1)] * n

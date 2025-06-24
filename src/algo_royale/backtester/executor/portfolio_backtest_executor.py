@@ -96,6 +96,17 @@ class PortfolioBacktestExecutor(BacktestExecutor):
                 asset_name = data.columns[i] if hasattr(data, "columns") else str(i)
                 buy_price = prices[i] * (1 + self.slippage)
                 sell_price = prices[i] * (1 - self.slippage)
+                # Add price checks
+                if np.isnan(buy_price) or buy_price <= 0:
+                    self.logger.warning(
+                        f"Skipping buy for {asset_name} at step {t} due to invalid price: {buy_price}"
+                    )
+                    continue
+                if np.isnan(sell_price) or sell_price <= 0:
+                    self.logger.warning(
+                        f"Skipping sell for {asset_name} at step {t} due to invalid price: {sell_price}"
+                    )
+                    continue
                 if trade_dollars[i] > 0:  # Buy
                     max_affordable = (
                         cash + (self.leverage - 1) * total_portfolio_value

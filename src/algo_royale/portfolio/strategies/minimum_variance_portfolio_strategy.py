@@ -58,6 +58,8 @@ class MinimumVariancePortfolioStrategy(BasePortfolioStrategy):
                 continue
 
             def obj(w):
+                if np.any(~np.isfinite(w)):
+                    return np.inf
                 var = w @ cov @ w
                 if np.isnan(var) or not np.isfinite(var) or var < 0:
                     return np.inf
