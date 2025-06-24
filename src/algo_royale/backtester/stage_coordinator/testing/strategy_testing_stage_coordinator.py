@@ -58,13 +58,13 @@ class StrategyTestingStageCoordinator(BaseTestingStageCoordinator):
             data_preparer=data_preparer,
             data_writer=data_writer,
             stage_data_manager=stage_data_manager,
-            strategy_factory=strategy_factory,
             stage=BacktestStage.STRATEGY_TESTING,
             logger=logger,
             executor=strategy_executor,
             evaluator=strategy_evaluator,
             strategy_combinators=strategy_combinators,
         )
+        self.strategy_factory = strategy_factory
 
     async def run(
         self,

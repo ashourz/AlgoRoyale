@@ -14,7 +14,6 @@ from algo_royale.backtester.stage_data.stage_data_writer import StageDataWriter
 from algo_royale.strategy_factory.combinator.base_signal_strategy_combinator import (
     SignalStrategyCombinator,
 )
-from algo_royale.strategy_factory.strategy_factory import StrategyFactory
 
 
 class BaseTestingStageCoordinator(StageCoordinator):
@@ -29,7 +28,6 @@ class BaseTestingStageCoordinator(StageCoordinator):
         data_preparer: AsyncDataPreparer,
         data_writer: StageDataWriter,
         stage_data_manager: StageDataManager,
-        strategy_factory: StrategyFactory,
         stage: BacktestStage,
         logger: Logger,
         executor: BacktestExecutor,
@@ -46,7 +44,6 @@ class BaseTestingStageCoordinator(StageCoordinator):
             logger=logger,
         )
         self.strategy_combinators = strategy_combinators
-        self.strategy_factory = strategy_factory
         self.executor = executor
         self.evaluator = evaluator
 

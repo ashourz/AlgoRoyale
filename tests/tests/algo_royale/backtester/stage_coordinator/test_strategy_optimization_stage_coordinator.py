@@ -35,11 +35,6 @@ def mock_logger():
 
 
 @pytest.fixture
-def mock_factory():
-    return MagicMock()
-
-
-@pytest.fixture
 def mock_executor():
     exec = MagicMock()
     exec.run_backtest = AsyncMock(
@@ -62,7 +57,6 @@ async def test_init_success(
     mock_writer,
     mock_manager,
     mock_logger,
-    mock_factory,
     mock_executor,
     mock_evaluator,
 ):
@@ -81,7 +75,6 @@ async def test_init_success(
         data_preparer=mock_preparer,
         data_writer=mock_writer,
         stage_data_manager=mock_manager,
-        strategy_factory=mock_factory,
         logger=mock_logger,
         strategy_combinators=[DummyCombinator],
         strategy_executor=mock_executor,
@@ -96,7 +89,6 @@ async def test_process_returns_factories(
     mock_writer,
     mock_manager,
     mock_logger,
-    mock_factory,
     mock_executor,
     mock_evaluator,
 ):
@@ -121,7 +113,6 @@ async def test_process_returns_factories(
         data_preparer=mock_preparer,
         data_writer=mock_writer,
         stage_data_manager=mock_manager,
-        strategy_factory=mock_factory,
         logger=mock_logger,
         strategy_combinators=[DummyCombinator],
         strategy_executor=mock_executor,
@@ -175,7 +166,6 @@ async def test_fetch_symbol_optimization_exception_logs_error(
     mock_writer,
     mock_manager,
     mock_logger,
-    mock_factory,
     mock_executor,
     mock_evaluator,
 ):
@@ -194,7 +184,6 @@ async def test_fetch_symbol_optimization_exception_logs_error(
         data_preparer=mock_preparer,
         data_writer=mock_writer,
         stage_data_manager=mock_manager,
-        strategy_factory=mock_factory,
         logger=mock_logger,
         strategy_combinators=[DummyCombinator],
         strategy_executor=mock_executor,
@@ -234,7 +223,6 @@ async def test_process_skips_symbol_with_no_data(
     mock_writer,
     mock_manager,
     mock_logger,
-    mock_factory,
     mock_executor,
     mock_evaluator,
 ):
@@ -253,7 +241,6 @@ async def test_process_skips_symbol_with_no_data(
         data_preparer=mock_preparer,
         data_writer=mock_writer,
         stage_data_manager=mock_manager,
-        strategy_factory=mock_factory,
         logger=mock_logger,
         strategy_combinators=[DummyCombinator],
         strategy_executor=mock_executor,
@@ -296,7 +283,6 @@ async def test_process_multiple_strategies(
     mock_writer,
     mock_manager,
     mock_logger,
-    mock_factory,
     mock_executor,
     mock_evaluator,
 ):
@@ -325,7 +311,6 @@ async def test_process_multiple_strategies(
         data_preparer=mock_preparer,
         data_writer=mock_writer,
         stage_data_manager=mock_manager,
-        strategy_factory=mock_factory,
         logger=mock_logger,
         strategy_combinators=[CombA, CombB],
         strategy_executor=mock_executor,
@@ -369,7 +354,6 @@ async def test_process_optimizer_exception_logs_error(
     mock_writer,
     mock_manager,
     mock_logger,
-    mock_factory,
     mock_executor,
     mock_evaluator,
 ):
@@ -388,7 +372,6 @@ async def test_process_optimizer_exception_logs_error(
         data_preparer=mock_preparer,
         data_writer=mock_writer,
         stage_data_manager=mock_manager,
-        strategy_factory=mock_factory,
         logger=mock_logger,
         strategy_combinators=[DummyCombinator],
         strategy_executor=mock_executor,
@@ -430,7 +413,6 @@ async def test_write_is_noop(
     mock_writer,
     mock_manager,
     mock_logger,
-    mock_factory,
     mock_executor,
     mock_evaluator,
 ):
@@ -449,7 +431,6 @@ async def test_write_is_noop(
         data_preparer=mock_preparer,
         data_writer=mock_writer,
         stage_data_manager=mock_manager,
-        strategy_factory=mock_factory,
         logger=mock_logger,
         strategy_combinators=[DummyCombinator],
         strategy_executor=mock_executor,

@@ -25,7 +25,6 @@ from algo_royale.strategy_factory.optimizer.strategy_optimizer import StrategyOp
 from algo_royale.strategy_factory.strategies.base_signal_strategy import (
     BaseSignalStrategy,
 )
-from algo_royale.strategy_factory.strategy_factory import StrategyFactory
 
 
 class StrategyOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
@@ -53,7 +52,6 @@ class StrategyOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
         data_preparer: AsyncDataPreparer,
         data_writer: StageDataWriter,
         stage_data_manager: StageDataManager,
-        strategy_factory: StrategyFactory,
         logger: Logger,
         strategy_executor: StrategyBacktestExecutor,
         strategy_evaluator: BacktestEvaluator,
@@ -75,7 +73,6 @@ class StrategyOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
             data_preparer=data_preparer,
             data_writer=data_writer,
             stage_data_manager=stage_data_manager,
-            strategy_factory=strategy_factory,
             executor=strategy_executor,
             evaluator=strategy_evaluator,
             strategy_combinators=strategy_combinators,
