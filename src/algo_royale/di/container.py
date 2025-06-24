@@ -281,7 +281,7 @@ class DIContainer(containers.DeclarativeContainer):
     )
 
     watchlist_path_string = providers.Object(
-        config().get("[backtester.paths", "watchlist_path")
+        config().get("backtester.paths", "watchlist_path")
     )
     load_watchlist_func = providers.Object(load_watchlist)
     save_watchlist_func = providers.Object(save_watchlist)
