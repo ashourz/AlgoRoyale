@@ -114,8 +114,23 @@ class PortfolioBacktestExecutor(BacktestExecutor):
                     desired_shares = trade_dollars[i] // (
                         buy_price * (1 + self.transaction_cost)
                     )
-                    shares_to_buy = min(desired_shares, max_affordable)
-                    shares_to_buy = int(shares_to_buy // self.min_lot * self.min_lot)
+                    # Robustify: check for NaN/inf before int conversion
+                    if not np.isfinite(desired_shares) or not np.isfinite(
+                        max_affordable
+                    ):
+                        self.logger.warning(
+                            f"Skipping buy for {asset_name} at step {t} due to non-finite desired_shares or max_affordable: desired_shares={desired_shares}, max_affordable={max_affordable}"
+                        )
+                        shares_to_buy = 0
+                    else:
+                        shares_to_buy = min(desired_shares, max_affordable)
+                        shares_to_buy = shares_to_buy // self.min_lot * self.min_lot
+                        if not np.isfinite(shares_to_buy) or shares_to_buy < 0:
+                            self.logger.warning(
+                                f"Skipping buy for {asset_name} at step {t} due to non-finite or negative shares_to_buy: {shares_to_buy}"
+                            )
+                            shares_to_buy = 0
+                        shares_to_buy = int(shares_to_buy)
                     cost = shares_to_buy * buy_price * (1 + self.transaction_cost)
                     if (
                         shares_to_buy > 0
@@ -143,7 +158,19 @@ class PortfolioBacktestExecutor(BacktestExecutor):
                         trade_id += 1
                 elif trade_dollars[i] < 0:  # Sell
                     shares_to_sell = min(-trade_dollars[i] // sell_price, holdings[i])
-                    shares_to_sell = int(shares_to_sell // self.min_lot * self.min_lot)
+                    # Robustify: check for NaN/inf before int conversion
+                    if not np.isfinite(shares_to_sell) or shares_to_sell < 0:
+                        self.logger.warning(
+                            f"Skipping sell for {asset_name} at step {t} due to non-finite or negative shares_to_sell: {shares_to_sell}"
+                        )
+                        shares_to_sell = 0
+                    shares_to_sell = shares_to_sell // self.min_lot * self.min_lot
+                    if not np.isfinite(shares_to_sell) or shares_to_sell < 0:
+                        self.logger.warning(
+                            f"Skipping sell for {asset_name} at step {t} after lot adjustment due to non-finite or negative shares_to_sell: {shares_to_sell}"
+                        )
+                        shares_to_sell = 0
+                    shares_to_sell = int(shares_to_sell)
                     proceeds = shares_to_sell * sell_price * (1 - self.transaction_cost)
                     if shares_to_sell > 0:
                         holdings[i] -= shares_to_sell
@@ -181,4 +208,15 @@ class PortfolioBacktestExecutor(BacktestExecutor):
             "final_holdings": holdings,
             "transactions": transactions,
         }
+        # Add metrics for diagnostics and downstream use
+        try:
+            initial_value = self.initial_balance
+            final_value = portfolio_values[-1] if portfolio_values else initial_value
+            total_return = (
+                (final_value / initial_value) - 1 if initial_value != 0 else np.nan
+            )
+            results["metrics"] = {"total_return": total_return}
+        except Exception as e:
+            self.logger.error(f"Error computing total_return metric: {e}")
+            results["metrics"] = {}
         return results
