@@ -65,6 +65,12 @@ class RiskParityPortfolioStrategy(BasePortfolioStrategy):
         Returns:
             DataFrame of weights (index: datetime, columns: symbols)
         """
+        if returns.empty or returns.shape[1] == 0:
+            return pd.DataFrame(index=returns.index)
+        if returns.shape[1] == 1:
+            # Only one asset: allocate 100% to it
+            weights = pd.DataFrame(1.0, index=returns.index, columns=returns.columns)
+            return weights
         weights = pd.DataFrame(
             index=signals.index, columns=signals.columns, dtype=float
         )
@@ -74,6 +80,9 @@ class RiskParityPortfolioStrategy(BasePortfolioStrategy):
                 continue
             window_returns = returns.iloc[i - self.window + 1 : i + 1]
             cov = window_returns.cov().values
+            if cov.shape[0] == 1:
+                weights.iloc[i] = 1.0
+                continue
             w = self._risk_parity_weights(cov)
             weights.iloc[i] = w
         weights = weights.fillna(0)

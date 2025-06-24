@@ -42,6 +42,12 @@ class MaxSharpePortfolioStrategy(BasePortfolioStrategy):
         )
 
     def allocate(self, signals: pd.DataFrame, returns: pd.DataFrame) -> pd.DataFrame:
+        if returns.empty or returns.shape[1] == 0:
+            return pd.DataFrame(index=returns.index)
+        if returns.shape[1] == 1:
+            # Only one asset: allocate 100% to it
+            weights = pd.DataFrame(1.0, index=returns.index, columns=returns.columns)
+            return weights
         weights = pd.DataFrame(
             index=signals.index, columns=signals.columns, dtype=float
         )
@@ -53,6 +59,9 @@ class MaxSharpePortfolioStrategy(BasePortfolioStrategy):
             mu = window_returns.mean().values
             cov = window_returns.cov().values
             n = len(mu)
+            if n == 1:
+                weights.iloc[i] = 1.0
+                continue
 
             def neg_sharpe(w):
                 port_ret = w @ mu

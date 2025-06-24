@@ -37,6 +37,12 @@ class EqualRiskContributionPortfolioStrategy(BasePortfolioStrategy):
         return cls(lookback=trial.suggest_int(f"{prefix}lookback", 10, 120))
 
     def allocate(self, signals: pd.DataFrame, returns: pd.DataFrame) -> pd.DataFrame:
+        if returns.empty or returns.shape[1] == 0:
+            return pd.DataFrame(index=returns.index)
+        if returns.shape[1] == 1:
+            # Only one asset: allocate 100% to it
+            weights = pd.DataFrame(1.0, index=returns.index, columns=returns.columns)
+            return weights
         weights = pd.DataFrame(
             index=signals.index, columns=signals.columns, dtype=float
         )
@@ -47,6 +53,9 @@ class EqualRiskContributionPortfolioStrategy(BasePortfolioStrategy):
             window_returns = returns.iloc[i - self.lookback + 1 : i + 1]
             cov = window_returns.cov().values
             n = cov.shape[0]
+            if n == 1:
+                weights.iloc[i] = 1.0
+                continue
 
             def risk_contribution(w):
                 port_var = w @ cov @ w

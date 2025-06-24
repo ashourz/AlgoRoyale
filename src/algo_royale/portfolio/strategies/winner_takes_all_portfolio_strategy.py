@@ -47,6 +47,14 @@ class WinnerTakesAllPortfolioStrategy(BasePortfolioStrategy):
 
     def allocate(self, signals: pd.DataFrame, returns: pd.DataFrame) -> pd.DataFrame:
         data = signals if self.use_signals else returns
+        if data.empty or data.shape[1] == 0:
+            return pd.DataFrame(index=data.index)
+        if data.shape[1] == 1:
+            # Only one asset: allocate 100% if value is positive, else 0
+            col = data.columns[0]
+            weights = pd.DataFrame(0.0, index=data.index, columns=data.columns)
+            weights[col] = data[col].apply(lambda x: 1.0 if pd.notnull(x) and x > 0 else 0.0)
+            return weights
         weights = pd.DataFrame(0, index=data.index, columns=data.columns, dtype=float)
         for i, row in data.iterrows():
             if row.isnull().all():

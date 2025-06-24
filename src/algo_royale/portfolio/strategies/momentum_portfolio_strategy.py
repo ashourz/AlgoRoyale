@@ -43,6 +43,12 @@ class MomentumPortfolioStrategy(BasePortfolioStrategy):
         Returns:
             DataFrame of weights (index: datetime, columns: symbols)
         """
+        if returns.empty or returns.shape[1] == 0:
+            return pd.DataFrame(index=returns.index)
+        if returns.shape[1] == 1:
+            # Only one asset: allocate 100% to it
+            weights = pd.DataFrame(1.0, index=returns.index, columns=returns.columns)
+            return weights
         momentum = (1 + returns).rolling(self.window, min_periods=1).apply(
             np.prod, raw=True
         ) - 1

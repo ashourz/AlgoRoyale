@@ -60,8 +60,17 @@ class EqualWeightPortfolioStrategy(BasePortfolioStrategy):
         Returns:
             DataFrame of weights (index: datetime, columns: symbols)
         """
-        # Equal weight for all available symbols at each time
+        if signals.empty or signals.shape[1] == 0:
+            # No assets to allocate
+            return pd.DataFrame(index=signals.index)
         n_assets = signals.shape[1]
+        if n_assets == 1:
+            # Only one asset: allocate 100% to it
+            weights = pd.DataFrame(1.0, index=signals.index, columns=signals.columns)
+            return weights
+        # Check for all-NaN columns
+        if signals.isnull().all().all():
+            return pd.DataFrame(0.0, index=signals.index, columns=signals.columns)
         weights = pd.DataFrame(
             1.0 / n_assets, index=signals.index, columns=signals.columns
         )

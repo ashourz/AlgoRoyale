@@ -43,6 +43,12 @@ class VolatilityWeightedPortfolioStrategy(BasePortfolioStrategy):
         Returns:
             DataFrame of weights (index: datetime, columns: symbols)
         """
+        if returns.empty or returns.shape[1] == 0:
+            return pd.DataFrame(index=returns.index)
+        if returns.shape[1] == 1:
+            # Only one asset: allocate 100% to it
+            weights = pd.DataFrame(1.0, index=returns.index, columns=returns.columns)
+            return weights
         rolling_vol = returns.rolling(self.window, min_periods=1).std()
         inv_vol = 1.0 / (rolling_vol + 1e-8)
         inv_vol = inv_vol.replace([np.inf, -np.inf], 0.0)

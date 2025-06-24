@@ -36,6 +36,12 @@ class InverseVolatilityPortfolioStrategy(BasePortfolioStrategy):
         return cls(lookback=trial.suggest_int(f"{prefix}lookback", 5, 60))
 
     def allocate(self, signals: pd.DataFrame, returns: pd.DataFrame) -> pd.DataFrame:
+        if returns.empty or returns.shape[1] == 0:
+            return pd.DataFrame(index=returns.index)
+        if returns.shape[1] == 1:
+            # Only one asset: allocate 100% to it
+            weights = pd.DataFrame(1.0, index=returns.index, columns=returns.columns)
+            return weights
         rolling_vol = returns.rolling(self.lookback, min_periods=1).std()
         inv_vol = 1.0 / (rolling_vol + 1e-8)
         inv_vol = inv_vol.replace([np.inf, -np.inf], 0.0)
