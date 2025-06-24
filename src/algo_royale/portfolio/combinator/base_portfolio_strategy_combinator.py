@@ -20,7 +20,6 @@ class PortfolioStrategyCombinator(BaseStrategyCombinator):
         Initialize the combinator with a specific portfolio strategy class.
         This is primarily for compatibility with the base class.
         """
-        super().__init__(strategy_class)
         self.strategy_class = strategy_class
 
     def all_strategy_combinations(
