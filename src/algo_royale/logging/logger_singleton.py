@@ -1,8 +1,8 @@
 import logging
 import os
 from enum import Enum
-from logging.handlers import RotatingFileHandler
 
+from algo_royale.logging.custom_rotating_file_handler import CustomRotatingFileHandler
 from algo_royale.utils.path_utils import get_project_root
 
 
@@ -69,7 +69,7 @@ class LoggerSingleton:
             os.makedirs(log_dir, exist_ok=True)
 
             log_file = os.path.join(log_dir, f"{logger_type.log_name}.log")
-            file_handler = RotatingFileHandler(
+            file_handler = CustomRotatingFileHandler(
                 log_file, maxBytes=10_000_000, backupCount=5
             )
             formatter = logging.Formatter(
