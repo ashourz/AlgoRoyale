@@ -1,6 +1,7 @@
 from abc import abstractmethod
 from typing import Any, Dict
 
+import numpy as np
 import pandas as pd
 from optuna import Trial
 
@@ -59,3 +60,26 @@ class BasePortfolioStrategy(BaseStrategy):
             DataFrame of weights (index: datetime, columns: symbols)
         """
         pass
+
+    def generate_signals(self, df: pd.DataFrame) -> pd.DataFrame:
+        """
+        For portfolio strategies, generate a DataFrame with at least 'portfolio_returns' for evaluation.
+        Expects df to contain return columns for each asset (matching allocate's expectations).
+        """
+        # Try to infer returns DataFrame from df
+        # If df is multi-column, treat as returns; else, raise error
+        if not isinstance(df, pd.DataFrame) or df.empty:
+            raise ValueError(
+                "Input DataFrame must be non-empty for portfolio strategies."
+            )
+        returns = df.copy()
+        # Defensive: drop non-numeric columns if present
+        returns = returns.select_dtypes(include=[np.number])
+        if returns.empty:
+            raise ValueError("No numeric columns found in input DataFrame for returns.")
+        weights = self.allocate(returns, returns)
+        # Compute portfolio returns as weighted sum of asset returns
+        portfolio_returns = (weights * returns).sum(axis=1)
+        result = pd.DataFrame(index=returns.index)
+        result["portfolio_returns"] = portfolio_returns
+        return result
