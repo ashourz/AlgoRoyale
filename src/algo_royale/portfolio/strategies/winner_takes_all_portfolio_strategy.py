@@ -53,7 +53,9 @@ class WinnerTakesAllPortfolioStrategy(BasePortfolioStrategy):
             # Only one asset: allocate 100% if value is positive, else 0
             col = data.columns[0]
             weights = pd.DataFrame(0.0, index=data.index, columns=data.columns)
-            weights[col] = data[col].apply(lambda x: 1.0 if pd.notnull(x) and x > 0 else 0.0)
+            weights[col] = data[col].apply(
+                lambda x: 1.0 if pd.notnull(x) and x > 0 else 0.0
+            )
             return weights
         weights = pd.DataFrame(0, index=data.index, columns=data.columns, dtype=float)
         for i, row in data.iterrows():
@@ -64,4 +66,18 @@ class WinnerTakesAllPortfolioStrategy(BasePortfolioStrategy):
                 weights.loc[i, winner] = 1.0
         if self.move_to_cash_at_end_of_day:
             weights.iloc[-1] = 0.0  # Move to cash at the last time step (end of day)
+        # Normalize weights to sum to 1, handle NaN/inf
+        import numpy as np
+
+        weights = weights.replace([np.inf, -np.inf], 0.0).fillna(0.0)
+        if not returns.empty:
+            latest_prices = returns.iloc[-1].abs()
+            weights = self.mask_and_normalize_weights(
+                weights,
+                pd.DataFrame(
+                    [latest_prices] * len(weights),
+                    index=weights.index,
+                    columns=weights.columns,
+                ),
+            )
         return weights

@@ -66,6 +66,18 @@ class PortfolioBacktestExecutor(BacktestExecutor):
             f"Leverage: {self.leverage}, "
             f"Slippage: {self.slippage}"
         )
+        # Check that data is a DataFrame of valid prices
+        if not isinstance(data, pd.DataFrame) or data.empty:
+            self.logger.error(
+                "Input data must be a non-empty DataFrame of prices for portfolio backtest."
+            )
+            raise ValueError(
+                "Input data must be a non-empty DataFrame of prices for portfolio backtest."
+            )
+        if (data <= 0).any().any() or data.isna().any().any():
+            self.logger.warning(
+                "Input data contains non-positive or NaN prices. These will be skipped in trading logic."
+            )
         n_steps, n_assets = data.shape
         cash = self.initial_balance
         holdings = np.zeros(n_assets)
@@ -74,6 +86,7 @@ class PortfolioBacktestExecutor(BacktestExecutor):
         holdings_history = []
         transactions = []
         trade_id = 0
+        trades_executed = 0
         self.logger.debug(f"Data shape: {data.shape}, columns: {list(data.columns)}")
         self.logger.debug(
             f"Weights shape: {weights.shape}, columns: {list(weights.columns)}"
@@ -84,6 +97,15 @@ class PortfolioBacktestExecutor(BacktestExecutor):
             target_weights = weights.iloc[t].values
             prices = data.iloc[t].values
             timestamp = data.index[t] if hasattr(data, "index") else t
+            # Check for all invalid prices at this step
+            if not np.all(np.isfinite(prices)) or np.all(prices <= 0):
+                self.logger.warning(
+                    f"All prices invalid at step {t}. Skipping portfolio update."
+                )
+                portfolio_values.append(cash + np.sum(holdings * prices))
+                cash_history.append(cash)
+                holdings_history.append(holdings.copy())
+                continue
             total_portfolio_value = cash + np.sum(holdings * prices)
             max_investable = total_portfolio_value * self.leverage
             target_dollars = target_weights * max_investable
@@ -197,6 +219,10 @@ class PortfolioBacktestExecutor(BacktestExecutor):
             portfolio_values.append(portfolio_value)
             cash_history.append(cash)
             holdings_history.append(holdings.copy())
+        if trades_executed == 0:
+            self.logger.warning(
+                "No trades were executed during the backtest. Check input data and strategy weights."
+            )
         self.logger.info(
             f"Portfolio backtest complete. Final value: {portfolio_values[-1]}, Final cash: {cash}"
         )

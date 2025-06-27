@@ -45,7 +45,6 @@ class InverseVolatilityPortfolioStrategy(BasePortfolioStrategy):
         rolling_vol = returns.rolling(self.lookback, min_periods=1).std()
         inv_vol = 1.0 / (rolling_vol + 1e-8)
         inv_vol = inv_vol.replace([np.inf, -np.inf], 0.0)
-        # Handle all-NaN or all-zero rows
         row_sums = inv_vol.sum(axis=1)
         zero_sum_mask = row_sums == 0.0
         if zero_sum_mask.any():
@@ -57,5 +56,15 @@ class InverseVolatilityPortfolioStrategy(BasePortfolioStrategy):
             inv_vol.loc[zero_sum_mask, :] = 0.0
             row_sums[zero_sum_mask] = 1.0  # Prevent division by zero
         weights = inv_vol.div(row_sums, axis=0)
-        weights = weights.fillna(0.0)
+        weights = weights.replace([np.inf, -np.inf], 0.0).fillna(0.0)
+        if not returns.empty:
+            latest_prices = returns.iloc[-1].abs()
+            weights = self.mask_and_normalize_weights(
+                weights,
+                pd.DataFrame(
+                    [latest_prices] * len(weights),
+                    index=weights.index,
+                    columns=weights.columns,
+                ),
+            )
         return weights

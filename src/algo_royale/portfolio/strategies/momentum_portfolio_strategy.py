@@ -54,5 +54,15 @@ class MomentumPortfolioStrategy(BasePortfolioStrategy):
         ) - 1
         momentum = momentum.clip(lower=0.0)
         weights = momentum.div(momentum.sum(axis=1), axis=0)
-        weights = weights.fillna(0.0)
+        weights = weights.replace([np.inf, -np.inf], 0.0).fillna(0.0)
+        if not returns.empty:
+            latest_prices = returns.iloc[-1].abs()
+            weights = self.mask_and_normalize_weights(
+                weights,
+                pd.DataFrame(
+                    [latest_prices] * len(weights),
+                    index=weights.index,
+                    columns=weights.columns,
+                ),
+            )
         return weights

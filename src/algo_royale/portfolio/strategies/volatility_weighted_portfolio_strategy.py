@@ -53,5 +53,29 @@ class VolatilityWeightedPortfolioStrategy(BasePortfolioStrategy):
         inv_vol = 1.0 / (rolling_vol + 1e-8)
         inv_vol = inv_vol.replace([np.inf, -np.inf], 0.0)
         weights = inv_vol.div(inv_vol.sum(axis=1), axis=0)
-        weights = weights.fillna(0.0)
+        weights = weights.replace([np.inf, -np.inf], 0.0).fillna(0.0)
+        if not returns.empty:
+            latest_prices = returns.iloc[-1].abs()
+            weights = self.mask_and_normalize_weights(
+                weights,
+                pd.DataFrame(
+                    [latest_prices] * len(weights),
+                    index=weights.index,
+                    columns=weights.columns,
+                ),
+            )
+        # --- Robust normalization and error handling ---
+        row_sums = weights.sum(axis=1)
+        for idx, s in row_sums.items():
+            if np.isclose(s, 0.0):
+                weights.loc[idx] = 0.0
+            else:
+                weights.loc[idx] = weights.loc[idx] / s
+        abnormal = row_sums[(row_sums < 0.99) | (row_sums > 1.01)]
+        if not abnormal.empty:
+            import logging
+
+            logging.warning(
+                f"VolatilityWeightedPortfolioStrategy: Abnormal weight row sums at: {abnormal.index.tolist()} values: {abnormal.values}"
+            )
         return weights

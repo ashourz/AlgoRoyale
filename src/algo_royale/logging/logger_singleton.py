@@ -17,7 +17,7 @@ class LoggerType(Enum):
     """
 
     TRADING = ("trading", logging.INFO)
-    BACKTESTING = ("backtesting", logging.DEBUG)
+    BACKTESTING = ("backtesting", logging.WARNING)
     WATCHLIST = ("watchlist", logging.INFO)
 
     def __init__(self, log_name: str, log_level: int):

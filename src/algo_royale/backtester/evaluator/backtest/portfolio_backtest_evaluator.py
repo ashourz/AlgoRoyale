@@ -49,11 +49,49 @@ class PortfolioBacktestEvaluator(BacktestEvaluator):
             f"Signals DataFrame columns: {signals_df.columns.tolist()}"
         )
         # Use portfolio_values if available, else fallback to portfolio_returns
+        if signals_df.empty:
+            self.logger.error("Input DataFrame is empty. Cannot compute metrics.")
+            return {
+                k: np.nan
+                for k in [
+                    "total_return",
+                    "mean_return",
+                    "volatility",
+                    "sharpe_ratio",
+                    "max_drawdown",
+                    "sortino_ratio",
+                    "calmar_ratio",
+                    "win_rate",
+                    "profit_factor",
+                    "num_trades",
+                ]
+            }
         if "portfolio_values" in signals_df:
             values = pd.Series(signals_df["portfolio_values"])
             returns = values.pct_change().fillna(0)
         else:
             returns = pd.Series(signals_df["portfolio_returns"])
+        # Defensive: drop NaN/inf
+        returns = returns.replace([np.inf, -np.inf], np.nan).dropna()
+        if returns.empty or (returns == 0).all():
+            self.logger.error(
+                "No valid or non-zero returns in input DataFrame. Cannot compute metrics."
+            )
+            return {
+                k: np.nan
+                for k in [
+                    "total_return",
+                    "mean_return",
+                    "volatility",
+                    "sharpe_ratio",
+                    "max_drawdown",
+                    "sortino_ratio",
+                    "calmar_ratio",
+                    "win_rate",
+                    "profit_factor",
+                    "num_trades",
+                ]
+            }
         # Metrics
         total_return = float((returns + 1).prod() - 1)
         mean_return = float(returns.mean())

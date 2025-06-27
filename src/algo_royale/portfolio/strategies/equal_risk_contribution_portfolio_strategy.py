@@ -73,5 +73,32 @@ class EqualRiskContributionPortfolioStrategy(BasePortfolioStrategy):
                 weights.iloc[i] = res.x
             else:
                 weights.iloc[i] = np.nan
-        weights = weights.fillna(0)
+        # --- Robust normalization and error handling ---
+        weights = weights.replace([np.inf, -np.inf], 0.0).fillna(0.0)
+        # Mask and normalize using latest available prices
+        if not returns.empty:
+            latest_prices = returns.iloc[
+                -1
+            ].abs()  # Use abs() in case returns are used as proxy for prices
+            weights = self.mask_and_normalize_weights(
+                weights,
+                pd.DataFrame(
+                    [latest_prices] * len(weights),
+                    index=weights.index,
+                    columns=weights.columns,
+                ),
+            )
+        row_sums = weights.sum(axis=1)
+        for idx, s in row_sums.items():
+            if np.isclose(s, 0.0):
+                weights.loc[idx] = 0.0
+            else:
+                weights.loc[idx] = weights.loc[idx] / s
+        abnormal = row_sums[(row_sums < 0.99) | (row_sums > 1.01)]
+        if not abnormal.empty:
+            import logging
+
+            logging.warning(
+                f"EqualRiskContributionPortfolioStrategy: Abnormal weight row sums at: {abnormal.index.tolist()} values: {abnormal.values}"
+            )
         return weights

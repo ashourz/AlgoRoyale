@@ -74,4 +74,18 @@ class EqualWeightPortfolioStrategy(BasePortfolioStrategy):
         weights = pd.DataFrame(
             1.0 / n_assets, index=signals.index, columns=signals.columns
         )
+        # --- Robust normalization and error handling ---
+        import numpy as np
+
+        weights = weights.replace([np.inf, -np.inf], 0.0).fillna(0.0)
+        if not returns.empty:
+            latest_prices = returns.iloc[-1].abs()
+            weights = self.mask_and_normalize_weights(
+                weights,
+                pd.DataFrame(
+                    [latest_prices] * len(weights),
+                    index=weights.index,
+                    columns=weights.columns,
+                ),
+            )
         return weights
