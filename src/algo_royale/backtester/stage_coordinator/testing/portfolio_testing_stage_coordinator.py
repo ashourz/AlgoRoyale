@@ -192,13 +192,7 @@ class PortfolioTestingStageCoordinator(BaseTestingStageCoordinator):
     def get_optimization_results(
         self, strategy_name: str, start_date: datetime, end_date: datetime
     ) -> Dict:
-        json_path = self.stage_data_manager.get_extended_path(
-            base_dir=self.optimization_root,
-            strategy_name=strategy_name,
-            symbol=None,
-            start_date=start_date,
-            end_date=end_date,
-        )
+        json_path = self.get_output_path(strategy_name, start_date, end_date)
         self.logger.debug(
             f"Loading optimization results from {json_path} for {strategy_name}"
         )
