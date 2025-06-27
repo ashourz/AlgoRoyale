@@ -1,4 +1,5 @@
 import json
+from logging import Logger
 from pathlib import Path
 
 
@@ -18,6 +19,7 @@ class SymbolEvaluationCoordinator:
         optimization_root: str,
         evaluation_json_filename: str,
         summary_json_filename: str,
+        logger: Logger,
         viability_threshold: float = 0.75,
     ):
         self.optimization_root = Path(optimization_root)
@@ -28,16 +30,20 @@ class SymbolEvaluationCoordinator:
         self.evaluation_json_filename = evaluation_json_filename
         self.summary_json_filename = summary_json_filename
         self.viability_threshold = viability_threshold
+        self.logger = logger
 
     def run(self):
+        self.logger.info("Starting symbol evaluation...")
         # Loop over all symbol directories
         for symbol_dir in self.optimization_root.iterdir():
+            self.logger.info(f"Evaluating symbol directory: {symbol_dir}")
             if not symbol_dir.is_dir():
                 continue
             symbol = symbol_dir.name
             strategy_dirs = [d for d in symbol_dir.iterdir() if d.is_dir()]
             results = []
             for strat_dir in strategy_dirs:
+                self.logger.debug(f"Checking strategy directory: {strat_dir}")
                 eval_path = strat_dir / self.evaluation_json_filename
                 if eval_path.exists():
                     with open(eval_path) as f:

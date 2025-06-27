@@ -539,12 +539,12 @@ class DIContainer(containers.DeclarativeContainer):
         evaluation_type=StrategyEvaluationType.BOTH,
         optimization_json_filename=providers.Object(
             config().get(
-                "backtester.signal.filename", "signal_optimization_json_filename"
+                "backtester.signal.filenames", "signal_optimization_json_filename"
             )
         ),
         evaluation_json_filename=providers.Object(
             config().get(
-                "backtester.signal.filename", "signal_evaluation_json_filename"
+                "backtester.signal.filenames", "signal_evaluation_json_filename"
             )
         ),
     )
@@ -556,17 +556,18 @@ class DIContainer(containers.DeclarativeContainer):
         ),
         evaluation_json_filename=providers.Object(
             config().get(
-                "backtester.signal.filename", "signal_evaluation_json_filename"
+                "backtester.signal.filenames", "signal_evaluation_json_filename"
             )
         ),
         summary_json_filename=providers.Object(
-            config().get("backtester.signal.filename", "signal_summary_json_filename")
+            config().get("backtester.signal.filenames", "signal_summary_json_filename")
         ),
         viability_threshold=providers.Object(
             config().get_float(
                 "backtester.signal", "signal_evaluation_viability_threshold", 0.5
             )
         ),
+        logger=logger_backtest_prod,
     )
 
     portfolio_evaluation_coordinator = providers.Singleton(

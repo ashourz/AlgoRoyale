@@ -51,13 +51,16 @@ class StrategyEvaluationCoordinator:
         self.logger = logger
 
     def run(self):
+        self.logger.info("Starting strategy evaluation...")
         # Loop over each symbol directory
         for symbol_dir in self.opt_root_path.iterdir():
+            self.logger.info(f"Evaluating symbol directory: {symbol_dir}")
             if not symbol_dir.is_dir():
                 continue
             self.logger.info(f"Processing symbol: {symbol_dir.name}")
             # Loop over each strategy directory within the symbol
             for strategy_dir in symbol_dir.iterdir():
+                self.logger.debug(f"Checking strategy directory: {strategy_dir}")
                 if not strategy_dir.is_dir():
                     continue
                 self.logger.info(f"  Processing strategy: {strategy_dir.name}")
@@ -70,12 +73,20 @@ class StrategyEvaluationCoordinator:
                 f"No optimization result files found in {strategy_dir}. Skipping evaluation."
             )
             return
+        self.logger.info(
+            f"Found {len(optimization_files)} optimization result files in {strategy_dir}."
+        )
 
         all_metrics = []
         window_params = []
         for opt_json_path in optimization_files:
+            self.logger.debug(
+                f"Path: {opt_json_path} | Is file: {opt_json_path.is_file()} | Is dir: {opt_json_path.is_dir()}"
+            )
             if not opt_json_path.is_file():
+                self.logger.warning(f"Skipping {opt_json_path} as it is not a file.")
                 continue
+            self.logger.debug(f"Found optimization result file: {opt_json_path}")
             try:
                 self.logger.info(f"Evaluating {opt_json_path}...")
                 evaluator = StrategyEvaluator(
