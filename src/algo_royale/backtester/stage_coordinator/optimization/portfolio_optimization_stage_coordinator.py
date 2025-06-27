@@ -1,5 +1,7 @@
 import json
+from datetime import datetime
 from logging import Logger
+from pathlib import Path
 from typing import AsyncIterator, Callable, Dict, Optional, Sequence
 
 import pandas as pd
@@ -43,8 +45,9 @@ class PortfolioOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
         strategy_combinators: Sequence[type[PortfolioStrategyCombinator]],
         executor: PortfolioBacktestExecutor,
         evaluator: PortfolioBacktestEvaluator,
+        optimization_root: str,
         optimization_json_filename: str,
-        asset_matrix_preparer: AssetMatrixPreparer,  # NEW
+        asset_matrix_preparer: AssetMatrixPreparer,
     ):
         super().__init__(
             stage=BacktestStage.PORTFOLIO_OPTIMIZATION,
@@ -57,16 +60,12 @@ class PortfolioOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
             executor=executor,
             strategy_combinators=strategy_combinators,
         )
+        self.optimization_root = Path(optimization_root)
+        if not self.optimization_root.is_dir():
+            ## Create the directory if it does not exist
+            self.optimization_root.mkdir(parents=True, exist_ok=True)
         self.optimization_json_filename = optimization_json_filename
         self.asset_matrix_preparer = asset_matrix_preparer  # NEW
-
-    def get_output_path(self, strategy_name, symbol):
-        out_dir = self.stage_data_manager.get_directory_path(
-            self.stage, strategy_name, symbol, self.start_date, self.end_date
-        )
-        out_dir.mkdir(parents=True, exist_ok=True)
-        # Portfolio uses a different filename
-        return out_dir / self.optimization_json_filename
 
     async def process(
         self,
@@ -128,7 +127,13 @@ class PortfolioOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
                         f"Portfolio optimization failed for strategy {strategy_name}: {e}"
                     )
                     continue
-                out_path = self.get_output_path(strategy_name, "PORTFOLIO")
+                # Save optimization metrics to optimization_result.json under window_id
+                out_path = self.get_output_path(
+                    self.optimization_json_filename,
+                    strategy_name,
+                    self.start_date,
+                    self.end_date,
+                )
                 self.logger.info(
                     f"Saving portfolio optimization results for PORTFOLIO {strategy_name} to {out_path}"
                 )
@@ -150,6 +155,18 @@ class PortfolioOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
                     self.window_id: optimization_result
                 }
         return results
+
+    def get_output_path(self, strategy_name, start_date: datetime, end_date: datetime):
+        """Get the output path for the optimization results JSON file."""
+        out_dir = self.stage_data_manager.get_extended_path(
+            base_dir=self.optimization_root,
+            strategy_name=strategy_name,
+            symbol=None,
+            start_date=start_date,
+            end_date=end_date,
+        )
+        out_dir.mkdir(parents=True, exist_ok=True)
+        return out_dir / self.optimization_json_filename
 
     def _backtest_and_evaluate(self, strategy, df):
         try:

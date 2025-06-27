@@ -61,9 +61,9 @@ class PipelineCoordinator:
         try:
             await self.strategy_walk_forward_coordinator.run_async()
             self.strategy_evaluation_coordinator.run()
-            self.symbol_evaluation_coordinator.run()
-            await self.portfolio_walk_forward_coordinator.run_async()
-            self.portfolio_evaluation_coordinator.run()
+            # self.symbol_evaluation_coordinator.run()
+            # await self.portfolio_walk_forward_coordinator.run_async()
+            # self.portfolio_evaluation_coordinator.run()
             self.logger.info("Pipeline stages completed successfully.")
         except Exception as e:
             self.logger.error(f"Pipeline failed: {e}")

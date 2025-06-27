@@ -1,5 +1,7 @@
 import json
+from datetime import datetime
 from logging import Logger
+from pathlib import Path
 from typing import AsyncIterator, Callable, Dict, Optional, Sequence
 
 import pandas as pd
@@ -56,6 +58,8 @@ class StrategyOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
         strategy_executor: StrategyBacktestExecutor,
         strategy_evaluator: BacktestEvaluator,
         strategy_combinators: Sequence[type[SignalStrategyCombinator]],
+        optimization_root: str,
+        optimization_json_filename: str,
     ):
         """Coordinator for the backtest stage.
         Args:
@@ -78,6 +82,11 @@ class StrategyOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
             strategy_combinators=strategy_combinators,
             logger=logger,
         )
+        self.optimization_root = Path(optimization_root)
+        if not self.optimization_root.is_dir():
+            ## Create the directory if it does not exist
+            self.optimization_root.mkdir(parents=True, exist_ok=True)
+        self.optimization_json_filename = optimization_json_filename
 
     async def process(
         self,
@@ -125,15 +134,13 @@ class StrategyOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
                     continue
 
                 # Save optimization metrics to optimization_result.json under window_id
-                out_dir = self.stage_data_manager.get_directory_path(
-                    BacktestStage.OPTIMIZATION,
+                out_path = self.get_output_path(
+                    self.optimization_json_filename,
                     strategy_name,
                     symbol,
                     self.start_date,
                     self.end_date,
                 )
-                out_dir.mkdir(parents=True, exist_ok=True)
-                out_path = out_dir / "optimization_result.json"
                 self.logger.info(
                     f"Saving optimization results for {symbol} {strategy_name} to {out_path}"
                 )
@@ -165,6 +172,20 @@ class StrategyOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
                 }
 
         return results
+
+    def get_output_path(
+        self, strategy_name, symbol: str, start_date: datetime, end_date: datetime
+    ):
+        """Get the output path for the optimization results JSON file."""
+        out_dir = self.stage_data_manager.get_extended_path(
+            base_dir=self.optimization_root,
+            strategy_name=strategy_name,
+            symbol=symbol,
+            start_date=start_date,
+            end_date=end_date,
+        )
+        out_dir.mkdir(parents=True, exist_ok=True)
+        return out_dir / self.optimization_json_filename
 
     async def _backtest_and_evaluate(
         self,

@@ -39,6 +39,8 @@ class StrategyTestingStageCoordinator(BaseTestingStageCoordinator):
         strategy_factory: StrategyFactory,
         logger: Logger,
         strategy_combinators: Sequence[type[SignalStrategyCombinator]],
+        optimization_root: str,
+        optimization_json_filename: str,
     ):
         """Coordinator for the strategy testing stage of the backtest pipeline.
         Params:
@@ -65,6 +67,11 @@ class StrategyTestingStageCoordinator(BaseTestingStageCoordinator):
             strategy_combinators=strategy_combinators,
         )
         self.strategy_factory = strategy_factory
+        self.optimization_root = Path(optimization_root)
+        if not self.optimization_root.is_dir():
+            ## Create the directory if it does not exist
+            self.optimization_root.mkdir(parents=True, exist_ok=True)
+        self.optimization_json_filename = optimization_json_filename
 
     async def run(
         self,
@@ -230,12 +237,16 @@ class StrategyTestingStageCoordinator(BaseTestingStageCoordinator):
     def get_optimization_result_path(
         self, strategy_name: str, symbol: str, start_date: datetime, end_date: datetime
     ) -> Path:
-        """Get the path to the optimization result file."""
-        out_dir = self.stage_data_manager.get_directory_path(
-            BacktestStage.OPTIMIZATION, strategy_name, symbol, start_date, end_date
+        """Get the path to the optimization result JSON file for a given strategy and symbol."""
+        out_dir = self.stage_data_manager.get_extended_path(
+            base_dir=self.optimization_root,
+            strategy_name=strategy_name,
+            symbol=symbol,
+            start_date=start_date,
+            end_date=end_date,
         )
-        json_path = out_dir / "optimization_result.json"
-        return json_path
+        out_dir.mkdir(parents=True, exist_ok=True)
+        return out_dir / self.optimization_json_filename
 
     async def _write(self, stage, processed_data):
         # No-op: writing is handled in process()

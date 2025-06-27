@@ -390,6 +390,14 @@ class DIContainer(containers.DeclarativeContainer):
         strategy_combinators=signal_strategy_combinators,
         strategy_executor=strategy_executor,
         strategy_evaluator=strategy_evaluator,
+        optimization_root=providers.Object(
+            config().get("backtester.signal.paths", "signal_optimization_root_path")
+        ),
+        optimization_json_filename=providers.Object(
+            config().get(
+                "backtester.signal.filenames", "signal_optimization_json_filename"
+            )
+        ),
     )
 
     strategy_testing_stage_coordinator = providers.Singleton(
@@ -403,6 +411,14 @@ class DIContainer(containers.DeclarativeContainer):
         strategy_factory=strategy_factory,
         logger=logger_backtest_prod,
         strategy_combinators=signal_strategy_combinators,
+        optimization_root=providers.Object(
+            config().get("backtester.signal.paths", "signal_optimization_root_path")
+        ),
+        optimization_json_filename=providers.Object(
+            config().get(
+                "backtester.signal.filenames", "signal_optimization_json_filename"
+            )
+        ),
     )
 
     strategy_walk_forward_coordinator = providers.Singleton(
@@ -469,6 +485,11 @@ class DIContainer(containers.DeclarativeContainer):
         evaluator=portfolio_evaluator,
         logger=logger_backtest_prod,
         strategy_combinators=portfolio_strategy_combinators,
+        optimization_root=providers.Object(
+            config().get(
+                "backtester.portfolio.paths", "portfolio_optimization_root_path"
+            )
+        ),
         optimization_json_filename=providers.Object(
             config().get(
                 "backtester.portfolio.filenames", "portfolio_optimization_json_filename"
@@ -487,11 +508,17 @@ class DIContainer(containers.DeclarativeContainer):
         evaluator=portfolio_evaluator,
         logger=logger_backtest_prod,
         strategy_combinators=portfolio_strategy_combinators,
+        optimization_root=providers.Object(
+            config().get(
+                "backtester.portfolio.paths", "portfolio_optimization_root_path"
+            ),
+        ),
         optimization_json_filename=providers.Object(
             config().get(
                 "backtester.portfolio.filenames", "portfolio_optimization_json_filename"
             )
         ),
+        asset_matrix_preparer=portfolio_asset_matrix_preparer,
     )
 
     portfolio_walk_forward_coordinator = providers.Singleton(
