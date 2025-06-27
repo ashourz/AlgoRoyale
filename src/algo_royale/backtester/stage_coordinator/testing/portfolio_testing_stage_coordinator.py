@@ -167,6 +167,9 @@ class PortfolioTestingStageCoordinator(BaseTestingStageCoordinator):
                     strategy,
                     portfolio_matrix,
                 )
+                self.logger.info(
+                    f"Backtest completed for {strategy_name} with {len(backtest_results.get('portfolio_returns', []))} returns."
+                )
                 # Evaluate metrics (now includes all new metrics)
                 metrics = self.evaluator.evaluate(strategy, backtest_results)
                 test_opt_results = self.get_optimization_results(

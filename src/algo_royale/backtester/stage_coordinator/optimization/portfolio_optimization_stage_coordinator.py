@@ -169,6 +169,9 @@ class PortfolioOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
 
     def _backtest_and_evaluate(self, strategy, df):
         try:
+            self.logger.info(
+                f"Running backtest for strategy {strategy.get_id()} on data from {df.index.min()} to {df.index.max()}"
+            )
             backtest_results = self.executor.run_backtest(strategy, df)
             metrics = self.evaluator.evaluate(strategy, backtest_results)
             return {"metrics": metrics}
