@@ -129,7 +129,6 @@ class PortfolioOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
                     continue
                 # Save optimization metrics to optimization_result.json under window_id
                 out_path = self.get_output_path(
-                    self.optimization_json_filename,
                     strategy_name,
                     self.start_date,
                     self.end_date,

@@ -220,7 +220,9 @@ class PortfolioTestingStageCoordinator(BaseTestingStageCoordinator):
                 return {}
         return opt_results
 
-    def get_output_path(self, strategy_name, start_date: datetime, end_date: datetime):
+    def get_output_path(
+        self, strategy_name: str, start_date: datetime, end_date: datetime
+    ):
         """Get the output path for the optimization results JSON file."""
         out_dir = self.stage_data_manager.get_extended_path(
             base_dir=self.optimization_root,
