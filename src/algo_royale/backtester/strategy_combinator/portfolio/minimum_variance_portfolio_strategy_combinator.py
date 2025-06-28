@@ -1,8 +1,8 @@
-from algo_royale.portfolio.combinator.base_portfolio_strategy_combinator import (
-    PortfolioStrategyCombinator,
-)
-from algo_royale.portfolio.strategies.minimum_variance_portfolio_strategy import (
+from algo_royale.backtester.strategy.portfolio.minimum_variance_portfolio_strategy import (
     MinimumVariancePortfolioStrategy,
+)
+from algo_royale.backtester.strategy_combinator.portfolio.base_portfolio_strategy_combinator import (
+    PortfolioStrategyCombinator,
 )
 
 

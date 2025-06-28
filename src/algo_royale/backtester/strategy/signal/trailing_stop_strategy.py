@@ -1,12 +1,12 @@
-from algo_royale.column_names.strategy_columns import StrategyColumns
-from algo_royale.strategy_factory.conditions.boolean_column_entry import (
+from algo_royale.backtester.column_names.strategy_columns import StrategyColumns
+from algo_royale.backtester.strategy.signal.base_signal_strategy import (
+    BaseSignalStrategy,
+)
+from algo_royale.backtester.strategy.signal.conditions.boolean_column_entry import (
     BooleanColumnEntryCondition,
 )
-from algo_royale.strategy_factory.conditions.trend_above_sma import (
+from algo_royale.backtester.strategy.signal.conditions.trend_above_sma import (
     TrendAboveSMACondition,
-)
-from algo_royale.strategy_factory.strategies.base_signal_strategy import (
-    BaseSignalStrategy,
 )
 
 

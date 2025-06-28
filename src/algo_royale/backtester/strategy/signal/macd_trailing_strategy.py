@@ -1,15 +1,17 @@
 from typing import Optional
 
-from algo_royale.column_names.strategy_columns import StrategyColumns
-from algo_royale.strategy_factory.conditions.base_strategy_condition import (
+from algo_royale.backtester.column_names.strategy_columns import StrategyColumns
+from algo_royale.backtester.strategy.signal.base_signal_strategy import (
+    BaseSignalStrategy,
+)
+from algo_royale.backtester.strategy.signal.conditions.base_strategy_condition import (
     StrategyCondition,
 )
-from algo_royale.strategy_factory.conditions.sma_trend import SMATrendCondition
-from algo_royale.strategy_factory.stateful_logic.macd_trailing_stateful_logic import (
-    MACDTrailingStatefulLogic,
+from algo_royale.backtester.strategy.signal.conditions.sma_trend import (
+    SMATrendCondition,
 )
-from algo_royale.strategy_factory.strategies.base_signal_strategy import (
-    BaseSignalStrategy,
+from algo_royale.backtester.strategy.signal.stateful_logic.macd_trailing_stateful_logic import (
+    MACDTrailingStatefulLogic,
 )
 
 

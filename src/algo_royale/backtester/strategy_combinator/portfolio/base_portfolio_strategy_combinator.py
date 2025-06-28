@@ -1,11 +1,11 @@
 from functools import partial
 from typing import Callable, Generator, Type
 
+from algo_royale.backtester.strategy.portfolio.base_portfolio_strategy import (
+    BasePortfolioStrategy,
+)
 from algo_royale.backtester.strategy_combinator.base_strategy_combinator import (
     BaseStrategyCombinator,
-)
-from algo_royale.portfolio.strategies.base_portfolio_strategy import (
-    BasePortfolioStrategy,
 )
 
 

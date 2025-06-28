@@ -1,12 +1,12 @@
-from algo_royale.column_names.strategy_columns import StrategyColumns
-from algo_royale.strategy_factory.conditions.price_above_sma import (
+from algo_royale.backtester.column_names.strategy_columns import StrategyColumns
+from algo_royale.backtester.strategy.signal.base_signal_strategy import (
+    BaseSignalStrategy,
+)
+from algo_royale.backtester.strategy.signal.conditions.price_above_sma import (
     PriceAboveSMACondition,
 )
-from algo_royale.strategy_factory.stateful_logic.mean_reversion_stategul_logic import (
+from algo_royale.backtester.strategy.signal.stateful_logic.mean_reversion_stategul_logic import (
     MeanReversionStatefulLogic,
-)
-from algo_royale.strategy_factory.strategies.base_signal_strategy import (
-    BaseSignalStrategy,
 )
 
 

@@ -3,7 +3,9 @@ import pandas as pd
 from optuna import Trial
 from scipy.optimize import minimize
 
-from .base_portfolio_strategy import BasePortfolioStrategy
+from src.algo_royale.backtester.strategy.portfolio.base_portfolio_strategy import (
+    BasePortfolioStrategy,
+)
 
 
 class EqualRiskContributionPortfolioStrategy(BasePortfolioStrategy):

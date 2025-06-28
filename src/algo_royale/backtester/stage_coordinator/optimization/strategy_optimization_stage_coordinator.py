@@ -21,11 +21,11 @@ from algo_royale.backtester.stage_coordinator.optimization.base_optimization_sta
 from algo_royale.backtester.stage_data.stage_data_loader import StageDataLoader
 from algo_royale.backtester.stage_data.stage_data_manager import StageDataManager
 from algo_royale.backtester.stage_data.stage_data_writer import StageDataWriter
-from algo_royale.strategy_factory.combinator.base_signal_strategy_combinator import (
-    SignalStrategyCombinator,
-)
-from algo_royale.strategy_factory.strategies.base_signal_strategy import (
+from algo_royale.backtester.strategy.signal.base_signal_strategy import (
     BaseSignalStrategy,
+)
+from algo_royale.backtester.strategy_combinator.signal.base_signal_strategy_combinator import (
+    SignalStrategyCombinator,
 )
 
 

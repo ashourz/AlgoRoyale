@@ -1,9 +1,11 @@
-from algo_royale.column_names.strategy_columns import StrategyColumns
-from algo_royale.strategy_factory.conditions.rsi_entry import RSIEntryCondition
-from algo_royale.strategy_factory.conditions.rsi_exit import RSIExitCondition
-from algo_royale.strategy_factory.strategies.base_signal_strategy import (
+from algo_royale.backtester.column_names.strategy_columns import StrategyColumns
+from algo_royale.backtester.strategy.signal.base_signal_strategy import (
     BaseSignalStrategy,
 )
+from algo_royale.backtester.strategy.signal.conditions.rsi_entry import (
+    RSIEntryCondition,
+)
+from algo_royale.backtester.strategy.signal.conditions.rsi_exit import RSIExitCondition
 
 
 class RSIStrategy(BaseSignalStrategy):

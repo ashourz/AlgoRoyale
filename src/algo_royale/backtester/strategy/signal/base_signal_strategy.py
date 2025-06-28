@@ -5,13 +5,13 @@ from typing import Optional
 
 import pandas as pd
 
+from algo_royale.backtester.column_names.strategy_columns import StrategyColumns
+from algo_royale.backtester.enum.signal_type import SignalType
 from algo_royale.backtester.strategy.base_strategy import BaseStrategy
-from algo_royale.column_names.strategy_columns import StrategyColumns
-from algo_royale.strategy_factory.conditions.base_strategy_condition import (
+from algo_royale.backtester.strategy.signal.conditions.base_strategy_condition import (
     StrategyCondition,
 )
-from algo_royale.strategy_factory.enum.signal_type import SignalType
-from algo_royale.strategy_factory.stateful_logic.base_stateful_logic import (
+from algo_royale.backtester.strategy.signal.stateful_logic.base_stateful_logic import (
     StatefulLogic,
 )
 

@@ -1,12 +1,12 @@
-from algo_royale.column_names.strategy_columns import StrategyColumns
-from algo_royale.strategy_factory.conditions.wick_reversal_entry import (
+from algo_royale.backtester.column_names.strategy_columns import StrategyColumns
+from algo_royale.backtester.strategy.signal.base_signal_strategy import (
+    BaseSignalStrategy,
+)
+from algo_royale.backtester.strategy.signal.conditions.wick_reversal_entry import (
     WickReversalEntryCondition,
 )
-from algo_royale.strategy_factory.conditions.wick_reversal_exit import (
+from algo_royale.backtester.strategy.signal.conditions.wick_reversal_exit import (
     WickReversalExitCondition,
-)
-from algo_royale.strategy_factory.strategies.base_signal_strategy import (
-    BaseSignalStrategy,
 )
 
 

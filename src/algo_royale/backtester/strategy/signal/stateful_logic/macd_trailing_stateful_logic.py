@@ -1,9 +1,10 @@
 import pandas as pd
 
-from algo_royale.column_names.strategy_columns import StrategyColumns
-from algo_royale.strategy_factory.enum.signal_type import SignalType
-
-from .base_stateful_logic import StatefulLogic
+from algo_royale.backtester.column_names.strategy_columns import StrategyColumns
+from algo_royale.backtester.enum.signal_type import SignalType
+from algo_royale.backtester.strategy.signal.stateful_logic.base_stateful_logic import (
+    StatefulLogic,
+)
 
 
 class MACDTrailingStatefulLogic(StatefulLogic):

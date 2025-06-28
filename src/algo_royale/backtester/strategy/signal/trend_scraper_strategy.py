@@ -1,12 +1,12 @@
-from algo_royale.column_names.strategy_columns import StrategyColumns
-from algo_royale.strategy_factory.conditions.ema_above_sma_rolling import (
+from algo_royale.backtester.column_names.strategy_columns import StrategyColumns
+from algo_royale.backtester.strategy.signal.base_signal_strategy import (
+    BaseSignalStrategy,
+)
+from algo_royale.backtester.strategy.signal.conditions.ema_above_sma_rolling import (
     EMAAboveSMARollingCondition,
 )
-from algo_royale.strategy_factory.conditions.return_volatility_exit import (
+from algo_royale.backtester.strategy.signal.conditions.return_volatility_exit import (
     ReturnVolatilityExitCondition,
-)
-from algo_royale.strategy_factory.strategies.base_signal_strategy import (
-    BaseSignalStrategy,
 )
 
 

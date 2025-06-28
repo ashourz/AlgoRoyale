@@ -1,12 +1,13 @@
-from algo_royale.column_names.strategy_columns import StrategyColumns
-from algo_royale.strategy_factory.conditions.time_of_day_entry import (
+from algo_royale.backtester.column_names.strategy_columns import StrategyColumns
+from algo_royale.backtester.strategy.signal.conditions.time_of_day_entry import (
     TimeOfDayEntryCondition,
 )
-from algo_royale.strategy_factory.conditions.time_of_day_exit import (
+from algo_royale.backtester.strategy.signal.conditions.time_of_day_exit import (
     TimeOfDayExitCondition,
 )
-
-from .base_signal_strategy import BaseSignalStrategy
+from src.algo_royale.backtester.strategy.signal.base_signal_strategy import (
+    BaseSignalStrategy,
+)
 
 
 class TimeOfDayBiasStrategy(BaseSignalStrategy):

@@ -3,11 +3,11 @@ import threading
 from logging import Logger
 from typing import Callable, Optional, Sequence
 
-from algo_royale.portfolio.combinator.base_portfolio_strategy_combinator import (
-    PortfolioStrategyCombinator,
-)
-from algo_royale.portfolio.strategies.base_portfolio_strategy import (
+from src.algo_royale.backtester.strategy.portfolio.base_portfolio_strategy import (
     BasePortfolioStrategy,
+)
+from src.algo_royale.backtester.strategy_combinator.portfolio.base_portfolio_strategy_combinator import (
+    PortfolioStrategyCombinator,
 )
 
 

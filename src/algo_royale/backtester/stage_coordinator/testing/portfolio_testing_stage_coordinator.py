@@ -24,7 +24,7 @@ from algo_royale.backtester.stage_coordinator.testing.base_testing_stage_coordin
 from algo_royale.backtester.stage_data.stage_data_loader import StageDataLoader
 from algo_royale.backtester.stage_data.stage_data_manager import StageDataManager
 from algo_royale.backtester.stage_data.stage_data_writer import StageDataWriter
-from algo_royale.portfolio.combinator.base_portfolio_strategy_combinator import (
+from algo_royale.backtester.strategy_combinator.portfolio.base_portfolio_strategy_combinator import (
     PortfolioStrategyCombinator,
 )
 

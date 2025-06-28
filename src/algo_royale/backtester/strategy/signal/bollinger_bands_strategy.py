@@ -1,11 +1,11 @@
-from algo_royale.strategy_factory.conditions.bollinger_bands_entry import (
+from algo_royale.backtester.strategy.signal.base_signal_strategy import (
+    BaseSignalStrategy,
+)
+from algo_royale.backtester.strategy.signal.conditions.bollinger_bands_entry import (
     BollingerBandsEntryCondition,
 )
-from algo_royale.strategy_factory.conditions.bollinger_bands_exit import (
+from algo_royale.backtester.strategy.signal.conditions.bollinger_bands_exit import (
     BollingerBandsExitCondition,
-)
-from algo_royale.strategy_factory.strategies.base_signal_strategy import (
-    BaseSignalStrategy,
 )
 
 

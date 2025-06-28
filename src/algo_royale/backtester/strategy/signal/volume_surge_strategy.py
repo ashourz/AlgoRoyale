@@ -1,12 +1,13 @@
-from algo_royale.column_names.strategy_columns import StrategyColumns
-from algo_royale.strategy_factory.conditions.volume_surge_entry import (
+from algo_royale.backtester.column_names.strategy_columns import StrategyColumns
+from algo_royale.backtester.strategy.signal.conditions.volume_surge_entry import (
     VolumeSurgeEntryCondition,
 )
-from algo_royale.strategy_factory.conditions.volume_surge_exit import (
+from algo_royale.backtester.strategy.signal.conditions.volume_surge_exit import (
     VolumeSurgeExitCondition,
 )
-
-from .base_signal_strategy import BaseSignalStrategy
+from src.algo_royale.backtester.strategy.signal.base_signal_strategy import (
+    BaseSignalStrategy,
+)
 
 
 class VolumeSurgeStrategy(BaseSignalStrategy):

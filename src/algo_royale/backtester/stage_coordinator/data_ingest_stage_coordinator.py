@@ -4,13 +4,13 @@ from typing import AsyncIterator, Callable, Dict, Optional
 import pandas as pd
 from alpaca.common.enums import SupportedCurrencies
 
+from algo_royale.backtester.column_names.data_ingest_columns import DataIngestColumns
 from algo_royale.backtester.data_preparer.async_data_preparer import AsyncDataPreparer
 from algo_royale.backtester.enum.backtest_stage import BacktestStage
 from algo_royale.backtester.stage_coordinator.stage_coordinator import StageCoordinator
 from algo_royale.backtester.stage_data.stage_data_loader import StageDataLoader
 from algo_royale.backtester.stage_data.stage_data_manager import StageDataManager
 from algo_royale.backtester.stage_data.stage_data_writer import StageDataWriter
-from algo_royale.column_names.data_ingest_columns import DataIngestColumns
 from algo_royale.models.alpaca_market_data.enums import DataFeed
 from algo_royale.services.market_data.alpaca_stock_service import AlpacaQuoteService
 

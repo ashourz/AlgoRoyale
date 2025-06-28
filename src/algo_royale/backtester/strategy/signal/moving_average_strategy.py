@@ -1,12 +1,12 @@
-from algo_royale.column_names.strategy_columns import StrategyColumns
-from algo_royale.strategy_factory.conditions.moving_average_entry import (
+from algo_royale.backtester.column_names.strategy_columns import StrategyColumns
+from algo_royale.backtester.strategy.signal.base_signal_strategy import (
+    BaseSignalStrategy,
+)
+from algo_royale.backtester.strategy.signal.conditions.moving_average_entry import (
     MovingAverageEntryCondition,
 )
-from algo_royale.strategy_factory.conditions.moving_average_exit import (
+from algo_royale.backtester.strategy.signal.conditions.moving_average_exit import (
     MovingAverageExitCondition,
-)
-from algo_royale.strategy_factory.strategies.base_signal_strategy import (
-    BaseSignalStrategy,
 )
 
 

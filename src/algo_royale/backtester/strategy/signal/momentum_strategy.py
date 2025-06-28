@@ -1,10 +1,12 @@
-from algo_royale.column_names.strategy_columns import StrategyColumns
-from algo_royale.strategy_factory.conditions.momentum_entry import (
+from algo_royale.backtester.column_names.strategy_columns import StrategyColumns
+from algo_royale.backtester.strategy.signal.base_signal_strategy import (
+    BaseSignalStrategy,
+)
+from algo_royale.backtester.strategy.signal.conditions.momentum_entry import (
     MomentumEntryCondition,
 )
-from algo_royale.strategy_factory.conditions.momentum_exit import MomentumExitCondition
-from algo_royale.strategy_factory.strategies.base_signal_strategy import (
-    BaseSignalStrategy,
+from algo_royale.backtester.strategy.signal.conditions.momentum_exit import (
+    MomentumExitCondition,
 )
 
 

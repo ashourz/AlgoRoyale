@@ -1,8 +1,8 @@
-from algo_royale.portfolio.combinator.base_portfolio_strategy_combinator import (
-    PortfolioStrategyCombinator,
-)
-from algo_royale.portfolio.strategies.equal_weight_portfolio_strategy import (
+from algo_royale.backtester.strategy.portfolio.equal_weight_portfolio_strategy import (
     EqualWeightPortfolioStrategy,
+)
+from algo_royale.backtester.strategy_combinator.portfolio.base_portfolio_strategy_combinator import (
+    PortfolioStrategyCombinator,
 )
 
 

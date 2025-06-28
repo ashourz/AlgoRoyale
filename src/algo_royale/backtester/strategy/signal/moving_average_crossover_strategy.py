@@ -1,13 +1,13 @@
-from algo_royale.column_names.strategy_columns import StrategyColumns
-from algo_royale.strategy_factory.conditions.moving_average_crossover_entry import (
+from algo_royale.backtester.column_names.strategy_columns import StrategyColumns
+from algo_royale.backtester.enum.ma_type import MA_Type
+from algo_royale.backtester.strategy.signal.base_signal_strategy import (
+    BaseSignalStrategy,
+)
+from algo_royale.backtester.strategy.signal.conditions.moving_average_crossover_entry import (
     MovingAverageCrossoverEntryCondition,
 )
-from algo_royale.strategy_factory.conditions.moving_average_crossover_exit import (
+from algo_royale.backtester.strategy.signal.conditions.moving_average_crossover_exit import (
     MovingAverageCrossoverExitCondition,
-)
-from algo_royale.strategy_factory.enum.ma_type import MA_Type
-from algo_royale.strategy_factory.strategies.base_signal_strategy import (
-    BaseSignalStrategy,
 )
 
 
