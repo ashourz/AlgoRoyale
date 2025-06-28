@@ -7,6 +7,9 @@ from typing import AsyncIterator, Callable, Dict, Optional, Sequence
 
 import pandas as pd
 
+from algo_royale.backtester.data_preparer.asset_matrix_preparer import (
+    AssetMatrixPreparer,
+)
 from algo_royale.backtester.data_preparer.async_data_preparer import AsyncDataPreparer
 from algo_royale.backtester.enum.backtest_stage import BacktestStage
 from algo_royale.backtester.evaluator.backtest.portfolio_backtest_evaluator import (
@@ -24,7 +27,6 @@ from algo_royale.backtester.stage_data.stage_data_writer import StageDataWriter
 from algo_royale.portfolio.combinator.base_portfolio_strategy_combinator import (
     PortfolioStrategyCombinator,
 )
-from algo_royale.portfolio.utils.asset_matrix_preparer import AssetMatrixPreparer
 
 
 ##TODO: THIS IS NOT REALLY NEEDED

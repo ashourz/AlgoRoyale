@@ -3,7 +3,9 @@ import os
 
 import pytest
 
-from algo_royale.strategy_factory.strategy_factory import StrategyFactory
+from algo_royale.backtester.strategy_factory.signal.strategy_factory import (
+    StrategyFactory,
+)
 
 
 class DummyConfig:

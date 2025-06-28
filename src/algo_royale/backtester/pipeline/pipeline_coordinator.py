@@ -1,6 +1,9 @@
 import asyncio
 from logging import Logger
 
+from algo_royale.backtester.evaluator.portfolio.portfolio_evaluation_coordinator import (
+    PortfolioEvaluationCoordinator,
+)
 from algo_royale.backtester.evaluator.strategy.strategy_evaluation_coordinator import (
     StrategyEvaluationCoordinator,
 )
@@ -9,9 +12,6 @@ from algo_royale.backtester.evaluator.symbol.symbol_evaluation_coordinator impor
 )
 from algo_royale.backtester.walkforward.walk_forward_coordinator import (
     WalkForwardCoordinator,
-)
-from algo_royale.portfolio.evaluator.portfolio_evaluation_coordinator import (
-    PortfolioEvaluationCoordinator,
 )
 
 

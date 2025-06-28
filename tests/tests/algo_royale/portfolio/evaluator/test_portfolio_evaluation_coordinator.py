@@ -3,7 +3,7 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from algo_royale.portfolio.evaluator.portfolio_evaluation_coordinator import (
+from algo_royale.backtester.evaluator.portfolio.portfolio_evaluation_coordinator import (
     PortfolioEvaluationCoordinator,
 )
 

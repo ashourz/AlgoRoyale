@@ -2,6 +2,9 @@ from functools import partial
 
 from dependency_injector import containers, providers
 
+from algo_royale.backtester.data_preparer.asset_matrix_preparer import (
+    AssetMatrixPreparer,
+)
 from algo_royale.backtester.data_preparer.async_data_preparer import AsyncDataPreparer
 from algo_royale.backtester.data_preparer.data_preparer import DataPreparer
 from algo_royale.backtester.data_stream.normalized_data_stream_factory import (
@@ -12,6 +15,9 @@ from algo_royale.backtester.evaluator.backtest.portfolio_backtest_evaluator impo
 )
 from algo_royale.backtester.evaluator.backtest.signal_backtest_evaluator import (
     SignalBacktestEvaluator,
+)
+from algo_royale.backtester.evaluator.portfolio.portfolio_evaluation_coordinator import (
+    PortfolioEvaluationCoordinator,
 )
 from algo_royale.backtester.evaluator.strategy.strategy_evaluation_coordinator import (
     StrategyEvaluationCoordinator,
@@ -54,6 +60,9 @@ from algo_royale.backtester.stage_coordinator.testing.strategy_testing_stage_coo
 from algo_royale.backtester.stage_data.stage_data_loader import StageDataLoader
 from algo_royale.backtester.stage_data.stage_data_manager import StageDataManager
 from algo_royale.backtester.stage_data.stage_data_writer import StageDataWriter
+from algo_royale.backtester.strategy_factory.signal.strategy_factory import (
+    StrategyFactory,
+)
 from algo_royale.backtester.walkforward.walk_forward_coordinator import (
     WalkForwardCoordinator,
 )
@@ -113,10 +122,6 @@ from algo_royale.logging.logger_singleton import (
 from algo_royale.portfolio.combinator.equal_risk_contribution_portfolio_strategy_combinator import (
     EqualRiskContributionPortfolioStrategyCombinator,
 )
-from algo_royale.portfolio.evaluator.portfolio_evaluation_coordinator import (
-    PortfolioEvaluationCoordinator,
-)
-from algo_royale.portfolio.utils.asset_matrix_preparer import AssetMatrixPreparer
 from algo_royale.services.db.indicator_service import IndicatorService
 from algo_royale.services.db.news_sentiment_service import NewsSentimentService
 from algo_royale.services.db.stock_data_service import StockDataService
@@ -126,7 +131,6 @@ from algo_royale.services.market_data.alpaca_stock_service import AlpacaQuoteSer
 from algo_royale.strategy_factory.combinator.bollinger_bands_strategy_combinator import (
     BollingerBandsStrategyCombinator,
 )
-from algo_royale.strategy_factory.strategy_factory import StrategyFactory
 from algo_royale.visualization.dashboard import BacktestDashboard
 
 

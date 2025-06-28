@@ -14,6 +14,7 @@ from algo_royale.backtester.evaluator.backtest.base_backtest_evaluator import (
 from algo_royale.backtester.executor.strategy_backtest_executor import (
     StrategyBacktestExecutor,
 )
+from algo_royale.backtester.optimizer.signal.strategy_optimizer import StrategyOptimizer
 from algo_royale.backtester.stage_coordinator.optimization.base_optimization_stage_coordinator import (
     BaseOptimizationStageCoordinator,
 )
@@ -23,7 +24,6 @@ from algo_royale.backtester.stage_data.stage_data_writer import StageDataWriter
 from algo_royale.strategy_factory.combinator.base_signal_strategy_combinator import (
     SignalStrategyCombinator,
 )
-from algo_royale.strategy_factory.optimizer.strategy_optimizer import StrategyOptimizer
 from algo_royale.strategy_factory.strategies.base_signal_strategy import (
     BaseSignalStrategy,
 )

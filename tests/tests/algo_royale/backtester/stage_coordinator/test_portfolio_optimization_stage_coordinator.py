@@ -3,10 +3,12 @@ from unittest.mock import MagicMock
 import pandas as pd
 import pytest
 
+from algo_royale.backtester.optimizer.portfolio.portfolio_strategy_optimizer import (
+    PortfolioMetric,
+)
 from algo_royale.backtester.stage_coordinator.optimization.portfolio_optimization_stage_coordinator import (
     PortfolioOptimizationStageCoordinator,
 )
-from algo_royale.portfolio.optimizer.portfolio_strategy_optimizer import PortfolioMetric
 
 
 @pytest.fixture

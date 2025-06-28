@@ -6,6 +6,9 @@ from typing import AsyncIterator, Callable, Dict, Optional, Sequence
 
 import pandas as pd
 
+from algo_royale.backtester.data_preparer.asset_matrix_preparer import (
+    AssetMatrixPreparer,
+)
 from algo_royale.backtester.data_preparer.async_data_preparer import AsyncDataPreparer
 from algo_royale.backtester.enum.backtest_stage import BacktestStage
 from algo_royale.backtester.evaluator.backtest.portfolio_backtest_evaluator import (
@@ -13,6 +16,10 @@ from algo_royale.backtester.evaluator.backtest.portfolio_backtest_evaluator impo
 )
 from algo_royale.backtester.executor.portfolio_backtest_executor import (
     PortfolioBacktestExecutor,
+)
+from algo_royale.backtester.optimizer.portfolio.portfolio_strategy_optimizer import (
+    PortfolioMetric,  # NEW: Import PortfolioMetric enum
+    PortfolioStrategyOptimizer,
 )
 from algo_royale.backtester.stage_coordinator.optimization.base_optimization_stage_coordinator import (
     BaseOptimizationStageCoordinator,
@@ -23,11 +30,6 @@ from algo_royale.backtester.stage_data.stage_data_writer import StageDataWriter
 from algo_royale.portfolio.combinator.base_portfolio_strategy_combinator import (
     PortfolioStrategyCombinator,
 )
-from algo_royale.portfolio.optimizer.portfolio_strategy_optimizer import (
-    PortfolioMetric,  # NEW: Import PortfolioMetric enum
-    PortfolioStrategyOptimizer,
-)
-from algo_royale.portfolio.utils.asset_matrix_preparer import AssetMatrixPreparer
 
 
 class PortfolioOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
