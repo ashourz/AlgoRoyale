@@ -1,3 +1,5 @@
+from unittest.mock import MagicMock
+
 import numpy as np
 import pandas as pd
 import pytest
@@ -40,6 +42,7 @@ def test_portfolio_backtest_executor_basic(
     initial_balance, transaction_cost, min_lot, leverage, slippage
 ):
     executor = PortfolioBacktestExecutor(
+        logger=MagicMock(),
         initial_balance=initial_balance,
         transaction_cost=transaction_cost,
         min_lot=min_lot,
@@ -66,7 +69,7 @@ def test_portfolio_backtest_executor_basic(
 
 
 def test_portfolio_backtest_executor_trades():
-    executor = PortfolioBacktestExecutor(initial_balance=1000)
+    executor = PortfolioBacktestExecutor(logger=MagicMock(), initial_balance=1000)
     data = make_test_data()
     strat = DummyStrategy()
     results = executor.run_backtest(strat, data)

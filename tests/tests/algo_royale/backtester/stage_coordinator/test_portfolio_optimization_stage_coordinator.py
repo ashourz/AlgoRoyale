@@ -26,10 +26,14 @@ def mock_writer():
 
 @pytest.fixture
 def mock_manager(tmp_path):
-    # Use a real temporary directory for file operations
-    m = MagicMock()
-    m.get_directory_path.return_value = tmp_path
-    return m
+    class Manager:
+        def get_directory_path(self):
+            return tmp_path
+
+        def get_extended_path(self, **kwargs):
+            return tmp_path
+
+    return Manager()
 
 
 @pytest.fixture
@@ -46,9 +50,12 @@ def mock_combinator():
         def optuna_suggest(trial, prefix=""):
             return {}
 
+        def get_id(self):
+            return "DummyStrategy"
+
     class DummyCombinator:
         @staticmethod
-        def all_strategy_combinations():
+        def all_strategy_combinations(logger=None):
             return [DummyStrategy]
 
     return DummyCombinator
@@ -88,9 +95,9 @@ async def test_portfolio_optimization_process(
         strategy_combinators=[mock_combinator],
         executor=mock_executor,
         evaluator=mock_evaluator,
-        optimization_root=mock_manager.get_directory_path.return_value,  # <-- added
-        optimization_json_filename="test_opt.json",
+        optimization_root=mock_manager.get_directory_path(),
         asset_matrix_preparer=MagicMock(),  # <-- added
+        optimization_json_filename="dummy_optimization.json",
     )
 
     coordinator.start_date = "2021-01-01"

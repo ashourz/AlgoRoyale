@@ -53,7 +53,7 @@ async def test_single_objective():
     metrics = result["metrics"]
     if isinstance(metrics, list):
         metrics = metrics[0]
-    assert result["metrics"]["metrics"]["total_return"] == 0.5
+    assert metrics["total_return"] == 0.5
 
 
 @pytest.mark.asyncio

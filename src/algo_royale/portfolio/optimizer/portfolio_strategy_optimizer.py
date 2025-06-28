@@ -95,14 +95,20 @@ class PortfolioStrategyOptimizer:
             logger.debug(
                 f"[{symbol}] PortfolioStrategy params: {params} | Backtest result: {result}"
             )
+            # Always extract metrics from result['metrics'] if present
+            metrics_dict = result.get("metrics", result)
+            if is_multi:
+                print(f"DEBUG: extracting metrics {metric_names} from: {metrics_dict}")
+            else:
+                print(f"DEBUG: extracting metric '{metric_name}' from: {metrics_dict}")
             try:
                 if is_multi:
                     scores = []
                     for m in metric_names:
-                        scores.append(result[m])
+                        scores.append(metrics_dict[m])
                     score = tuple(scores)
                 else:
-                    score = result[metric_name]
+                    score = metrics_dict[metric_name]
             except Exception as e:
                 logger.error(
                     f"[{symbol}] Error extracting metric(s) '{self.metric_name}' from backtest result: {e} | Result: {result}"
@@ -123,7 +129,15 @@ class PortfolioStrategyOptimizer:
                         if self.direction == OptimizationDirection.MAXIMIZE
                         else float("inf")
                     )
-            trial.set_user_attr("full_result", result)
+                # Ensure result is a dict with the metric key and fallback value
+                if is_multi:
+                    result = {m: v for m, v in zip(metric_names, score)}
+                else:
+                    result = {metric_name: score}
+            # Always set full_result as a dict of metrics
+            trial.set_user_attr(
+                "full_result", metrics_dict if isinstance(metrics_dict, dict) else {}
+            )
             logger.debug(f"[{symbol}] Trial result: {score}")
             return score
 
@@ -137,12 +151,25 @@ class PortfolioStrategyOptimizer:
             best_trials = study.best_trials
             best_values = [t.values for t in best_trials]
             best_params = [t.params for t in best_trials]
-            best_metrics = [t.user_attrs.get("full_result") for t in best_trials]
+            best_metrics = [t.user_attrs.get("full_result") or {} for t in best_trials]
+            # If only one trial, still return a list
+            if len(best_metrics) == 1 and not isinstance(best_metrics, list):
+                best_metrics = [best_metrics]
         else:
             best_trials = [study.best_trial]
             best_values = study.best_value
             best_params = study.best_params
-            best_metrics = study.best_trial.user_attrs.get("full_result")
+            best_metrics = study.best_trial.user_attrs.get("full_result") or {}
+        # Always ensure metrics is a dict or list of dicts
+        print(
+            f"DEBUG: is_multi={is_multi}, best_metrics type={type(best_metrics)}, value={best_metrics}"
+        )
+        if not isinstance(best_metrics, dict) and not (
+            is_multi and isinstance(best_metrics, list)
+        ):
+            best_metrics = {} if not is_multi else [{}]
+        if not best_metrics:
+            self.logger.warning(f"[{symbol}] No metrics found in best trial result.")
         results = {
             "strategy": self.strategy_class.__name__,
             "best_value": best_values,
