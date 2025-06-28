@@ -24,6 +24,7 @@ from algo_royale.portfolio.combinator.base_portfolio_strategy_combinator import 
     PortfolioStrategyCombinator,
 )
 from algo_royale.portfolio.optimizer.portfolio_strategy_optimizer import (
+    PortfolioMetric,  # NEW: Import PortfolioMetric enum
     PortfolioStrategyOptimizer,
 )
 from algo_royale.portfolio.utils.asset_matrix_preparer import AssetMatrixPreparer
@@ -98,9 +99,11 @@ class PortfolioOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
             f"Starting portfolio optimization for window {self.window_id} with {len(portfolio_matrix)} rows of data."
         )
         for strategy_combinator in self.strategy_combinators:
-            for strat_factory in strategy_combinator.all_strategy_combinations(
+            # All combinators must accept 'logger' as a parameter
+            combinations = strategy_combinator.all_strategy_combinations(
                 logger=self.logger
-            ):
+            )
+            for strat_factory in combinations:
                 strategy_class = (
                     strat_factory.func
                     if hasattr(strat_factory, "func")
@@ -118,6 +121,7 @@ class PortfolioOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
                             strat, df_
                         ),
                         logger=self.logger,
+                        metric_name=PortfolioMetric.SHARPE_RATIO,
                     )
                     optimization_result = await optimizer.optimize(
                         "PORTFOLIO", portfolio_matrix
@@ -136,7 +140,8 @@ class PortfolioOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
                 self.logger.info(
                     f"Saving portfolio optimization results for PORTFOLIO {strategy_name} to {out_path}"
                 )
-                if out_path.exists():
+                # Robust check for file existence and size (test/production compatible)
+                if out_path.exists() and out_path.stat().st_size > 0:
                     with open(out_path, "r") as f:
                         opt_results = json.load(f)
                 else:
@@ -150,9 +155,11 @@ class PortfolioOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
                 }
                 with open(out_path, "w") as f:
                     json.dump(opt_results, f, indent=2, default=str)
-                results.setdefault("PORTFOLIO", {})[strategy_name] = {
-                    self.window_id: optimization_result
-                }
+                # Fix: results should be keyed by symbol, not 'PORTFOLIO'
+                for symbol in prepared_data.keys():
+                    results.setdefault(symbol, {}).setdefault(strategy_name, {})[
+                        self.window_id
+                    ] = optimization_result
         return results
 
     def get_output_path(self, strategy_name, start_date: datetime, end_date: datetime):
@@ -174,10 +181,11 @@ class PortfolioOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
             )
             backtest_results = self.executor.run_backtest(strategy, df)
             metrics = self.evaluator.evaluate(strategy, backtest_results)
-            return {"metrics": metrics}
+            # Return only the metrics dict for clarity and consistency
+            return metrics
         except Exception as e:
             self.logger.error(f"Portfolio backtest/evaluation failed: {e}")
-            return {"metrics": {}}
+            return {}
 
     async def _write(self, stage, processed_data):
         # No-op: writing is handled in process()

@@ -89,6 +89,8 @@ def test_init_success(
         strategy_factory=mock_factory,
         logger=mock_logger,
         strategy_combinators=[DummyCombinator],
+        optimization_root=".",
+        optimization_json_filename="test.json",
     )
 
 
@@ -113,7 +115,9 @@ async def test_process_returns_metrics(
     # Prepare a fake optimization_result.json with best_params
     opt_dir = tmp_path / "optimization_StrategyA_AAPL"
     opt_dir.mkdir(parents=True, exist_ok=True)
-    opt_path = opt_dir / "optimization_result.json"
+    opt_path = (
+        opt_dir / "test.json"
+    )  # <-- changed from optimization_result.json to test.json
     train_window_id = "20240101_20240131"
     test_window_id = "20240201_20240228"
     with open(opt_path, "w") as f:
@@ -128,7 +132,12 @@ async def test_process_returns_metrics(
         lambda stage, strategy_name, symbol, *args, **kwargs: tmp_path
         / f"optimization_{strategy_name}_{symbol}"
     )
-
+    mock_manager.get_extended_path.side_effect = (
+        lambda base_dir, strategy_name, symbol, start_date, end_date: tmp_path
+        / f"optimization_{strategy_name}_{symbol}"
+    )
+    StrategyA = type("StrategyA", (), {})
+    CombA = type("CombA", (), {"strategy_class": StrategyA})
     coordinator = StrategyTestingStageCoordinator(
         data_loader=mock_loader,
         data_preparer=mock_preparer,
@@ -138,9 +147,9 @@ async def test_process_returns_metrics(
         strategy_evaluator=mock_evaluator,
         strategy_factory=mock_factory,
         logger=mock_logger,
-        strategy_combinators=[
-            type("CombA", (), {"strategy_class": type("StrategyA", (), {})})
-        ],
+        strategy_combinators=[CombA],
+        optimization_root=".",
+        optimization_json_filename="test.json",
     )
     coordinator.train_window_id = train_window_id
     coordinator.test_window_id = test_window_id  # <-- add this line
@@ -153,7 +162,7 @@ async def test_process_returns_metrics(
         yield pd.DataFrame({"a": [1]})
 
     prepared_data = {"AAPL": lambda: df_iter()}
-
+    mock_factory.build_strategy.return_value = StrategyA()
     result = await coordinator.process(prepared_data)
     assert "AAPL" in result
     assert "StrategyA" in result["AAPL"]
@@ -197,6 +206,8 @@ async def test_process_warns_on_missing_optimization(
         strategy_combinators=[
             type("CombA", (), {"strategy_class": type("StrategyA", (), {})})
         ],
+        optimization_root=".",
+        optimization_json_filename="test.json",
     )
     coordinator.train_window_id = "20240101_20240131"
     coordinator.window_id = "20240201_2024-02-28"
@@ -249,6 +260,8 @@ async def test_process_warns_on_no_data(
         strategy_factory=mock_factory,
         logger=mock_logger,
         strategy_combinators=[DummyCombinator],
+        optimization_root=".",
+        optimization_json_filename="test.json",
     )
     coordinator.train_window_id = "20240101_20240131"
     coordinator.window_id = "20240201_20240228"
@@ -293,6 +306,8 @@ async def test_write_is_noop(
         strategy_factory=mock_factory,
         logger=mock_logger,
         strategy_combinators=[DummyCombinator],
+        optimization_root=".",
+        optimization_json_filename="test.json",
     )
     result = await coordinator._write(None, None)
     assert result is None

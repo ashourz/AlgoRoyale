@@ -79,6 +79,8 @@ async def test_init_success(
         strategy_combinators=[DummyCombinator],
         strategy_executor=mock_executor,
         strategy_evaluator=mock_evaluator,
+        optimization_root=".",
+        optimization_json_filename="test.json",
     )
 
 
@@ -117,6 +119,8 @@ async def test_process_returns_factories(
         strategy_combinators=[DummyCombinator],
         strategy_executor=mock_executor,
         strategy_evaluator=mock_evaluator,
+        optimization_root=".",
+        optimization_json_filename="test.json",
     )
     coordinator.start_date = datetime(2024, 1, 1)
     coordinator.end_date = datetime(2024, 1, 31)
@@ -188,6 +192,8 @@ async def test_fetch_symbol_optimization_exception_logs_error(
         strategy_combinators=[DummyCombinator],
         strategy_executor=mock_executor,
         strategy_evaluator=mock_evaluator,
+        optimization_root=".",
+        optimization_json_filename="test.json",
     )
     coordinator.start_date = datetime(2024, 1, 1)
     coordinator.end_date = datetime(2024, 1, 31)
@@ -245,6 +251,8 @@ async def test_process_skips_symbol_with_no_data(
         strategy_combinators=[DummyCombinator],
         strategy_executor=mock_executor,
         strategy_evaluator=mock_evaluator,
+        optimization_root=".",
+        optimization_json_filename="test.json",
     )
     coordinator.start_date = datetime(2024, 1, 1)
     coordinator.end_date = datetime(2024, 1, 31)
@@ -315,6 +323,8 @@ async def test_process_multiple_strategies(
         strategy_combinators=[CombA, CombB],
         strategy_executor=mock_executor,
         strategy_evaluator=mock_evaluator,
+        optimization_root=".",
+        optimization_json_filename="test.json",
     )
     coordinator.start_date = datetime(2024, 1, 1)
     coordinator.end_date = datetime(2024, 1, 31)
@@ -376,6 +386,8 @@ async def test_process_optimizer_exception_logs_error(
         strategy_combinators=[DummyCombinator],
         strategy_executor=mock_executor,
         strategy_evaluator=mock_evaluator,
+        optimization_root=".",
+        optimization_json_filename="test.json",
     )
     coordinator.start_date = datetime(2024, 1, 1)
     coordinator.end_date = datetime(2024, 1, 31)
@@ -435,6 +447,8 @@ async def test_write_is_noop(
         strategy_combinators=[DummyCombinator],
         strategy_executor=mock_executor,
         strategy_evaluator=mock_evaluator,
+        optimization_root=".",
+        optimization_json_filename="test.json",
     )
     result = await coordinator._write(None, None)
     assert result is None

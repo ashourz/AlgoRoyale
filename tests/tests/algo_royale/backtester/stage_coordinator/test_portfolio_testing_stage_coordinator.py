@@ -104,7 +104,9 @@ async def test_portfolio_testing_process(
         strategy_combinators=[mock_combinator],
         executor=mock_executor,
         evaluator=mock_evaluator,
+        optimization_root=tmp_path,  # <-- added
         optimization_json_filename="test_opt.json",
+        asset_matrix_preparer=MagicMock(),  # <-- added
     )
 
     # Simulate prepared data

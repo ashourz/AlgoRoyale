@@ -1,6 +1,7 @@
 from unittest.mock import MagicMock
 
 import pandas as pd
+import pytest
 
 from algo_royale.portfolio.optimizer.portfolio_strategy_optimizer import (
     OptimizationDirection,
@@ -20,12 +21,14 @@ class DummyStrategy:
         return {"a": 1}
 
 
-async def dummy_backtest_fn(strategy, df):
+def dummy_backtest_fn(strategy, df):
     # Return all metrics for testing
     return {
-        "total_return": 0.5,
-        "max_drawdown": 0.1,
-        "sharpe_ratio": 2.0,
+        "metrics": {
+            "total_return": 0.5,
+            "max_drawdown": 0.1,
+            "sharpe_ratio": 2.0,
+        }
     }
 
 
@@ -33,7 +36,8 @@ def make_df():
     return pd.DataFrame({"A": [1, 2, 3]})
 
 
-def test_single_objective():
+@pytest.mark.asyncio
+async def test_single_objective():
     logger = MagicMock()
     optimizer = PortfolioStrategyOptimizer(
         strategy_class=DummyStrategy,
@@ -42,14 +46,18 @@ def test_single_objective():
         metric_name=PortfolioMetric.TOTAL_RETURN,
         direction=OptimizationDirection.MAXIMIZE,
     )
-    result = optimizer.optimize("AAPL", make_df(), n_trials=1)
+    result = await optimizer.optimize("AAPL", make_df(), n_trials=1)
     assert result["strategy"] == "DummyStrategy"
     assert result["meta"]["multi_objective"] is False
     assert result["best_value"] == 0.5
-    assert result["metrics"]["total_return"] == 0.5
+    metrics = result["metrics"]
+    if isinstance(metrics, list):
+        metrics = metrics[0]
+    assert result["metrics"]["metrics"]["total_return"] == 0.5
 
 
-def test_multi_objective():
+@pytest.mark.asyncio
+async def test_multi_objective():
     logger = MagicMock()
     optimizer = PortfolioStrategyOptimizer(
         strategy_class=DummyStrategy,
@@ -58,7 +66,7 @@ def test_multi_objective():
         metric_name=[PortfolioMetric.TOTAL_RETURN, PortfolioMetric.SHARPE_RATIO],
         direction=[OptimizationDirection.MAXIMIZE, OptimizationDirection.MAXIMIZE],
     )
-    result = optimizer.optimize("AAPL", make_df(), n_trials=1)
+    result = await optimizer.optimize("AAPL", make_df(), n_trials=1)
     assert result["meta"]["multi_objective"] is True
     assert isinstance(result["best_value"], list)
     assert len(result["best_value"]) == 1
@@ -67,10 +75,11 @@ def test_multi_objective():
     assert result["metrics"][0]["sharpe_ratio"] == 2.0
 
 
-def test_metric_extraction_failure():
+@pytest.mark.asyncio
+async def test_metric_extraction_failure():
     logger = MagicMock()
 
-    async def bad_backtest_fn(strategy, df):
+    def bad_backtest_fn(strategy, df):
         return {}
 
     optimizer = PortfolioStrategyOptimizer(
@@ -80,5 +89,5 @@ def test_metric_extraction_failure():
         metric_name=PortfolioMetric.TOTAL_RETURN,
         direction=OptimizationDirection.MAXIMIZE,
     )
-    result = optimizer.optimize("AAPL", make_df(), n_trials=1)
+    result = await optimizer.optimize("AAPL", make_df(), n_trials=1)
     assert result["best_value"] == float("-inf")

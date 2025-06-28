@@ -6,6 +6,7 @@ import pytest
 from algo_royale.backtester.stage_coordinator.optimization.portfolio_optimization_stage_coordinator import (
     PortfolioOptimizationStageCoordinator,
 )
+from algo_royale.portfolio.optimizer.portfolio_strategy_optimizer import PortfolioMetric
 
 
 @pytest.fixture
@@ -63,7 +64,7 @@ def mock_executor():
 @pytest.fixture
 def mock_evaluator():
     eval = MagicMock()
-    eval.evaluate.return_value = {"sharpe": 2.0}
+    eval.evaluate.return_value = {PortfolioMetric.SHARPE_RATIO.value: 2.0}
     return eval
 
 
@@ -87,8 +88,11 @@ async def test_portfolio_optimization_process(
         strategy_combinators=[mock_combinator],
         executor=mock_executor,
         evaluator=mock_evaluator,
+        optimization_root=mock_manager.get_directory_path.return_value,  # <-- added
         optimization_json_filename="test_opt.json",
+        asset_matrix_preparer=MagicMock(),  # <-- added
     )
+
     coordinator.start_date = "2021-01-01"
     coordinator.end_date = "2021-12-31"
     coordinator.window_id = "window_1"
@@ -99,12 +103,14 @@ async def test_portfolio_optimization_process(
 
     prepared_data = {"AAPL": lambda: df_iter()}
     results = await coordinator.process(prepared_data=prepared_data)
-    print(results)
+    print("DEBUG:RESULTS", results)
     assert "AAPL" in results
     assert "DummyStrategy" in results["AAPL"]
     assert "window_1" in results["AAPL"]["DummyStrategy"]
     assert "metrics" in results["AAPL"]["DummyStrategy"]["window_1"]
     assert (
-        results["AAPL"]["DummyStrategy"]["window_1"]["metrics"]["metrics"]["sharpe"]
+        results["AAPL"]["DummyStrategy"]["window_1"]["metrics"][
+            PortfolioMetric.SHARPE_RATIO.value
+        ]
         == 2.0
     )

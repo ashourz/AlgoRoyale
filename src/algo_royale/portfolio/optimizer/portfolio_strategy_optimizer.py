@@ -59,20 +59,22 @@ class PortfolioStrategyOptimizer:
         :return: A dictionary with the optimization results.
         """
         is_multi = isinstance(self.metric_name, (list, tuple))
-        # Map enums to Optuna strings and metric keys
+        # Always use enums for metric names and directions
         if is_multi:
-            metric_names = [m.value for m in self.metric_name]
+            metric_enums = self.metric_name
+            metric_names = [m.value for m in metric_enums]
             directions = (
                 [d.value for d in self.direction]
                 if isinstance(self.direction, (list, tuple))
-                else [self.direction.value] * len(self.metric_name)
+                else [self.direction.value] * len(metric_enums)
             )
             self.logger.info(
                 f"Starting multi-objective portfolio optimization for {symbol} with {self.strategy_class.__name__}"
             )
             study = optuna.create_study(directions=directions)
         else:
-            metric_names = self.metric_name.value
+            metric_enum = self.metric_name
+            metric_name = metric_enum.value
             self.logger.info(
                 f"Starting portfolio optimization for {symbol} with {self.strategy_class.__name__}"
             )
@@ -97,10 +99,10 @@ class PortfolioStrategyOptimizer:
                 if is_multi:
                     scores = []
                     for m in metric_names:
-                        scores.append(result["metrics"][m])
+                        scores.append(result[m])
                     score = tuple(scores)
                 else:
-                    score = result["metrics"][metric_names]
+                    score = result[metric_name]
             except Exception as e:
                 logger.error(
                     f"[{symbol}] Error extracting metric(s) '{self.metric_name}' from backtest result: {e} | Result: {result}"
@@ -108,19 +110,21 @@ class PortfolioStrategyOptimizer:
                 if is_multi:
                     fail_val = (
                         float("-inf")
-                        if all(d == "maximize" for d in directions)
+                        if all(
+                            d == OptimizationDirection.MAXIMIZE.value
+                            for d in directions
+                        )
                         else float("inf")
                     )
                     score = tuple([fail_val] * len(metric_names))
                 else:
                     score = (
                         float("-inf")
-                        if self.direction.value == "maximize"
+                        if self.direction == OptimizationDirection.MAXIMIZE
                         else float("inf")
                     )
             trial.set_user_attr("full_result", result)
-            if logger:
-                logger.debug(f"[{symbol}] Trial result: {score}")
+            logger.debug(f"[{symbol}] Trial result: {score}")
             return score
 
         study.optimize(objective, n_trials=n_trials)

@@ -17,16 +17,20 @@ class DummyStrategy:
 
 
 def test_all_strategy_combinations_default():
-    combinator = PortfolioStrategyCombinator(DummyStrategy)
-    combos = list(combinator.all_strategy_combinations())
+    class DummyCombinator(PortfolioStrategyCombinator):
+        strategy_class = DummyStrategy
+
+    combos = list(DummyCombinator.all_strategy_combinations())
     assert len(combos) == 1
     assert combos[0] is DummyStrategy
 
 
 def test_all_strategy_combinations_optuna():
-    combinator = PortfolioStrategyCombinator(DummyStrategy)
+    class DummyCombinator(PortfolioStrategyCombinator):
+        strategy_class = DummyStrategy
+
     trial = MagicMock()
-    combos = list(combinator.all_strategy_combinations(optuna_trial=trial))
+    combos = list(DummyCombinator.all_strategy_combinations(optuna_trial=trial))
     assert len(combos) == 1
     # Should be a partial with correct func and keywords
     partial_func = combos[0]
@@ -43,9 +47,11 @@ def test_all_strategy_combinations_optuna_non_dict():
         def optuna_suggest(trial, prefix=""):
             return DummyStrategy2
 
-    combinator = PortfolioStrategyCombinator(DummyStrategy2)
+    class DummyCombinator(PortfolioStrategyCombinator):
+        strategy_class = DummyStrategy2
+
     trial = MagicMock()
-    combos = list(combinator.all_strategy_combinations(optuna_trial=trial))
+    combos = list(DummyCombinator.all_strategy_combinations(optuna_trial=trial))
     assert len(combos) == 1
     # Should be a lambda returning DummyStrategy2
     assert callable(combos[0])
@@ -60,11 +66,13 @@ def test_all_strategy_combinations_error_logged():
         def optuna_suggest(trial, prefix=""):
             raise Exception("fail")
 
-    combinator = PortfolioStrategyCombinator(BadStrategy)
+    class BadCombinator(PortfolioStrategyCombinator):
+        strategy_class = BadStrategy
+
     trial = MagicMock()
     logger = MagicMock()
     combos = list(
-        combinator.all_strategy_combinations(optuna_trial=trial, logger=logger)
+        BadCombinator.all_strategy_combinations(optuna_trial=trial, logger=logger)
     )
     assert combos == []
     logger.error.assert_called()
@@ -72,11 +80,11 @@ def test_all_strategy_combinations_error_logged():
 
 def test_get_strategy_classes_classmethod():
     class MyCombinator(PortfolioStrategyCombinator):
-        portfolio_strategy_classes = [DummyStrategy]
+        strategy_class = DummyStrategy
 
     assert MyCombinator.get_strategy_classes() == [DummyStrategy]
 
     class EmptyCombinator(PortfolioStrategyCombinator):
-        portfolio_strategy_classes = []
+        strategy_class = None
 
     assert EmptyCombinator.get_strategy_classes() == []

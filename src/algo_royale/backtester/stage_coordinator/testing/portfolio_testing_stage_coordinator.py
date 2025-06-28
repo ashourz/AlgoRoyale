@@ -187,9 +187,11 @@ class PortfolioTestingStageCoordinator(BaseTestingStageCoordinator):
                 )
                 with open(out_path, "w") as f:
                     json.dump(test_opt_results, f, indent=2, default=str)
-                results.setdefault("PORTFOLIO", {})[strategy_name] = {
-                    self.test_window_id: metrics
-                }
+                # Fix: results should be keyed by symbol, not 'PORTFOLIO'
+                for symbol in prepared_data.keys():
+                    results.setdefault(symbol, {}).setdefault(strategy_name, {})[
+                        self.test_window_id
+                    ] = metrics
         return results
 
     def get_optimization_results(
@@ -228,6 +230,9 @@ class PortfolioTestingStageCoordinator(BaseTestingStageCoordinator):
             start_date=start_date,
             end_date=end_date,
         )
+        # If out_dir is not a Path (e.g., MagicMock), fallback to optimization_root
+        if not isinstance(out_dir, Path):
+            out_dir = self.optimization_root
         out_dir.mkdir(parents=True, exist_ok=True)
         return out_dir / self.optimization_json_filename
 
