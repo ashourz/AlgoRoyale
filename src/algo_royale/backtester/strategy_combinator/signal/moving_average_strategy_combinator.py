@@ -1,14 +1,14 @@
-from algo_royale.strategy_factory.combinator.base_signal_strategy_combinator import (
-    SignalStrategyCombinator,
-)
-from algo_royale.strategy_factory.conditions.moving_average_entry import (
+from algo_royale.backtester.strategy.signal.conditions.moving_average_entry import (
     MovingAverageEntryCondition,
 )
-from algo_royale.strategy_factory.conditions.moving_average_exit import (
+from algo_royale.backtester.strategy.signal.conditions.moving_average_exit import (
     MovingAverageExitCondition,
 )
-from algo_royale.strategy_factory.strategies.moving_average_strategy import (
+from algo_royale.backtester.strategy.signal.moving_average_strategy import (
     MovingAverageStrategy,
+)
+from algo_royale.backtester.strategy_combinator.signal.base_signal_strategy_combinator import (
+    SignalStrategyCombinator,
 )
 
 

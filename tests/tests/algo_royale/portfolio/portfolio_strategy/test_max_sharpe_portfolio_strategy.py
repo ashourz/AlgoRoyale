@@ -3,7 +3,7 @@ import warnings
 import numpy as np
 import pandas as pd
 
-from algo_royale.portfolio.strategies.max_sharpe_portfolio_strategy import (
+from algo_royale.backtester.strategy.portfolio.max_sharpe_portfolio_strategy import (
     MaxSharpePortfolioStrategy,
 )
 

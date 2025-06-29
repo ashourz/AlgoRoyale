@@ -1,15 +1,17 @@
-from algo_royale.strategy_factory.combinator.base_signal_strategy_combinator import (
-    SignalStrategyCombinator,
+from algo_royale.backtester.strategy.signal.conditions.sma_trend import (
+    SMATrendCondition,
 )
-from algo_royale.strategy_factory.conditions.sma_trend import SMATrendCondition
-from algo_royale.strategy_factory.conditions.volume_surge_entry import (
+from algo_royale.backtester.strategy.signal.conditions.volume_surge_entry import (
     VolumeSurgeEntryCondition,
 )
-from algo_royale.strategy_factory.stateful_logic.macd_trailing_stateful_logic import (
+from algo_royale.backtester.strategy.signal.macd_trailing_strategy import (
+    MACDTrailingStopStrategy,
+)
+from algo_royale.backtester.strategy.signal.stateful_logic.macd_trailing_stateful_logic import (
     MACDTrailingStatefulLogic,
 )
-from algo_royale.strategy_factory.strategies.macd_trailing_strategy import (
-    MACDTrailingStopStrategy,
+from algo_royale.backtester.strategy_combinator.signal.base_signal_strategy_combinator import (
+    SignalStrategyCombinator,
 )
 
 

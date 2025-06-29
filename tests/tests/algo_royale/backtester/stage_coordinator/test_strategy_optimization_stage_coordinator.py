@@ -133,7 +133,7 @@ async def test_process_returns_factories(
 
     with (
         patch(
-            "algo_royale.strategy_factory.optimizer.strategy_optimizer.StrategyOptimizer",
+            "algo_royale.backtester.optimizer.signal.strategy_optimizer.StrategyOptimizer",
             autospec=True,
         ) as MockOptimizer,
         patch.object(
@@ -206,7 +206,7 @@ async def test_fetch_symbol_optimization_exception_logs_error(
 
     with (
         patch(
-            "algo_royale.strategy_factory.optimizer.strategy_optimizer.StrategyOptimizer",
+            "algo_royale.backtester.optimizer.signal.strategy_optimizer.StrategyOptimizer",
         ) as MockOptimizer,
         patch.object(
             coordinator,
@@ -266,7 +266,7 @@ async def test_process_skips_symbol_with_no_data(
 
     with (
         patch(
-            "algo_royale.strategy_factory.optimizer.strategy_optimizer.StrategyOptimizer",
+            "algo_royale.backtester.optimizer.signal.strategy_optimizer.StrategyOptimizer",
             autospec=True,
         ) as MockOptimizer,
         patch.object(
@@ -337,7 +337,7 @@ async def test_process_multiple_strategies(
 
     with (
         patch(
-            "algo_royale.strategy_factory.optimizer.strategy_optimizer.StrategyOptimizer",
+            "algo_royale.backtester.optimizer.signal.strategy_optimizer.StrategyOptimizer",
             autospec=True,
         ) as MockOptimizer,
         patch.object(
@@ -400,7 +400,7 @@ async def test_process_optimizer_exception_logs_error(
 
     with (
         patch(
-            "algo_royale.strategy_factory.optimizer.strategy_optimizer.StrategyOptimizer",
+            "algo_royale.backtester.optimizer.signal.strategy_optimizer.StrategyOptimizer",
         ) as MockOptimizer,
         patch.object(
             coordinator,

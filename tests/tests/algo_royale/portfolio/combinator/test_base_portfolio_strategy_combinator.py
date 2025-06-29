@@ -1,6 +1,6 @@
 from unittest.mock import MagicMock
 
-from algo_royale.portfolio.combinator.base_portfolio_strategy_combinator import (
+from algo_royale.backtester.strategy_combinator.portfolio.base_portfolio_strategy_combinator import (
     PortfolioStrategyCombinator,
 )
 

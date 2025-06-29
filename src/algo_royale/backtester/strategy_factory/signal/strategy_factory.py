@@ -3,15 +3,13 @@ import threading
 from logging import Logger
 from typing import Callable, Optional, Sequence
 
-from algo_royale.strategy_factory.combinator.base_signal_strategy_combinator import (
-    SignalStrategyCombinator,
-)
-from algo_royale.strategy_factory.maps.condition_class_map import CONDITION_CLASS_MAP
-from algo_royale.strategy_factory.maps.stateful_logic_map import (
-    STATEFUL_LOGIC_CLASS_MAP,
-)
-from algo_royale.strategy_factory.strategies.base_signal_strategy import (
+from algo_royale.backtester.maps.condition_class_map import CONDITION_CLASS_MAP
+from algo_royale.backtester.maps.stateful_logic_map import STATEFUL_LOGIC_CLASS_MAP
+from algo_royale.backtester.strategy.signal.base_signal_strategy import (
     BaseSignalStrategy,
+)
+from algo_royale.backtester.strategy_combinator.signal.base_signal_strategy_combinator import (
+    SignalStrategyCombinator,
 )
 
 

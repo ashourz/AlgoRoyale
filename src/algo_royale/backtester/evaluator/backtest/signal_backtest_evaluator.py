@@ -3,11 +3,11 @@ from logging import Logger
 import numpy as np
 import pandas as pd
 
+from algo_royale.backtester.column_names.strategy_columns import StrategyColumns
+from algo_royale.backtester.enum.signal_type import SignalType
 from algo_royale.backtester.evaluator.backtest.base_backtest_evaluator import (
     BacktestEvaluator,
 )
-from algo_royale.column_names.strategy_columns import StrategyColumns
-from algo_royale.strategy_factory.enum.signal_type import SignalType
 
 
 class SignalBacktestEvaluator(BacktestEvaluator):

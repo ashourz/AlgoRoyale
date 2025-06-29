@@ -1,6 +1,6 @@
 import pytest
 
-from algo_royale.strategy_factory.stateful_logic.base_stateful_logic import (
+from algo_royale.backtester.strategy.signal.stateful_logic.base_stateful_logic import (
     StatefulLogic,
 )
 

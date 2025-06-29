@@ -1,14 +1,14 @@
-from algo_royale.strategy_factory.combinator.base_signal_strategy_combinator import (
-    SignalStrategyCombinator,
-)
-from algo_royale.strategy_factory.conditions.vwap_reversion_entry import (
+from algo_royale.backtester.strategy.signal.conditions.vwap_reversion_entry import (
     VWAPReversionEntryCondition,
 )
-from algo_royale.strategy_factory.conditions.vwap_reversion_exit import (
+from algo_royale.backtester.strategy.signal.conditions.vwap_reversion_exit import (
     VWAPReversionExitCondition,
 )
-from algo_royale.strategy_factory.strategies.vwap_reversion_strategy import (
+from algo_royale.backtester.strategy.signal.vwap_reversion_strategy import (
     VWAPReversionStrategy,
+)
+from algo_royale.backtester.strategy_combinator.signal.base_signal_strategy_combinator import (
+    SignalStrategyCombinator,
 )
 
 

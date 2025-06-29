@@ -1,15 +1,17 @@
-from algo_royale.strategy_factory.combinator.base_signal_strategy_combinator import (
-    SignalStrategyCombinator,
+from algo_royale.backtester.strategy.signal.bollinger_bands_strategy import (
+    BollingerBandsStrategy,
 )
-from algo_royale.strategy_factory.conditions.bollinger_bands_entry import (
+from algo_royale.backtester.strategy.signal.conditions.bollinger_bands_entry import (
     BollingerBandsEntryCondition,
 )
-from algo_royale.strategy_factory.conditions.bollinger_bands_exit import (
+from algo_royale.backtester.strategy.signal.conditions.bollinger_bands_exit import (
     BollingerBandsExitCondition,
 )
-from algo_royale.strategy_factory.conditions.sma_trend import SMATrendCondition
-from algo_royale.strategy_factory.strategies.bollinger_bands_strategy import (
-    BollingerBandsStrategy,
+from algo_royale.backtester.strategy.signal.conditions.sma_trend import (
+    SMATrendCondition,
+)
+from algo_royale.backtester.strategy_combinator.signal.base_signal_strategy_combinator import (
+    SignalStrategyCombinator,
 )
 
 

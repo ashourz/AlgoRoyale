@@ -1,11 +1,11 @@
-from algo_royale.strategy_factory.combinator.base_signal_strategy_combinator import (
-    SignalStrategyCombinator,
-)
-from algo_royale.strategy_factory.conditions.pullback_entry import (
+from algo_royale.backtester.strategy.signal.conditions.pullback_entry import (
     PullbackEntryCondition,
 )
-from algo_royale.strategy_factory.strategies.pullback_entry_strategy import (
+from algo_royale.backtester.strategy.signal.pullback_entry_strategy import (
     PullbackEntryStrategy,
+)
+from algo_royale.backtester.strategy_combinator.signal.base_signal_strategy_combinator import (
+    SignalStrategyCombinator,
 )
 
 

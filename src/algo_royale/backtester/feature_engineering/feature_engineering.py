@@ -3,7 +3,7 @@ from logging import Logger
 import numpy as np
 import pandas as pd
 
-from algo_royale.column_names.feature_engineering_columns import (
+from algo_royale.backtester.column_names.feature_engineering_columns import (
     FeatureEngineeringColumns,
 )
 

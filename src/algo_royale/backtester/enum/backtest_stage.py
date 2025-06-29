@@ -1,8 +1,8 @@
 from enum import Enum
 from typing import Optional
 
-from algo_royale.column_names.data_ingest_columns import DataIngestColumns
-from algo_royale.column_names.feature_engineering_columns import (
+from algo_royale.backtester.column_names.data_ingest_columns import DataIngestColumns
+from algo_royale.backtester.column_names.feature_engineering_columns import (
     FeatureEngineeringColumns,
 )
 

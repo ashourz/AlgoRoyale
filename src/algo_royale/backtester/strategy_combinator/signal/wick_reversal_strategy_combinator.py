@@ -1,14 +1,14 @@
-from algo_royale.strategy_factory.combinator.base_signal_strategy_combinator import (
-    SignalStrategyCombinator,
-)
-from algo_royale.strategy_factory.conditions.wick_reversal_entry import (
+from algo_royale.backtester.strategy.signal.conditions.wick_reversal_entry import (
     WickReversalEntryCondition,
 )
-from algo_royale.strategy_factory.conditions.wick_reversal_exit import (
+from algo_royale.backtester.strategy.signal.conditions.wick_reversal_exit import (
     WickReversalExitCondition,
 )
-from algo_royale.strategy_factory.strategies.wick_reversal_strategy import (
+from algo_royale.backtester.strategy.signal.wick_reversal_strategy import (
     WickReversalStrategy,
+)
+from algo_royale.backtester.strategy_combinator.signal.base_signal_strategy_combinator import (
+    SignalStrategyCombinator,
 )
 
 

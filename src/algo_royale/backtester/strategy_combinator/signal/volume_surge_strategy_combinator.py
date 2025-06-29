@@ -1,11 +1,11 @@
-from algo_royale.strategy_factory.combinator.base_signal_strategy_combinator import (
-    SignalStrategyCombinator,
-)
-from algo_royale.strategy_factory.conditions.volume_surge_entry import (
+from algo_royale.backtester.strategy.signal.conditions.volume_surge_entry import (
     VolumeSurgeEntryCondition,
 )
-from algo_royale.strategy_factory.strategies.volume_surge_strategy import (
+from algo_royale.backtester.strategy.signal.volume_surge_strategy import (
     VolumeSurgeStrategy,
+)
+from algo_royale.backtester.strategy_combinator.signal.base_signal_strategy_combinator import (
+    SignalStrategyCombinator,
 )
 
 

@@ -1,14 +1,14 @@
-from algo_royale.strategy_factory.combinator.base_signal_strategy_combinator import (
-    SignalStrategyCombinator,
-)
-from algo_royale.strategy_factory.conditions.volatility_breakout_entry import (
+from algo_royale.backtester.strategy.signal.conditions.volatility_breakout_entry import (
     VolatilityBreakoutEntryCondition,
 )
-from algo_royale.strategy_factory.conditions.volatility_breakout_exit import (
+from algo_royale.backtester.strategy.signal.conditions.volatility_breakout_exit import (
     VolatilityBreakoutExitCondition,
 )
-from algo_royale.strategy_factory.strategies.volatility_breakout_strategy import (
+from algo_royale.backtester.strategy.signal.volatility_breakout_strategy import (
     VolatilityBreakoutStrategy,
+)
+from algo_royale.backtester.strategy_combinator.signal.base_signal_strategy_combinator import (
+    SignalStrategyCombinator,
 )
 
 

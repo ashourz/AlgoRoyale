@@ -1,14 +1,14 @@
-from algo_royale.strategy_factory.combinator.base_signal_strategy_combinator import (
-    SignalStrategyCombinator,
-)
-from algo_royale.strategy_factory.conditions.ema_above_sma_rolling import (
+from algo_royale.backtester.strategy.signal.conditions.ema_above_sma_rolling import (
     EMAAboveSMARollingCondition,
 )
-from algo_royale.strategy_factory.conditions.return_volatility_exit import (
+from algo_royale.backtester.strategy.signal.conditions.return_volatility_exit import (
     ReturnVolatilityExitCondition,
 )
-from algo_royale.strategy_factory.strategies.trend_scraper_strategy import (
+from algo_royale.backtester.strategy.signal.trend_scraper_strategy import (
     TrendScraperStrategy,
+)
+from algo_royale.backtester.strategy_combinator.signal.base_signal_strategy_combinator import (
+    SignalStrategyCombinator,
 )
 
 

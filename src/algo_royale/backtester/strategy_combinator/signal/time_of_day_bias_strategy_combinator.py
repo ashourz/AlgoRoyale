@@ -1,14 +1,14 @@
-from algo_royale.strategy_factory.combinator.base_signal_strategy_combinator import (
-    SignalStrategyCombinator,
-)
-from algo_royale.strategy_factory.conditions.time_of_day_entry import (
+from algo_royale.backtester.strategy.signal.conditions.time_of_day_entry import (
     TimeOfDayEntryCondition,
 )
-from algo_royale.strategy_factory.conditions.time_of_day_exit import (
+from algo_royale.backtester.strategy.signal.conditions.time_of_day_exit import (
     TimeOfDayExitCondition,
 )
-from algo_royale.strategy_factory.strategies.time_of_day_bias_strategy import (
+from algo_royale.backtester.strategy.signal.time_of_day_bias_strategy import (
     TimeOfDayBiasStrategy,
+)
+from algo_royale.backtester.strategy_combinator.signal.base_signal_strategy_combinator import (
+    SignalStrategyCombinator,
 )
 
 

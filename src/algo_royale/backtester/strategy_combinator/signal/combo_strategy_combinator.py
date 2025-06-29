@@ -1,9 +1,13 @@
-from algo_royale.strategy_factory.combinator.base_signal_strategy_combinator import (
+from algo_royale.backtester.strategy.signal.combo_strategy import ComboStrategy
+from algo_royale.backtester.strategy.signal.conditions.combo_entry import (
+    ComboEntryCondition,
+)
+from algo_royale.backtester.strategy.signal.conditions.combo_exit import (
+    ComboExitCondition,
+)
+from algo_royale.backtester.strategy_combinator.signal.base_signal_strategy_combinator import (
     SignalStrategyCombinator,
 )
-from algo_royale.strategy_factory.conditions.combo_entry import ComboEntryCondition
-from algo_royale.strategy_factory.conditions.combo_exit import ComboExitCondition
-from algo_royale.strategy_factory.strategies.combo_strategy import ComboStrategy
 
 
 class ComboStrategyCombinator(SignalStrategyCombinator):

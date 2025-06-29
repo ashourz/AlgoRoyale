@@ -1,6 +1,6 @@
 from logging import Logger
 
-from algo_royale.strategy_factory.combinator.base_signal_strategy_combinator import (
+from algo_royale.backtester.strategy_combinator.signal.base_signal_strategy_combinator import (
     SignalStrategyCombinator,
 )
 

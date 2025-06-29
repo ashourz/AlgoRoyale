@@ -1,6 +1,6 @@
 import pytest
 
-from algo_royale.strategy_factory.conditions.base_strategy_condition import (
+from algo_royale.backtester.strategy.signal.conditions.base_strategy_condition import (
     StrategyCondition,
 )
 

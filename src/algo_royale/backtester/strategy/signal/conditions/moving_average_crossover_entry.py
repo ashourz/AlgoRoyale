@@ -1,11 +1,11 @@
 import pandas as pd
 from optuna import Trial
 
-from algo_royale.column_names.strategy_columns import StrategyColumns
-from algo_royale.strategy_factory.conditions.base_strategy_condition import (
+from algo_royale.backtester.column_names.strategy_columns import StrategyColumns
+from algo_royale.backtester.enum.ma_type import MA_Type
+from algo_royale.backtester.strategy.signal.conditions.base_strategy_condition import (
     StrategyCondition,
 )
-from algo_royale.strategy_factory.enum.ma_type import MA_Type
 
 
 class MovingAverageCrossoverEntryCondition(StrategyCondition):

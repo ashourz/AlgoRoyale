@@ -3,10 +3,10 @@ import itertools
 import pandas as pd
 from optuna import Trial
 
-from algo_royale.strategy_factory.conditions.base_strategy_condition import (
+from algo_royale.backtester.strategy.signal.conditions.base_strategy_condition import (
     StrategyCondition,
 )
-from algo_royale.strategy_factory.conditions.volume_surge_entry import (
+from algo_royale.backtester.strategy.signal.conditions.volume_surge_entry import (
     VolumeSurgeEntryCondition,
 )
 

@@ -1,5 +1,5 @@
-from algo_royale.column_names.column_name import ColumnName
-from algo_royale.column_names.feature_engineering_columns import (
+from algo_royale.backtester.column_names.column_name import ColumnName
+from algo_royale.backtester.column_names.feature_engineering_columns import (
     FeatureEngineeringColumns,
 )
 

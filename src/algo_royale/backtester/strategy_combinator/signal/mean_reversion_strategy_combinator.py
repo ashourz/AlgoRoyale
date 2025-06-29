@@ -1,14 +1,14 @@
-from algo_royale.strategy_factory.combinator.base_signal_strategy_combinator import (
-    SignalStrategyCombinator,
-)
-from algo_royale.strategy_factory.conditions.price_above_sma import (
+from algo_royale.backtester.strategy.signal.conditions.price_above_sma import (
     PriceAboveSMACondition,
 )
-from algo_royale.strategy_factory.stateful_logic.mean_reversion_stategul_logic import (
+from algo_royale.backtester.strategy.signal.mean_revision_strategy import (
+    MeanReversionStrategy,
+)
+from algo_royale.backtester.strategy.signal.stateful_logic.mean_reversion_stategul_logic import (
     MeanReversionStatefulLogic,
 )
-from algo_royale.strategy_factory.strategies.mean_revision_strategy import (
-    MeanReversionStrategy,
+from algo_royale.backtester.strategy_combinator.signal.base_signal_strategy_combinator import (
+    SignalStrategyCombinator,
 )
 
 

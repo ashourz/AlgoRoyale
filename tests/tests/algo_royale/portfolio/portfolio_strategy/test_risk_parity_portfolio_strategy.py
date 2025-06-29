@@ -3,7 +3,7 @@ import warnings
 import numpy as np
 import pandas as pd
 
-from algo_royale.portfolio.strategies.risk_parity_portfolio_strategy import (
+from algo_royale.backtester.strategy.portfolio.risk_parity_portfolio_strategy import (
     RiskParityPortfolioStrategy,
 )
 

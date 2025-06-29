@@ -3,10 +3,10 @@ from unittest.mock import MagicMock
 import pandas as pd
 import pytest
 
+from algo_royale.backtester.column_names.strategy_columns import StrategyColumns
 from algo_royale.backtester.executor.strategy_backtest_executor import (
     StrategyBacktestExecutor,
 )
-from algo_royale.column_names.strategy_columns import StrategyColumns
 
 
 @pytest.fixture

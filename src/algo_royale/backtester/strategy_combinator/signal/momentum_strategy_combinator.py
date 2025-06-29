@@ -1,11 +1,13 @@
-from algo_royale.strategy_factory.combinator.base_signal_strategy_combinator import (
-    SignalStrategyCombinator,
-)
-from algo_royale.strategy_factory.conditions.momentum_entry import (
+from algo_royale.backtester.strategy.signal.conditions.momentum_entry import (
     MomentumEntryCondition,
 )
-from algo_royale.strategy_factory.conditions.momentum_exit import MomentumExitCondition
-from algo_royale.strategy_factory.strategies.momentum_strategy import MomentumStrategy
+from algo_royale.backtester.strategy.signal.conditions.momentum_exit import (
+    MomentumExitCondition,
+)
+from algo_royale.backtester.strategy.signal.momentum_strategy import MomentumStrategy
+from algo_royale.backtester.strategy_combinator.signal.base_signal_strategy_combinator import (
+    SignalStrategyCombinator,
+)
 
 
 class MomentumStrategyCombinator(SignalStrategyCombinator):

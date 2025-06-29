@@ -3,7 +3,7 @@ import warnings
 import numpy as np
 import pandas as pd
 
-from algo_royale.portfolio.strategies.minimum_variance_portfolio_strategy import (
+from algo_royale.backtester.strategy.portfolio.minimum_variance_portfolio_strategy import (
     MinimumVariancePortfolioStrategy,
 )
 
