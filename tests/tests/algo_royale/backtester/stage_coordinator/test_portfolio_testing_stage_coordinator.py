@@ -1,3 +1,5 @@
+import json
+import time
 from datetime import datetime
 from unittest.mock import MagicMock
 
@@ -28,6 +30,13 @@ def mock_writer():
 def mock_manager(tmp_path):
     m = MagicMock()
     m.get_directory_path.return_value = tmp_path
+
+    # Always return the same directory for get_extended_path
+    def get_extended_path(base_dir, strategy_name, symbol, start_date, end_date):
+        return tmp_path
+
+    m.get_extended_path.side_effect = get_extended_path
+
     return m
 
 
@@ -41,17 +50,20 @@ def mock_combinator():
     class DummyStrategy:
         __name__ = "DummyStrategy"
 
-        def __init__(self):
+        def __init__(self, a=1):
             pass
 
         @staticmethod
         def optuna_suggest(trial, prefix=""):
             return {}
 
+    class DummyFactory:
+        func = DummyStrategy
+
     class DummyCombinator:
         @staticmethod
-        def all_strategy_combinations():
-            return [DummyStrategy]
+        def all_strategy_combinations(**kwargs):
+            return [DummyFactory]
 
     return DummyCombinator
 
@@ -59,7 +71,10 @@ def mock_combinator():
 @pytest.fixture
 def mock_executor():
     exec = MagicMock()
-    exec.run_backtest.return_value = {"transactions": []}
+    exec.run_backtest.return_value = {
+        "transactions": [],
+        "portfolio_returns": [0.01, 0.02, 0.03],  # Required by coordinator
+    }
     return exec
 
 
@@ -68,6 +83,18 @@ def mock_evaluator():
     eval = MagicMock()
     eval.evaluate.return_value = {"sharpe": 2.0}
     return eval
+
+
+@pytest.fixture
+def mock_asset_matrix_preparer():
+    mock = MagicMock()
+    mock.prepare.return_value = pd.DataFrame(
+        {
+            "AAPL": [100, 101, 102],
+            "GOOG": [200, 202, 204],
+        }
+    )
+    return mock
 
 
 @pytest.mark.asyncio
@@ -80,6 +107,7 @@ async def test_portfolio_testing_process(
     mock_combinator,
     mock_executor,
     mock_evaluator,
+    mock_asset_matrix_preparer,
 ):
     # Prepare fake optimization result file for train window
     train_start = datetime(2021, 1, 1)
@@ -88,12 +116,16 @@ async def test_portfolio_testing_process(
     test_end = datetime(2022, 12, 31)
     train_window_id = f"{train_start.strftime('%Y%m%d')}_{train_end.strftime('%Y%m%d')}"
     tmp_path = mock_manager.get_directory_path.return_value
+
+    # Now this will match what the coordinator expects
     opt_json_path = tmp_path / "test_opt.json"
     opt_json_path.parent.mkdir(parents=True, exist_ok=True)
-    import json
-
     with open(opt_json_path, "w") as f:
-        json.dump({train_window_id: {"optimization": {"best_params": {}}}}, f)
+        json.dump(
+            {train_window_id: {"optimization": {"best_params": {"a": 1}}}},
+            f,
+        )
+    time.sleep(0.05)
 
     coordinator = PortfolioTestingStageCoordinator(
         data_loader=mock_loader,
@@ -104,14 +136,18 @@ async def test_portfolio_testing_process(
         strategy_combinators=[mock_combinator],
         executor=mock_executor,
         evaluator=mock_evaluator,
-        optimization_root=tmp_path,  # <-- added
+        optimization_root=tmp_path,
         optimization_json_filename="test_opt.json",
-        asset_matrix_preparer=MagicMock(),  # <-- added
+        asset_matrix_preparer=mock_asset_matrix_preparer,
     )
 
-    # Simulate prepared data
     async def df_iter():
-        yield pd.DataFrame({"a": [1, 2, 3]})
+        yield pd.DataFrame(
+            {
+                "AAPL": [100, 101, 102],
+                "GOOG": [200, 202, 204],
+            }
+        )
 
     prepared_data = {"AAPL": lambda: df_iter()}
     coordinator.train_start_date = train_start
@@ -123,6 +159,8 @@ async def test_portfolio_testing_process(
         f"{test_start.strftime('%Y%m%d')}_{test_end.strftime('%Y%m%d')}"
     )
     results = await coordinator.process(prepared_data=prepared_data)
+    print("DEBUG RESULTS:", results)
+    mock_evaluator.evaluate.assert_called()
     assert "AAPL" in results
     assert "DummyStrategy" in results["AAPL"]
     assert coordinator.test_window_id in results["AAPL"]["DummyStrategy"]

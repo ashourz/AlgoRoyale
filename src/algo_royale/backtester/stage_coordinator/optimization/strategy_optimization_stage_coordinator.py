@@ -207,7 +207,3 @@ class StrategyOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
         full_df = pd.concat(dfs, ignore_index=True)
         metrics = self.evaluator.evaluate(strategy, full_df)
         return metrics
-
-    async def _write(self, stage, processed_data):
-        # No-op: writing is handled in process()
-        pass

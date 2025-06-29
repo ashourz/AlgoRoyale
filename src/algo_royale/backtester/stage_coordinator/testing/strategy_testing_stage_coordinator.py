@@ -1,8 +1,6 @@
 import inspect
 import json
-from datetime import datetime
 from logging import Logger
-from pathlib import Path
 from typing import AsyncIterator, Callable, Dict, Optional, Sequence
 
 import pandas as pd
@@ -67,39 +65,10 @@ class StrategyTestingStageCoordinator(BaseTestingStageCoordinator):
             executor=strategy_executor,
             evaluator=strategy_evaluator,
             strategy_combinators=strategy_combinators,
+            optimization_root=optimization_root,
+            optimization_json_filename=optimization_json_filename,
         )
         self.strategy_factory = strategy_factory
-        self.optimization_root = Path(optimization_root)
-        if not self.optimization_root.is_dir():
-            ## Create the directory if it does not exist
-            self.optimization_root.mkdir(parents=True, exist_ok=True)
-        self.optimization_json_filename = optimization_json_filename
-
-    async def run(
-        self,
-        train_start_date: datetime,
-        train_end_date: datetime,
-        test_start_date: datetime,
-        test_end_date: datetime,
-    ) -> bool:
-        """Run the backtest stage."""
-        self.train_start_date = train_start_date
-        self.train_end_date = train_end_date
-        self.train_window_id = (
-            f"{train_start_date.strftime('%Y%m%d')}_{train_end_date.strftime('%Y%m%d')}"
-        )
-        self.logger.info(
-            f"Running backtest for window {self.train_window_id} from {train_start_date} to {train_end_date}"
-        )
-        self.test_start_date = test_start_date
-        self.test_end_date = test_end_date
-        self.test_window_id = (
-            f"{test_start_date.strftime('%Y%m%d')}_{test_end_date.strftime('%Y%m%d')}"
-        )
-        self.logger.info(
-            f"Running backtest for test window {self.test_window_id} from {test_start_date} to {test_end_date}"
-        )
-        return await super().run(start_date=test_start_date, end_date=test_end_date)
 
     async def process(
         self,
@@ -128,11 +97,11 @@ class StrategyTestingStageCoordinator(BaseTestingStageCoordinator):
             for strategy_combinator in self.strategy_combinators:
                 strategy_class = strategy_combinator.strategy_class
                 strategy_name = strategy_class.__name__
-                train_opt_results = self.get_optimization_results(
-                    strategy_name,
-                    symbol,
-                    self.train_start_date,
-                    self.train_end_date,
+                train_opt_results = self._get_optimization_results(
+                    strategy_name=strategy_name,
+                    symbol=symbol,
+                    start_date=self.train_start_date,
+                    end_date=self.train_end_date,
                 )
                 if not train_opt_results:
                     self.logger.warning(
@@ -182,7 +151,7 @@ class StrategyTestingStageCoordinator(BaseTestingStageCoordinator):
                 full_df = pd.concat(dfs, ignore_index=True)
                 metrics = self.evaluator.evaluate(strategy, full_df)
 
-                test_opt_results = self.get_optimization_results(
+                test_opt_results = self._get_optimization_results(
                     strategy_name,
                     symbol,
                     self.test_start_date,
@@ -194,8 +163,11 @@ class StrategyTestingStageCoordinator(BaseTestingStageCoordinator):
 
                 test_opt_results[self.test_window_id]["test"] = {"metrics": metrics}
 
-                test_opt_results_path = self.get_optimization_result_path(
-                    strategy_name, symbol, self.test_start_date, self.test_end_date
+                test_opt_results_path = self._get_optimization_result_path(
+                    strategy_name=strategy_name,
+                    symbol=symbol,
+                    start_date=self.test_start_date,
+                    end_date=self.test_end_date,
                 )
 
                 with open(test_opt_results_path, "w") as f:
@@ -206,50 +178,3 @@ class StrategyTestingStageCoordinator(BaseTestingStageCoordinator):
                 }
 
         return results
-
-    def get_optimization_results(
-        self, strategy_name: str, symbol: str, start_date: datetime, end_date: datetime
-    ) -> Dict:
-        """Load optimization results for a given strategy and symbol."""
-        json_path = self.get_optimization_result_path(
-            strategy_name, symbol, start_date, end_date
-        )
-        self.logger.debug(
-            f"Loading optimization results from {json_path} for {symbol} {strategy_name}"
-        )
-        if not json_path.exists() or json_path.stat().st_size == 0:
-            self.logger.warning(
-                f"No optimization result for {symbol} {strategy_name} start_date={start_date}, end_date={end_date} (optimization result file does not exist or is empty)"
-            )
-            # Optionally create an empty file for consistency
-            json_path.parent.mkdir(parents=True, exist_ok=True)
-            with open(json_path, "w") as f:
-                json.dump({}, f)
-            return {}
-        with open(json_path, "r") as f:
-            try:
-                opt_results = json.load(f)
-            except json.JSONDecodeError:
-                self.logger.warning(
-                    f"Optimization result file {json_path} is not valid JSON. Returning empty dict."
-                )
-                return {}
-        return opt_results
-
-    def get_optimization_result_path(
-        self, strategy_name: str, symbol: str, start_date: datetime, end_date: datetime
-    ) -> Path:
-        """Get the path to the optimization result JSON file for a given strategy and symbol."""
-        out_dir = self.stage_data_manager.get_extended_path(
-            base_dir=self.optimization_root,
-            strategy_name=strategy_name,
-            symbol=symbol,
-            start_date=start_date,
-            end_date=end_date,
-        )
-        out_dir.mkdir(parents=True, exist_ok=True)
-        return out_dir / self.optimization_json_filename
-
-    async def _write(self, stage, processed_data):
-        # No-op: writing is handled in process()
-        pass

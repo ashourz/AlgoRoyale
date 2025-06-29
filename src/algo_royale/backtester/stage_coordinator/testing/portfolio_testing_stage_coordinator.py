@@ -1,8 +1,6 @@
 import inspect
 import json
-from datetime import datetime
 from logging import Logger
-from pathlib import Path
 from typing import AsyncIterator, Callable, Dict, Optional, Sequence
 
 import pandas as pd
@@ -55,38 +53,11 @@ class PortfolioTestingStageCoordinator(BaseTestingStageCoordinator):
             evaluator=evaluator,
             executor=executor,
             strategy_combinators=strategy_combinators,
+            optimization_json_filename=optimization_json_filename,
+            optimization_root=optimization_root,
         )
-        self.optimization_root = Path(optimization_root)
-        if not self.optimization_root.is_dir():
-            ## Create the directory if it does not exist
-            self.optimization_root.mkdir(parents=True, exist_ok=True)
-        self.optimization_json_filename = optimization_json_filename
-        self.asset_matrix_preparer = asset_matrix_preparer
 
-    async def run(
-        self,
-        train_start_date: datetime,
-        train_end_date: datetime,
-        test_start_date: datetime,
-        test_end_date: datetime,
-    ) -> bool:
-        self.train_start_date = train_start_date
-        self.train_end_date = train_end_date
-        self.train_window_id = (
-            f"{train_start_date.strftime('%Y%m%d')}_{train_end_date.strftime('%Y%m%d')}"
-        )
-        self.logger.info(
-            f"Running portfolio backtest for window {self.train_window_id} from {train_start_date} to {train_end_date}"
-        )
-        self.test_start_date = test_start_date
-        self.test_end_date = test_end_date
-        self.test_window_id = (
-            f"{test_start_date.strftime('%Y%m%d')}_{test_end_date.strftime('%Y%m%d')}"
-        )
-        self.logger.info(
-            f"Running portfolio backtest for test window {self.test_window_id} from {test_start_date} to {test_end_date}"
-        )
-        return await super().run(start_date=test_start_date, end_date=test_end_date)
+        self.asset_matrix_preparer = asset_matrix_preparer
 
     async def process(
         self,
@@ -132,12 +103,16 @@ class PortfolioTestingStageCoordinator(BaseTestingStageCoordinator):
                     if hasattr(strategy_class, "__name__")
                     else str(strategy_class)
                 )
-                train_opt_results = self.get_optimization_results(
-                    strategy_name,
-                    self.train_start_date,
-                    self.train_end_date,
+                train_opt_results = self._get_optimization_results(
+                    strategy_name=strategy_name,
+                    symbol=None,
+                    start_date=self.train_start_date,
+                    end_date=self.train_end_date,
                 )
                 if not train_opt_results:
+                    print(
+                        f"No optimization results found for PORTFOLIO {strategy_name} {self.train_window_id}"
+                    )
                     self.logger.warning(
                         f"No optimization result for PORTFOLIO {strategy_name} {self.train_window_id}"
                     )
@@ -146,6 +121,9 @@ class PortfolioTestingStageCoordinator(BaseTestingStageCoordinator):
                     self.train_window_id not in train_opt_results
                     or "optimization" not in train_opt_results[self.train_window_id]
                 ):
+                    print(
+                        f"No optimization results found for PORTFOLIO {strategy_name} {self.train_window_id}"
+                    )
                     self.logger.warning(
                         f"No optimization result for PORTFOLIO {strategy_name} {self.train_window_id}"
                     )
@@ -174,8 +152,11 @@ class PortfolioTestingStageCoordinator(BaseTestingStageCoordinator):
                 )
                 # Evaluate metrics (now includes all new metrics)
                 metrics = self.evaluator.evaluate(strategy, backtest_results)
-                test_opt_results = self.get_optimization_results(
-                    strategy_name, self.test_start_date, self.test_end_date
+                test_opt_results = self._get_optimization_results(
+                    strategy_name=strategy_name,
+                    symbol=None,
+                    start_date=self.test_start_date,
+                    end_date=self.test_end_date,
                 )
                 if self.test_window_id not in test_opt_results:
                     test_opt_results[self.test_window_id] = {}
@@ -184,8 +165,11 @@ class PortfolioTestingStageCoordinator(BaseTestingStageCoordinator):
                     "transactions": backtest_results.get("transactions", []),
                 }
                 # Save optimization metrics to optimization_result.json under window_id
-                out_path = self.get_output_path(
-                    strategy_name, self.test_start_date, self.test_end_date
+                out_path = self._get_optimization_result_path(
+                    strategy_name=strategy_name,
+                    symbol=None,
+                    start_date=self.test_start_date,
+                    end_date=self.test_end_date,
                 )
                 with open(out_path, "w") as f:
                     json.dump(test_opt_results, f, indent=2, default=str)
@@ -195,49 +179,3 @@ class PortfolioTestingStageCoordinator(BaseTestingStageCoordinator):
                         self.test_window_id
                     ] = metrics
         return results
-
-    def get_optimization_results(
-        self, strategy_name: str, start_date: datetime, end_date: datetime
-    ) -> Dict:
-        json_path = self.get_output_path(strategy_name, start_date, end_date)
-        self.logger.debug(
-            f"Loading optimization results from {json_path} for {strategy_name}"
-        )
-        if not json_path.exists() or json_path.stat().st_size == 0:
-            self.logger.warning(
-                f"No optimization result for {strategy_name} start_date={start_date}, end_date={end_date} (optimization result file does not exist or is empty)"
-            )
-            json_path.parent.mkdir(parents=True, exist_ok=True)
-            with open(json_path, "w") as f:
-                json.dump({}, f)
-            return {}
-        with open(json_path, "r") as f:
-            try:
-                opt_results = json.load(f)
-            except json.JSONDecodeError:
-                self.logger.warning(
-                    f"Optimization result file {json_path} is not valid JSON. Returning empty dict."
-                )
-                return {}
-        return opt_results
-
-    def get_output_path(
-        self, strategy_name: str, start_date: datetime, end_date: datetime
-    ):
-        """Get the output path for the optimization results JSON file."""
-        out_dir = self.stage_data_manager.get_extended_path(
-            base_dir=self.optimization_root,
-            strategy_name=strategy_name,
-            symbol=None,
-            start_date=start_date,
-            end_date=end_date,
-        )
-        # If out_dir is not a Path (e.g., MagicMock), fallback to optimization_root
-        if not isinstance(out_dir, Path):
-            out_dir = self.optimization_root
-        out_dir.mkdir(parents=True, exist_ok=True)
-        return out_dir / self.optimization_json_filename
-
-    async def _write(self, stage, processed_data):
-        # No-op: writing is handled in process()
-        pass

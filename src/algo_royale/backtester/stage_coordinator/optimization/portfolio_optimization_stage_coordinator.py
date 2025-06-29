@@ -195,7 +195,3 @@ class PortfolioOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
             self.logger.error(f"Portfolio backtest/evaluation failed: {e}")
             print(f"DEBUG: _backtest_and_evaluate exception: {e}")
             return {}
-
-    async def _write(self, stage, processed_data):
-        # No-op: writing is handled in process()
-        pass

@@ -58,4 +58,6 @@ class BaseOptimizationStageCoordinator(StageCoordinator):
         self.executor = executor
         self.evaluator = evaluator
 
-    # Add any shared logic for strategy optimization here
+    async def _write(self, stage, processed_data):
+        # No-op: writing is handled in process()
+        pass
