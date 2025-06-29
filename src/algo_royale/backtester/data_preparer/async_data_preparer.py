@@ -6,7 +6,7 @@ class AsyncDataPreparer(DataPreparer):
     def __init__(self, logger):
         super().__init__(logger)
 
-    async def normalized_stream(
+    async def normalize_stream(
         self, stage: BacktestStage, symbol: str, iterator_factory
     ):
         try:
@@ -21,7 +21,7 @@ class AsyncDataPreparer(DataPreparer):
                 raise TypeError(f"Expected async iterator, got {type(iterator)}")
             async for df in iterator:
                 try:
-                    yield self.normalize_dataframe(df, stage, symbol)
+                    yield self.validate_dataframe(df, stage, symbol)
                 except Exception as e:
                     self.logger.error(f"Error processing {symbol} data: {e}")
         finally:

@@ -1,23 +1,10 @@
-from algo_royale.backtester.column_names.base_column_names import BaseColumnNames
 from algo_royale.backtester.column_names.column_name import ColumnName
+from algo_royale.backtester.column_names.data_ingest_columns import DataIngestColumns
 
 
-class FeatureEngineeringColumns(BaseColumnNames):
-    """Column names used for feature engineering in the algorithmic trading framework."""
-
-    # This class defines the column names used during the feature engineering stage,
-    # where technical indicators and other features are derived from raw data.
-    # It inherits from BaseColumnNames to maintain consistency across the framework.
-
-    SYMBOL = ColumnName("symbol")
-    TIMESTAMP = ColumnName("timestamp")
-    OPEN_PRICE = ColumnName("open_price")
-    HIGH_PRICE = ColumnName("high_price")
-    LOW_PRICE = ColumnName("low_price")
-    CLOSE_PRICE = ColumnName("close_price")
-    VOLUME = ColumnName("volume")
-    NUM_TRADES = ColumnName("num_trades")
-    VOLUME_WEIGHTED_PRICE = ColumnName("volume_weighted_price")
+class FeatureEngineeringColumns(DataIngestColumns):
+    """Column names used for feature engineering in the algorithmic trading framework.
+    These columns are derived from the raw data and used for technical analysis and modeling."""
 
     # Technical indicators
     PCT_RETURN = ColumnName(

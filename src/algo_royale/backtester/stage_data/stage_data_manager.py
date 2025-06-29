@@ -31,13 +31,13 @@ class StageDataManager:
     ) -> Path:
         path = (
             self.base_dir
-            / stage.value
+            / stage.name
             / strategy_name
             / symbol
             / f"{filename}.{extension.value}.csv"
             if strategy_name
             else self.base_dir
-            / stage.value
+            / stage.name
             / symbol
             / f"{filename}.{extension.value}.csv"
         )
@@ -71,7 +71,7 @@ class StageDataManager:
         If strategy_name is None, it will not include it in the path.
         If symbol is None, it will not include it in the path.
         """
-        path = self.base_dir / stage.value
+        path = self.base_dir / stage.name
         if symbol:
             path = path / symbol
         if strategy_name:
@@ -105,14 +105,14 @@ class StageDataManager:
         return path
 
     def get_stage_path(self, stage: BacktestStage) -> Path:
-        path = self.base_dir / stage.value
+        path = self.base_dir / stage.name
         path.mkdir(parents=True, exist_ok=True)
         self.logger.debug(f"Ensured stage directory exists: {path}")
         return path
 
     def is_stage_done(self, stage: BacktestStage) -> bool:
         done_file = (
-            self.get_stage_path(stage) / f"{stage.value}.{DataExtension.DONE.value}.csv"
+            self.get_stage_path(stage) / f"{stage.name}.{DataExtension.DONE.value}.csv"
         )
         exists = done_file.exists()
         self.logger.debug(f"Checked if stage done file exists ({done_file}): {exists}")
@@ -128,7 +128,7 @@ class StageDataManager:
     ) -> bool:
         done_file = (
             self.get_directory_path(stage, strategy_name, symbol, start_date, end_date)
-            / f"{stage.value}.{DataExtension.DONE.value}.csv"
+            / f"{stage.name}.{DataExtension.DONE.value}.csv"
         )
         exists = done_file.exists()
         self.logger.debug(
@@ -140,11 +140,11 @@ class StageDataManager:
         stage_path = self.get_stage_path(stage)
         stage_path.mkdir(parents=True, exist_ok=True)
         for ext in DataExtension:
-            marker_file = stage_path / f"{stage.value}.{ext.value}.csv"
+            marker_file = stage_path / f"{stage.name}.{ext.value}.csv"
             if marker_file.exists():
                 marker_file.unlink()
                 self.logger.info(f"Removed old marker file: {marker_file}")
-        status_file = stage_path / f"{stage.value}.{statusExtension.value}.csv"
+        status_file = stage_path / f"{stage.name}.{statusExtension.value}.csv"
         status_file.touch()
         self.logger.info(f"Created new marker file: {status_file}")
 
@@ -162,11 +162,11 @@ class StageDataManager:
         )
         stage_path.mkdir(parents=True, exist_ok=True)
         for ext in DataExtension:
-            marker_file = stage_path / f"{stage.value}.{ext.value}.csv"
+            marker_file = stage_path / f"{stage.name}.{ext.value}.csv"
             if marker_file.exists():
                 marker_file.unlink()
                 self.logger.info(f"Removed old symbol marker file: {marker_file}")
-        status_file = stage_path / f"{stage.value}.{statusExtension.value}.csv"
+        status_file = stage_path / f"{stage.name}.{statusExtension.value}.csv"
         status_file.touch()
         self.logger.info(f"Created new symbol marker file: {status_file}")
 

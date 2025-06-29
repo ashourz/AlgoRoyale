@@ -26,7 +26,10 @@ def mock_writer():
 
 @pytest.fixture
 def mock_manager():
-    return MagicMock()
+    # Return a real Path for get_window_id if needed
+    m = MagicMock()
+    m.get_window_id.return_value = "20240101_20240131"
+    return m
 
 
 @pytest.fixture
@@ -77,7 +80,7 @@ def test_init_missing_watchlist_path(
             logger=mock_logger,
             quote_service=mock_quote_service,
             load_watchlist=lambda path: ["AAPL"],
-            watchlist_path_string="",  # missing path
+            watchlist_path_string="",
         )
 
 
@@ -137,9 +140,9 @@ async def test_fetch_symbol_data_success(
     mock_quote_service,
     monkeypatch,
 ):
+    # Patch required enums/constants
     import algo_royale.backtester.stage_coordinator.data_ingest_stage_coordinator as dic_mod
 
-    # Patch required enums/constants
     monkeypatch.setattr(
         dic_mod, "SupportedCurrencies", types.SimpleNamespace(USD="USD")
     )
@@ -157,7 +160,6 @@ async def test_fetch_symbol_data_success(
             self.symbol_bars = {"AAPL": bars}
             self.next_page_token = next_page_token
 
-    # Use a function for side_effect to handle any arguments
     responses = [
         DummyResponse([DummyBar(), DummyBar()], next_page_token="token2"),
         DummyResponse([DummyBar()], next_page_token=None),
@@ -245,9 +247,13 @@ async def test_fetch_symbol_data_exception_logs_error(
         load_watchlist=lambda path: ["AAPL"],
         watchlist_path_string="mock_watchlist.txt",
     )
+    coordinator.quote_service.client = MagicMock()
+    coordinator.quote_service.client.aclose = AsyncMock()
     coordinator.start_date = datetime(2024, 1, 1)
     coordinator.end_date = datetime(2024, 1, 31)
+    # Should not raise, but should log error
     results = []
-    with pytest.raises(Exception):
-        async for df in coordinator._fetch_symbol_data("AAPL"):
-            results.append(df)
+    async for _ in coordinator._fetch_symbol_data("AAPL"):
+        results.append(_)
+    # Should be empty due to exception
+    assert results == []

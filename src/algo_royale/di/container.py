@@ -7,9 +7,6 @@ from algo_royale.backtester.data_preparer.asset_matrix_preparer import (
 )
 from algo_royale.backtester.data_preparer.async_data_preparer import AsyncDataPreparer
 from algo_royale.backtester.data_preparer.data_preparer import DataPreparer
-from algo_royale.backtester.data_stream.normalized_data_stream_factory import (
-    NormalizedDataStreamFactory,
-)
 from algo_royale.backtester.evaluator.backtest.portfolio_backtest_evaluator import (
     PortfolioBacktestEvaluator,
 )
@@ -280,12 +277,6 @@ class DIContainer(containers.DeclarativeContainer):
 
     async_data_preparer = providers.Singleton(
         AsyncDataPreparer, logger=logger_backtest_prod
-    )
-
-    normalized_data_stream_factory = providers.Singleton(
-        NormalizedDataStreamFactory,
-        data_preparer=data_preparer,
-        logger=logger_backtest_prod,
     )
 
     watchlist_path_string = providers.Object(

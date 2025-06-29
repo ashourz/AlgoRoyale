@@ -5,6 +5,8 @@ from algo_royale.backtester.column_names.column_name import ColumnName
 class DataIngestColumns(BaseColumnNames):
     """Column names used during data ingestion and initial processing."""
 
+    VOLUME = ColumnName("volume")
+    SYMBOL = ColumnName("symbol")
     TIMESTAMP = ColumnName("timestamp")
     OPEN_PRICE = ColumnName("open_price")
     HIGH_PRICE = ColumnName("high_price")

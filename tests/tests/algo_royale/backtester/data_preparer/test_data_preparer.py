@@ -7,7 +7,6 @@ from algo_royale.backtester.data_preparer.data_preparer import DataPreparer
 
 
 class DummyStage:
-    rename_map = {"old": "new", "foo": "bar"}
     required_input_columns = ["new", "bar"]
 
 

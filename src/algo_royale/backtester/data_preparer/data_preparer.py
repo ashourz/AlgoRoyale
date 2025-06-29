@@ -7,7 +7,7 @@ class DataPreparer:
     def __init__(self, logger):
         self.logger = logger
 
-    def normalize_dataframe(
+    def validate_dataframe(
         self, df: pd.DataFrame, stage: BacktestStage, symbol: str
     ) -> pd.DataFrame:
         if not isinstance(df, pd.DataFrame):
@@ -15,18 +15,8 @@ class DataPreparer:
         if df.empty:
             self.logger.debug(f"Empty dataframe for {symbol}")
             return df
-        df = df.rename(columns=stage.rename_map)
         required = stage.required_input_columns
         missing = [col for col in required if col not in df.columns]
         if missing:
             raise ValueError(f"Missing columns in {symbol} data: {missing}")
         return df
-
-    def prepare_all(self, raw_data, stage: BacktestStage):
-        prepared = {}
-        for symbol, df in raw_data.items():
-            try:
-                prepared[symbol] = self.normalize_dataframe(df, stage, symbol)
-            except Exception as e:
-                self.logger.error(f"Failed to prepare {symbol}: {e}")
-        return prepared

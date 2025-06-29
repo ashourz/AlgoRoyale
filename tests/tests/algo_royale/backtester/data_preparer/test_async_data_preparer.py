@@ -7,7 +7,6 @@ from algo_royale.backtester.data_preparer.async_data_preparer import AsyncDataPr
 
 
 class DummyStage:
-    rename_map = {"old": "new", "foo": "bar"}
     required_input_columns = ["new", "bar"]
 
 
@@ -22,13 +21,13 @@ def preparer(logger):
 
 
 @pytest.mark.asyncio
-async def test_normalized_stream_yields_normalized(preparer):
+async def test_normalize_stream_yields_normalized(preparer):
     async def async_gen():
-        yield pd.DataFrame({"old": [1], "foo": [2]})
-        yield pd.DataFrame({"old": [3], "foo": [4]})
+        yield pd.DataFrame({"new": [1], "bar": [2]})
+        yield pd.DataFrame({"new": [3], "bar": [4]})
 
     results = []
-    async for df in preparer.normalized_stream(
+    async for df in preparer.normalize_stream(
         DummyStage(), "AAPL", lambda: async_gen()
     ):
         results.append(df)
@@ -37,24 +36,24 @@ async def test_normalized_stream_yields_normalized(preparer):
 
 
 @pytest.mark.asyncio
-async def test_normalized_stream_handles_exception(preparer, logger):
+async def test_normalize_stream_handles_exception(preparer, logger):
     async def async_gen():
-        yield pd.DataFrame({"old": [1], "foo": [2]})
-        yield pd.DataFrame({"bad": [2]})  # Will cause normalize_dataframe to fail
+        yield pd.DataFrame({"new": [1], "bar": [2]})  # This will pass
+        yield pd.DataFrame({"bad": [2]})  # This will fail
 
     results = []
-    async for df in preparer.normalized_stream(
+    async for df in preparer.normalize_stream(
         DummyStage(), "AAPL", lambda: async_gen()
     ):
         results.append(df)
-    # Only the first should yield, and it should have the renamed columns
+    # Only the first should yield, and it should have the required columns
     assert len(results) == 1
     assert list(results[0].columns) == ["new", "bar"]
     logger.error.assert_called()
 
 
 @pytest.mark.asyncio
-async def test_normalized_stream_aclose_called(preparer):
+async def test_normalize_stream_aclose_called(preparer):
     closed = False
 
     class Iterator:
@@ -69,6 +68,6 @@ async def test_normalized_stream_aclose_called(preparer):
             closed = True
 
     iterator = Iterator()
-    async for _ in preparer.normalized_stream(DummyStage(), "AAPL", lambda: iterator):
+    async for _ in preparer.normalize_stream(DummyStage(), "AAPL", lambda: iterator):
         pass
     assert closed

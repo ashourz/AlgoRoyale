@@ -29,10 +29,8 @@ class StageCoordinator(ABC):
         self.data_writer = data_writer
         self.logger = logger
         self.stage_data_manager = stage_data_manager
-        incoming = (
-            self.stage.incoming_stage.value if self.stage.incoming_stage else "None"
-        )
-        outgoing = self.stage.value
+        incoming = self.stage.input_stage.name if self.stage.input_stage else "None"
+        outgoing = self.stage.name
 
         self.logger.info(f"{incoming} -> {outgoing} StageCoordinator initialized")
 
@@ -69,7 +67,7 @@ class StageCoordinator(ABC):
         self.logger.info(
             f"Starting stage: {self.stage} | start_date: {start_date} | end_date: {end_date}"
         )
-        if not self.stage.incoming_stage:
+        if not self.stage.input_stage:
             """ If no incoming stage is defined, skip loading data """
             self.logger.error(f"Stage {self.stage} has no incoming stage defined.")
             prepared_data = None
@@ -77,12 +75,10 @@ class StageCoordinator(ABC):
             """ Load data from the incoming stage """
             self.logger.info(f"stage:{self.stage} starting data loading.")
             data = await self._load_data(
-                stage=self.stage.incoming_stage, reverse_pages=load_in_reverse
+                stage=self.stage.input_stage, reverse_pages=load_in_reverse
             )
             if not data:
-                self.logger.error(
-                    f"No data loaded from stage:{self.stage.incoming_stage}"
-                )
+                self.logger.error(f"No data loaded from stage:{self.stage.input_stage}")
                 return False
 
             prepared_data = self._prepare_data(stage=self.stage, data=data)
@@ -153,7 +149,7 @@ class StageCoordinator(ABC):
                     self.logger.info(
                         f"Calling factory for {symbol}, df_iter_factory={df_iter_factory}"
                     )
-                    return self.data_preparer.normalized_stream(
+                    return self.data_preparer.normalize_stream(
                         stage=stage, symbol=symbol, iterator_factory=df_iter_factory
                     )
                 except Exception as e:
