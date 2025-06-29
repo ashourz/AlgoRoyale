@@ -9,7 +9,10 @@ import pandas as pd
 
 from algo_royale.backtester.enum.backtest_stage import BacktestStage
 from algo_royale.backtester.enum.data_extension import DataExtension
-from algo_royale.backtester.stage_data.stage_data_manager import StageDataManager
+from algo_royale.backtester.stage_data.stage_data_manager import (
+    StageDataManager,
+    mockStageDataManager,
+)
 
 
 class StageDataLoader:
@@ -331,3 +334,21 @@ class StageDataLoader:
                     error_message=f"Error reading {page_path}: {str(e)}",
                 )
                 continue
+
+
+def mockStageDataLoader(
+    data_dir: Path,
+    load_watchlist: Callable[[str], list[str]],
+    watchlist_path_string: str,
+) -> StageDataLoader:
+    """Creates a mock StageDataLoader for testing purposes."""
+    from algo_royale.logging.logger_singleton import mockLogger
+
+    logger: Logger = mockLogger()
+    stage_data_manager = mockStageDataManager(data_dir=data_dir)
+    return StageDataLoader(
+        logger=logger,
+        stage_data_manager=stage_data_manager,
+        load_watchlist=load_watchlist,
+        watchlist_path_string=watchlist_path_string,
+    )

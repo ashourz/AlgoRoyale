@@ -7,7 +7,11 @@ from typing import Optional
 import pandas as pd
 
 from algo_royale.backtester.enum.backtest_stage import BacktestStage
-from algo_royale.backtester.stage_data.stage_data_manager import StageDataManager
+from algo_royale.backtester.stage_data.stage_data_manager import (
+    StageDataManager,
+    mockStageDataManager,
+)
+from algo_royale.logging.logger_singleton import mockLogger
 
 
 class StageDataWriter:
@@ -121,3 +125,20 @@ class StageDataWriter:
             start_date=start_date,
             end_date=end_date,
         )
+
+
+def mockStageDataWriter(
+    data_dir: Path,
+) -> StageDataWriter:
+    """
+    Creates a mock StageDataWriter for testing purposes.
+    """
+    logger = mockLogger()
+    stage_data_manager = mockStageDataManager(
+        data_dir=data_dir,
+        logger=logger,
+    )
+    return StageDataWriter(
+        stage_data_manager=stage_data_manager,
+        logger=logger,
+    )

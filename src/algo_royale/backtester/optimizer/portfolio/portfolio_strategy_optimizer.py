@@ -1,22 +1,14 @@
 import time
-from enum import Enum
 from logging import Logger
 from typing import Any, Callable, Dict, List, Type, Union
 
 import optuna
 import pandas as pd
 
-
-class PortfolioMetric(Enum):
-    TOTAL_RETURN = "total_return"
-    MAX_DRAWDOWN = "max_drawdown"
-    SHARPE_RATIO = "sharpe_ratio"
-    # Add more as needed
-
-
-class OptimizationDirection(Enum):
-    MAXIMIZE = "maximize"
-    MINIMIZE = "minimize"
+from algo_royale.backtester.optimizer.portfolio.optimization_direction import (
+    OptimizationDirection,
+)
+from algo_royale.backtester.optimizer.portfolio.portfolio_metric import PortfolioMetric
 
 
 class PortfolioStrategyOptimizer:

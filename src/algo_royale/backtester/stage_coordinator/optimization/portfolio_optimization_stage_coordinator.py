@@ -17,8 +17,8 @@ from algo_royale.backtester.evaluator.backtest.portfolio_backtest_evaluator impo
 from algo_royale.backtester.executor.portfolio_backtest_executor import (
     PortfolioBacktestExecutor,
 )
+from algo_royale.backtester.optimizer.portfolio.portfolio_metric import PortfolioMetric
 from algo_royale.backtester.optimizer.portfolio.portfolio_strategy_optimizer import (
-    PortfolioMetric,  # NEW: Import PortfolioMetric enum
     PortfolioStrategyOptimizer,
 )
 from algo_royale.backtester.stage_coordinator.optimization.base_optimization_stage_coordinator import (
