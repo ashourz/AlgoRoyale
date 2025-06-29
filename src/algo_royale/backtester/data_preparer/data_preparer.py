@@ -1,6 +1,7 @@
 import pandas as pd
 
 from algo_royale.backtester.enum.backtest_stage import BacktestStage
+from algo_royale.logging.logger_singleton import mockLogger
 
 
 class DataPreparer:
@@ -20,3 +21,9 @@ class DataPreparer:
         if missing:
             raise ValueError(f"Missing columns in {symbol} data: {missing}")
         return df
+
+
+def mockDataPreparer() -> DataPreparer:
+    """Creates a mock DataPreparer for testing purposes."""
+    logger = mockLogger()
+    return DataPreparer(logger=logger)

@@ -12,10 +12,12 @@ from typing import Optional
 
 import pandas as pd
 
+from algo_royale.logging.logger_singleton import mockLogger
+
 
 class AssetMatrixPreparer:
-    def __init__(self, logger: Optional[logging.Logger] = None):
-        self.logger = logger or logging.getLogger(__name__)
+    def __init__(self, logger: logging.Logger):
+        self.logger = logger
 
     def prepare(
         self,
@@ -61,3 +63,10 @@ class AssetMatrixPreparer:
             f"Asset-matrix shape: {pivot_df.shape}, columns: {pivot_df.columns}"
         )
         return pivot_df
+
+
+def mockAssetMatrixPreparer() -> AssetMatrixPreparer:
+    """Creates a mock AssetMatrixPreparer for testing purposes."""
+
+    logger: logging.Logger = mockLogger()
+    return AssetMatrixPreparer(logger=logger)

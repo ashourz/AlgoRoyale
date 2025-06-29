@@ -1,17 +1,35 @@
 # src: tests/integration/client/test_alpaca_account_client.py
 
 from datetime import datetime
-from algo_royale.di.container import DIContainer
-from algo_royale.models.alpaca_trading.alpaca_order import DeleteOrderStatus, DeleteOrdersResponse, Order, OrderListResponse
-from algo_royale.models.alpaca_trading.enums import OrderSide, OrderStatusFilter, OrderType, SortDirection, TimeInForce
-from algo_royale.clients.alpaca.alpaca_trading.alpaca_orders_client import AlpacaOrdersClient
-from algo_royale.clients.alpaca.exceptions import InsufficientBuyingPowerOrSharesError, UnprocessableOrderException
+
 import pytest
 
-from algo_royale.logging.logger_singleton import Environment, LoggerSingleton, LoggerType
+from algo_royale.clients.alpaca.alpaca_trading.alpaca_orders_client import (
+    AlpacaOrdersClient,
+)
+from algo_royale.clients.alpaca.exceptions import (
+    InsufficientBuyingPowerOrSharesError,
+    UnprocessableOrderException,
+)
+from algo_royale.di.container import DIContainer
+from algo_royale.logging.logger_env import LoggerEnv
+from algo_royale.logging.logger_singleton import LoggerSingleton, LoggerType
+from algo_royale.models.alpaca_trading.alpaca_order import (
+    DeleteOrdersResponse,
+    DeleteOrderStatus,
+    Order,
+    OrderListResponse,
+)
+from algo_royale.models.alpaca_trading.enums import (
+    OrderSide,
+    OrderStatusFilter,
+    OrderType,
+    SortDirection,
+    TimeInForce,
+)
 
 # Set up logging (prints to console)
-logger = LoggerSingleton.get_instance(LoggerType.TRADING, Environment.TEST)
+logger = LoggerSingleton.get_instance(LoggerType.TRADING, LoggerEnv.TEST)
 
 
 @pytest.fixture
@@ -21,10 +39,10 @@ async def alpaca_client():
     )
     yield client
     await client.aclose()  # Clean up the async client
-    
+
+
 @pytest.mark.asyncio
 class TestAlpacaOrdersClientIntegration:
-                
     def validate_order(self, order: Order):
         assert order is not None
         assert isinstance(order, Order)
@@ -38,12 +56,16 @@ class TestAlpacaOrdersClientIntegration:
         assert order.id is not None
         assert hasattr(order, "status")
         assert order.status in {
-            "new", "partially_filled", "filled", "accepted", "pending_new"
+            "new",
+            "partially_filled",
+            "filled",
+            "accepted",
+            "pending_new",
         }
 
         assert hasattr(order, "created_at")
-        assert isinstance(order.created_at, datetime)            
-    
+        assert isinstance(order.created_at, datetime)
+
     async def test_create_order(self, alpaca_client):
         """Test creating a market order via Alpaca's live endpoint."""
 
@@ -59,7 +81,7 @@ class TestAlpacaOrdersClientIntegration:
                 qty=qty,
                 side=side,
                 order_type=order_type,
-                time_in_force=time_in_force
+                time_in_force=time_in_force,
             )
             logger.debug("Order Response", order)
 
@@ -81,7 +103,11 @@ class TestAlpacaOrdersClientIntegration:
             assert order.id is not None
             assert hasattr(order, "status")
             assert order.status in {
-                "new", "partially_filled", "filled", "accepted", "pending_new"
+                "new",
+                "partially_filled",
+                "filled",
+                "accepted",
+                "pending_new",
             }
 
             assert hasattr(order, "created_at")
@@ -89,7 +115,7 @@ class TestAlpacaOrdersClientIntegration:
 
         except InsufficientBuyingPowerOrSharesError:
             return None
-                
+
     async def test_get_all_orders(self, alpaca_client):
         """Test fetching orders via Alpaca's live endpoint."""
 
@@ -108,7 +134,7 @@ class TestAlpacaOrdersClientIntegration:
                 side=side,
                 order_type=order_type,
                 time_in_force=time_in_force,
-                limit_price = limit_price
+                limit_price=limit_price,
             )
 
             self.validate_order(order)
@@ -143,7 +169,13 @@ class TestAlpacaOrdersClientIntegration:
                     assert order.side in {"buy", "sell"}
 
                     assert hasattr(order, "type")
-                    assert order.type in {"market", "limit", "stop", "stop_limit", "trailing_stop"}
+                    assert order.type in {
+                        "market",
+                        "limit",
+                        "stop",
+                        "stop_limit",
+                        "trailing_stop",
+                    }
 
                     assert hasattr(order, "status")
 
@@ -151,7 +183,7 @@ class TestAlpacaOrdersClientIntegration:
                     assert isinstance(order.created_at, datetime)
         except InsufficientBuyingPowerOrSharesError:
             return None
-        
+
     async def test_delete_all_orders(self, alpaca_client):
         """Test deleting all orders via Alpaca's live endpoint."""
         symbol = "AAPL"
@@ -169,7 +201,7 @@ class TestAlpacaOrdersClientIntegration:
                 side=side,
                 order_type=order_type,
                 time_in_force=time_in_force,
-                limit_price = limit_price
+                limit_price=limit_price,
             )
 
             self.validate_order(order)
@@ -195,10 +227,10 @@ class TestAlpacaOrdersClientIntegration:
             return None
         except UnprocessableOrderException:
             return None
-    
+
     async def test_life_cycle(self, alpaca_client):
         """Test creating, getting, replacing, and deleting an order."""
-        
+
         symbol = "AAPL"
         qty = 1  # Small amount for safe testing
         side = OrderSide.BUY
@@ -214,16 +246,16 @@ class TestAlpacaOrdersClientIntegration:
                 side=side,
                 order_type=order_type,
                 time_in_force=time_in_force,
-                limit_price = limit_price
+                limit_price=limit_price,
             )
 
             self.validate_order(order)
-            
+
             # GET ORDER
             get_order = await alpaca_client.get_order_by_client_order_id(
                 client_order_id=order.client_order_id
             )
-            
+
             # DELETE ORDER
             await alpaca_client.delete_order_by_client_order_id(
                 client_order_id=get_order.id

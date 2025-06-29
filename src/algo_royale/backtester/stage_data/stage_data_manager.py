@@ -7,7 +7,6 @@ from typing import Any, Optional
 
 from algo_royale.backtester.enum.backtest_stage import BacktestStage
 from algo_royale.backtester.enum.data_extension import DataExtension
-from algo_royale.utils.path_utils import get_data_dir
 
 
 class StageDataManager:
@@ -17,8 +16,8 @@ class StageDataManager:
     It also provides methods to list files in a directory and clear directories.
     """
 
-    def __init__(self, logger: Logger):
-        self.base_dir = get_data_dir()
+    def __init__(self, data_dir: Path, logger: Logger):
+        self.base_dir = data_dir
         self.logger = logger
 
     def get_file_path(
@@ -328,3 +327,11 @@ class StageDataManager:
             self.logger.warning(
                 f"Could not remove base directory (not empty or error): {self.base_dir}"
             )
+
+
+def mockStageDataManager(data_dir: Path) -> StageDataManager:
+    """Creates a mock StageDataManager for testing purposes."""
+    from algo_royale.logging.logger_singleton import mockLogger
+
+    logger: Logger = mockLogger()
+    return StageDataManager(data_dir=data_dir, logger=logger)

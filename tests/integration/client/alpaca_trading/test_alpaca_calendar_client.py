@@ -1,17 +1,20 @@
 # src/tests/integration/client/test_alpaca_calendar_client.py
 
 from datetime import datetime
-from algo_royale.di.container import DIContainer
-from algo_royale.models.alpaca_trading.alpaca_calendar import Calendar, CalendarList
-from algo_royale.clients.alpaca.alpaca_trading.alpaca_calendar_client import AlpacaCalendarClient
+
 import pytest
 
-from algo_royale.logging.logger_singleton import Environment, LoggerSingleton, LoggerType
-
-
+from algo_royale.clients.alpaca.alpaca_trading.alpaca_calendar_client import (
+    AlpacaCalendarClient,
+)
+from algo_royale.di.container import DIContainer
+from algo_royale.logging.logger_env import LoggerEnv
+from algo_royale.logging.logger_singleton import LoggerSingleton, LoggerType
+from algo_royale.models.alpaca_trading.alpaca_calendar import Calendar, CalendarList
 
 # Set up logging (prints to console)
-logger = LoggerSingleton.get_instance(LoggerType.TRADING, Environment.TEST)
+logger = LoggerSingleton.get_instance(LoggerType.TRADING, LoggerEnv.TEST)
+
 
 @pytest.fixture
 async def alpaca_client():
@@ -21,9 +24,9 @@ async def alpaca_client():
     yield client
     await client.aclose()  # Clean up the async client
 
+
 @pytest.mark.asyncio
 class TestAlpacaCalendarClientIntegration:
-
     async def test_fetch_calendar_default(self, alpaca_client):
         """
         Test fetching default calendar data from Alpaca with no parameters.
@@ -44,7 +47,9 @@ class TestAlpacaCalendarClientIntegration:
             assert calendar.session_close is not None
             assert calendar.settlement_date is not None
 
-            logger.debug(f"Calendar: {calendar.trading_day} - Open: {calendar.open} Close: {calendar.close}")
+            logger.debug(
+                f"Calendar: {calendar.trading_day} - Open: {calendar.open} Close: {calendar.close}"
+            )
 
     async def test_fetch_calendar_with_date_range(self, alpaca_client):
         """
@@ -60,5 +65,6 @@ class TestAlpacaCalendarClientIntegration:
         assert all(isinstance(cal, Calendar) for cal in result.calendars)
 
         for cal in result.calendars:
-            assert start.date() <= cal.trading_day <= end.date(), \
+            assert start.date() <= cal.trading_day <= end.date(), (
                 f"{cal.trading_day} is outside the expected date range"
+            )

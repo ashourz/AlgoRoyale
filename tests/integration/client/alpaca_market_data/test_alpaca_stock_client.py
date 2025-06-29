@@ -1,20 +1,35 @@
 # src: tests/integration/client/test_alpaca_client.py
 
-from algo_royale.di.container import DIContainer
-import pytest
 from datetime import datetime, timezone
+
+import pytest
+
+from algo_royale.clients.alpaca.alpaca_market_data.alpaca_stock_client import (
+    AlpacaStockClient,
+    Tape,
+    TickType,
+)
+from algo_royale.di.container import DIContainer
+from algo_royale.logging.logger_env import LoggerEnv
+from algo_royale.logging.logger_singleton import LoggerSingleton, LoggerType
 from algo_royale.models.alpaca_market_data.alpaca_auction import AuctionResponse
-from algo_royale.models.alpaca_market_data.alpaca_bar import Bar, BarsResponse, LatestBarsResponse
+from algo_royale.models.alpaca_market_data.alpaca_bar import (
+    Bar,
+    BarsResponse,
+    LatestBarsResponse,
+)
 from algo_royale.models.alpaca_market_data.alpaca_condition_code import ConditionCodeMap
 from algo_royale.models.alpaca_market_data.alpaca_quote import Quote, QuotesResponse
 from algo_royale.models.alpaca_market_data.alpaca_snapshot import SnapshotsResponse
-from algo_royale.models.alpaca_market_data.alpaca_trade import HistoricalTradesResponse, LatestTradesResponse, Trade
-from algo_royale.clients.alpaca.alpaca_market_data.alpaca_stock_client import AlpacaStockClient, Tape, TickType
-
-from algo_royale.logging.logger_singleton import Environment, LoggerSingleton, LoggerType
+from algo_royale.models.alpaca_market_data.alpaca_trade import (
+    HistoricalTradesResponse,
+    LatestTradesResponse,
+    Trade,
+)
 
 # Set up logging (prints to console)
-logger = LoggerSingleton.get_instance(LoggerType.TRADING, Environment.TEST)
+logger = LoggerSingleton.get_instance(LoggerType.TRADING, LoggerEnv.TEST)
+
 
 @pytest.fixture
 async def alpaca_client():
@@ -23,10 +38,10 @@ async def alpaca_client():
     )
     yield client
     await client.aclose()
-    
+
+
 @pytest.mark.asyncio
 class TestAlpacaStockClientIntegration:
-
     async def test_fetch_historical_quotes(self, alpaca_client):
         """Test fetching historical quote data from Alpaca's live endpoint."""
         symbols = ["AAPL"]
@@ -34,9 +49,7 @@ class TestAlpacaStockClientIntegration:
         end_date = datetime(2024, 4, 3, tzinfo=timezone.utc)
 
         result = await alpaca_client.fetch_historical_quotes(
-            symbols=symbols,
-            start_date=start_date,
-            end_date=end_date
+            symbols=symbols, start_date=start_date, end_date=end_date
         )
 
         assert result is not None
@@ -48,19 +61,24 @@ class TestAlpacaStockClientIntegration:
         assert isinstance(first_quote, Quote)
 
         expected_attrs = [
-            "timestamp", "ask_exchange", "ask_price", "ask_size",
-            "bid_exchange", "bid_price", "bid_size", "conditions", "tape"
+            "timestamp",
+            "ask_exchange",
+            "ask_price",
+            "ask_size",
+            "bid_exchange",
+            "bid_price",
+            "bid_size",
+            "conditions",
+            "tape",
         ]
         for attr in expected_attrs:
             assert hasattr(first_quote, attr), f"Missing expected attribute: {attr}"
-            
+
     async def test_fetch_latest_quotes(self, alpaca_client):
         """Test fetching the latest quote for a symbol."""
         symbols = ["AAPL"]
 
-        result = await alpaca_client.fetch_latest_quotes(
-            symbols=symbols
-        )
+        result = await alpaca_client.fetch_latest_quotes(symbols=symbols)
 
         assert result is not None
         assert isinstance(result, QuotesResponse)
@@ -71,23 +89,27 @@ class TestAlpacaStockClientIntegration:
         assert isinstance(first_quote, Quote)
 
         expected_attrs = [
-            "timestamp", "ask_exchange", "ask_price", "ask_size",
-            "bid_exchange", "bid_price", "bid_size", "conditions", "tape"
+            "timestamp",
+            "ask_exchange",
+            "ask_price",
+            "ask_size",
+            "bid_exchange",
+            "bid_price",
+            "bid_size",
+            "conditions",
+            "tape",
         ]
         for attr in expected_attrs:
             assert hasattr(first_quote, attr), f"Missing expected attribute: {attr}"
-            
-                        
+
     async def test_fetch_historical_auctions(self, alpaca_client):
         """Test fetching the latest quote for a symbol."""
         symbols = ["AAPL"]
         start_date = datetime(2024, 4, 1, tzinfo=timezone.utc)
         end_date = datetime(2024, 4, 3, tzinfo=timezone.utc)
-        
+
         result = await alpaca_client.fetch_historical_auctions(
-            symbols=symbols,
-            start_date = start_date,
-            end_date = end_date
+            symbols=symbols, start_date=start_date, end_date=end_date
         )
 
         # Basic assertions
@@ -119,9 +141,7 @@ class TestAlpacaStockClientIntegration:
         end_date = datetime(2022, 1, 4, tzinfo=timezone.utc)
 
         result = await alpaca_client.fetch_historical_bars(
-            symbols=symbols,
-            start_date=start_date,
-            end_date=end_date
+            symbols=symbols, start_date=start_date, end_date=end_date
         )
 
         # Basic assertions
@@ -149,16 +169,11 @@ class TestAlpacaStockClientIntegration:
                 assert bar.high_price >= bar.low_price
                 assert bar.volume >= 0
                 assert bar.num_trades >= 0
-                
-    async def test_fetch_latest_bars(self, alpaca_client):
+
+    async def test_fetch_latest_bars(self, alpaca_client: AlpacaStockClient):
         """Test fetching latest bars for a symbol."""
         symbols = ["AAPL"]
-        start_date = datetime(2022, 1, 3, tzinfo=timezone.utc)
-        end_date = datetime(2022, 1, 4, tzinfo=timezone.utc)
-
-        result = await alpaca_client.fetch_latest_bars(
-            symbols=symbols
-        )
+        result = await alpaca_client.fetch_latest_bars(symbols=symbols)
 
         # Basic assertions
         assert result is not None
@@ -184,19 +199,16 @@ class TestAlpacaStockClientIntegration:
             assert bar.high_price >= bar.low_price
             assert bar.volume >= 0
             assert bar.num_trades >= 0
-            
+
     async def test_fetch_condition_codes(self, alpaca_client):
         """Test fetching condition codes from Alpaca."""
 
         # Example test inputs
         ticktype = TickType.TRADE  # or use TickType.TRADE if it's an enum
-        tape = Tape.A          # or use Tape.A
+        tape = Tape.A  # or use Tape.A
 
         # Call the method
-        result = await alpaca_client.fetch_condition_codes(
-            ticktype=ticktype,
-            tape=tape
-        )
+        result = await alpaca_client.fetch_condition_codes(ticktype=ticktype, tape=tape)
 
         # Basic assertions
         assert result is not None
@@ -218,7 +230,7 @@ class TestAlpacaStockClientIntegration:
         first_key = next(iter(condition_dict))
         description = result.describe(first_key)
         assert description == condition_dict[first_key]
-        
+
     async def test_fetch_snapshots(self, alpaca_client):
         """Test fetching snapshot data from Alpaca."""
 
@@ -226,9 +238,7 @@ class TestAlpacaStockClientIntegration:
         symbols = ["AAPL"]
 
         # Call the method
-        result = await alpaca_client.fetch_snapshots(
-            symbols=symbols
-        )
+        result = await alpaca_client.fetch_snapshots(symbols=symbols)
 
         # Basic assertions
         assert result is not None
@@ -243,38 +253,37 @@ class TestAlpacaStockClientIntegration:
         assert snapshot is not None
 
         # Latest Trade
-        if hasattr(snapshot, 'latest_trade') and snapshot.latest_trade:
+        if hasattr(snapshot, "latest_trade") and snapshot.latest_trade:
             trade = snapshot.latest_trade
             assert trade.price is not None
             assert trade.size >= 0
             assert isinstance(trade.price, float)
 
         # Latest Quote
-        if hasattr(snapshot, 'latest_quote') and snapshot.latest_quote:
+        if hasattr(snapshot, "latest_quote") and snapshot.latest_quote:
             quote = snapshot.latest_quote
             assert quote.ask_price >= 0
             assert quote.bid_price >= 0
             assert isinstance(quote.ask_price, float)
 
         # Minute Bar
-        if hasattr(snapshot, 'minute_bar') and snapshot.minute_bar:
+        if hasattr(snapshot, "minute_bar") and snapshot.minute_bar:
             bar = snapshot.minute_bar
             assert bar.open_price is not None
             assert bar.close_price is not None
             assert isinstance(bar.volume, int)
 
         # Daily Bar
-        if hasattr(snapshot, 'daily_bar') and snapshot.daily_bar:
+        if hasattr(snapshot, "daily_bar") and snapshot.daily_bar:
             daily = snapshot.daily_bar
             assert daily.high_price >= daily.low_price
             assert isinstance(daily.volume, int)
 
         # Previous Daily Bar
-        if hasattr(snapshot, 'prev_daily_bar') and snapshot.previous_daily_bar:
+        if hasattr(snapshot, "prev_daily_bar") and snapshot.previous_daily_bar:
             prev_daily = snapshot.previous_daily_bar
             assert prev_daily.high_price >= prev_daily.low_price
             assert isinstance(prev_daily.volume, int)
-    
 
         # Optional: print output for debugging or manual verification
         # print(snapshot.model_dump_json(indent=2))
@@ -286,9 +295,7 @@ class TestAlpacaStockClientIntegration:
         end_date = datetime(2022, 1, 4, tzinfo=timezone.utc)
 
         result = await alpaca_client.fetch_historical_trades(
-            symbols=symbols,
-            start_date=start_date,
-            end_date=end_date
+            symbols=symbols, start_date=start_date, end_date=end_date
         )
 
         # Inspect the actual response
@@ -319,14 +326,12 @@ class TestAlpacaStockClientIntegration:
                 assert trade.price > 0
                 assert isinstance(trade.size, int)
                 assert trade.size >= 0
-                
+
     async def test_fetch_latest_trades(self, alpaca_client):
         """Test fetching latest trades for a symbol."""
         symbols = ["AAPL"]
 
-        result = await alpaca_client.fetch_latest_trades(
-            symbols=symbols
-        )
+        result = await alpaca_client.fetch_latest_trades(symbols=symbols)
 
         # Inspect the actual response
         logger.info(result)  # Add this line to print the response from Alpaca
@@ -338,7 +343,7 @@ class TestAlpacaStockClientIntegration:
         # Verify trade structure for each symbol
         for symbol in symbols:
             trade = result.trades.get(symbol)
-   
+
             assert isinstance(trade, Trade)
             assert hasattr(trade, "timestamp")
             assert hasattr(trade, "exchange")

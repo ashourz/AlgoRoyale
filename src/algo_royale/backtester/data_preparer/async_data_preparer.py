@@ -1,5 +1,8 @@
+import logging
+
 from algo_royale.backtester.data_preparer.data_preparer import DataPreparer
 from algo_royale.backtester.enum.backtest_stage import BacktestStage
+from algo_royale.logging.logger_singleton import mockLogger
 
 
 class AsyncDataPreparer(DataPreparer):
@@ -27,3 +30,10 @@ class AsyncDataPreparer(DataPreparer):
         finally:
             if hasattr(iterator, "aclose"):
                 await iterator.aclose()
+
+
+def mockAsyncDataPreparer() -> AsyncDataPreparer:
+    """Creates a mock AsyncDataPreparer for testing purposes."""
+
+    logger: logging.Logger = mockLogger()
+    return AsyncDataPreparer(logger=logger)

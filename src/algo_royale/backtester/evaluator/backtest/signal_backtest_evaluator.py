@@ -103,3 +103,11 @@ class SignalBacktestEvaluator(BacktestEvaluator):
         peak = np.maximum.accumulate(cum_returns)
         drawdown = peak - cum_returns
         return np.max(drawdown)
+
+
+def mockSignalBacktestEvaluator() -> SignalBacktestEvaluator:
+    """Creates a mock SignalBacktestEvaluator for testing purposes."""
+    from algo_royale.logging.logger_singleton import mockLogger
+
+    logger: Logger = mockLogger()
+    return SignalBacktestEvaluator(logger=logger)

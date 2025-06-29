@@ -1,16 +1,18 @@
 # src: tests/integration/client/test_alpaca_account_client.py
 
-from algo_royale.di.container import DIContainer
-from algo_royale.models.alpaca_trading.alpaca_asset import Asset
-from algo_royale.clients.alpaca.exceptions import AlpacaAssetNotFoundException
 import pytest
-from algo_royale.clients.alpaca.alpaca_trading.alpaca_assets_client import AlpacaAssetsClient
 
-from algo_royale.logging.logger_singleton import Environment, LoggerSingleton, LoggerType
-
+from algo_royale.clients.alpaca.alpaca_trading.alpaca_assets_client import (
+    AlpacaAssetsClient,
+)
+from algo_royale.clients.alpaca.exceptions import AlpacaAssetNotFoundException
+from algo_royale.di.container import DIContainer
+from algo_royale.logging.logger_env import LoggerEnv
+from algo_royale.logging.logger_singleton import LoggerSingleton, LoggerType
+from algo_royale.models.alpaca_trading.alpaca_asset import Asset
 
 # Set up logging (prints to console)
-logger = LoggerSingleton.get_instance(LoggerType.TRADING, Environment.TEST)
+logger = LoggerSingleton.get_instance(LoggerType.TRADING, LoggerEnv.TEST)
 
 
 @pytest.fixture
@@ -20,10 +22,10 @@ async def alpaca_client():
     )
     yield client
     await client.aclose()  # Clean up the async client
-    
+
+
 @pytest.mark.asyncio
 class TestAlpacaAssetClientIntegration:
-    
     async def test_fetch_assets(self, alpaca_client):
         """Test fetching asset data from Alpaca's live endpoint."""
         try:
@@ -35,9 +37,19 @@ class TestAlpacaAssetClientIntegration:
             assert len(result) > 0, "Expected at least one asset in the result"
 
             expected_attrs = [
-                "id", "class_", "exchange", "symbol", "name", "status",
-                "tradable", "marginable", "maintenance_margin_requirement",
-                "shortable", "easy_to_borrow", "fractionable", "attributes"
+                "id",
+                "class_",
+                "exchange",
+                "symbol",
+                "name",
+                "status",
+                "tradable",
+                "marginable",
+                "maintenance_margin_requirement",
+                "shortable",
+                "easy_to_borrow",
+                "fractionable",
+                "attributes",
             ]
 
             for asset in result:
@@ -45,21 +57,31 @@ class TestAlpacaAssetClientIntegration:
                     assert hasattr(asset, attr), f"Missing expected attribute: {attr}"
         except AlpacaAssetNotFoundException:
             return None
-                
+
     async def test_fetch_asset_by_symbol_or_id(self, alpaca_client):
         """Test fetching asset data from Alpaca's live endpoint."""
         symbol = "AAPL"
         try:
             result = await alpaca_client.fetch_asset_by_symbol_or_id(
-                symbol_or_asset_id = symbol
+                symbol_or_asset_id=symbol
             )
             assert result is not None
             assert isinstance(result, Asset)
 
             expected_attrs = [
-                "id", "class_", "exchange", "symbol", "name", "status",
-                "tradable", "marginable", "maintenance_margin_requirement",
-                "shortable", "easy_to_borrow", "fractionable", "attributes"
+                "id",
+                "class_",
+                "exchange",
+                "symbol",
+                "name",
+                "status",
+                "tradable",
+                "marginable",
+                "maintenance_margin_requirement",
+                "shortable",
+                "easy_to_borrow",
+                "fractionable",
+                "attributes",
             ]
 
             for attr in expected_attrs:

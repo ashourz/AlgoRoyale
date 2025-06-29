@@ -1,11 +1,14 @@
 # src/models/alpaca_models/alpaca_bar.py
 
+from typing import Any, Dict
+
 from pydantic import RootModel
-from typing import Dict, Any
 
-from algo_royale.logging.logger_singleton import Environment, LoggerSingleton, LoggerType
+from algo_royale.logging.logger_env import LoggerEnv
+from algo_royale.logging.logger_singleton import LoggerSingleton, LoggerType
 
-logger = LoggerSingleton.get_instance(LoggerType.TRADING, Environment.PRODUCTION)
+logger = LoggerSingleton.get_instance(LoggerType.TRADING, LoggerEnv.PRODUCTION)
+
 
 class ConditionCodeMap(RootModel[Dict[str, str]]):
     """
@@ -43,13 +46,10 @@ class ConditionCodeMap(RootModel[Dict[str, str]]):
         """
         return cls.parse_obj(raw_data)
 
+
 # Example usage
 if __name__ == "__main__":
-    raw_data = {
-        "@": "Regular Sale",
-        "A": "Acquisition",
-        "B": "Bunched Trade"
-    }
+    raw_data = {"@": "Regular Sale", "A": "Acquisition", "B": "Bunched Trade"}
 
     condition_map = ConditionCodeMap.from_raw(raw_data)
     logger.info(condition_map.describe("A"))  # Output: Acquisition

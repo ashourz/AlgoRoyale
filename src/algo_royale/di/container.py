@@ -117,8 +117,8 @@ from algo_royale.clients.db.dao.trade_dao import TradeDAO
 from algo_royale.clients.db.dao.trade_signal_dao import TradeSignalDAO
 from algo_royale.clients.db.database import Database
 from algo_royale.config.config import Config
+from algo_royale.logging.logger_env import LoggerEnv
 from algo_royale.logging.logger_singleton import (
-    Environment,
     LoggerSingleton,
     LoggerType,
 )
@@ -128,6 +128,7 @@ from algo_royale.services.db.stock_data_service import StockDataService
 from algo_royale.services.db.trade_service import TradeService
 from algo_royale.services.db.trade_signal_service import TradeSignalService
 from algo_royale.services.market_data.alpaca_stock_service import AlpacaQuoteService
+from algo_royale.utils.path_utils import get_data_dir
 from algo_royale.visualization.dashboard import BacktestDashboard
 
 
@@ -150,13 +151,13 @@ class DIContainer(containers.DeclarativeContainer):
     logger_backtest_prod = providers.Callable(
         LoggerSingleton.get_instance,
         logger_type=LoggerType.BACKTESTING,
-        environment=Environment.PRODUCTION,
+        environment=LoggerEnv.PRODUCTION,
     )
 
     logger_trading_prod = providers.Callable(
         LoggerSingleton.get_instance,
         logger_type=LoggerType.TRADING,
-        environment=Environment.PRODUCTION,
+        environment=LoggerEnv.PRODUCTION,
     )
 
     database = providers.Singleton(
@@ -268,9 +269,10 @@ class DIContainer(containers.DeclarativeContainer):
         AlpacaQuoteService, alpaca_stock_client=alpaca_stock_client
     )
 
+    data_dir = get_data_dir()
     ## Backtester
     stage_data_manager = providers.Singleton(
-        StageDataManager, logger=logger_backtest_prod
+        StageDataManager, data_dir=data_dir, logger=logger_backtest_prod
     )
 
     data_preparer = providers.Singleton(DataPreparer, logger=logger_backtest_prod)

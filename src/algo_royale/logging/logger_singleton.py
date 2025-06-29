@@ -1,29 +1,10 @@
 import logging
 import os
-from enum import Enum
 
 from algo_royale.logging.custom_rotating_file_handler import CustomRotatingFileHandler
+from algo_royale.logging.logger_env import LoggerEnv
+from algo_royale.logging.logger_type import LoggerType
 from algo_royale.utils.path_utils import get_project_root
-
-
-class Environment(Enum):
-    PRODUCTION = "production"
-    TEST = "test"
-
-
-class LoggerType(Enum):
-    """
-    Enum defining logger types for each module, with logging levels.
-    """
-
-    TRADING = ("trading", logging.INFO)
-    BACKTESTING = ("backtesting", logging.WARNING)
-    WATCHLIST = ("watchlist", logging.INFO)
-
-    def __init__(self, log_name: str, log_level: int):
-        self.log_name = log_name
-        self.log_level = log_level
-
 
 PROJECT_ROOT = get_project_root()
 BASE_LOG_DIR = os.getenv(
@@ -40,7 +21,7 @@ class LoggerSingleton:
 
     @staticmethod
     def get_instance(
-        logger_type: LoggerType, environment: Environment = Environment.PRODUCTION
+        logger_type: LoggerType, environment: LoggerEnv = LoggerEnv.PRODUCTION
     ) -> logging.Logger:
         """
         Get or create a logger instance based on the logger type and environment.
@@ -54,7 +35,7 @@ class LoggerSingleton:
 
     @staticmethod
     def _create_logger(
-        logger_type: LoggerType, environment: Environment
+        logger_type: LoggerType, environment: LoggerEnv
     ) -> logging.Logger:
         """
         Create a new logger instance.
@@ -79,3 +60,16 @@ class LoggerSingleton:
             logger.addHandler(file_handler)
 
         return logger
+
+
+def mockLogger() -> logging.Logger:
+    """
+    Creates a mock logger for testing purposes.
+    """
+    from algo_royale.logging.logger_env import LoggerEnv
+    from algo_royale.logging.logger_type import LoggerType
+
+    logger: logging.Logger = LoggerSingleton.get_instance(
+        logger_type=LoggerType.TESTING, environment=LoggerEnv.TEST
+    )
+    return logger

@@ -1,27 +1,20 @@
-import shutil
 import tempfile
 from pathlib import Path
-from unittest.mock import MagicMock, patch
 
 import pytest
 
 from algo_royale.backtester.enum.backtest_stage import BacktestStage
 from algo_royale.backtester.enum.data_extension import DataExtension
-from algo_royale.backtester.stage_data.stage_data_manager import StageDataManager
+from algo_royale.backtester.stage_data.stage_data_manager import mockStageDataManager
 
 
 # Create a temporary directory for testing
 @pytest.fixture
 def temp_stage_data_manager():
     temp_dir = tempfile.mkdtemp()
-    mock_logger = MagicMock()
-    with patch(
-        "algo_royale.backtester.stage_data.stage_data_manager.get_data_dir",
-        return_value=Path(temp_dir),
-    ):
-        manager = StageDataManager(logger=mock_logger)
-        yield manager
-    shutil.rmtree(temp_dir)
+    return mockStageDataManager(
+        data_dir=Path(temp_dir),
+    )
 
 
 def test_write_and_read_file(temp_stage_data_manager):

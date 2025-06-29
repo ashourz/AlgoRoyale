@@ -1,7 +1,9 @@
 from typing import Callable
 
-from clients.alpaca.alpaca_market_data.alpaca_stream_client import AlpacaStreamClient
-from models.alpaca_market_data.enums import DataFeed
+from algo_royale.clients.alpaca.alpaca_market_data.alpaca_stream_client import (
+    AlpacaStreamClient,
+)
+from algo_royale.models.alpaca_market_data.enums import DataFeed
 
 
 class AlpacaStreamService:

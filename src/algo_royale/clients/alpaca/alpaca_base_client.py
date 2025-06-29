@@ -18,8 +18,8 @@ from algo_royale.clients.alpaca.exceptions import (
     AlpacaUnauthorizedException,
     AlpacaUnprocessableException,
 )
+from algo_royale.logging.logger_env import LoggerEnv
 from algo_royale.logging.logger_singleton import (
-    Environment,
     LoggerSingleton,
     LoggerType,
 )
@@ -49,7 +49,7 @@ class AlpacaBaseClient(ABC):
         )
 
         self.logger = LoggerSingleton.get_instance(
-            LoggerType.TRADING, Environment.PRODUCTION
+            LoggerType.TRADING, LoggerEnv.PRODUCTION
         )
 
     async def aclose(self):

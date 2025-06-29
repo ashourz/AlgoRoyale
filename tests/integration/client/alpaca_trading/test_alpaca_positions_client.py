@@ -1,15 +1,25 @@
 # src: tests/integration/client/test_alpaca_account_client.py
 
-from algo_royale.di.container import DIContainer
-from algo_royale.models.alpaca_trading.alpaca_position import ClosedPosition, ClosedPositionList, Position, PositionList, PositionSide
-from algo_royale.clients.alpaca.alpaca_trading.alpaca_positions_client import AlpacaPositionsClient
-from algo_royale.clients.alpaca.exceptions import AlpacaPositionNotFoundException
-from algo_royale.logging.logger_singleton import Environment, LoggerSingleton, LoggerType
 import pytest
 
+from algo_royale.clients.alpaca.alpaca_trading.alpaca_positions_client import (
+    AlpacaPositionsClient,
+)
+from algo_royale.clients.alpaca.exceptions import AlpacaPositionNotFoundException
+from algo_royale.di.container import DIContainer
+from algo_royale.logging.logger_env import LoggerEnv
+from algo_royale.logging.logger_singleton import LoggerSingleton, LoggerType
+from algo_royale.models.alpaca_trading.alpaca_position import (
+    ClosedPosition,
+    ClosedPositionList,
+    Position,
+    PositionList,
+    PositionSide,
+)
 
 # Set up logging (prints to console)
-logger = LoggerSingleton.get_instance(LoggerType.TRADING, Environment.TEST)
+logger = LoggerSingleton.get_instance(LoggerType.TRADING, LoggerEnv.TEST)
+
 
 @pytest.fixture
 async def alpaca_client():
@@ -18,10 +28,10 @@ async def alpaca_client():
     )
     yield client
     await client.aclose()  # Clean up the async client
-    
+
+
 @pytest.mark.asyncio
 class TestAlpacaPositionsClientIntegration:
-                
     async def test_get_all_open_positions(self, alpaca_client):
         """Test fetching all open positions from Alpaca."""
         result = await alpaca_client.get_all_open_positions()
@@ -57,24 +67,23 @@ class TestAlpacaPositionsClientIntegration:
         symbol = "AAPL"  # Make sure this symbol has an open position
         try:
             result = await alpaca_client.get_open_position_by_symbol_or_asset_id(symbol)
-            
+
             if result is not None:
                 assert isinstance(result, PositionList)
                 assert isinstance(result.positions, list)
                 assert any(p.symbol == symbol for p in result.positions)
         except AlpacaPositionNotFoundException:
             pass
-                    
+
     async def test_close_position_by_symbol(self, alpaca_client):
         """Test closing a position by symbol with quantity."""
         symbol = "AAPL"  # Ensure you hold this position before running
         qty = 1
         try:
             result = await alpaca_client.close_position_by_symbol_or_asset_id(
-                symbol_or_asset_id=symbol,
-                qty=qty
+                symbol_or_asset_id=symbol, qty=qty
             )
-    
+
             if result is not None:
                 assert isinstance(result, ClosedPositionList)
                 assert hasattr(result, "closedPositions")
@@ -87,7 +96,7 @@ class TestAlpacaPositionsClientIntegration:
                     assert closed.order is not None
         except AlpacaPositionNotFoundException:
             pass
-    
+
     async def test_close_all_positions(self, alpaca_client):
         """Test closing all open positions."""
 
@@ -102,5 +111,3 @@ class TestAlpacaPositionsClientIntegration:
                 assert isinstance(closed.symbol, str)
                 assert closed.status == 200
                 assert closed.order is not None
-
-

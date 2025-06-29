@@ -1,11 +1,13 @@
-from logging import Logger
 import time
 from contextlib import contextmanager
+from logging import Logger
 from typing import Generator
-from algo_royale.config.config import Config
+
 import psycopg2
 from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
-from algo_royale.logging.logger_singleton import Environment, LoggerSingleton, LoggerType
+
+from algo_royale.config.config import Config
+
 
 class Database:
     def __init__(self, logger: Logger, config: Config, secrets: Config):
@@ -14,7 +16,9 @@ class Database:
         self.db_secrets = secrets.get_section("db.connection")
         self.connection = None
 
-    def connect(self, retries=3, delay=2, create_if_not_exists=False) -> psycopg2.extensions.connection:
+    def connect(
+        self, retries=3, delay=2, create_if_not_exists=False
+    ) -> psycopg2.extensions.connection:
         """
         Establish a connection to the database. Optionally create the database if it doesn't exist.
         """
@@ -40,7 +44,9 @@ class Database:
                 if create_if_not_exists:
                     # Check if the target database exists; create it if it doesn't
                     with conn.cursor() as cur:
-                        cur.execute(f"SELECT 1 FROM pg_database WHERE datname = '{dbname}'")
+                        cur.execute(
+                            f"SELECT 1 FROM pg_database WHERE datname = '{dbname}'"
+                        )
                         if not cur.fetchone():
                             cur.execute(f"CREATE DATABASE {dbname}")
                             self.logger.info(f"✅ Created database: {dbname}")
@@ -60,11 +66,15 @@ class Database:
 
             except psycopg2.OperationalError as e:
                 attempt += 1
-                self.logger.error(f"⚠️ Database connection failed (attempt {attempt}/{retries}): {e}")
+                self.logger.error(
+                    f"⚠️ Database connection failed (attempt {attempt}/{retries}): {e}"
+                )
                 if attempt < retries:
                     time.sleep(delay)
                 else:
-                    self.logger.error("❌ Max retries reached. Could not connect to the database.")
+                    self.logger.error(
+                        "❌ Max retries reached. Could not connect to the database."
+                    )
                     raise
 
     def close(self):
@@ -76,7 +86,9 @@ class Database:
             self.logger.info("✅ Database connection closed.")
 
     @contextmanager
-    def connection_context(self, create_if_not_exists=False) -> Generator[psycopg2.extensions.connection, None, None]:
+    def connection_context(
+        self, create_if_not_exists=False
+    ) -> Generator[psycopg2.extensions.connection, None, None]:
         """
         Context manager for database connections.
         """
