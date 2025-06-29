@@ -211,7 +211,9 @@ def test_prepare_data_exception(coordinator, mock_logger, mock_stage_data_manage
     # Use the robust mock_data_preparer fixture with _should_fail flag
     coordinator.data_preparer._should_fail = True
     data = {"AAPL": lambda: "df_iter"}
-    result = coordinator._prepare_data(BacktestStage.DATA_INGEST, data, strategy_name="strat")
+    result = coordinator._prepare_data(
+        BacktestStage.DATA_INGEST, data, strategy_name="strat"
+    )
     for symbol, factory in result.items():
         try:
             factory()
