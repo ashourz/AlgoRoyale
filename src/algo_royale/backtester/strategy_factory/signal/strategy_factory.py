@@ -39,6 +39,7 @@ class StrategyFactory:
         self.strategy_map_path = strategy_map_path
         self._strategy_map_lock = threading.Lock()
 
+    ##TODO: UNUSED
     def get_all_strategy_combination_lambdas(
         self,
     ) -> list[Callable[[], list[BaseSignalStrategy]]]:
@@ -83,6 +84,7 @@ class StrategyFactory:
 
         return combination_lambdas
 
+    ##TODO: UNUSED
     def _save_strategy_map(self, strategies: list[BaseSignalStrategy]) -> None:
         """
         Generates and saves a mapping of {strategy_class: {hash_id: description}}
@@ -106,6 +108,7 @@ class StrategyFactory:
                 "Strategy map saved successfully with %d strategies.", len(strategies)
             )
 
+    ##TODO: UNUSED
     @staticmethod
     def instantiate_conditions(cond_list):
         """Convert a list of dicts to a list of condition objects."""
@@ -117,6 +120,7 @@ class StrategyFactory:
             for cond_class, params in cond.items()
         ]
 
+    ##TODO: UNUSED
     @staticmethod
     def instantiate_stateful_logic(logic):
         """
