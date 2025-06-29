@@ -8,24 +8,23 @@ from algo_royale.backtester.column_names.feature_engineering_columns import (
 
 
 class BacktestStageName(str):
-    STRATEGY_WALK_FORWARD = "walk_forward"
     DATA_INGEST = "data_ingest"
     FEATURE_ENGINEERING = "feature_engineering"
-    BACKTEST = "backtest"
+    ##SIGNAL
+    SIGNAL_BACKTEST_EXECUTOR = "signal_backtest_executor"
+    SIGNAL_BACKTEST_EVALUATOR = "signal_backtest_evaluator"
     STRATEGY_OPTIMIZATION = "strategy_optimization"
     STRATEGY_TESTING = "strategy_testing"
-    OPTIMIZATION = "optimization"
-    TESTING = "testing"
-    STRATEGY_EVALUATION = "evaluation"
+    STRATEGY_EVALUATION = "strategy_evaluation"
+    SYMBOL_EVALUATION = "symbol_evaluation"
+    ##PORTFOLIO
+    PORTFOLIO_BACKTEST_EXECUTOR = "portfolio_backtest_executor"
     PORTFOLIO_OPTIMIZATION = "portfolio_optimization"
     PORTFOLIO_TESTING = "portfolio_testing"
     PORTFOLIO_EVALUATION = "portfolio_evaluation"
-
-    RESULTS_ANALYSIS = "results_analysis"
-    STRATEGY_METRICS = "strategy_metrics"
-    STRATEGY_SELECTION = "strategy_selection"
-    REPORTING = "reporting"
-    DEPLOYMENT = "deployment"
+    ##WALK FORWARD
+    SIGNAL_STRATEGY_WALK_FORWARD = "signal_strategy_walk_forward"
+    PORTFOLIO_STRATEGY_WALK_FORWARD = "portfolio_strategy_walk_forward"
 
 
 class BacktestStage(Enum):
@@ -52,13 +51,6 @@ class BacktestStage(Enum):
         DEPLOYMENT: Deploying the selected strategy for live trading
     """
 
-    STRATEGY_WALK_FORWARD = (
-        BacktestStageName.STRATEGY_WALK_FORWARD,
-        "Walk forward evaluation of strategies",
-        None,
-        [],
-        {},
-    )
     DATA_INGEST = (
         BacktestStageName.DATA_INGEST,
         "Loading and staging raw/unprocessed data (from API, files, DB, etc.)",
@@ -103,9 +95,17 @@ class BacktestStage(Enum):
             DataIngestColumns.SYMBOL: FeatureEngineeringColumns.SYMBOL,
         },
     )
-    OPTIMIZATION = (
-        BacktestStageName.OPTIMIZATION,
-        "Optimizing strategies using historical data",
+    ## SIGNAL
+    SIGNAL_BACKTEST_EXECUTOR = (
+        BacktestStageName.SIGNAL_BACKTEST_EXECUTOR,
+        "Executing backtests for individual trading strategies",
+        None,
+        [],
+        {},
+    )
+    SIGNAL_BACKTEST_EVALUATOR = (
+        BacktestStageName.SIGNAL_BACKTEST_EVALUATOR,
+        "Evaluating backtest results for individual trading strategies",
         BacktestStageName.FEATURE_ENGINEERING,
         [],
         {},
@@ -124,17 +124,25 @@ class BacktestStage(Enum):
         [],
         {},
     )
-    TESTING = (
-        BacktestStageName.TESTING,
-        "Testing strategies using historical data",
-        BacktestStageName.FEATURE_ENGINEERING,
-        [],
-        {},
-    )
     STRATEGY_EVALUATION = (
         BacktestStageName.STRATEGY_EVALUATION,
         "Evaluating strategies based on performance metrics",
         None,
+        [],
+        {},
+    )
+    SYMBOL_EVALUATION = (
+        BacktestStageName.SYMBOL_EVALUATION,
+        "Evaluating symbols based on performance metrics",
+        None,
+        [],
+        {},
+    )
+    ## PORTFOLIO
+    PORTFOLIO_BACKTEST_EXECUTOR = (
+        BacktestStageName.PORTFOLIO_BACKTEST_EXECUTOR,
+        "Executing backtests for a portfolio of strategies",
+        BacktestStageName.FEATURE_ENGINEERING,
         [],
         {},
     )
@@ -159,45 +167,18 @@ class BacktestStage(Enum):
         [],
         {},
     )
-    BACKTEST = (
-        BacktestStageName.BACKTEST,
-        "Backtesting strategies on historical data",
-        BacktestStageName.FEATURE_ENGINEERING,
+    ## WALK FORWARD
+    SIGNAL_STRATEGY_WALK_FORWARD = (
+        BacktestStageName.SIGNAL_STRATEGY_WALK_FORWARD,
+        "Walk forward evaluation of signal strategies",
+        BacktestStageName.SIGNAL_BACKTEST_EVALUATOR,
         [],
         {},
     )
-    RESULTS_ANALYSIS = (
-        BacktestStageName.RESULTS_ANALYSIS,
-        "Analyzing backtest results and performance metrics",
-        BacktestStageName.STRATEGY_OPTIMIZATION,
-        [],
-        {},
-    )
-    STRATEGY_METRICS = (
-        BacktestStageName.STRATEGY_METRICS,
-        "Calculating and reporting strategy performance metrics",
-        BacktestStageName.RESULTS_ANALYSIS,
-        [],
-        {},
-    )
-    STRATEGY_SELECTION = (
-        BacktestStageName.STRATEGY_SELECTION,
-        "Selecting the best strategy based on performance metrics",
-        BacktestStageName.STRATEGY_METRICS,
-        [],
-        {},
-    )
-    REPORTING = (
-        BacktestStageName.REPORTING,
-        "Generating reports and visualizations for analysis",
-        BacktestStageName.STRATEGY_SELECTION,
-        [],
-        {},
-    )
-    DEPLOYMENT = (
-        BacktestStageName.DEPLOYMENT,
-        "Deploying the selected strategy for live trading",
-        BacktestStageName.REPORTING,
+    PORTFOLIO_STRATEGY_WALK_FORWARD = (
+        BacktestStageName.PORTFOLIO_STRATEGY_WALK_FORWARD,
+        "Walk forward evaluation of portfolio strategies",
+        BacktestStageName.PORTFOLIO_BACKTEST_EXECUTOR,
         [],
         {},
     )

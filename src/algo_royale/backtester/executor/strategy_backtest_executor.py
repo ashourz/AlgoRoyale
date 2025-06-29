@@ -17,7 +17,7 @@ class StrategyBacktestExecutor(BacktestExecutor):
     def __init__(self, stage_data_manager: StageDataManager, logger: Logger):
         self.logger = logger
         self.stage_data_manager = stage_data_manager
-        self.stage = BacktestStage.BACKTEST
+        self.stage = BacktestStage.SIGNAL_BACKTEST_EXECUTOR
         self._processed_pairs = set()
 
     async def run_backtest(
@@ -31,16 +31,6 @@ class StrategyBacktestExecutor(BacktestExecutor):
         if not data:
             self.logger.error("No data available - check your data paths and files")
             return
-
-        # Verify at least some files exist
-        # for symbol in data.keys():
-        #     data_path = self.stage_data_manager.get_directory_path(
-        #         self.stage, None, symbol
-        #     )
-        #     if not data_path.exists():
-        #         self.logger.error(f"Data path does not exist: {data_path}")
-        #     elif not any(data_path.glob("*.csv")):
-        #         self.logger.error(f"No CSV files found in {data_path}")
 
         try:
             self.logger.info("Starting async backtest for strategies: %s", strategies)
