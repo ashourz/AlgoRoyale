@@ -1,6 +1,6 @@
 from abc import ABC
 from logging import Logger
-from typing import Any, Callable, List, Type, Union
+from typing import Any, Callable, Dict, List, Type, Union
 
 import pandas as pd
 
@@ -93,10 +93,27 @@ class MockPortfolioStrategyOptimizerFactory(PortfolioStrategyOptimizerFactory):
 
     def __init__(self):
         """
-        Initialize the mock optimizer factory with default parameters.
+        Initialize the mock factory.
+        This factory does not require a logger since it is used for testing purposes.
         """
-        super().__init__(logger=None)  # Logger is not used in mock, set to None
-        self.mock_results = None
+        super().__init__()
+        self.created_optimizer = None
+
+    def resetCreatedOptimizers(self):
+        """
+        Reset the list of created optimizers.
+        This is useful for testing to ensure a clean state.
+        """
+        self.created_optimizer = None
+        self.created_optimizer_result = None
+
+    def setCreatedOptimizerResult(self, result: Dict[str, Any]):
+        """
+        Set the result for the created optimizer.
+        This is useful for testing to control the output of the mock optimizer.
+        :param result: The result to set for the created optimizer.
+        """
+        self.created_optimizer_result = result
 
     def create(
         self,
@@ -113,4 +130,14 @@ class MockPortfolioStrategyOptimizerFactory(PortfolioStrategyOptimizerFactory):
         Create a mock optimizer instance.
         :return: MockPortfolioStrategyOptimizerImpl instance.
         """
-        return MockPortfolioStrategyOptimizer()
+        self.created_optimizer = MockPortfolioStrategyOptimizer()
+        self.created_optimizer.setOptimizeResults(self.created_optimizer_result)
+        return self.created_optimizer
+
+
+def mockPortfolioStrategyOptimizerFactory():
+    """
+    Mock version of PortfolioStrategyOptimizerFactory for testing purposes.
+    This factory creates a mock optimizer that can be used in tests.
+    """
+    return MockPortfolioStrategyOptimizerFactory()

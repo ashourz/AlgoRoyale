@@ -35,7 +35,7 @@ from algo_royale.backtester.feature_engineering.feature_engineer import FeatureE
 from algo_royale.backtester.feature_engineering.feature_engineering import (
     feature_engineering,
 )
-from algo_royale.backtester.optimizer.portfolio.portfolio_Strategy_optimizer_factory import (
+from algo_royale.backtester.optimizer.portfolio.portfolio_strategy_optimizer_factory import (
     PortfolioStrategyOptimizerFactoryImpl,
 )
 from algo_royale.backtester.pipeline.pipeline_coordinator import PipelineCoordinator

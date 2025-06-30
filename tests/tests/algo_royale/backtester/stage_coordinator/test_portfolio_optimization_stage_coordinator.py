@@ -4,6 +4,9 @@ import pandas as pd
 import pytest
 
 from algo_royale.backtester.optimizer.portfolio.portfolio_metric import PortfolioMetric
+from algo_royale.backtester.optimizer.portfolio.portfolio_strategy_optimizer_factory import (
+    mockPortfolioStrategyOptimizerFactory,
+)
 from algo_royale.backtester.stage_coordinator.optimization.portfolio_optimization_stage_coordinator import (
     PortfolioOptimizationStageCoordinator,
 )
@@ -75,6 +78,11 @@ def mock_evaluator():
     return eval
 
 
+@pytest.fixture
+def mock_portfolio_strategy_optimizer_factory():
+    return mockPortfolioStrategyOptimizerFactory()
+
+
 @pytest.mark.asyncio
 async def test_portfolio_optimization_process(
     mock_loader,
@@ -85,7 +93,18 @@ async def test_portfolio_optimization_process(
     mock_combinator,
     mock_executor,
     mock_evaluator,
+    mock_portfolio_strategy_optimizer_factory,
 ):
+    optimizer_factory = mock_portfolio_strategy_optimizer_factory
+    optimizer_factory.setCreatedOptimizerResult(
+        {
+            "strategy": "DummyStrategy",
+            "best_value": 2.0,
+            "best_params": {},
+            "meta": {},
+            "metrics": {PortfolioMetric.SHARPE_RATIO.value: 2.0},
+        }
+    )
     coordinator = PortfolioOptimizationStageCoordinator(
         data_loader=mock_loader,
         data_preparer=mock_preparer,
@@ -98,6 +117,7 @@ async def test_portfolio_optimization_process(
         optimization_root=mock_manager.get_directory_path(),
         asset_matrix_preparer=MagicMock(),  # <-- added
         optimization_json_filename="dummy_optimization.json",
+        portfolio_strategy_optimizer_factory=optimizer_factory,
     )
 
     coordinator.start_date = "2021-01-01"
