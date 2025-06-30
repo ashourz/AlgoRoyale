@@ -206,7 +206,7 @@ class PortfolioStrategyOptimizerImpl(PortfolioStrategyOptimizer):
 
 class MockPortfolioStrategyOptimizer(PortfolioStrategyOptimizer):
     """
-    Mock version of PortfolioStrategyOptimizerImpl for testing purposes.
+    Mock version of PortfolioStrategyOptimizer for testing purposes.
     This class is used to create a mock optimizer that can be used in tests.
     """
 
@@ -246,7 +246,7 @@ class MockPortfolioStrategyOptimizer(PortfolioStrategyOptimizer):
         return self.mock_results
 
 
-def mockPortfolioStrategyOptimizer() -> PortfolioStrategyOptimizerImpl:
+def mockPortfolioStrategyOptimizer() -> MockPortfolioStrategyOptimizer:
     """
     Mock version of PortfolioStrategyOptimizer for testing purposes.
     """

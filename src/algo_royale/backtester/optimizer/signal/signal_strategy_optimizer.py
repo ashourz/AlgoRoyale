@@ -1,6 +1,7 @@
 import asyncio
 import inspect
 import time
+from abc import ABC, abstractmethod
 from logging import Logger
 from typing import Any, Callable, Dict, Type
 
@@ -8,7 +9,30 @@ import optuna
 import pandas as pd
 
 
-class StrategyOptimizer:
+class SignalStrategyOptimizer(ABC):
+    """
+    Abstract base class for signal strategy optimizers.
+    This class defines the interface for optimizing signal strategies using Optuna.
+    """
+
+    @abstractmethod
+    def optimize(
+        self,
+        symbol: str,
+        df: pd.DataFrame,
+        n_trials: int = 50,
+    ) -> Dict[str, Any]:
+        """
+        Run the optimization process for a given symbol and DataFrame.
+        :param symbol: The symbol to optimize for.
+        :param df: DataFrame containing the data for the symbol.
+        :param n_trials: Number of trials to run.
+        :return: A dictionary with the optimization results.
+        """
+        raise NotImplementedError("This method should be implemented by subclasses.")
+
+
+class SignalStrategyOptimizerImpl(SignalStrategyOptimizer):
     def __init__(
         self,
         strategy_class: Type,
@@ -219,3 +243,52 @@ class StrategyOptimizer:
             return result_container["result"]
         else:
             return asyncio.run(coro)
+
+
+class MockSignalStrategyOptimizer(SignalStrategyOptimizer):
+    """
+    Mock version of SignalStrategyOptimizer for testing purposes.
+    This class is used to create a mock optimizer that can be used in tests.
+    """
+
+    def __init__(self):
+        """
+        Initialize the mock optimizer with default parameters.
+        """
+        super().__init__()
+        self.mock_results = None
+
+    def setOptimizeResults(self, results: Dict[str, Any]) -> None:
+        """
+        Set the optimization results for the mock optimizer.
+        :param results: Dictionary containing the mock optimization results.
+        """
+        self.mock_results = results
+
+    def resetOptimizeResults(self) -> None:
+        """
+        Reset the mock optimization results to None.
+        This allows for reusing the mock optimizer with different results.
+        """
+        self.mock_results = None
+
+    def optimize(
+        self,
+        symbol: str,
+        df: pd.DataFrame,
+        n_trials: int = 1,
+    ) -> Dict[str, Any]:
+        """
+        Mock implementation of the optimize method.
+        Returns a fixed result for testing purposes.
+        """
+        if self.mock_results is None:
+            raise ValueError("Mock results not set. Call setOptimizeResults() first.")
+        return self.mock_results
+
+
+def mockSignalStrategyOptimizer() -> MockSignalStrategyOptimizer:
+    """
+    Mock version of SignalStrategyOptimizer for testing purposes.
+    """
+    return MockSignalStrategyOptimizer()

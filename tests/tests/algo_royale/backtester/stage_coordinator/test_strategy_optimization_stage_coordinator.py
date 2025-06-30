@@ -5,6 +5,9 @@ import pandas as pd
 import pytest
 
 from algo_royale.backtester.enum.backtest_stage import BacktestStage
+from algo_royale.backtester.optimizer.signal.signal_strategy_optimizer_factory import (
+    mockSignalStrategyOptimizerFactory,
+)
 from algo_royale.backtester.stage_coordinator.optimization.strategy_optimization_stage_coordinator import (
     StrategyOptimizationStageCoordinator,
 )
@@ -51,6 +54,11 @@ def mock_evaluator():
     return eval
 
 
+@pytest.fixture
+def mock_signal_strategy_optimizer_factory():
+    return mockSignalStrategyOptimizerFactory()
+
+
 @pytest.mark.asyncio
 async def test_init_success(
     mock_loader,
@@ -60,6 +68,7 @@ async def test_init_success(
     mock_logger,
     mock_executor,
     mock_evaluator,
+    mock_signal_strategy_optimizer_factory,
 ):
     class DummyStrategy:
         pass
@@ -71,6 +80,16 @@ async def test_init_success(
         def get_condition_types():
             return {"entry": [], "exit": []}
 
+    optimizer_factory = mock_signal_strategy_optimizer_factory
+    optimizer_factory.setCreatedOptimizerResult(
+        {
+            "strategy": "DummyStrategy",
+            "best_params": {"param1": 1, "param2": 2},
+            "best_value": 0.95,
+            "meta": {"symbol": "AAPL", "window_id": "20240101_20240131"},
+            "metrics": {"sharpe": 2.0},
+        }
+    )
     # Patch output_stage on BacktestStage.STRATEGY_OPTIMIZATION for test robustness
     with patch.object(
         BacktestStage.STRATEGY_OPTIMIZATION, "output_stage", create=True, new=None
@@ -86,6 +105,7 @@ async def test_init_success(
             strategy_evaluator=mock_evaluator,
             optimization_root=".",
             optimization_json_filename="test.json",
+            signal_strategy_optimizer_factory=optimizer_factory,
         )
 
 
@@ -98,6 +118,7 @@ async def test_process_returns_factories(
     mock_logger,
     mock_executor,
     mock_evaluator,
+    mock_signal_strategy_optimizer_factory,
 ):
     class StratA:
         pass
@@ -115,6 +136,16 @@ async def test_process_returns_factories(
         def get_condition_types():
             return {"entry": [], "exit": []}
 
+    optimizer_factory = mock_signal_strategy_optimizer_factory
+    optimizer_factory.setCreatedOptimizerResult(
+        {
+            "strategy": "DummyStrategy",
+            "best_params": {"param1": 1, "param2": 2},
+            "best_value": 0.95,
+            "meta": {"symbol": "AAPL", "window_id": "20240101_20240131"},
+            "metrics": {"sharpe": 2.0},
+        }
+    )
     with patch.object(
         BacktestStage.STRATEGY_OPTIMIZATION, "output_stage", create=True, new=None
     ):
@@ -129,6 +160,7 @@ async def test_process_returns_factories(
             strategy_evaluator=mock_evaluator,
             optimization_root=".",
             optimization_json_filename="test.json",
+            signal_strategy_optimizer_factory=optimizer_factory,
         )
         coordinator.start_date = datetime(2024, 1, 1)
         coordinator.end_date = datetime(2024, 1, 31)
@@ -141,7 +173,7 @@ async def test_process_returns_factories(
 
         with (
             patch(
-                "algo_royale.backtester.optimizer.signal.strategy_optimizer.StrategyOptimizer",
+                "algo_royale.backtester.optimizer.signal.signal_strategy_optimizer.SignalStrategyOptimizerImpl",
                 autospec=True,
             ) as MockOptimizer,
             patch.object(
@@ -180,6 +212,7 @@ async def test_fetch_symbol_optimization_exception_logs_error(
     mock_logger,
     mock_executor,
     mock_evaluator,
+    mock_signal_strategy_optimizer_factory,
 ):
     class DummyStrategy:
         pass
@@ -191,6 +224,16 @@ async def test_fetch_symbol_optimization_exception_logs_error(
         def get_condition_types():
             return {"entry": [], "exit": []}
 
+    optimizer_factory = mock_signal_strategy_optimizer_factory
+    optimizer_factory.setCreatedOptimizerResult(
+        {
+            "strategy": "DummyStrategy",
+            "best_params": {"param1": 1, "param2": 2},
+            "best_value": 0.95,
+            "meta": {"symbol": "AAPL", "window_id": "20240101_20240131"},
+            "metrics": {"sharpe": 2.0},
+        }
+    )
     with patch.object(
         BacktestStage.STRATEGY_OPTIMIZATION, "output_stage", create=True, new=None
     ):
@@ -205,6 +248,7 @@ async def test_fetch_symbol_optimization_exception_logs_error(
             strategy_evaluator=mock_evaluator,
             optimization_root=".",
             optimization_json_filename="test.json",
+            signal_strategy_optimizer_factory=optimizer_factory,
         )
         coordinator.start_date = datetime(2024, 1, 1)
         coordinator.end_date = datetime(2024, 1, 31)
@@ -215,22 +259,15 @@ async def test_fetch_symbol_optimization_exception_logs_error(
 
         prepared_data = {"AAPL": lambda: df_iter()}
 
-        with (
-            patch(
-                "algo_royale.backtester.optimizer.signal.strategy_optimizer.StrategyOptimizer",
-            ) as MockOptimizer,
-            patch.object(
-                coordinator,
-                "_backtest_and_evaluate",
-                new=AsyncMock(side_effect=Exception("Test error")),
-            ),
-            patch("builtins.open", create=True),
-            patch("json.load", return_value={}),
-        ):
-            instance = MockOptimizer.return_value
-            instance.optimize.side_effect = Exception("Test error")
-            result = await coordinator.process(prepared_data)
-            assert result == {}
+        # Simulate optimizer exception by swapping the factory's create method for this test
+        class FailingOptimizer:
+            def optimize(self, *a, **k):
+                raise Exception("Test error")
+
+        optimizer_factory.create = lambda *a, **k: FailingOptimizer()
+
+        result = await coordinator.process(prepared_data)
+        assert result == {}
 
 
 @pytest.mark.asyncio
@@ -242,6 +279,7 @@ async def test_process_skips_symbol_with_no_data(
     mock_logger,
     mock_executor,
     mock_evaluator,
+    mock_signal_strategy_optimizer_factory,
 ):
     class DummyStrategy:
         pass
@@ -253,6 +291,16 @@ async def test_process_skips_symbol_with_no_data(
         def get_condition_types():
             return {"entry": [], "exit": []}
 
+    optimizer_factory = mock_signal_strategy_optimizer_factory
+    optimizer_factory.setCreatedOptimizerResult(
+        {
+            "strategy": "DummyStrategy",
+            "best_params": {"param1": 1, "param2": 2},
+            "best_value": 0.95,
+            "meta": {"symbol": "AAPL", "window_id": "20240101_20240131"},
+            "metrics": {"sharpe": 2.0},
+        }
+    )
     with patch.object(
         BacktestStage.STRATEGY_OPTIMIZATION, "output_stage", create=True, new=None
     ):
@@ -267,6 +315,7 @@ async def test_process_skips_symbol_with_no_data(
             strategy_evaluator=mock_evaluator,
             optimization_root=".",
             optimization_json_filename="test.json",
+            signal_strategy_optimizer_factory=optimizer_factory,
         )
         coordinator.start_date = datetime(2024, 1, 1)
         coordinator.end_date = datetime(2024, 1, 31)
@@ -280,7 +329,7 @@ async def test_process_skips_symbol_with_no_data(
 
         with (
             patch(
-                "algo_royale.backtester.optimizer.signal.strategy_optimizer.StrategyOptimizer",
+                "algo_royale.backtester.optimizer.signal.signal_strategy_optimizer.SignalStrategyOptimizerImpl",
                 autospec=True,
             ) as MockOptimizer,
             patch.object(
@@ -307,6 +356,7 @@ async def test_process_multiple_strategies(
     mock_logger,
     mock_executor,
     mock_evaluator,
+    mock_signal_strategy_optimizer_factory,
 ):
     class StratA:
         pass
@@ -328,6 +378,16 @@ async def test_process_multiple_strategies(
         def get_condition_types():
             return {"entry": [], "exit": []}
 
+    optimizer_factory = mock_signal_strategy_optimizer_factory
+    optimizer_factory.setCreatedOptimizerResult(
+        {
+            "strategy": "DummyStrategy",
+            "best_params": {"param1": 1, "param2": 2},
+            "best_value": 0.95,
+            "meta": {"symbol": "AAPL", "window_id": "20240101_20240131"},
+            "metrics": {"sharpe": 2.0},
+        }
+    )
     with patch.object(
         BacktestStage.STRATEGY_OPTIMIZATION, "output_stage", create=True, new=None
     ):
@@ -342,6 +402,7 @@ async def test_process_multiple_strategies(
             strategy_evaluator=mock_evaluator,
             optimization_root=".",
             optimization_json_filename="test.json",
+            signal_strategy_optimizer_factory=optimizer_factory,
         )
         coordinator.start_date = datetime(2024, 1, 1)
         coordinator.end_date = datetime(2024, 1, 31)
@@ -354,7 +415,7 @@ async def test_process_multiple_strategies(
 
         with (
             patch(
-                "algo_royale.backtester.optimizer.signal.strategy_optimizer.StrategyOptimizer",
+                "algo_royale.backtester.optimizer.signal.signal_strategy_optimizer.SignalStrategyOptimizerImpl",
                 autospec=True,
             ) as MockOptimizer,
             patch.object(
@@ -383,6 +444,7 @@ async def test_process_optimizer_exception_logs_error(
     mock_logger,
     mock_executor,
     mock_evaluator,
+    mock_signal_strategy_optimizer_factory,  # <-- add fixture
 ):
     class DummyStrategy:
         pass
@@ -394,6 +456,16 @@ async def test_process_optimizer_exception_logs_error(
         def get_condition_types():
             return {"entry": [], "exit": []}
 
+    optimizer_factory = mock_signal_strategy_optimizer_factory
+    optimizer_factory.setCreatedOptimizerResult(
+        {
+            "strategy": "DummyStrategy",
+            "best_params": {"param1": 1, "param2": 2},
+            "best_value": 0.95,
+            "meta": {"symbol": "AAPL", "window_id": "20240101_20240131"},
+            "metrics": {"sharpe": 2.0},
+        }
+    )
     with patch.object(
         BacktestStage.STRATEGY_OPTIMIZATION, "output_stage", create=True, new=None
     ):
@@ -408,6 +480,7 @@ async def test_process_optimizer_exception_logs_error(
             strategy_evaluator=mock_evaluator,
             optimization_root=".",
             optimization_json_filename="test.json",
+            signal_strategy_optimizer_factory=optimizer_factory,
         )
         coordinator.start_date = datetime(2024, 1, 1)
         coordinator.end_date = datetime(2024, 1, 31)
@@ -420,7 +493,7 @@ async def test_process_optimizer_exception_logs_error(
 
         with (
             patch(
-                "algo_royale.backtester.optimizer.signal.strategy_optimizer.StrategyOptimizer",
+                "algo_royale.backtester.optimizer.signal.signal_strategy_optimizer.SignalStrategyOptimizerImpl",
             ) as MockOptimizer,
             patch.object(
                 coordinator,
@@ -447,6 +520,7 @@ async def test_write_is_noop(
     mock_logger,
     mock_executor,
     mock_evaluator,
+    mock_signal_strategy_optimizer_factory,  # <-- add fixture
 ):
     class DummyStrategy:
         pass
@@ -458,6 +532,16 @@ async def test_write_is_noop(
         def get_condition_types():
             return {"entry": [], "exit": []}
 
+    optimizer_factory = mock_signal_strategy_optimizer_factory
+    optimizer_factory.setCreatedOptimizerResult(
+        {
+            "strategy": "DummyStrategy",
+            "best_params": {"param1": 1, "param2": 2},
+            "best_value": 0.95,
+            "meta": {"symbol": "AAPL", "window_id": "20240101_20240131"},
+            "metrics": {"sharpe": 2.0},
+        }
+    )
     with patch.object(
         BacktestStage.STRATEGY_OPTIMIZATION, "output_stage", create=True, new=None
     ):
@@ -472,6 +556,7 @@ async def test_write_is_noop(
             strategy_evaluator=mock_evaluator,
             optimization_root=".",
             optimization_json_filename="test.json",
+            signal_strategy_optimizer_factory=optimizer_factory,
         )
         result = await coordinator._write(None, None)
         assert result is None

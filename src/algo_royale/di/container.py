@@ -38,6 +38,9 @@ from algo_royale.backtester.feature_engineering.feature_engineering import (
 from algo_royale.backtester.optimizer.portfolio.portfolio_strategy_optimizer_factory import (
     PortfolioStrategyOptimizerFactoryImpl,
 )
+from algo_royale.backtester.optimizer.signal.signal_strategy_optimizer_factory import (
+    SignalStrategyOptimizerFactoryImpl,
+)
 from algo_royale.backtester.pipeline.pipeline_coordinator import PipelineCoordinator
 from algo_royale.backtester.stage_coordinator.data_ingest_stage_coordinator import (
     DataIngestStageCoordinator,
@@ -380,6 +383,11 @@ class DIContainer(containers.DeclarativeContainer):
         logger=logger_backtest_prod,
     )
 
+    signal_strategy_optimizer_factory = providers.Singleton(
+        SignalStrategyOptimizerFactoryImpl,
+        logger=logger_backtest_prod,
+    )
+
     strategy_optimization_stage_coordinator = providers.Singleton(
         StrategyOptimizationStageCoordinator,
         data_loader=stage_data_loader,
@@ -398,6 +406,7 @@ class DIContainer(containers.DeclarativeContainer):
                 "backtester.signal.filenames", "signal_optimization_json_filename"
             )
         ),
+        signal_strategy_optimizer_factory=signal_strategy_optimizer_factory,
     )
 
     strategy_testing_stage_coordinator = providers.Singleton(

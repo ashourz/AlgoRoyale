@@ -14,7 +14,9 @@ from algo_royale.backtester.evaluator.backtest.base_backtest_evaluator import (
 from algo_royale.backtester.executor.strategy_backtest_executor import (
     StrategyBacktestExecutor,
 )
-from algo_royale.backtester.optimizer.signal.strategy_optimizer import StrategyOptimizer
+from algo_royale.backtester.optimizer.signal.signal_strategy_optimizer_factory import (
+    SignalStrategyOptimizerFactory,
+)
 from algo_royale.backtester.stage_coordinator.optimization.base_optimization_stage_coordinator import (
     BaseOptimizationStageCoordinator,
 )
@@ -46,6 +48,7 @@ class StrategyOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
         strategy_executor: StrategyBacktestExecutor instance for executing backtests.
         strategy_evaluator: BacktestEvaluator instance for evaluating backtest results.
         strategy_combinators: List of strategy combinator classes to use.
+        signal_strategy_optimizer_factory: Factory for creating signal strategy optimizers.
     """
 
     def __init__(
@@ -60,6 +63,7 @@ class StrategyOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
         strategy_combinators: Sequence[type[SignalStrategyCombinator]],
         optimization_root: str,
         optimization_json_filename: str,
+        signal_strategy_optimizer_factory: SignalStrategyOptimizerFactory,
     ):
         """Coordinator for the backtest stage.
         Args:
@@ -87,6 +91,7 @@ class StrategyOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
             ## Create the directory if it does not exist
             self.optimization_root.mkdir(parents=True, exist_ok=True)
         self.optimization_json_filename = optimization_json_filename
+        self.signal_strategy_optimizer_factory = signal_strategy_optimizer_factory
 
     async def process(
         self,
@@ -117,13 +122,12 @@ class StrategyOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
                 strategy_name = strategy_class.__name__
                 # Run optimization
                 try:
-                    optimizer = StrategyOptimizer(
+                    optimizer = self.signal_strategy_optimizer_factory.create(
                         strategy_class=strategy_class,
                         condition_types=strategy_combinator.get_condition_types(),
                         backtest_fn=lambda strat, df_: self._backtest_and_evaluate(
                             symbol, strat, df_
                         ),
-                        logger=self.logger,
                     )
                     optimization_result = optimizer.optimize(symbol, train_df)
 
