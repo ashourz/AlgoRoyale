@@ -84,9 +84,8 @@ class BasePortfolioStrategy(BaseStrategy):
         result["portfolio_returns"] = portfolio_returns
         return result
 
-    @staticmethod
-    def mask_and_normalize_weights(
-        weights: pd.DataFrame, prices: pd.DataFrame
+    def _mask_and_normalize_weights(
+        self, weights: pd.DataFrame, prices: pd.DataFrame
     ) -> pd.DataFrame:
         """
         Set weights to zero for assets with invalid prices (<=0 or NaN), then re-normalize each row.

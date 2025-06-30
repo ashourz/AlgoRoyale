@@ -82,7 +82,7 @@ class EqualRiskContributionPortfolioStrategy(BasePortfolioStrategy):
             latest_prices = returns.iloc[
                 -1
             ].abs()  # Use abs() in case returns are used as proxy for prices
-            weights = self.mask_and_normalize_weights(
+            weights = self._mask_and_normalize_weights(
                 weights,
                 pd.DataFrame(
                     [latest_prices] * len(weights),

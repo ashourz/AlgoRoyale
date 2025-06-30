@@ -61,7 +61,7 @@ class InverseVolatilityPortfolioStrategy(BasePortfolioStrategy):
         weights = weights.replace([np.inf, -np.inf], 0.0).fillna(0.0)
         if not returns.empty:
             latest_prices = returns.iloc[-1].abs()
-            weights = self.mask_and_normalize_weights(
+            weights = self._mask_and_normalize_weights(
                 weights,
                 pd.DataFrame(
                     [latest_prices] * len(weights),
