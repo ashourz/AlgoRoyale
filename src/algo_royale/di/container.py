@@ -35,6 +35,9 @@ from algo_royale.backtester.feature_engineering.feature_engineer import FeatureE
 from algo_royale.backtester.feature_engineering.feature_engineering import (
     feature_engineering,
 )
+from algo_royale.backtester.optimizer.portfolio.portfolio_Strategy_optimizer_factory import (
+    PortfolioStrategyOptimizerFactoryImpl,
+)
 from algo_royale.backtester.pipeline.pipeline_coordinator import PipelineCoordinator
 from algo_royale.backtester.stage_coordinator.data_ingest_stage_coordinator import (
     DataIngestStageCoordinator,
@@ -472,6 +475,11 @@ class DIContainer(containers.DeclarativeContainer):
         logger=logger_backtest_prod,
     )
 
+    portfolio_strategy_optimizer_factory = providers.Singleton(
+        PortfolioStrategyOptimizerFactoryImpl,
+        logger=logger_backtest_prod,
+    )
+
     portfolio_optimization_stage_coordinator = providers.Singleton(
         PortfolioOptimizationStageCoordinator,
         data_loader=stage_data_loader,
@@ -493,6 +501,7 @@ class DIContainer(containers.DeclarativeContainer):
             )
         ),
         asset_matrix_preparer=portfolio_asset_matrix_preparer,
+        portfolio_strategy_optimizer_factory=portfolio_strategy_optimizer_factory,
     )
 
     portfolio_testing_stage_coordinator = providers.Singleton(

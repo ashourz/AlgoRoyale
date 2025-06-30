@@ -204,7 +204,7 @@ class PortfolioStrategyOptimizerImpl(PortfolioStrategyOptimizer):
     # Removed run_async method, as all execution is now async-aware.
 
 
-class MockPortfolioStrategyOptimizerImpl(PortfolioStrategyOptimizer):
+class MockPortfolioStrategyOptimizer(PortfolioStrategyOptimizer):
     """
     Mock version of PortfolioStrategyOptimizerImpl for testing purposes.
     This class is used to create a mock optimizer that can be used in tests.
@@ -250,4 +250,4 @@ def mockPortfolioStrategyOptimizer() -> PortfolioStrategyOptimizerImpl:
     """
     Mock version of PortfolioStrategyOptimizer for testing purposes.
     """
-    return MockPortfolioStrategyOptimizerImpl()
+    return MockPortfolioStrategyOptimizer()

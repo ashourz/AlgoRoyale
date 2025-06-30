@@ -18,8 +18,8 @@ from algo_royale.backtester.executor.portfolio_backtest_executor import (
     PortfolioBacktestExecutor,
 )
 from algo_royale.backtester.optimizer.portfolio.portfolio_metric import PortfolioMetric
-from algo_royale.backtester.optimizer.portfolio.portfolio_strategy_optimizer import (
-    PortfolioStrategyOptimizerImpl,
+from algo_royale.backtester.optimizer.portfolio.portfolio_strategy_optimizer_factory import (
+    PortfolioStrategyOptimizerFactory,
 )
 from algo_royale.backtester.stage_coordinator.optimization.base_optimization_stage_coordinator import (
     BaseOptimizationStageCoordinator,
@@ -36,6 +36,19 @@ class PortfolioOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
     """
     Coordinator for the portfolio optimization stage of the backtest pipeline.
     Optimizes portfolio strategies for a list of symbols using the provided data loader, data preparer, data writer, and optimizer.
+    Params:
+        data_loader (StageDataLoader): Loader for stage data.
+        data_preparer (AsyncDataPreparer): Prepares data asynchronously for the stage.
+        data_writer (StageDataWriter): Writes stage data to disk.
+        stage_data_manager (StageDataManager): Manages stage data paths and directories.
+        logger (Logger): Logger for debugging and information.
+        strategy_combinators (Sequence[type[PortfolioStrategyCombinator]]): List of strategy combinators to generate strategy combinations.
+        executor (PortfolioBacktestExecutor): Executor to run backtests for portfolio strategies.
+        evaluator (PortfolioBacktestEvaluator): Evaluator to assess backtest results.
+        optimization_root (str): Root directory for optimization results.
+        optimization_json_filename (str): Name of the JSON file to write optimization results.
+        asset_matrix_preparer (AssetMatrixPreparer): Prepares asset-matrix form for portfolio strategies.
+        portfolio_strategy_optimizer_factory (PortfolioStrategyOptimizerFactory): Factory to create portfolio strategy optimizers.
     """
 
     def __init__(
@@ -51,6 +64,7 @@ class PortfolioOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
         optimization_root: str,
         optimization_json_filename: str,
         asset_matrix_preparer: AssetMatrixPreparer,
+        portfolio_strategy_optimizer_factory: PortfolioStrategyOptimizerFactory,
     ):
         super().__init__(
             stage=BacktestStage.PORTFOLIO_OPTIMIZATION,
@@ -68,7 +82,8 @@ class PortfolioOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
             ## Create the directory if it does not exist
             self.optimization_root.mkdir(parents=True, exist_ok=True)
         self.optimization_json_filename = optimization_json_filename
-        self.asset_matrix_preparer = asset_matrix_preparer  # NEW
+        self.asset_matrix_preparer = asset_matrix_preparer
+        self.portfolio_strategy_optimizer_factory = portfolio_strategy_optimizer_factory
 
     async def process(
         self,
@@ -117,12 +132,11 @@ class PortfolioOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
                     else str(strategy_class)
                 )
                 try:
-                    optimizer = PortfolioStrategyOptimizerImpl(
+                    optimizer = self.portfolio_strategy_optimizer_factory.create(
                         strategy_class=strategy_class,
                         backtest_fn=lambda strat, df_: self._backtest_and_evaluate(
                             strat, df_
                         ),
-                        logger=self.logger,
                         metric_name=PortfolioMetric.SHARPE_RATIO,
                     )
                     optimization_result = await optimizer.optimize(
