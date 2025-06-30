@@ -5,6 +5,7 @@ import numpy as np
 import pandas as pd
 
 from algo_royale.backtester.executor.base_backtest_executor import BacktestExecutor
+from algo_royale.logging.logger_singleton import mockLogger
 
 
 class PortfolioBacktestExecutor(BacktestExecutor):
@@ -246,3 +247,23 @@ class PortfolioBacktestExecutor(BacktestExecutor):
             self.logger.error(f"Error computing total_return metric: {e}")
             results["metrics"] = {}
         return results
+
+
+def mockPortfolioBacktestExecutor(
+    initial_balance: float = 1_000_000.0,
+    transaction_cost: float = 0.0,
+    min_lot: int = 1,
+    leverage: float = 1.0,
+    slippage: float = 0.0,
+) -> PortfolioBacktestExecutor:
+    """
+    Create a mock PortfolioBacktestExecutor for testing purposes.
+    """
+    return PortfolioBacktestExecutor(
+        logger=mockLogger(),
+        initial_balance=initial_balance,
+        transaction_cost=transaction_cost,
+        min_lot=min_lot,
+        leverage=leverage,
+        slippage=slippage,
+    )

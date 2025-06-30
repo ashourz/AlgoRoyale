@@ -2,6 +2,8 @@ import json
 from logging import Logger
 from pathlib import Path
 
+from algo_royale.logging.logger_singleton import mockLogger
+
 
 class PortfolioEvaluationCoordinator:
     """
@@ -137,3 +139,24 @@ class PortfolioEvaluationCoordinator:
         self.logger.info(
             f"Global portfolio evaluation summary written to {global_summary_path}"
         )
+
+
+def mockPortfolioEvaluationCoordinator(
+    optimization_root: str = "mock_optimization_root",
+    strategy_window_evaluation_json_filename: str = "mock_evaluation.json",
+    strategy_summary_json_filename: str = "mock_summary.json",
+    global_summary_json_filename: str = "mock_global_summary.json",
+    viability_threshold: float = 0.75,
+) -> PortfolioEvaluationCoordinator:
+    """
+    Create a mock PortfolioEvaluationCoordinator for testing purposes.
+    """
+    logger = mockLogger()
+    return PortfolioEvaluationCoordinator(
+        logger=logger,
+        optimization_root=optimization_root,
+        strategy_window_evaluation_json_filename=strategy_window_evaluation_json_filename,
+        strategy_summary_json_filename=strategy_summary_json_filename,
+        global_summary_json_filename=global_summary_json_filename,
+        viability_threshold=viability_threshold,
+    )

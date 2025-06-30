@@ -8,6 +8,7 @@ import numpy as np
 from algo_royale.backtester.evaluator.strategy.strategy_evaluation_type import (
     StrategyEvaluationType,
 )
+from algo_royale.logging.logger_singleton import mockLogger
 
 from .strategy_evaluator import StrategyEvaluator
 
@@ -203,3 +204,22 @@ class StrategyEvaluationCoordinator:
 #     metric_type="both"
 # )
 # coordinator.evaluate_and_write_reports()
+
+
+def mockStrategyEvaluationCoordinator(
+    optimization_root: str = "mock_optimization_root",
+    evaluation_type: StrategyEvaluationType = StrategyEvaluationType.TEST,
+    optimization_json_filename: str = "mock_optimization.json",
+    evaluation_json_filename: str = "mock_evaluation.json",
+) -> StrategyEvaluationCoordinator:
+    """
+    Create a mock StrategyEvaluationCoordinator for testing purposes.
+    """
+    logger = mockLogger()
+    return StrategyEvaluationCoordinator(
+        logger=logger,
+        optimization_root=optimization_root,
+        evaluation_type=evaluation_type,
+        optimization_json_filename=optimization_json_filename,
+        evaluation_json_filename=evaluation_json_filename,
+    )

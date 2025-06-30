@@ -2,6 +2,8 @@ import json
 from logging import Logger
 from pathlib import Path
 
+from algo_royale.logging.logger_singleton import mockLogger
+
 
 class SymbolEvaluationCoordinator:
     """
@@ -88,3 +90,17 @@ class SymbolEvaluationCoordinator:
             with open(summary_path, "w") as f:
                 json.dump(best, f, indent=2)
             print(f"Symbol evaluation report written to {summary_path}")
+
+
+def mockSymbolEvaluationCoordinator():
+    """
+    Mock version of SymbolEvaluationCoordinator for testing purposes.
+    """
+    logger = mockLogger()
+    return SymbolEvaluationCoordinator(
+        optimization_root="mock/optimization/root",
+        evaluation_json_filename="mock_evaluation.json",
+        summary_json_filename="mock_summary.json",
+        logger=logger,
+        viability_threshold=0.75,
+    )

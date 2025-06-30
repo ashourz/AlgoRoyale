@@ -1,4 +1,5 @@
 import time
+from abc import ABC
 from logging import Logger
 from typing import Any, Callable, Dict, List, Type, Union
 
@@ -11,7 +12,29 @@ from algo_royale.backtester.optimizer.portfolio.optimization_direction import (
 from algo_royale.backtester.optimizer.portfolio.portfolio_metric import PortfolioMetric
 
 
-class PortfolioStrategyOptimizer:
+class PortfolioStrategyOptimizer(ABC):
+    """
+    Base class for portfolio strategy optimizers.
+    This class is intended to be subclassed and should not be instantiated directly.
+    """
+
+    async def optimize(
+        self,
+        symbol: str,
+        df: pd.DataFrame,
+        n_trials: int = 1,
+    ) -> Dict[str, Any]:
+        """
+        Run the optimization process for a given symbol and DataFrame.
+        :param symbol: The symbol to optimize for.
+        :param df: DataFrame containing the data for the symbol.
+        :param n_trials: Number of trials to run.
+        :return: A dictionary with the optimization results.
+        """
+        raise NotImplementedError("This method should be implemented in a subclass.")
+
+
+class PortfolioStrategyOptimizerImpl(PortfolioStrategyOptimizer):
     def __init__(
         self,
         strategy_class: Type,
@@ -179,3 +202,52 @@ class PortfolioStrategyOptimizer:
         return results
 
     # Removed run_async method, as all execution is now async-aware.
+
+
+class MockPortfolioStrategyOptimizerImpl(PortfolioStrategyOptimizer):
+    """
+    Mock version of PortfolioStrategyOptimizerImpl for testing purposes.
+    This class is used to create a mock optimizer that can be used in tests.
+    """
+
+    def __init__(self):
+        """
+        Initialize the mock optimizer with default parameters.
+        """
+        super().__init__()
+        self.mock_results = None
+
+    def setOptimizeResults(self, results: Dict[str, Any]) -> None:
+        """
+        Set the optimization results for the mock optimizer.
+        :param results: Dictionary containing the mock optimization results.
+        """
+        self.mock_results = results
+
+    def resetOptimizeResults(self) -> None:
+        """
+        Reset the mock optimization results to None.
+        This allows for reusing the mock optimizer with different results.
+        """
+        self.mock_results = None
+
+    async def optimize(
+        self,
+        symbol: str,
+        df: pd.DataFrame,
+        n_trials: int = 1,
+    ) -> Dict[str, Any]:
+        """
+        Mock implementation of the optimize method.
+        Returns a fixed result for testing purposes.
+        """
+        if self.mock_results is None:
+            raise ValueError("Mock results not set. Call setOptimizeResults() first.")
+        return self.mock_results
+
+
+def mockPortfolioStrategyOptimizer() -> PortfolioStrategyOptimizerImpl:
+    """
+    Mock version of PortfolioStrategyOptimizer for testing purposes.
+    """
+    return MockPortfolioStrategyOptimizerImpl()

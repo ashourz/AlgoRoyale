@@ -3,6 +3,8 @@ from typing import AsyncGenerator, AsyncIterator, Callable
 
 import pandas as pd
 
+from algo_royale.logging.logger_singleton import mockLogger
+
 
 class FeatureEngineer:
     def __init__(
@@ -55,3 +57,17 @@ class FeatureEngineer:
                 buffer = df.iloc[-self.max_lookback :].copy()
             except Exception as e:
                 self.logger.error(f"Feature engineering failed for {symbol}: {e}")
+
+
+def mockFeatureEngineer(
+    feature_engineering_func: Callable[[pd.DataFrame], pd.DataFrame],
+    max_lookback=200,
+) -> FeatureEngineer:
+    """
+    Create a mock FeatureEngineer instance for testing purposes.
+    """
+    return FeatureEngineer(
+        feature_engineering_func=feature_engineering_func,
+        logger=mockLogger(),
+        max_lookback=max_lookback,
+    )

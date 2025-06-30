@@ -8,7 +8,7 @@ from algo_royale.backtester.optimizer.portfolio.optimization_direction import (
 )
 from algo_royale.backtester.optimizer.portfolio.portfolio_metric import PortfolioMetric
 from algo_royale.backtester.optimizer.portfolio.portfolio_strategy_optimizer import (
-    PortfolioStrategyOptimizer,
+    PortfolioStrategyOptimizerImpl,
 )
 
 
@@ -41,7 +41,7 @@ def make_df():
 @pytest.mark.asyncio
 async def test_single_objective():
     logger = MagicMock()
-    optimizer = PortfolioStrategyOptimizer(
+    optimizer = PortfolioStrategyOptimizerImpl(
         strategy_class=DummyStrategy,
         backtest_fn=dummy_backtest_fn,
         logger=logger,
@@ -61,7 +61,7 @@ async def test_single_objective():
 @pytest.mark.asyncio
 async def test_multi_objective():
     logger = MagicMock()
-    optimizer = PortfolioStrategyOptimizer(
+    optimizer = PortfolioStrategyOptimizerImpl(
         strategy_class=DummyStrategy,
         backtest_fn=dummy_backtest_fn,
         logger=logger,
@@ -84,7 +84,7 @@ async def test_metric_extraction_failure():
     def bad_backtest_fn(strategy, df):
         return {}
 
-    optimizer = PortfolioStrategyOptimizer(
+    optimizer = PortfolioStrategyOptimizerImpl(
         strategy_class=DummyStrategy,
         backtest_fn=bad_backtest_fn,
         logger=logger,

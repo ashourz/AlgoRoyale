@@ -19,7 +19,7 @@ from algo_royale.backtester.executor.portfolio_backtest_executor import (
 )
 from algo_royale.backtester.optimizer.portfolio.portfolio_metric import PortfolioMetric
 from algo_royale.backtester.optimizer.portfolio.portfolio_strategy_optimizer import (
-    PortfolioStrategyOptimizer,
+    PortfolioStrategyOptimizerImpl,
 )
 from algo_royale.backtester.stage_coordinator.optimization.base_optimization_stage_coordinator import (
     BaseOptimizationStageCoordinator,
@@ -117,7 +117,7 @@ class PortfolioOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
                     else str(strategy_class)
                 )
                 try:
-                    optimizer = PortfolioStrategyOptimizer(
+                    optimizer = PortfolioStrategyOptimizerImpl(
                         strategy_class=strategy_class,
                         backtest_fn=lambda strat, df_: self._backtest_and_evaluate(
                             strat, df_
