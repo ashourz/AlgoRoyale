@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from enum import Enum
-from typing import List, Optional
+from typing import Any, Callable, List, Optional
 
 from algo_royale.backtester.column_names.data_ingest_columns import DataIngestColumns
 from algo_royale.backtester.column_names.feature_engineering_columns import (
@@ -29,12 +29,35 @@ class BacktestStageName(str):
 
 
 @dataclass(frozen=True)
-class BacktestStageDef:
+class BaseStageDef:
     value: str
     description: str
     input_stage_name: Optional[str]
+
+
+@dataclass(frozen=True)
+class TabularStageDef(BaseStageDef):
     input_columns: List[str]
     output_columns: List[str]
+
+
+@dataclass(frozen=True)
+class OutputMetricValidationStageDef(BaseStageDef):
+    input_columns: List[str]
+    output_metric_validation_fn: Callable[[Any], bool]
+
+
+@dataclass(frozen=True)
+class InputOutputMetricValidationStageDef(BaseStageDef):
+    input_columns: List[str]
+    input_metric_validation_fn: Callable[[Any], bool]
+    output_metric_validation_fn: Callable[[Any], bool]
+
+
+@dataclass(frozen=True)
+class FullMetricValidationStageDef(BaseStageDef):
+    input_metric_validation_fn: Callable[[Any], bool]
+    output_metric_validation_fn: Callable[[Any], bool]
 
 
 class BacktestStage(Enum):
@@ -43,14 +66,14 @@ class BacktestStage(Enum):
     Each stage has a value, description, required columns, and a rename map.
     """
 
-    DATA_INGEST = BacktestStageDef(
+    DATA_INGEST = TabularStageDef(
         value=BacktestStageName.DATA_INGEST,
         description="Loading and staging raw/unprocessed data (from API, files, DB, etc.)",
         input_stage_name=None,
         input_columns=DataIngestColumns.get_all_column_values(),
         output_columns=DataIngestColumns.get_all_column_values(),
     )
-    FEATURE_ENGINEERING = BacktestStageDef(
+    FEATURE_ENGINEERING = TabularStageDef(
         value=BacktestStageName.FEATURE_ENGINEERING,
         description="Creating new features from existing data (technical indicators, etc.)",
         input_stage_name=BacktestStageName.DATA_INGEST,
@@ -63,28 +86,29 @@ class BacktestStage(Enum):
         description="Executing backtests for individual trading strategies",
         input_stage_name=None,
         input_columns=[],
-        output_columns=[],
+        output_validation_fn=[],  ##TODO:
     )
-    SIGNAL_BACKTEST_EVALUATOR = BacktestStageDef(
+    SIGNAL_BACKTEST_EVALUATOR = OutputValidatedStageDef(
         value=BacktestStageName.SIGNAL_BACKTEST_EVALUATOR,
         description="Evaluating backtest results for individual trading strategies",
         input_stage_name=BacktestStageName.FEATURE_ENGINEERING,
-        input_columns=[],
-        output_columns=[],
+        input_columns=FeatureEngineeringColumns.get_all_column_values(),
+        output_validation_fn=[],  ##TODO:
     )
     STRATEGY_OPTIMIZATION = BacktestStageDef(
         value=BacktestStageName.STRATEGY_OPTIMIZATION,
         description="Optimizing strategies using historical data",
         input_stage_name=BacktestStageName.FEATURE_ENGINEERING,
         input_columns=FeatureEngineeringColumns.get_all_column_values(),
-        output_columns=[],
+        output_validation_fn=[],  ##TODO:
     )
     STRATEGY_TESTING = BacktestStageDef(
         value=BacktestStageName.STRATEGY_TESTING,
         description="Testing strategies using historical data",
         input_stage_name=BacktestStageName.FEATURE_ENGINEERING,
         input_columns=FeatureEngineeringColumns.get_all_column_values(),
-        output_columns=[],
+        input_validation_fn=[],  ##TODO:
+        output_validation_fn=[],  ##TODO:
     )
     STRATEGY_EVALUATION = BacktestStageDef(
         value=BacktestStageName.STRATEGY_EVALUATION,
@@ -105,7 +129,7 @@ class BacktestStage(Enum):
         value=BacktestStageName.PORTFOLIO_BACKTEST_EXECUTOR,
         description="Executing backtests for a portfolio of strategies",
         input_stage_name=BacktestStageName.FEATURE_ENGINEERING,
-        input_columns=[],
+        input_columns=FeatureEngineeringColumns.get_all_column_values(),
         output_columns=[],
     )
     PORTFOLIO_OPTIMIZATION = BacktestStageDef(
