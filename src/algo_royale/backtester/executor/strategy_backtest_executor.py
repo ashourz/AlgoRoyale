@@ -30,7 +30,11 @@ class StrategyBacktestExecutor(BacktestExecutor):
         strategies: list[BaseSignalStrategy],
         data: Dict[str, Callable[[], AsyncIterator[pd.DataFrame]]],
     ) -> Dict[str, list[pd.DataFrame]]:
-        """Pure async implementation for processing streaming data"""
+        """Pure async implementation for processing streaming data
+
+        Returns a dictionary mapping symbols to lists of DataFrames containing backtest results.
+        Each DataFrame corresponds to a strategy applied to the data for that symbol.
+        """
         results = {}
 
         if not data:

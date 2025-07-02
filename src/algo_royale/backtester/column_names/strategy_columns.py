@@ -10,4 +10,3 @@ class StrategyColumns(FeatureEngineeringColumns):
     STRATEGY_NAME = ColumnName("strategy_name")
     ENTRY_SIGNAL = ColumnName("entry_signal")
     EXIT_SIGNAL = ColumnName("exit_signal")
-    TRAILING_STOP = ColumnName("trailing_stop")

@@ -6,12 +6,17 @@ from algo_royale.backtester.column_names.data_ingest_columns import DataIngestCo
 from algo_royale.backtester.column_names.feature_engineering_columns import (
     FeatureEngineeringColumns,
 )
+from algo_royale.backtester.column_names.strategy_columns import StrategyColumns
+from algo_royale.backtester.enum.backtest_stage_dict_validation import (
+    BacktestStageDictValidation,
+)
 
 
 class BacktestStageName(str):
     DATA_INGEST = "data_ingest"
     FEATURE_ENGINEERING = "feature_engineering"
     ##SIGNAL
+    SIGNAL_STRATEGY = "signal_strategy"
     SIGNAL_BACKTEST_EXECUTOR = "signal_backtest_executor"
     SIGNAL_BACKTEST_EVALUATOR = "signal_backtest_evaluator"
     STRATEGY_OPTIMIZATION = "strategy_optimization"
@@ -81,48 +86,55 @@ class BacktestStage(Enum):
         output_columns=FeatureEngineeringColumns.get_all_column_values(),
     )
     ## SIGNAL
-    SIGNAL_BACKTEST_EXECUTOR = BacktestStageDef(
-        value=BacktestStageName.SIGNAL_BACKTEST_EXECUTOR,
-        description="Executing backtests for individual trading strategies",
-        input_stage_name=None,
-        input_columns=[],
-        output_validation_fn=[],  ##TODO:
-    )
-    SIGNAL_BACKTEST_EVALUATOR = OutputValidatedStageDef(
-        value=BacktestStageName.SIGNAL_BACKTEST_EVALUATOR,
-        description="Evaluating backtest results for individual trading strategies",
+    SIGNAL_STRATEGY = TabularStageDef(
+        value=BacktestStageName.SIGNAL_STRATEGY,
+        description="Defining trading strategies based on signals",
         input_stage_name=BacktestStageName.FEATURE_ENGINEERING,
         input_columns=FeatureEngineeringColumns.get_all_column_values(),
-        output_validation_fn=[],  ##TODO:
+        output_columns=StrategyColumns.get_all_column_values(),
     )
-    STRATEGY_OPTIMIZATION = BacktestStageDef(
+    SIGNAL_BACKTEST_EXECUTOR = TabularStageDef(
+        value=BacktestStageName.SIGNAL_BACKTEST_EXECUTOR,
+        description="Executing backtests for individual trading strategies",
+        input_stage_name=BacktestStageName.FEATURE_ENGINEERING,
+        input_columns=FeatureEngineeringColumns.get_all_column_values(),
+        output_columns=StrategyColumns.get_all_column_values(),
+    )
+    SIGNAL_BACKTEST_EVALUATOR = OutputMetricValidationStageDef(
+        value=BacktestStageName.SIGNAL_BACKTEST_EVALUATOR,
+        description="Evaluating backtest results for individual trading strategies",
+        input_stage_name=BacktestStageName.SIGNAL_STRATEGY,
+        input_columns=StrategyColumns.get_all_column_values(),
+        output_metric_validation_fn=BacktestStageDictValidation.SIGNAL_BACKTEST_EVALUATOR,
+    )
+    STRATEGY_OPTIMIZATION = OutputMetricValidationStageDef(
         value=BacktestStageName.STRATEGY_OPTIMIZATION,
         description="Optimizing strategies using historical data",
         input_stage_name=BacktestStageName.FEATURE_ENGINEERING,
         input_columns=FeatureEngineeringColumns.get_all_column_values(),
-        output_validation_fn=[],  ##TODO:
+        output_metric_validation_fn=BacktestStageDictValidation.STRATEGY_OPTIMIZATION,
     )
-    STRATEGY_TESTING = BacktestStageDef(
+    STRATEGY_TESTING = InputOutputMetricValidationStageDef(
         value=BacktestStageName.STRATEGY_TESTING,
         description="Testing strategies using historical data",
         input_stage_name=BacktestStageName.FEATURE_ENGINEERING,
         input_columns=FeatureEngineeringColumns.get_all_column_values(),
-        input_validation_fn=[],  ##TODO:
-        output_validation_fn=[],  ##TODO:
+        input_metric_validation_fn=BacktestStageDictValidation.STRATEGY_OPTIMIZATION,
+        output_metric_validation_fn=BacktestStageDictValidation.STRATEGY_TESTING,
     )
-    STRATEGY_EVALUATION = BacktestStageDef(
+    STRATEGY_EVALUATION = FullMetricValidationStageDef(
         value=BacktestStageName.STRATEGY_EVALUATION,
         description="Evaluating strategies based on performance metrics",
         input_stage_name=None,
-        input_columns=[],
-        output_columns=[],
+        input_metric_validation_fn=BacktestStageDictValidation.STRATEGY_OPTIMIZATION_TESTING,
+        output_metric_validation_fn=BacktestStageDictValidation.SIGNAL_STRATEGY_EVALUATION,
     )
-    SYMBOL_EVALUATION = BacktestStageDef(
+    SYMBOL_EVALUATION = FullMetricValidationStageDef(
         value=BacktestStageName.SYMBOL_EVALUATION,
         description="Evaluating symbols based on performance metrics",
         input_stage_name=None,
-        input_columns=[],
-        output_columns=[],
+        input_metric_validation_fn=BacktestStageDictValidation.SIGNAL_STRATEGY_EVALUATION,
+        output_metric_validation_fn=BacktestStageDictValidation.SIGNAL_SYMBOL_EVALUATION,
     )
     ## PORTFOLIO
     PORTFOLIO_BACKTEST_EXECUTOR = BacktestStageDef(
