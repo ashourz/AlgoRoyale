@@ -165,19 +165,19 @@ class BacktestStage(Enum):
         input_validation_fn=BacktestStageDictValidation.PORTFOLIO_OPTIMIZATION_INPUT,
         output_data_validation_fn=BacktestStageDictValidation.PORTFOLIO_OPTIMIZATION_OUTPUT,
     )
-    PORTFOLIO_TESTING = BacktestStageDef(
+    PORTFOLIO_TESTING = FullMetricValidationStageDef(
         value=BacktestStageName.PORTFOLIO_TESTING,
         description="Testing a portfolio of strategies on historical data",
         input_stage_name=BacktestStageName.FEATURE_ENGINEERING,
-        input_columns=FeatureEngineeringColumns.get_all_column_values(),
-        output_columns=[],
+        input_validation_fn=BacktestStageDictValidation.PORTFOLIO_TESTING_INPUT,
+        output_data_validation_fn=BacktestStageDictValidation.PORTFOLIO_TESTING_OUTPUT,
     )
-    PORTFOLIO_EVALUATION = BacktestStageDef(
+    PORTFOLIO_EVALUATION = FullMetricValidationStageDef(
         value=BacktestStageName.PORTFOLIO_EVALUATION,
         description="Evaluating a portfolio of strategies based on performance metrics",
         input_stage_name=None,
-        input_columns=[],
-        output_columns=[],
+        input_validation_fn=BacktestStageDictValidation.PORTFOLIO_EVALUATION_INPUT,
+        output_data_validation_fn=BacktestStageDictValidation.PORTFOLIO_EVALUATION_OUTPUT,
     )
     ## WALK FORWARD
     SIGNAL_STRATEGY_WALK_FORWARD = BacktestStageDef(

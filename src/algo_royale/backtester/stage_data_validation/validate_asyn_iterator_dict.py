@@ -89,7 +89,7 @@ def validate_signal_strategy_backtest_executor_output(
     )
 
 
-def validate_portfolio_optimization_stage_coordinator_input(
+def validate_portfolio_optimization_testing_stage_coordinator_input(
     data: dict[str, callable],
 ) -> bool:
     """
