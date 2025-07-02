@@ -1,7 +1,7 @@
 import pandas as pd
 from optuna import Trial
 
-from algo_royale.backtester.column_names.strategy_columns import StrategyColumns
+from algo_royale.backtester.column_names.strategy_columns import SignalStrategyColumns
 from algo_royale.backtester.enum.ma_type import MA_Type
 from algo_royale.backtester.strategy.signal.conditions.base_strategy_condition import (
     StrategyCondition,
@@ -18,8 +18,8 @@ class MovingAverageCrossoverExitCondition(StrategyCondition):
 
     def __init__(
         self,
-        close_col: StrategyColumns = StrategyColumns.CLOSE_PRICE,
-        volume_col: StrategyColumns = StrategyColumns.VOLUME,
+        close_col: SignalStrategyColumns = SignalStrategyColumns.CLOSE_PRICE,
+        volume_col: SignalStrategyColumns = SignalStrategyColumns.VOLUME,
         short_window: int = 10,
         long_window: int = 50,
         trend_window: int = 200,
@@ -86,8 +86,11 @@ class MovingAverageCrossoverExitCondition(StrategyCondition):
     @classmethod
     def available_param_grid(cls) -> dict:
         return {
-            "close_col": [StrategyColumns.CLOSE_PRICE, StrategyColumns.OPEN_PRICE],
-            "volume_col": [StrategyColumns.VOLUME],
+            "close_col": [
+                SignalStrategyColumns.CLOSE_PRICE,
+                SignalStrategyColumns.OPEN_PRICE,
+            ],
+            "volume_col": [SignalStrategyColumns.VOLUME],
             "short_window": [5, 10, 15, 20],
             "long_window": [30, 50, 100, 200],
             "trend_window": [100, 200, 300],
@@ -100,10 +103,10 @@ class MovingAverageCrossoverExitCondition(StrategyCondition):
         return cls(
             close_col=trial.suggest_categorical(
                 f"{prefix}close_col",
-                [StrategyColumns.CLOSE_PRICE, StrategyColumns.OPEN_PRICE],
+                [SignalStrategyColumns.CLOSE_PRICE, SignalStrategyColumns.OPEN_PRICE],
             ),
             volume_col=trial.suggest_categorical(
-                f"{prefix}volume_col", [StrategyColumns.VOLUME]
+                f"{prefix}volume_col", [SignalStrategyColumns.VOLUME]
             ),
             short_window=trial.suggest_int(f"{prefix}short_window", 5, 20),
             long_window=trial.suggest_int(f"{prefix}long_window", 30, 200),

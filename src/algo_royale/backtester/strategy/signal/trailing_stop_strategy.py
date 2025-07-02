@@ -1,4 +1,4 @@
-from algo_royale.backtester.column_names.strategy_columns import StrategyColumns
+from algo_royale.backtester.column_names.strategy_columns import SignalStrategyColumns
 from algo_royale.backtester.strategy.signal.base_signal_strategy import (
     BaseSignalStrategy,
 )
@@ -23,11 +23,12 @@ class TrailingStopStrategy(BaseSignalStrategy):
     def __init__(
         self,
         entry_conditions: list[BooleanColumnEntryCondition] = [
-            BooleanColumnEntryCondition(entry_col=StrategyColumns.ENTRY_SIGNAL)
+            BooleanColumnEntryCondition(entry_col=SignalStrategyColumns.ENTRY_SIGNAL)
         ],
         trend_conditions: list[TrendAboveSMACondition] = [
             TrendAboveSMACondition(
-                price_col=StrategyColumns.CLOSE_PRICE, sma_col=StrategyColumns.SMA_200
+                price_col=SignalStrategyColumns.CLOSE_PRICE,
+                sma_col=SignalStrategyColumns.SMA_200,
             )
         ],
     ):

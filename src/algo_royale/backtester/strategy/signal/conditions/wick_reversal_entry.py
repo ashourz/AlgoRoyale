@@ -1,7 +1,7 @@
 import pandas as pd
 from optuna import Trial
 
-from algo_royale.backtester.column_names.strategy_columns import StrategyColumns
+from algo_royale.backtester.column_names.strategy_columns import SignalStrategyColumns
 from algo_royale.backtester.strategy.signal.conditions.base_strategy_condition import (
     StrategyCondition,
 )
@@ -11,8 +11,8 @@ class WickReversalEntryCondition(StrategyCondition):
     def __init__(
         self,
         wick_body_ratio=2.0,
-        lower_wick_col: StrategyColumns = StrategyColumns.LOWER_WICK,
-        body_col: StrategyColumns = StrategyColumns.BODY,
+        lower_wick_col: SignalStrategyColumns = SignalStrategyColumns.LOWER_WICK,
+        body_col: SignalStrategyColumns = SignalStrategyColumns.BODY,
     ):
         super().__init__(
             wick_body_ratio=wick_body_ratio,
@@ -36,8 +36,8 @@ class WickReversalEntryCondition(StrategyCondition):
     def available_param_grid(cls) -> dict:
         return {
             "wick_body_ratio": [1.2, 1.5, 1.8, 2.0, 2.2, 2.5, 3.0, 4.0],
-            "lower_wick_col": [StrategyColumns.LOWER_WICK],
-            "body_col": [StrategyColumns.BODY],
+            "lower_wick_col": [SignalStrategyColumns.LOWER_WICK],
+            "body_col": [SignalStrategyColumns.BODY],
         }
 
     @classmethod
@@ -45,9 +45,9 @@ class WickReversalEntryCondition(StrategyCondition):
         return cls(
             wick_body_ratio=trial.suggest_float(f"{prefix}wick_body_ratio", 1.2, 4.0),
             lower_wick_col=trial.suggest_categorical(
-                f"{prefix}lower_wick_col", [StrategyColumns.LOWER_WICK]
+                f"{prefix}lower_wick_col", [SignalStrategyColumns.LOWER_WICK]
             ),
             body_col=trial.suggest_categorical(
-                f"{prefix}body_col", [StrategyColumns.BODY]
+                f"{prefix}body_col", [SignalStrategyColumns.BODY]
             ),
         )

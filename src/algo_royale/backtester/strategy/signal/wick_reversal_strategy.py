@@ -1,4 +1,4 @@
-from algo_royale.backtester.column_names.strategy_columns import StrategyColumns
+from algo_royale.backtester.column_names.strategy_columns import SignalStrategyColumns
 from algo_royale.backtester.strategy.signal.base_signal_strategy import (
     BaseSignalStrategy,
 )
@@ -23,15 +23,15 @@ class WickReversalStrategy(BaseSignalStrategy):
         entry_conditions: list[WickReversalEntryCondition] = [
             WickReversalEntryCondition(
                 wick_body_ratio=2.0,
-                lower_wick_col=StrategyColumns.LOWER_WICK,
-                body_col=StrategyColumns.BODY,
+                lower_wick_col=SignalStrategyColumns.LOWER_WICK,
+                body_col=SignalStrategyColumns.BODY,
             )
         ],
         exit_conditions: list[WickReversalExitCondition] = [
             WickReversalExitCondition(
                 wick_body_ratio=2.0,
-                upper_wick_col=StrategyColumns.UPPER_WICK,
-                body_col=StrategyColumns.BODY,
+                upper_wick_col=SignalStrategyColumns.UPPER_WICK,
+                body_col=SignalStrategyColumns.BODY,
             )
         ],
     ):

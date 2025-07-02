@@ -1,6 +1,6 @@
 import pandas as pd
 
-from algo_royale.backtester.column_names.strategy_columns import StrategyColumns
+from algo_royale.backtester.column_names.strategy_columns import SignalStrategyColumns
 from algo_royale.backtester.enum.signal_type import SignalType
 from algo_royale.backtester.strategy.signal.base_signal_strategy import (
     BaseSignalStrategy,
@@ -58,8 +58,8 @@ class MockSignalStrategy(BaseSignalStrategy):
             if self.debug:
                 print(f"Error generating signals: {self.signal_exception_message}")
             df = df.copy()
-            df[StrategyColumns.ENTRY_SIGNAL] = SignalType.HOLD.value
-            df[StrategyColumns.EXIT_SIGNAL] = SignalType.HOLD.value
+            df[SignalStrategyColumns.ENTRY_SIGNAL] = SignalType.HOLD.value
+            df[SignalStrategyColumns.EXIT_SIGNAL] = SignalType.HOLD.value
             return df
         if self.signal_value is None:
             raise ValueError(

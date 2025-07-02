@@ -1,14 +1,16 @@
 import pandas as pd
 from optuna import Trial
 
-from algo_royale.backtester.column_names.strategy_columns import StrategyColumns
+from algo_royale.backtester.column_names.strategy_columns import SignalStrategyColumns
 from algo_royale.backtester.strategy.signal.conditions.base_strategy_condition import (
     StrategyCondition,
 )
 
 
 class BooleanColumnEntryCondition(StrategyCondition):
-    def __init__(self, entry_col: StrategyColumns = StrategyColumns.ENTRY_SIGNAL):
+    def __init__(
+        self, entry_col: SignalStrategyColumns = SignalStrategyColumns.ENTRY_SIGNAL
+    ):
         """
         Condition based on a boolean column.
         """
@@ -27,7 +29,7 @@ class BooleanColumnEntryCondition(StrategyCondition):
     @classmethod
     def available_param_grid(cls) -> dict:
         return {
-            "entry_col": [StrategyColumns.ENTRY_SIGNAL],
+            "entry_col": [SignalStrategyColumns.ENTRY_SIGNAL],
         }
 
     @classmethod
@@ -35,6 +37,6 @@ class BooleanColumnEntryCondition(StrategyCondition):
         return cls(
             entry_col=trial.suggest_categorical(
                 f"{prefix}entry_col",
-                [StrategyColumns.ENTRY_SIGNAL],
+                [SignalStrategyColumns.ENTRY_SIGNAL],
             ),
         )

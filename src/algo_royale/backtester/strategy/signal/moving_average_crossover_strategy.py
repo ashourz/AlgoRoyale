@@ -1,4 +1,4 @@
-from algo_royale.backtester.column_names.strategy_columns import StrategyColumns
+from algo_royale.backtester.column_names.strategy_columns import SignalStrategyColumns
 from algo_royale.backtester.enum.ma_type import MA_Type
 from algo_royale.backtester.strategy.signal.base_signal_strategy import (
     BaseSignalStrategy,
@@ -31,8 +31,8 @@ class MovingAverageCrossoverStrategy(BaseSignalStrategy):
         self,
         entry_conditions: list[MovingAverageCrossoverEntryCondition] = [
             MovingAverageCrossoverEntryCondition(
-                close_col=StrategyColumns.CLOSE_PRICE,
-                volume_col=StrategyColumns.VOLUME,
+                close_col=SignalStrategyColumns.CLOSE_PRICE,
+                volume_col=SignalStrategyColumns.VOLUME,
                 short_window=10,
                 long_window=50,
                 trend_window=200,
@@ -42,8 +42,8 @@ class MovingAverageCrossoverStrategy(BaseSignalStrategy):
         ],
         exit_conditions: list[MovingAverageCrossoverExitCondition] = [
             MovingAverageCrossoverExitCondition(
-                close_col=StrategyColumns.CLOSE_PRICE,
-                volume_col=StrategyColumns.VOLUME,
+                close_col=SignalStrategyColumns.CLOSE_PRICE,
+                volume_col=SignalStrategyColumns.VOLUME,
                 short_window=10,
                 long_window=50,
                 trend_window=200,

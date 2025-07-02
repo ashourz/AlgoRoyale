@@ -5,7 +5,9 @@ from typing import AsyncIterator, Callable, Dict, Union
 
 import pandas as pd
 
-from algo_royale.backtester.column_names.strategy_columns import StrategyColumns
+from algo_royale.backtester.column_names.strategy_columns import (
+    SignalStrategyExecutorColumns,
+)
 from algo_royale.backtester.enum.backtest_stage import BacktestStage
 from algo_royale.backtester.executor.base_backtest_executor import BacktestExecutor
 from algo_royale.backtester.stage_data.stage_data_manager import (
@@ -122,8 +124,8 @@ class StrategyBacktestExecutor(BacktestExecutor):
 
             # Create result DataFrame
             result_df = signals_df.copy()
-            result_df[StrategyColumns.STRATEGY_NAME] = strategy_name
-            result_df[StrategyColumns.SYMBOL] = symbol
+            result_df[SignalStrategyExecutorColumns.STRATEGY_NAME] = strategy_name
+            result_df[SignalStrategyExecutorColumns.SYMBOL] = symbol
 
             return result_df
 
@@ -156,17 +158,22 @@ class StrategyBacktestExecutor(BacktestExecutor):
             raise ValueError("Empty DataFrame received")
 
         # Only check essential columns for nulls
-        essential_cols = [StrategyColumns.TIMESTAMP, StrategyColumns.CLOSE_PRICE]
+        essential_cols = [
+            SignalStrategyExecutorColumns.TIMESTAMP,
+            SignalStrategyExecutorColumns.CLOSE_PRICE,
+        ]
         for col in essential_cols:
             if col not in df.columns:
                 raise ValueError(f"Missing essential column: {col}")
             if df[col].isnull().any():
                 raise ValueError(f"Null values found in essential column: {col}")
 
-        if (df[StrategyColumns.CLOSE_PRICE] <= 0).any():
+        if (df[SignalStrategyExecutorColumns.CLOSE_PRICE] <= 0).any():
             raise ValueError("Invalid close prices (<= 0) detected")
 
-        if not pd.api.types.is_datetime64_any_dtype(df[StrategyColumns.TIMESTAMP]):
+        if not pd.api.types.is_datetime64_any_dtype(
+            df[SignalStrategyExecutorColumns.TIMESTAMP]
+        ):
             raise ValueError("Timestamp column must be datetime type")
 
     def _validate_strategy_output(
@@ -182,14 +189,22 @@ class StrategyBacktestExecutor(BacktestExecutor):
         if not isinstance(signals_df, pd.DataFrame):
             raise ValueError(f"Strategy {strategy_name} must return a pandas DataFrame")
 
-        for col in [StrategyColumns.ENTRY_SIGNAL, StrategyColumns.EXIT_SIGNAL]:
+        for col in [
+            SignalStrategyExecutorColumns.ENTRY_SIGNAL,
+            SignalStrategyExecutorColumns.EXIT_SIGNAL,
+        ]:
             if col not in signals_df.columns:
                 raise ValueError(
                     f"Strategy {strategy_name} output missing required column: {col}"
                 )
 
         if (
-            signals_df[[StrategyColumns.ENTRY_SIGNAL, StrategyColumns.EXIT_SIGNAL]]
+            signals_df[
+                [
+                    SignalStrategyExecutorColumns.ENTRY_SIGNAL,
+                    SignalStrategyExecutorColumns.EXIT_SIGNAL,
+                ]
+            ]
             .isnull()
             .any()
             .any()

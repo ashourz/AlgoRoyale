@@ -1,7 +1,7 @@
 import pandas as pd
 from optuna import Trial
 
-from algo_royale.backtester.column_names.strategy_columns import StrategyColumns
+from algo_royale.backtester.column_names.strategy_columns import SignalStrategyColumns
 from algo_royale.backtester.strategy.signal.conditions.base_strategy_condition import (
     StrategyCondition,
 )
@@ -11,8 +11,8 @@ class VWAPReversionEntryCondition(StrategyCondition):
     def __init__(
         self,
         deviation_threshold=0.01,
-        vwap_col: StrategyColumns = StrategyColumns.VWAP_20,
-        vwp_col: StrategyColumns = StrategyColumns.VOLUME_WEIGHTED_PRICE,
+        vwap_col: SignalStrategyColumns = SignalStrategyColumns.VWAP_20,
+        vwp_col: SignalStrategyColumns = SignalStrategyColumns.VOLUME_WEIGHTED_PRICE,
     ):
         super().__init__(
             deviation_threshold=deviation_threshold,
@@ -36,14 +36,14 @@ class VWAPReversionEntryCondition(StrategyCondition):
         return {
             "deviation_threshold": [0.005, 0.01, 0.015, 0.02],
             "vwap_col": [
-                StrategyColumns.VWAP_10,
-                StrategyColumns.VWAP_20,
-                StrategyColumns.VWAP_50,
-                StrategyColumns.VWAP_100,
-                StrategyColumns.VWAP_150,
-                StrategyColumns.VWAP_200,
+                SignalStrategyColumns.VWAP_10,
+                SignalStrategyColumns.VWAP_20,
+                SignalStrategyColumns.VWAP_50,
+                SignalStrategyColumns.VWAP_100,
+                SignalStrategyColumns.VWAP_150,
+                SignalStrategyColumns.VWAP_200,
             ],
-            "vwp_col": [StrategyColumns.VOLUME_WEIGHTED_PRICE],
+            "vwp_col": [SignalStrategyColumns.VOLUME_WEIGHTED_PRICE],
         }
 
     @classmethod
@@ -55,15 +55,15 @@ class VWAPReversionEntryCondition(StrategyCondition):
             vwap_col=trial.suggest_categorical(
                 f"{prefix}vwap_col",
                 [
-                    StrategyColumns.VWAP_10,
-                    StrategyColumns.VWAP_20,
-                    StrategyColumns.VWAP_50,
-                    StrategyColumns.VWAP_100,
-                    StrategyColumns.VWAP_150,
-                    StrategyColumns.VWAP_200,
+                    SignalStrategyColumns.VWAP_10,
+                    SignalStrategyColumns.VWAP_20,
+                    SignalStrategyColumns.VWAP_50,
+                    SignalStrategyColumns.VWAP_100,
+                    SignalStrategyColumns.VWAP_150,
+                    SignalStrategyColumns.VWAP_200,
                 ],
             ),
             vwp_col=trial.suggest_categorical(
-                f"{prefix}vwp_col", [StrategyColumns.VOLUME_WEIGHTED_PRICE]
+                f"{prefix}vwp_col", [SignalStrategyColumns.VOLUME_WEIGHTED_PRICE]
             ),
         )

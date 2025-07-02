@@ -19,7 +19,7 @@ def test_max_sharpe_basic():
     )
     signals = returns.copy()
     strategy = MaxSharpePortfolioStrategy(lookback=2, risk_free_rate=0.0)
-    weights = strategy.allocate(signals, returns)
+    weights = strategy._allocate(signals, returns)
     assert weights.shape == returns.shape
     # Allow for all-zero weights if optimizer fails
     for i, row in weights.iterrows():
@@ -46,8 +46,8 @@ def test_max_sharpe_risk_free_param():
     signals = returns.copy()
     strategy1 = MaxSharpePortfolioStrategy(lookback=2, risk_free_rate=0.0)
     strategy2 = MaxSharpePortfolioStrategy(lookback=2, risk_free_rate=0.05)
-    w1 = strategy1.allocate(signals, returns)
-    w2 = strategy2.allocate(signals, returns)
+    w1 = strategy1._allocate(signals, returns)
+    w2 = strategy2._allocate(signals, returns)
     # Allow for all-zero weights (optimizer failure), but if both are nonzero, they should differ
     if not (np.allclose(w1.values, 0) or np.allclose(w2.values, 0)):
         assert not w1.equals(w2)
@@ -59,7 +59,7 @@ def test_max_sharpe_all_zero_returns():
     )
     signals = returns.copy()
     strategy = MaxSharpePortfolioStrategy(lookback=2, risk_free_rate=0.0)
-    weights = strategy.allocate(signals, returns)
+    weights = strategy._allocate(signals, returns)
     # Accept either all-zero weights or any valid allocation (sum to 1, all >= 0)
     for i, row in weights.iterrows():
         s = row.sum()

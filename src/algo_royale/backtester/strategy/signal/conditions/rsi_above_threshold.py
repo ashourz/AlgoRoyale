@@ -1,7 +1,7 @@
 import pandas as pd
 from optuna import Trial
 
-from algo_royale.backtester.column_names.strategy_columns import StrategyColumns
+from algo_royale.backtester.column_names.strategy_columns import SignalStrategyColumns
 from algo_royale.backtester.strategy.signal.conditions.base_strategy_condition import (
     StrategyCondition,
 )
@@ -9,7 +9,7 @@ from algo_royale.backtester.strategy.signal.conditions.base_strategy_condition i
 
 @staticmethod
 def rsi_above_threshold(
-    row, rsi_col: StrategyColumns = StrategyColumns.RSI, threshold=70
+    row, rsi_col: SignalStrategyColumns = SignalStrategyColumns.RSI, threshold=70
 ):
     """
     Returns True if the RSI value is above a specified threshold,
@@ -48,7 +48,9 @@ class RSIAboveThresholdCondition(StrategyCondition):
     """
 
     def __init__(
-        self, rsi_col: StrategyColumns = StrategyColumns.RSI, threshold: float = 70
+        self,
+        rsi_col: SignalStrategyColumns = SignalStrategyColumns.RSI,
+        threshold: float = 70,
     ):
         super().__init__(rsi_col=rsi_col, threshold=threshold)
         self.rsi_col = rsi_col
@@ -67,13 +69,13 @@ class RSIAboveThresholdCondition(StrategyCondition):
     @classmethod
     def available_param_grid(cls) -> dict:
         return {
-            "rsi_col": [StrategyColumns.RSI],
+            "rsi_col": [SignalStrategyColumns.RSI],
             "threshold": [50, 55, 60, 65, 70, 75, 80, 85],
         }
 
     @classmethod
     def optuna_suggest(cls, trial: Trial, prefix=""):
         return cls(
-            rsi_col=StrategyColumns.RSI,
+            rsi_col=SignalStrategyColumns.RSI,
             threshold=trial.suggest_int(f"{prefix}threshold", 50, 85),
         )

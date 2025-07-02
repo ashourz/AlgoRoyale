@@ -1,4 +1,4 @@
-from algo_royale.backtester.column_names.strategy_columns import StrategyColumns
+from algo_royale.backtester.column_names.strategy_columns import SignalStrategyColumns
 from algo_royale.backtester.strategy.signal.base_signal_strategy import (
     BaseSignalStrategy,
 )
@@ -23,16 +23,16 @@ class TrendScraperStrategy(BaseSignalStrategy):
         self,
         trend_conditions: list[EMAAboveSMARollingCondition] = [
             EMAAboveSMARollingCondition(
-                ema_col=StrategyColumns.EMA_20,
-                sma_col=StrategyColumns.SMA_50,
+                ema_col=SignalStrategyColumns.EMA_20,
+                sma_col=SignalStrategyColumns.SMA_50,
                 window=3,
             )
         ],
         exit_conditions: list[ReturnVolatilityExitCondition] = [
             ReturnVolatilityExitCondition(
-                return_col=StrategyColumns.LOG_RETURN,
-                range_col=StrategyColumns.RANGE,
-                volatility_col=StrategyColumns.VOLATILITY_20,
+                return_col=SignalStrategyColumns.LOG_RETURN,
+                range_col=SignalStrategyColumns.RANGE,
+                volatility_col=SignalStrategyColumns.VOLATILITY_20,
                 threshold=-0.005,
             )
         ],

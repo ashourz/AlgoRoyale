@@ -19,7 +19,7 @@ def test_inverse_volatility_basic():
     )
     signals = returns.copy()
     strategy = InverseVolatilityPortfolioStrategy(lookback=2)
-    weights = strategy.allocate(signals, returns)
+    weights = strategy._allocate(signals, returns)
     assert weights.shape == returns.shape
     for i, row in weights.iterrows():
         s = row.sum()
@@ -37,7 +37,7 @@ def test_inverse_volatility_all_zero_returns():
     )
     signals = returns.copy()
     strategy = InverseVolatilityPortfolioStrategy(lookback=2)
-    weights = strategy.allocate(signals, returns)
+    weights = strategy._allocate(signals, returns)
     # Accept either all-zero weights or any valid allocation (sum to 1, all >= 0)
     for i, row in weights.iterrows():
         s = row.sum()

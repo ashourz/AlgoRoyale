@@ -19,7 +19,7 @@ def test_momentum_portfolio_basic():
     )
     signals = returns.copy()
     strategy = MomentumPortfolioStrategy(window=2)
-    weights = strategy.allocate(signals, returns)
+    weights = strategy._allocate(signals, returns)
     assert weights.shape == returns.shape
     for i, row in weights.iterrows():
         s = row.sum()
@@ -37,5 +37,5 @@ def test_momentum_portfolio_all_zero_returns():
     )
     signals = returns.copy()
     strategy = MomentumPortfolioStrategy(window=2)
-    weights = strategy.allocate(signals, returns)
+    weights = strategy._allocate(signals, returns)
     assert (weights == 0).all().all()

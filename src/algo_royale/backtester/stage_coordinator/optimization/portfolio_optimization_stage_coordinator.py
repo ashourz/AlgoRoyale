@@ -148,7 +148,7 @@ class PortfolioOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
                     )
                     continue
                 # Save optimization metrics to optimization_result.json under window_id
-                out_path = self.get_output_path(
+                out_path = self._get_output_path(
                     strategy_name,
                     self.start_date,
                     self.end_date,
@@ -178,7 +178,7 @@ class PortfolioOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
                     ] = optimization_result
         return results
 
-    def get_output_path(self, strategy_name, start_date: datetime, end_date: datetime):
+    def _get_output_path(self, strategy_name, start_date: datetime, end_date: datetime):
         """Get the output path for the optimization results JSON file."""
         out_dir = self.stage_data_manager.get_extended_path(
             base_dir=self.optimization_root,

@@ -1,7 +1,7 @@
 import pandas as pd
 from optuna import Trial
 
-from algo_royale.backtester.column_names.strategy_columns import StrategyColumns
+from algo_royale.backtester.column_names.strategy_columns import SignalStrategyColumns
 from algo_royale.backtester.strategy.signal.conditions.base_strategy_condition import (
     StrategyCondition,
 )
@@ -11,8 +11,8 @@ from algo_royale.backtester.strategy.signal.conditions.base_strategy_condition i
 def price_crosses_below_sma(
     current_row,
     prev_row,
-    close_col: StrategyColumns = StrategyColumns.CLOSE_PRICE,
-    sma_col: StrategyColumns = StrategyColumns.SMA_20,
+    close_col: SignalStrategyColumns = SignalStrategyColumns.CLOSE_PRICE,
+    sma_col: SignalStrategyColumns = SignalStrategyColumns.SMA_20,
 ):
     """
     Returns True if the price crosses below the SMA between the previous and current rows.
@@ -56,8 +56,8 @@ class PriceCrossesBelowSMACondition(StrategyCondition):
 
     def __init__(
         self,
-        close_col: StrategyColumns = StrategyColumns.CLOSE_PRICE,
-        sma_col: StrategyColumns = StrategyColumns.SMA_20,
+        close_col: SignalStrategyColumns = SignalStrategyColumns.CLOSE_PRICE,
+        sma_col: SignalStrategyColumns = SignalStrategyColumns.SMA_20,
     ):
         super().__init__(close_col=close_col, sma_col=sma_col)
         self.close_col = close_col
@@ -78,14 +78,17 @@ class PriceCrossesBelowSMACondition(StrategyCondition):
     @classmethod
     def available_param_grid(cls) -> dict:
         return {
-            "close_col": [StrategyColumns.CLOSE_PRICE, StrategyColumns.OPEN_PRICE],
+            "close_col": [
+                SignalStrategyColumns.CLOSE_PRICE,
+                SignalStrategyColumns.OPEN_PRICE,
+            ],
             "sma_col": [
-                StrategyColumns.SMA_10,
-                StrategyColumns.SMA_20,
-                StrategyColumns.SMA_50,
-                StrategyColumns.SMA_100,
-                StrategyColumns.SMA_150,
-                StrategyColumns.SMA_200,
+                SignalStrategyColumns.SMA_10,
+                SignalStrategyColumns.SMA_20,
+                SignalStrategyColumns.SMA_50,
+                SignalStrategyColumns.SMA_100,
+                SignalStrategyColumns.SMA_150,
+                SignalStrategyColumns.SMA_200,
             ],
         }
 
@@ -94,17 +97,17 @@ class PriceCrossesBelowSMACondition(StrategyCondition):
         return cls(
             close_col=trial.suggest_categorical(
                 f"{prefix}close_col",
-                [StrategyColumns.CLOSE_PRICE, StrategyColumns.OPEN_PRICE],
+                [SignalStrategyColumns.CLOSE_PRICE, SignalStrategyColumns.OPEN_PRICE],
             ),
             sma_col=trial.suggest_categorical(
                 f"{prefix}sma_col",
                 [
-                    StrategyColumns.SMA_10,
-                    StrategyColumns.SMA_20,
-                    StrategyColumns.SMA_50,
-                    StrategyColumns.SMA_100,
-                    StrategyColumns.SMA_150,
-                    StrategyColumns.SMA_200,
+                    SignalStrategyColumns.SMA_10,
+                    SignalStrategyColumns.SMA_20,
+                    SignalStrategyColumns.SMA_50,
+                    SignalStrategyColumns.SMA_100,
+                    SignalStrategyColumns.SMA_150,
+                    SignalStrategyColumns.SMA_200,
                 ],
             ),
         )

@@ -1,7 +1,7 @@
 import pandas as pd
 from optuna import Trial
 
-from algo_royale.backtester.column_names.strategy_columns import StrategyColumns
+from algo_royale.backtester.column_names.strategy_columns import SignalStrategyColumns
 from algo_royale.backtester.strategy.signal.conditions.base_strategy_condition import (
     StrategyCondition,
 )
@@ -18,8 +18,8 @@ class SMATrendCondition(StrategyCondition):
 
     def __init__(
         self,
-        sma_fast_col: StrategyColumns = StrategyColumns.SMA_50,
-        sma_slow_col: StrategyColumns = StrategyColumns.SMA_200,
+        sma_fast_col: SignalStrategyColumns = SignalStrategyColumns.SMA_50,
+        sma_slow_col: SignalStrategyColumns = SignalStrategyColumns.SMA_200,
     ):
         super().__init__(
             sma_fast_col=sma_fast_col,
@@ -42,8 +42,8 @@ class SMATrendCondition(StrategyCondition):
     def available_param_grid(cls) -> dict:
         fast_periods = [10, 20, 50, 100]
         slow_periods = [100, 150, 200]
-        fast_cols = [getattr(StrategyColumns, f"SMA_{p}") for p in fast_periods]
-        slow_cols = [getattr(StrategyColumns, f"SMA_{p}") for p in slow_periods]
+        fast_cols = [getattr(SignalStrategyColumns, f"SMA_{p}") for p in fast_periods]
+        slow_cols = [getattr(SignalStrategyColumns, f"SMA_{p}") for p in slow_periods]
         # Only allow pairs where fast < slow
         valid_fast_cols = []
         valid_slow_cols = []
@@ -63,18 +63,18 @@ class SMATrendCondition(StrategyCondition):
             sma_fast_col=trial.suggest_categorical(
                 f"{prefix}sma_fast_col",
                 [
-                    StrategyColumns.SMA_10,
-                    StrategyColumns.SMA_20,
-                    StrategyColumns.SMA_50,
-                    StrategyColumns.SMA_100,
+                    SignalStrategyColumns.SMA_10,
+                    SignalStrategyColumns.SMA_20,
+                    SignalStrategyColumns.SMA_50,
+                    SignalStrategyColumns.SMA_100,
                 ],
             ),
             sma_slow_col=trial.suggest_categorical(
                 f"{prefix}sma_slow_col",
                 [
-                    StrategyColumns.SMA_100,
-                    StrategyColumns.SMA_150,
-                    StrategyColumns.SMA_200,
+                    SignalStrategyColumns.SMA_100,
+                    SignalStrategyColumns.SMA_150,
+                    SignalStrategyColumns.SMA_200,
                 ],
             ),
         )

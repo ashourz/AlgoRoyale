@@ -49,18 +49,6 @@ class BasePortfolioStrategy(BaseStrategy):
             f"{cls.__name__}.optuna_suggest() must be implemented to use Optuna."
         )
 
-    @abstractmethod
-    def allocate(self, signals: pd.DataFrame, returns: pd.DataFrame) -> pd.DataFrame:
-        """
-        Given signals and/or returns, produce a DataFrame of portfolio weights over time.
-        Args:
-            signals: DataFrame of signals (index: datetime, columns: symbols)
-            returns: DataFrame of returns (index: datetime, columns: symbols)
-        Returns:
-            DataFrame of weights (index: datetime, columns: symbols)
-        """
-        pass
-
     def generate_signals(self, df: pd.DataFrame) -> pd.DataFrame:
         """
         For portfolio strategies, generate a DataFrame with at least 'portfolio_returns' for evaluation.
@@ -77,12 +65,24 @@ class BasePortfolioStrategy(BaseStrategy):
         returns = returns.select_dtypes(include=[np.number])
         if returns.empty:
             raise ValueError("No numeric columns found in input DataFrame for returns.")
-        weights = self.allocate(returns, returns)
+        weights = self._allocate(returns, returns)
         # Compute portfolio returns as weighted sum of asset returns
         portfolio_returns = (weights * returns).sum(axis=1)
         result = pd.DataFrame(index=returns.index)
         result["portfolio_returns"] = portfolio_returns
         return result
+
+    @abstractmethod
+    def _allocate(self, signals: pd.DataFrame, returns: pd.DataFrame) -> pd.DataFrame:
+        """
+        Given signals and/or returns, produce a DataFrame of portfolio weights over time.
+        Args:
+            signals: DataFrame of signals (index: datetime, columns: symbols)
+            returns: DataFrame of returns (index: datetime, columns: symbols)
+        Returns:
+            DataFrame of weights (index: datetime, columns: symbols)
+        """
+        pass
 
     def _mask_and_normalize_weights(
         self, weights: pd.DataFrame, prices: pd.DataFrame

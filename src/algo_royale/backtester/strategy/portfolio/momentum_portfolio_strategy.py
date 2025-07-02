@@ -36,7 +36,7 @@ class MomentumPortfolioStrategy(BasePortfolioStrategy):
     def optuna_suggest(cls, trial: Trial, prefix: str = ""):
         return cls(window=trial.suggest_int(f"{prefix}window", 5, 60))
 
-    def allocate(self, signals: pd.DataFrame, returns: pd.DataFrame) -> pd.DataFrame:
+    def _allocate(self, signals: pd.DataFrame, returns: pd.DataFrame) -> pd.DataFrame:
         """
         Allocate weights proportional to positive momentum.
         Parameters:

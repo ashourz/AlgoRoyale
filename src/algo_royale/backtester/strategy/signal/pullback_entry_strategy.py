@@ -1,4 +1,4 @@
-from algo_royale.backtester.column_names.strategy_columns import StrategyColumns
+from algo_royale.backtester.column_names.strategy_columns import SignalStrategyColumns
 from algo_royale.backtester.strategy.signal.base_signal_strategy import (
     BaseSignalStrategy,
 )
@@ -15,7 +15,8 @@ class PullbackEntryStrategy(BaseSignalStrategy):
         self,
         entry_conditions: list[PullbackEntryCondition] = [
             PullbackEntryCondition(
-                ma_col=StrategyColumns.SMA_20, close_col=StrategyColumns.CLOSE_PRICE
+                ma_col=SignalStrategyColumns.SMA_20,
+                close_col=SignalStrategyColumns.CLOSE_PRICE,
             )
         ],
     ) -> None:

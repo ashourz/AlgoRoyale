@@ -1,4 +1,4 @@
-from algo_royale.backtester.column_names.strategy_columns import StrategyColumns
+from algo_royale.backtester.column_names.strategy_columns import SignalStrategyColumns
 from algo_royale.backtester.strategy.signal.conditions.time_of_day_entry import (
     TimeOfDayEntryCondition,
 )
@@ -23,12 +23,14 @@ class TimeOfDayBiasStrategy(BaseSignalStrategy):
         self,
         entry_conditions: list[TimeOfDayEntryCondition] = [
             TimeOfDayEntryCondition(
-                buy_start_hour=10, buy_end_hour=14, hour_col=StrategyColumns.HOUR
+                buy_start_hour=10, buy_end_hour=14, hour_col=SignalStrategyColumns.HOUR
             )
         ],
         exit_conditions: list[TimeOfDayExitCondition] = [
             TimeOfDayExitCondition(
-                sell_start_hour=11, sell_end_hour=15, hour_col=StrategyColumns.HOUR
+                sell_start_hour=11,
+                sell_end_hour=15,
+                hour_col=SignalStrategyColumns.HOUR,
             )
         ],
     ):

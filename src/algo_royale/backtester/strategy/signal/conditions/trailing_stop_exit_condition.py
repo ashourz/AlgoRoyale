@@ -1,7 +1,7 @@
 import pandas as pd
 from optuna import Trial
 
-from algo_royale.backtester.column_names.strategy_columns import StrategyColumns
+from algo_royale.backtester.column_names.strategy_columns import SignalStrategyColumns
 from algo_royale.backtester.strategy.signal.conditions.base_strategy_condition import (
     StrategyCondition,
 )
@@ -14,7 +14,9 @@ class TrailingStopExitCondition(StrategyCondition):
     """
 
     def __init__(
-        self, close_col: StrategyColumns = StrategyColumns.CLOSE_PRICE, stop_pct=0.02
+        self,
+        close_col: SignalStrategyColumns = SignalStrategyColumns.CLOSE_PRICE,
+        stop_pct=0.02,
     ):
         super().__init__(close_col=close_col, stop_pct=stop_pct)
         self.close_col = close_col
@@ -35,8 +37,8 @@ class TrailingStopExitCondition(StrategyCondition):
     def available_param_grid(cls) -> dict:
         return {
             "close_col": [
-                StrategyColumns.CLOSE_PRICE,
-                StrategyColumns.OPEN_PRICE,
+                SignalStrategyColumns.CLOSE_PRICE,
+                SignalStrategyColumns.OPEN_PRICE,
             ],
             "stop_pct": [0.01, 0.02, 0.03, 0.05],
         }
@@ -46,7 +48,7 @@ class TrailingStopExitCondition(StrategyCondition):
         return cls(
             close_col=trial.suggest_categorical(
                 f"{prefix}close_col",
-                [StrategyColumns.CLOSE_PRICE, StrategyColumns.OPEN_PRICE],
+                [SignalStrategyColumns.CLOSE_PRICE, SignalStrategyColumns.OPEN_PRICE],
             ),
             stop_pct=trial.suggest_float(f"{prefix}stop_pct", 0.01, 0.05),
         )

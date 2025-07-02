@@ -1,7 +1,7 @@
 import pandas as pd
 from optuna import Trial
 
-from algo_royale.backtester.column_names.strategy_columns import StrategyColumns
+from algo_royale.backtester.column_names.strategy_columns import SignalStrategyColumns
 from algo_royale.backtester.strategy.signal.conditions.base_strategy_condition import (
     StrategyCondition,
 )
@@ -14,10 +14,10 @@ class VolatilityBreakoutEntryCondition(StrategyCondition):
     def __init__(
         self,
         threshold=1.5,
-        sma_col: StrategyColumns = StrategyColumns.SMA_20,
-        volatility_col: StrategyColumns = StrategyColumns.VOLATILITY_20,
-        range_col: StrategyColumns = StrategyColumns.RANGE,
-        close_col: StrategyColumns = StrategyColumns.CLOSE_PRICE,
+        sma_col: SignalStrategyColumns = SignalStrategyColumns.SMA_20,
+        volatility_col: SignalStrategyColumns = SignalStrategyColumns.VOLATILITY_20,
+        range_col: SignalStrategyColumns = SignalStrategyColumns.RANGE,
+        close_col: SignalStrategyColumns = SignalStrategyColumns.CLOSE_PRICE,
     ):
         super().__init__(
             threshold=threshold,
@@ -43,7 +43,7 @@ class VolatilityBreakoutEntryCondition(StrategyCondition):
 
     def _apply(self, df: pd.DataFrame) -> pd.Series:
         breakout = df[self.range_col] > self.threshold * df[self.volatility_col]
-        uptrend = df[StrategyColumns.CLOSE_PRICE] > df[self.sma_col]
+        uptrend = df[SignalStrategyColumns.CLOSE_PRICE] > df[self.sma_col]
         return breakout & uptrend
 
     @classmethod
@@ -51,27 +51,27 @@ class VolatilityBreakoutEntryCondition(StrategyCondition):
         return {
             "threshold": [0.8, 1.0, 1.2, 1.5, 2.0, 2.5],
             "sma_col": [
-                StrategyColumns.SMA_10,
-                StrategyColumns.SMA_20,
-                StrategyColumns.SMA_50,
-                StrategyColumns.SMA_100,
-                StrategyColumns.SMA_150,
-                StrategyColumns.SMA_200,
+                SignalStrategyColumns.SMA_10,
+                SignalStrategyColumns.SMA_20,
+                SignalStrategyColumns.SMA_50,
+                SignalStrategyColumns.SMA_100,
+                SignalStrategyColumns.SMA_150,
+                SignalStrategyColumns.SMA_200,
             ],
             "volatility_col": [
-                StrategyColumns.VOLATILITY_10,
-                StrategyColumns.VOLATILITY_20,
-                StrategyColumns.VOLATILITY_50,
-                StrategyColumns.HIST_VOLATILITY_20,
+                SignalStrategyColumns.VOLATILITY_10,
+                SignalStrategyColumns.VOLATILITY_20,
+                SignalStrategyColumns.VOLATILITY_50,
+                SignalStrategyColumns.HIST_VOLATILITY_20,
             ],
             "range_col": [
-                StrategyColumns.RANGE,
-                StrategyColumns.ATR_14,
+                SignalStrategyColumns.RANGE,
+                SignalStrategyColumns.ATR_14,
                 # Add other range columns if available
             ],
             "close_col": [
-                StrategyColumns.CLOSE_PRICE,
-                StrategyColumns.OPEN_PRICE,
+                SignalStrategyColumns.CLOSE_PRICE,
+                SignalStrategyColumns.OPEN_PRICE,
             ],
         }
 
@@ -82,36 +82,36 @@ class VolatilityBreakoutEntryCondition(StrategyCondition):
             sma_col=trial.suggest_categorical(
                 f"{prefix}sma_col",
                 [
-                    StrategyColumns.SMA_10,
-                    StrategyColumns.SMA_20,
-                    StrategyColumns.SMA_50,
-                    StrategyColumns.SMA_100,
-                    StrategyColumns.SMA_150,
-                    StrategyColumns.SMA_200,
+                    SignalStrategyColumns.SMA_10,
+                    SignalStrategyColumns.SMA_20,
+                    SignalStrategyColumns.SMA_50,
+                    SignalStrategyColumns.SMA_100,
+                    SignalStrategyColumns.SMA_150,
+                    SignalStrategyColumns.SMA_200,
                 ],
             ),
             volatility_col=trial.suggest_categorical(
                 f"{prefix}volatility_col",
                 [
-                    StrategyColumns.VOLATILITY_10,
-                    StrategyColumns.VOLATILITY_20,
-                    StrategyColumns.VOLATILITY_50,
-                    StrategyColumns.HIST_VOLATILITY_20,
+                    SignalStrategyColumns.VOLATILITY_10,
+                    SignalStrategyColumns.VOLATILITY_20,
+                    SignalStrategyColumns.VOLATILITY_50,
+                    SignalStrategyColumns.HIST_VOLATILITY_20,
                 ],
             ),
             range_col=trial.suggest_categorical(
                 f"{prefix}range_col",
                 [
-                    StrategyColumns.RANGE,
-                    StrategyColumns.ATR_14,
+                    SignalStrategyColumns.RANGE,
+                    SignalStrategyColumns.ATR_14,
                     # Add other range columns if available
                 ],
             ),
             close_col=trial.suggest_categorical(
                 f"{prefix}close_col",
                 [
-                    StrategyColumns.CLOSE_PRICE,
-                    StrategyColumns.OPEN_PRICE,
+                    SignalStrategyColumns.CLOSE_PRICE,
+                    SignalStrategyColumns.OPEN_PRICE,
                 ],
             ),
         )

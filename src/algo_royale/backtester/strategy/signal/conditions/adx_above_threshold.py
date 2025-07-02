@@ -1,7 +1,7 @@
 import pandas as pd
 from optuna import Trial
 
-from algo_royale.backtester.column_names.strategy_columns import StrategyColumns
+from algo_royale.backtester.column_names.strategy_columns import SignalStrategyColumns
 from algo_royale.backtester.strategy.signal.conditions.base_strategy_condition import (
     StrategyCondition,
 )
@@ -10,8 +10,8 @@ from algo_royale.backtester.strategy.signal.conditions.base_strategy_condition i
 @staticmethod
 def adx_above_threshold(
     row,
-    adx_col: StrategyColumns = StrategyColumns.ADX,
-    close_col: StrategyColumns = StrategyColumns.CLOSE_PRICE,
+    adx_col: SignalStrategyColumns = SignalStrategyColumns.ADX,
+    close_col: SignalStrategyColumns = SignalStrategyColumns.CLOSE_PRICE,
     threshold=25,
 ):
     """
@@ -51,8 +51,8 @@ class ADXAboveThresholdCondition(StrategyCondition):
 
     def __init__(
         self,
-        adx_col: StrategyColumns = StrategyColumns.ADX,
-        close_col: StrategyColumns = StrategyColumns.CLOSE_PRICE,
+        adx_col: SignalStrategyColumns = SignalStrategyColumns.ADX,
+        close_col: SignalStrategyColumns = SignalStrategyColumns.CLOSE_PRICE,
         threshold: float = 25,
     ):
         super().__init__(adx_col=adx_col, close_col=close_col, threshold=threshold)
@@ -75,8 +75,11 @@ class ADXAboveThresholdCondition(StrategyCondition):
     @classmethod
     def available_param_grid(cls) -> dict:
         return {
-            "adx_col": [StrategyColumns.ADX],
-            "close_col": [StrategyColumns.CLOSE_PRICE, StrategyColumns.CLOSE],
+            "adx_col": [SignalStrategyColumns.ADX],
+            "close_col": [
+                SignalStrategyColumns.CLOSE_PRICE,
+                SignalStrategyColumns.CLOSE,
+            ],
             "threshold": [20, 25, 30, 35, 40, 45, 50],
         }
 
@@ -84,11 +87,11 @@ class ADXAboveThresholdCondition(StrategyCondition):
     def optuna_suggest(cls, trial: Trial, prefix: str = ""):
         return cls(
             adx_col=trial.suggest_categorical(
-                f"{prefix}adx_col", [StrategyColumns.ADX]
+                f"{prefix}adx_col", [SignalStrategyColumns.ADX]
             ),
             close_col=trial.suggest_categorical(
                 f"{prefix}close_col",
-                [StrategyColumns.CLOSE_PRICE, StrategyColumns.CLOSE],
+                [SignalStrategyColumns.CLOSE_PRICE, SignalStrategyColumns.CLOSE],
             ),
             threshold=trial.suggest_int(f"{prefix}threshold", 20, 50),
         )

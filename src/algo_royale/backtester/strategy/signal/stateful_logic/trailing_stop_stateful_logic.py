@@ -1,4 +1,4 @@
-from algo_royale.backtester.column_names.strategy_columns import StrategyColumns
+from algo_royale.backtester.column_names.strategy_columns import SignalStrategyColumns
 from algo_royale.backtester.enum.signal_type import SignalType
 from algo_royale.backtester.strategy.signal.stateful_logic.base_stateful_logic import (
     StatefulLogic,
@@ -11,7 +11,7 @@ class TrailingStopStatefulLogic(StatefulLogic):
     Keeps track of the highest price since entry and exits when price falls below trailing stop.
     """
 
-    def __init__(self, close_col=StrategyColumns.CLOSE_PRICE, stop_pct=0.02):
+    def __init__(self, close_col=SignalStrategyColumns.CLOSE_PRICE, stop_pct=0.02):
         super().__init__(close_col=close_col, stop_pct=stop_pct)
         self.close_col = close_col
         self.stop_pct = stop_pct
@@ -50,7 +50,7 @@ class TrailingStopStatefulLogic(StatefulLogic):
     @classmethod
     def available_param_grid(cls) -> dict:
         return {
-            "close_col": [StrategyColumns.CLOSE_PRICE],
+            "close_col": [SignalStrategyColumns.CLOSE_PRICE],
             "stop_pct": [0.01, 0.02, 0.03, 0.05],
         }
 
@@ -58,7 +58,7 @@ class TrailingStopStatefulLogic(StatefulLogic):
     def optuna_suggest(cls, trial, prefix: str = ""):
         return cls(
             close_col=trial.suggest_categorical(
-                f"{prefix}close_col", [StrategyColumns.CLOSE_PRICE]
+                f"{prefix}close_col", [SignalStrategyColumns.CLOSE_PRICE]
             ),
             stop_pct=trial.suggest_float(f"{prefix}stop_pct", 0.01, 0.05),
         )

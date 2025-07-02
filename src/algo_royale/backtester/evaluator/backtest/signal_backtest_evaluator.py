@@ -3,7 +3,7 @@ from logging import Logger
 import numpy as np
 import pandas as pd
 
-from algo_royale.backtester.column_names.strategy_columns import StrategyColumns
+from algo_royale.backtester.column_names.strategy_columns import SignalStrategyColumns
 from algo_royale.backtester.enum.signal_type import SignalType
 from algo_royale.backtester.evaluator.backtest.base_backtest_evaluator import (
     BacktestEvaluator,
@@ -51,9 +51,9 @@ class SignalBacktestEvaluator(BacktestEvaluator):
 
     def _simulate_trades(self, df: pd.DataFrame) -> list[dict]:
         """Simulate trades based on entry and exit signals in the DataFrame."""
-        entry_col = StrategyColumns.ENTRY_SIGNAL
-        exit_col = StrategyColumns.EXIT_SIGNAL
-        close_col = StrategyColumns.CLOSE_PRICE
+        entry_col = SignalStrategyColumns.ENTRY_SIGNAL
+        exit_col = SignalStrategyColumns.EXIT_SIGNAL
+        close_col = SignalStrategyColumns.CLOSE_PRICE
 
         trades = []
         in_trade = False
@@ -79,7 +79,7 @@ class SignalBacktestEvaluator(BacktestEvaluator):
                         "exit_price": price,
                         "return": pnl,
                         "cumulative_return": cumulative_return,
-                        "timestamp": row[StrategyColumns.TIMESTAMP],
+                        "timestamp": row[SignalStrategyColumns.TIMESTAMP],
                     }
                 )
                 in_trade = False

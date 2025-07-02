@@ -1,4 +1,4 @@
-from algo_royale.backtester.column_names.strategy_columns import StrategyColumns
+from algo_royale.backtester.column_names.strategy_columns import SignalStrategyColumns
 from algo_royale.backtester.strategy.signal.base_signal_strategy import (
     BaseSignalStrategy,
 )
@@ -22,12 +22,12 @@ class VolatilityBreakoutStrategy(BaseSignalStrategy):
         self,
         entry_conditions: list[VolatilityBreakoutEntryCondition] = [
             VolatilityBreakoutEntryCondition(
-                threshold=1.5, sma_col=StrategyColumns.SMA_20
+                threshold=1.5, sma_col=SignalStrategyColumns.SMA_20
             )
         ],
         exit_conditions: list[VolatilityBreakoutExitCondition] = [
             VolatilityBreakoutExitCondition(
-                threshold=1.5, sma_col=StrategyColumns.SMA_20
+                threshold=1.5, sma_col=SignalStrategyColumns.SMA_20
             )
         ],
     ):

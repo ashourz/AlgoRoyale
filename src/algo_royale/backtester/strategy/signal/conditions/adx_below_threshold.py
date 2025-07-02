@@ -1,7 +1,7 @@
 import pandas as pd
 from optuna import Trial
 
-from algo_royale.backtester.column_names.strategy_columns import StrategyColumns
+from algo_royale.backtester.column_names.strategy_columns import SignalStrategyColumns
 from algo_royale.backtester.strategy.signal.conditions.base_strategy_condition import (
     StrategyCondition,
 )
@@ -9,7 +9,7 @@ from algo_royale.backtester.strategy.signal.conditions.base_strategy_condition i
 
 @staticmethod
 def adx_below_threshold(
-    row, adx_col: StrategyColumns = StrategyColumns.ADX, threshold=25
+    row, adx_col: SignalStrategyColumns = SignalStrategyColumns.ADX, threshold=25
 ):
     """
     Returns True if the ADX value is below a specified threshold,
@@ -46,7 +46,9 @@ class ADXBelowThresholdCondition(StrategyCondition):
     """
 
     def __init__(
-        self, adx_col: StrategyColumns = StrategyColumns.ADX, threshold: float = 25
+        self,
+        adx_col: SignalStrategyColumns = SignalStrategyColumns.ADX,
+        threshold: float = 25,
     ):
         super().__init__(adx_col=adx_col, threshold=threshold)
         self.adx_col = adx_col
@@ -62,7 +64,7 @@ class ADXBelowThresholdCondition(StrategyCondition):
     @classmethod
     def available_param_grid(cls) -> dict:
         return {
-            "adx_col": [StrategyColumns.ADX],
+            "adx_col": [SignalStrategyColumns.ADX],
             "threshold": [10, 15, 20, 25, 30, 35, 40],
         }
 
@@ -70,7 +72,7 @@ class ADXBelowThresholdCondition(StrategyCondition):
     def optuna_suggest(cls, trial: Trial, prefix: str = ""):
         return cls(
             adx_col=trial.suggest_categorical(
-                f"{prefix}adx_col", [StrategyColumns.ADX]
+                f"{prefix}adx_col", [SignalStrategyColumns.ADX]
             ),
             threshold=trial.suggest_int(f"{prefix}threshold", 10, 40),
         )

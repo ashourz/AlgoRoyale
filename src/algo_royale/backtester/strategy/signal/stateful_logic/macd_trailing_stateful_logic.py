@@ -1,6 +1,6 @@
 import pandas as pd
 
-from algo_royale.backtester.column_names.strategy_columns import StrategyColumns
+from algo_royale.backtester.column_names.strategy_columns import SignalStrategyColumns
 from algo_royale.backtester.enum.signal_type import SignalType
 from algo_royale.backtester.strategy.signal.stateful_logic.base_stateful_logic import (
     StatefulLogic,
@@ -23,7 +23,7 @@ class MACDTrailingStatefulLogic(StatefulLogic):
 
     def __init__(
         self,
-        close_col: StrategyColumns = StrategyColumns.CLOSE_PRICE,
+        close_col: SignalStrategyColumns = SignalStrategyColumns.CLOSE_PRICE,
         fast: int = 12,
         slow: int = 26,
         signal: int = 9,
@@ -100,7 +100,10 @@ class MACDTrailingStatefulLogic(StatefulLogic):
         This allows for hyperparameter tuning.
         """
         return {
-            "close_col": [StrategyColumns.CLOSE_PRICE, StrategyColumns.OPEN_PRICE],
+            "close_col": [
+                SignalStrategyColumns.CLOSE_PRICE,
+                SignalStrategyColumns.OPEN_PRICE,
+            ],
             "fast": [8, 10, 12, 14, 16],
             "slow": [20, 22, 24, 26, 28, 30, 32],
             "signal": [7, 9, 10, 11, 13],
@@ -114,7 +117,7 @@ class MACDTrailingStatefulLogic(StatefulLogic):
         """
         close_col = trial.suggest_categorical(
             f"{prefix}close_col",
-            [StrategyColumns.CLOSE_PRICE, StrategyColumns.OPEN_PRICE],
+            [SignalStrategyColumns.CLOSE_PRICE, SignalStrategyColumns.OPEN_PRICE],
         )
         fast = trial.suggest_int(f"{prefix}fast", 8, 16)
         slow = trial.suggest_int(f"{prefix}slow", 20, 32)

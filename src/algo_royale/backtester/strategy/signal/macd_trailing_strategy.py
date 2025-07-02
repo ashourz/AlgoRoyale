@@ -1,6 +1,6 @@
 from typing import Optional
 
-from algo_royale.backtester.column_names.strategy_columns import StrategyColumns
+from algo_royale.backtester.column_names.strategy_columns import SignalStrategyColumns
 from algo_royale.backtester.strategy.signal.base_signal_strategy import (
     BaseSignalStrategy,
 )
@@ -37,8 +37,8 @@ class MACDTrailingStopStrategy(BaseSignalStrategy):
         entry_conditions: Optional[list[StrategyCondition]] = None,
         trend_conditions=[
             SMATrendCondition(
-                sma_fast_col=StrategyColumns.SMA_50,
-                sma_slow_col=StrategyColumns.SMA_200,
+                sma_fast_col=SignalStrategyColumns.SMA_50,
+                sma_slow_col=SignalStrategyColumns.SMA_200,
             )
         ],
         stateful_logic=MACDTrailingStatefulLogic(
@@ -46,7 +46,7 @@ class MACDTrailingStopStrategy(BaseSignalStrategy):
             slow=26,
             signal=9,
             stop_pct=0.02,
-            close_col=StrategyColumns.CLOSE_PRICE,
+            close_col=SignalStrategyColumns.CLOSE_PRICE,
         ),
     ):
         # Store the condition(s) as attributes

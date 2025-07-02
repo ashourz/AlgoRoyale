@@ -1,4 +1,4 @@
-from algo_royale.backtester.column_names.strategy_columns import StrategyColumns
+from algo_royale.backtester.column_names.strategy_columns import SignalStrategyColumns
 from algo_royale.backtester.strategy.signal.base_signal_strategy import (
     BaseSignalStrategy,
 )
@@ -32,7 +32,7 @@ class MomentumStrategy(BaseSignalStrategy):
         self,
         entry_conditions: list[MomentumEntryCondition] = [
             MomentumEntryCondition(
-                close_col=StrategyColumns.CLOSE_PRICE,
+                close_col=SignalStrategyColumns.CLOSE_PRICE,
                 lookback=10,
                 threshold=0.0,
                 smooth_window=None,
@@ -41,7 +41,7 @@ class MomentumStrategy(BaseSignalStrategy):
         ],
         exit_conditions: list[MomentumExitCondition] = [
             MomentumExitCondition(
-                close_col=StrategyColumns.CLOSE_PRICE,
+                close_col=SignalStrategyColumns.CLOSE_PRICE,
                 lookback=10,
                 threshold=0.0,
                 smooth_window=None,

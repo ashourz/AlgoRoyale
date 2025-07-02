@@ -1,4 +1,4 @@
-from algo_royale.backtester.column_names.strategy_columns import StrategyColumns
+from algo_royale.backtester.column_names.strategy_columns import SignalStrategyColumns
 from algo_royale.backtester.strategy.signal.conditions.volume_surge_entry import (
     VolumeSurgeEntryCondition,
 )
@@ -22,7 +22,7 @@ class VolumeSurgeStrategy(BaseSignalStrategy):
         self,
         entry_conditions: list[VolumeSurgeEntryCondition] = [
             VolumeSurgeEntryCondition(
-                vol_col=StrategyColumns.VOLUME, threshold=2.0, ma_window=20
+                vol_col=SignalStrategyColumns.VOLUME, threshold=2.0, ma_window=20
             )
         ],
     ):

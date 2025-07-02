@@ -4,7 +4,14 @@ from algo_royale.backtester.column_names.feature_engineering_columns import (
 )
 
 
-class StrategyColumns(FeatureEngineeringColumns):
+class SignalStrategyColumns(FeatureEngineeringColumns):
+    """Column names used in the strategy execution and management within the algorithmic trading framework."""
+
+    ENTRY_SIGNAL = ColumnName("entry_signal")
+    EXIT_SIGNAL = ColumnName("exit_signal")
+
+
+class SignalStrategyExecutorColumns(FeatureEngineeringColumns):
     """Column names used in the strategy execution and management within the algorithmic trading framework."""
 
     STRATEGY_NAME = ColumnName("strategy_name")

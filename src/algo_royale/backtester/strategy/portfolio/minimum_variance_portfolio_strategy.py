@@ -38,7 +38,7 @@ class MinimumVariancePortfolioStrategy(BasePortfolioStrategy):
     def optuna_suggest(cls, trial: Trial, prefix: str = ""):
         return cls(lookback=trial.suggest_int(f"{prefix}lookback", 10, 120))
 
-    def allocate(self, signals: pd.DataFrame, returns: pd.DataFrame) -> pd.DataFrame:
+    def _allocate(self, signals: pd.DataFrame, returns: pd.DataFrame) -> pd.DataFrame:
         if returns.empty or returns.shape[1] == 0:
             return pd.DataFrame(index=returns.index)
         if returns.shape[1] == 1:

@@ -1,4 +1,4 @@
-from algo_royale.backtester.column_names.strategy_columns import StrategyColumns
+from algo_royale.backtester.column_names.strategy_columns import SignalStrategyColumns
 from algo_royale.backtester.enum.signal_type import SignalType
 from algo_royale.backtester.strategy.signal.stateful_logic.base_stateful_logic import (
     StatefulLogic,
@@ -13,7 +13,7 @@ class MeanReversionStatefulLogic(StatefulLogic):
         stop_pct=0.02,
         profit_target_pct=0.04,
         reentry_cooldown=5,
-        close_col: StrategyColumns = StrategyColumns.CLOSE_PRICE,
+        close_col: SignalStrategyColumns = SignalStrategyColumns.CLOSE_PRICE,
     ):
         super().__init__(
             window=window,
@@ -94,7 +94,7 @@ class MeanReversionStatefulLogic(StatefulLogic):
             "stop_pct": [0.005, 0.01, 0.015, 0.02, 0.025, 0.03, 0.35, 0.4, 0.45, 0.5],
             "profit_target_pct": [0.005, 0.01, 0.015, 0.02, 0.025, 0.03, 0.35, 0.04],
             "reentry_cooldown": [0, 1, 2, 3, 5, 7, 10, 15, 20, 30],
-            "close_col": [StrategyColumns.CLOSE_PRICE],
+            "close_col": [SignalStrategyColumns.CLOSE_PRICE],
         }
 
     @classmethod
@@ -107,7 +107,7 @@ class MeanReversionStatefulLogic(StatefulLogic):
             f"{prefix}profit_target_pct", 0.005, 0.04
         )
         reentry_cooldown = trial.suggest_int(f"{prefix}reentry_cooldown", 0, 30)
-        close_col = StrategyColumns.CLOSE_PRICE
+        close_col = SignalStrategyColumns.CLOSE_PRICE
         return cls(
             window=window,
             threshold=threshold,

@@ -43,7 +43,7 @@ class MaxSharpePortfolioStrategy(BasePortfolioStrategy):
             risk_free_rate=trial.suggest_float(f"{prefix}risk_free_rate", 0.0, 0.05),
         )
 
-    def allocate(self, signals: pd.DataFrame, returns: pd.DataFrame) -> pd.DataFrame:
+    def _allocate(self, signals: pd.DataFrame, returns: pd.DataFrame) -> pd.DataFrame:
         if returns.empty or returns.shape[1] == 0:
             return pd.DataFrame(index=returns.index)
         if returns.shape[1] == 1:

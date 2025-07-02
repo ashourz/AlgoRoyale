@@ -1,7 +1,7 @@
 import pandas as pd
 from optuna import Trial
 
-from algo_royale.backtester.column_names.strategy_columns import StrategyColumns
+from algo_royale.backtester.column_names.strategy_columns import SignalStrategyColumns
 from algo_royale.backtester.strategy.signal.conditions.base_strategy_condition import (
     StrategyCondition,
 )
@@ -22,7 +22,7 @@ class MovingAverageEntryCondition(StrategyCondition):
 
     def __init__(
         self,
-        close_col: StrategyColumns = StrategyColumns.CLOSE_PRICE,
+        close_col: SignalStrategyColumns = SignalStrategyColumns.CLOSE_PRICE,
         short_window: int = 50,
         long_window: int = 200,
     ):
@@ -66,7 +66,10 @@ class MovingAverageEntryCondition(StrategyCondition):
             if short < long
         ]
         return {
-            "close_col": [StrategyColumns.CLOSE_PRICE, StrategyColumns.OPEN_PRICE],
+            "close_col": [
+                SignalStrategyColumns.CLOSE_PRICE,
+                SignalStrategyColumns.OPEN_PRICE,
+            ],
             "short_window": [pair[0] for pair in valid_pairs],
             "long_window": [pair[1] for pair in valid_pairs],
         }
@@ -76,7 +79,7 @@ class MovingAverageEntryCondition(StrategyCondition):
         return cls(
             close_col=trial.suggest_categorical(
                 f"{prefix}close_col",
-                [StrategyColumns.CLOSE_PRICE, StrategyColumns.OPEN_PRICE],
+                [SignalStrategyColumns.CLOSE_PRICE, SignalStrategyColumns.OPEN_PRICE],
             ),
             short_window=trial.suggest_int(f"{prefix}short_window", 5, 50),
             long_window=trial.suggest_int(f"{prefix}long_window", 30, 200),

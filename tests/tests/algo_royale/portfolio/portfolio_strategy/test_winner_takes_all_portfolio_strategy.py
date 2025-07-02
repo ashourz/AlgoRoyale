@@ -21,7 +21,7 @@ def test_winner_takes_all_basic():
     strategy = WinnerTakesAllPortfolioStrategy(
         use_signals=True, move_to_cash_at_end_of_day=False
     )
-    weights = strategy.allocate(signals, returns)
+    weights = strategy._allocate(signals, returns)
     assert weights.shape == returns.shape
     for i, row in weights.iterrows():
         s = row.sum()
@@ -48,7 +48,7 @@ def test_winner_takes_all_move_to_cash():
     strategy = WinnerTakesAllPortfolioStrategy(
         use_signals=True, move_to_cash_at_end_of_day=True
     )
-    weights = strategy.allocate(signals, returns)
+    weights = strategy._allocate(signals, returns)
     assert (weights.iloc[-1] == 0.0).all()
 
 
@@ -60,5 +60,5 @@ def test_winner_takes_all_all_zero_returns():
     strategy = WinnerTakesAllPortfolioStrategy(
         use_signals=True, move_to_cash_at_end_of_day=False
     )
-    weights = strategy.allocate(signals, returns)
+    weights = strategy._allocate(signals, returns)
     assert (weights == 0).all().all()

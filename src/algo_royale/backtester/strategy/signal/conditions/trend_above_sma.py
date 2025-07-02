@@ -1,7 +1,7 @@
 import pandas as pd
 from optuna import Trial
 
-from algo_royale.backtester.column_names.strategy_columns import StrategyColumns
+from algo_royale.backtester.column_names.strategy_columns import SignalStrategyColumns
 from algo_royale.backtester.strategy.signal.conditions.base_strategy_condition import (
     StrategyCondition,
 )
@@ -10,8 +10,8 @@ from algo_royale.backtester.strategy.signal.conditions.base_strategy_condition i
 class TrendAboveSMACondition(StrategyCondition):
     def __init__(
         self,
-        price_col: StrategyColumns = StrategyColumns.CLOSE_PRICE,
-        sma_col: StrategyColumns = StrategyColumns.SMA_20,
+        price_col: SignalStrategyColumns = SignalStrategyColumns.CLOSE_PRICE,
+        sma_col: SignalStrategyColumns = SignalStrategyColumns.SMA_20,
     ):
         super().__init__(price_col=price_col, sma_col=sma_col)
         self.price_col = price_col
@@ -27,14 +27,17 @@ class TrendAboveSMACondition(StrategyCondition):
     @classmethod
     def available_param_grid(cls) -> dict:
         return {
-            "price_col": [StrategyColumns.CLOSE_PRICE, StrategyColumns.OPEN_PRICE],
+            "price_col": [
+                SignalStrategyColumns.CLOSE_PRICE,
+                SignalStrategyColumns.OPEN_PRICE,
+            ],
             "sma_col": [
-                StrategyColumns.SMA_10,
-                StrategyColumns.SMA_20,
-                StrategyColumns.SMA_50,
-                StrategyColumns.SMA_100,
-                StrategyColumns.SMA_150,
-                StrategyColumns.SMA_200,
+                SignalStrategyColumns.SMA_10,
+                SignalStrategyColumns.SMA_20,
+                SignalStrategyColumns.SMA_50,
+                SignalStrategyColumns.SMA_100,
+                SignalStrategyColumns.SMA_150,
+                SignalStrategyColumns.SMA_200,
             ],
         }
 
@@ -43,17 +46,17 @@ class TrendAboveSMACondition(StrategyCondition):
         return cls(
             price_col=trial.suggest_categorical(
                 f"{prefix}price_col",
-                [StrategyColumns.CLOSE_PRICE, StrategyColumns.OPEN_PRICE],
+                [SignalStrategyColumns.CLOSE_PRICE, SignalStrategyColumns.OPEN_PRICE],
             ),
             sma_col=trial.suggest_categorical(
                 f"{prefix}sma_col",
                 [
-                    StrategyColumns.SMA_10,
-                    StrategyColumns.SMA_20,
-                    StrategyColumns.SMA_50,
-                    StrategyColumns.SMA_100,
-                    StrategyColumns.SMA_150,
-                    StrategyColumns.SMA_200,
+                    SignalStrategyColumns.SMA_10,
+                    SignalStrategyColumns.SMA_20,
+                    SignalStrategyColumns.SMA_50,
+                    SignalStrategyColumns.SMA_100,
+                    SignalStrategyColumns.SMA_150,
+                    SignalStrategyColumns.SMA_200,
                 ],
             ),
         )

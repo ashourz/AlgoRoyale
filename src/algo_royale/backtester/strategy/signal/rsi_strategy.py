@@ -1,4 +1,4 @@
-from algo_royale.backtester.column_names.strategy_columns import StrategyColumns
+from algo_royale.backtester.column_names.strategy_columns import SignalStrategyColumns
 from algo_royale.backtester.strategy.signal.base_signal_strategy import (
     BaseSignalStrategy,
 )
@@ -20,12 +20,12 @@ class RSIStrategy(BaseSignalStrategy):
         self,
         entry_conditions: list[RSIEntryCondition] = [
             RSIEntryCondition(
-                close_col=StrategyColumns.CLOSE_PRICE, period=14, oversold=30
+                close_col=SignalStrategyColumns.CLOSE_PRICE, period=14, oversold=30
             )
         ],
         exit_conditions: list[RSIExitCondition] = [
             RSIExitCondition(
-                close_col=StrategyColumns.CLOSE_PRICE, period=14, overbought=70
+                close_col=SignalStrategyColumns.CLOSE_PRICE, period=14, overbought=70
             )
         ],
     ) -> None:

@@ -1,14 +1,16 @@
 import pandas as pd
 from optuna import Trial
 
-from algo_royale.backtester.column_names.strategy_columns import StrategyColumns
+from algo_royale.backtester.column_names.strategy_columns import SignalStrategyColumns
 from algo_royale.backtester.strategy.signal.conditions.base_strategy_condition import (
     StrategyCondition,
 )
 
 
 class RSIExitCondition(StrategyCondition):
-    def __init__(self, close_col=StrategyColumns.CLOSE_PRICE, period=14, overbought=70):
+    def __init__(
+        self, close_col=SignalStrategyColumns.CLOSE_PRICE, period=14, overbought=70
+    ):
         super().__init__(close_col=close_col, period=period, overbought=overbought)
         self.close_col = close_col
         self.period = period
@@ -31,7 +33,10 @@ class RSIExitCondition(StrategyCondition):
     @classmethod
     def available_param_grid(cls) -> dict:
         return {
-            "close_col": [StrategyColumns.CLOSE_PRICE, StrategyColumns.OPEN_PRICE],
+            "close_col": [
+                SignalStrategyColumns.CLOSE_PRICE,
+                SignalStrategyColumns.OPEN_PRICE,
+            ],
             "period": [5, 10, 14, 20, 30],
             "overbought": [60, 65, 70, 75, 80],
         }
@@ -41,7 +46,7 @@ class RSIExitCondition(StrategyCondition):
         return cls(
             close_col=trial.suggest_categorical(
                 f"{prefix}close_col",
-                [StrategyColumns.CLOSE_PRICE, StrategyColumns.OPEN_PRICE],
+                [SignalStrategyColumns.CLOSE_PRICE, SignalStrategyColumns.OPEN_PRICE],
             ),
             period=trial.suggest_int(f"{prefix}period", 5, 30),
             overbought=trial.suggest_int(f"{prefix}overbought", 60, 80),

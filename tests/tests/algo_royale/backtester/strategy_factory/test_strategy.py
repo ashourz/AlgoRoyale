@@ -1,6 +1,6 @@
 import pandas as pd
 
-from algo_royale.backtester.column_names.strategy_columns import StrategyColumns
+from algo_royale.backtester.column_names.strategy_columns import SignalStrategyColumns
 from algo_royale.backtester.strategy.signal.base_signal_strategy import (
     BaseSignalStrategy,
 )
@@ -94,8 +94,8 @@ def test_generate_signals_missing_column():
     df = pd.DataFrame({"a": [1, 2, 3]})
     strat = BaseSignalStrategy(entry_conditions=[DummyCondition("b")])
     result = strat.generate_signals(df)
-    assert all(result[StrategyColumns.ENTRY_SIGNAL] == "hold")
-    assert all(result[StrategyColumns.EXIT_SIGNAL] == "hold")
+    assert all(result[SignalStrategyColumns.ENTRY_SIGNAL] == "hold")
+    assert all(result[SignalStrategyColumns.EXIT_SIGNAL] == "hold")
 
 
 def test_generate_signals_with_stateful_logic():
@@ -105,7 +105,7 @@ def test_generate_signals_with_stateful_logic():
         stateful_logic=DummyStatefulLogic(),
     )
     result = strat.generate_signals(df)
-    assert all(result[StrategyColumns.ENTRY_SIGNAL] == "buy")
+    assert all(result[SignalStrategyColumns.ENTRY_SIGNAL] == "buy")
 
 
 def test_get_description_and_hash_id():

@@ -1,7 +1,7 @@
 import pandas as pd
 from optuna import Trial
 
-from algo_royale.backtester.column_names.strategy_columns import StrategyColumns
+from algo_royale.backtester.column_names.strategy_columns import SignalStrategyColumns
 from algo_royale.backtester.strategy.signal.conditions.base_strategy_condition import (
     StrategyCondition,
 )
@@ -10,8 +10,8 @@ from algo_royale.backtester.strategy.signal.conditions.base_strategy_condition i
 @staticmethod
 def volatility_spike(
     row,
-    range_col: StrategyColumns = StrategyColumns.RANGE,
-    volatility_col: StrategyColumns = StrategyColumns.VOLATILITY_10,
+    range_col: SignalStrategyColumns = SignalStrategyColumns.RANGE,
+    volatility_col: SignalStrategyColumns = SignalStrategyColumns.VOLATILITY_10,
 ):
     """
     Returns True if the current price range is greater than the volatility measure,
@@ -47,8 +47,8 @@ class VolatilitySpikeCondition(StrategyCondition):
 
     def __init__(
         self,
-        range_col: StrategyColumns = StrategyColumns.RANGE,
-        volatility_col: StrategyColumns = StrategyColumns.VOLATILITY_10,
+        range_col: SignalStrategyColumns = SignalStrategyColumns.RANGE,
+        volatility_col: SignalStrategyColumns = SignalStrategyColumns.VOLATILITY_10,
     ):
         super().__init__(
             range_col=range_col,
@@ -71,14 +71,14 @@ class VolatilitySpikeCondition(StrategyCondition):
     def available_param_grid(cls) -> dict:
         return {
             "range_col": [
-                StrategyColumns.RANGE,
-                StrategyColumns.ATR_14,
+                SignalStrategyColumns.RANGE,
+                SignalStrategyColumns.ATR_14,
             ],
             "volatility_col": [
-                StrategyColumns.VOLATILITY_10,
-                StrategyColumns.VOLATILITY_20,
-                StrategyColumns.VOLATILITY_50,
-                StrategyColumns.HIST_VOLATILITY_20,
+                SignalStrategyColumns.VOLATILITY_10,
+                SignalStrategyColumns.VOLATILITY_20,
+                SignalStrategyColumns.VOLATILITY_50,
+                SignalStrategyColumns.HIST_VOLATILITY_20,
             ],
         }
 
@@ -88,17 +88,17 @@ class VolatilitySpikeCondition(StrategyCondition):
             range_col=trial.suggest_categorical(
                 prefix + "range_col",
                 [
-                    StrategyColumns.RANGE,
-                    StrategyColumns.ATR_14,
+                    SignalStrategyColumns.RANGE,
+                    SignalStrategyColumns.ATR_14,
                 ],
             ),
             volatility_col=trial.suggest_categorical(
                 prefix + "volatility_col",
                 [
-                    StrategyColumns.VOLATILITY_10,
-                    StrategyColumns.VOLATILITY_20,
-                    StrategyColumns.VOLATILITY_50,
-                    StrategyColumns.HIST_VOLATILITY_20,
+                    SignalStrategyColumns.VOLATILITY_10,
+                    SignalStrategyColumns.VOLATILITY_20,
+                    SignalStrategyColumns.VOLATILITY_50,
+                    SignalStrategyColumns.HIST_VOLATILITY_20,
                 ],
             ),
         )

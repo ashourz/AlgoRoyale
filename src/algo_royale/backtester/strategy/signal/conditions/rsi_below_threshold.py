@@ -1,7 +1,7 @@
 import pandas as pd
 from optuna import Trial
 
-from algo_royale.backtester.column_names.strategy_columns import StrategyColumns
+from algo_royale.backtester.column_names.strategy_columns import SignalStrategyColumns
 from algo_royale.backtester.strategy.signal.conditions.base_strategy_condition import (
     StrategyCondition,
 )
@@ -10,8 +10,8 @@ from algo_royale.backtester.strategy.signal.conditions.base_strategy_condition i
 @staticmethod
 def rsi_below_threshold(
     row,
-    rsi_col: StrategyColumns = StrategyColumns.RSI,
-    close_col: StrategyColumns = StrategyColumns.CLOSE_PRICE,
+    rsi_col: SignalStrategyColumns = SignalStrategyColumns.RSI,
+    close_col: SignalStrategyColumns = SignalStrategyColumns.CLOSE_PRICE,
     threshold=30,
 ):
     """
@@ -54,8 +54,8 @@ class RSIBelowThresholdCondition(StrategyCondition):
 
     def __init__(
         self,
-        rsi_col: StrategyColumns = StrategyColumns.RSI,
-        close_col: StrategyColumns = StrategyColumns.CLOSE_PRICE,
+        rsi_col: SignalStrategyColumns = SignalStrategyColumns.RSI,
+        close_col: SignalStrategyColumns = SignalStrategyColumns.CLOSE_PRICE,
         threshold=30,
     ):
         super().__init__(rsi_col=rsi_col, close_col=close_col, threshold=threshold)
@@ -78,18 +78,21 @@ class RSIBelowThresholdCondition(StrategyCondition):
     @classmethod
     def available_param_grid(cls) -> dict:
         return {
-            "rsi_col": [StrategyColumns.RSI],
-            "close_col": [StrategyColumns.CLOSE_PRICE, StrategyColumns.OPEN_PRICE],
+            "rsi_col": [SignalStrategyColumns.RSI],
+            "close_col": [
+                SignalStrategyColumns.CLOSE_PRICE,
+                SignalStrategyColumns.OPEN_PRICE,
+            ],
             "threshold": [20, 25, 30, 35, 40, 45, 50],
         }
 
     @classmethod
     def optuna_suggest(cls, trial: Trial, prefix=""):
         return cls(
-            rsi_col=StrategyColumns.RSI,
+            rsi_col=SignalStrategyColumns.RSI,
             close_col=trial.suggest_categorical(
                 f"{prefix}close_col",
-                [StrategyColumns.CLOSE_PRICE, StrategyColumns.OPEN_PRICE],
+                [SignalStrategyColumns.CLOSE_PRICE, SignalStrategyColumns.OPEN_PRICE],
             ),
             threshold=trial.suggest_int(f"{prefix}threshold", 20, 50),
         )

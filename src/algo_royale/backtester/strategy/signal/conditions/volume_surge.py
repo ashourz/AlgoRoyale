@@ -1,7 +1,7 @@
 import pandas as pd
 from optuna import Trial
 
-from algo_royale.backtester.column_names.strategy_columns import StrategyColumns
+from algo_royale.backtester.column_names.strategy_columns import SignalStrategyColumns
 from algo_royale.backtester.strategy.signal.conditions.base_strategy_condition import (
     StrategyCondition,
 )
@@ -10,8 +10,8 @@ from algo_royale.backtester.strategy.signal.conditions.base_strategy_condition i
 @staticmethod
 def volume_surge(
     row,
-    volume_col: StrategyColumns = StrategyColumns.VOLUME,
-    vol_ma_col: StrategyColumns = StrategyColumns.VOL_MA_20,
+    volume_col: SignalStrategyColumns = SignalStrategyColumns.VOLUME,
+    vol_ma_col: SignalStrategyColumns = SignalStrategyColumns.VOL_MA_20,
     threshold=2.0,
 ):
     """
@@ -51,8 +51,8 @@ class VolumeSurgeCondition(StrategyCondition):
 
     def __init__(
         self,
-        volume_col: StrategyColumns = StrategyColumns.VOLUME,
-        vol_ma_col: StrategyColumns = StrategyColumns.VOL_MA_20,
+        volume_col: SignalStrategyColumns = SignalStrategyColumns.VOLUME,
+        vol_ma_col: SignalStrategyColumns = SignalStrategyColumns.VOL_MA_20,
         threshold: float = 2.0,
     ):
         super().__init__(
@@ -79,13 +79,13 @@ class VolumeSurgeCondition(StrategyCondition):
     @classmethod
     def available_param_grid(cls) -> dict:
         return {
-            "volume_col": [StrategyColumns.VOLUME],
+            "volume_col": [SignalStrategyColumns.VOLUME],
             "vol_ma_col": [
-                StrategyColumns.VOL_MA_10,
-                StrategyColumns.VOL_MA_20,
-                StrategyColumns.VOL_MA_50,
-                StrategyColumns.VOL_MA_100,
-                StrategyColumns.VOL_MA_200,
+                SignalStrategyColumns.VOL_MA_10,
+                SignalStrategyColumns.VOL_MA_20,
+                SignalStrategyColumns.VOL_MA_50,
+                SignalStrategyColumns.VOL_MA_100,
+                SignalStrategyColumns.VOL_MA_200,
             ],
             "threshold": [1.2, 1.5, 1.8, 2.0, 2.5, 3.0, 4.0],
         }
@@ -95,16 +95,16 @@ class VolumeSurgeCondition(StrategyCondition):
         return cls(
             volume_col=trial.suggest_categorical(
                 prefix + "volume_col",
-                [StrategyColumns.VOLUME],
+                [SignalStrategyColumns.VOLUME],
             ),
             vol_ma_col=trial.suggest_categorical(
                 prefix + "vol_ma_col",
                 [
-                    StrategyColumns.VOL_MA_10,
-                    StrategyColumns.VOL_MA_20,
-                    StrategyColumns.VOL_MA_50,
-                    StrategyColumns.VOL_MA_100,
-                    StrategyColumns.VOL_MA_200,
+                    SignalStrategyColumns.VOL_MA_10,
+                    SignalStrategyColumns.VOL_MA_20,
+                    SignalStrategyColumns.VOL_MA_50,
+                    SignalStrategyColumns.VOL_MA_100,
+                    SignalStrategyColumns.VOL_MA_200,
                 ],
             ),
             threshold=trial.suggest_float(prefix + "threshold", 1.2, 4.0),

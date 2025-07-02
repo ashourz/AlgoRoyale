@@ -3,7 +3,9 @@ from unittest.mock import MagicMock
 import pandas as pd
 import pytest
 
-from algo_royale.backtester.column_names.strategy_columns import StrategyColumns
+from algo_royale.backtester.column_names.strategy_columns import (
+    SignalStrategyExecutorColumns,
+)
 from algo_royale.backtester.executor.strategy_backtest_executor import (
     StrategyBacktestExecutor,
 )
@@ -31,8 +33,8 @@ def mock_strategy():
     strat.get_hash_id.return_value = "MockStrategy"  # <-- Add this line
     strat.generate_signals.side_effect = lambda df: pd.DataFrame(
         {
-            StrategyColumns.ENTRY_SIGNAL: ["buy"] * len(df),
-            StrategyColumns.EXIT_SIGNAL: ["hold"] * len(df),
+            SignalStrategyExecutorColumns.ENTRY_SIGNAL: ["buy"] * len(df),
+            SignalStrategyExecutorColumns.EXIT_SIGNAL: ["hold"] * len(df),
         },
         index=df.index,
     )
@@ -48,15 +50,19 @@ async def test_run_backtest_success(
         yield pd.DataFrame(
             {
                 "a": [1],
-                StrategyColumns.CLOSE_PRICE: [100],  # Changed from "close_price"
-                StrategyColumns.TIMESTAMP: pd.to_datetime(["2020-01-01"]),
+                SignalStrategyExecutorColumns.CLOSE_PRICE: [
+                    100
+                ],  # Changed from "close_price"
+                SignalStrategyExecutorColumns.TIMESTAMP: pd.to_datetime(["2020-01-01"]),
             }
         )
         yield pd.DataFrame(
             {
                 "a": [2],
-                StrategyColumns.CLOSE_PRICE: [200],  # Changed from "close_price"
-                StrategyColumns.TIMESTAMP: pd.to_datetime(["2020-01-02"]),
+                SignalStrategyExecutorColumns.CLOSE_PRICE: [
+                    200
+                ],  # Changed from "close_price"
+                SignalStrategyExecutorColumns.TIMESTAMP: pd.to_datetime(["2020-01-02"]),
             }
         )
 
@@ -66,10 +72,10 @@ async def test_run_backtest_success(
     assert "AAPL" in results
     assert len(results["AAPL"]) == 2
     for df in results["AAPL"]:
-        assert StrategyColumns.ENTRY_SIGNAL in df.columns
-        assert StrategyColumns.EXIT_SIGNAL in df.columns
-        assert StrategyColumns.STRATEGY_NAME in df.columns
-        assert StrategyColumns.SYMBOL in df.columns
+        assert SignalStrategyExecutorColumns.ENTRY_SIGNAL in df.columns
+        assert SignalStrategyExecutorColumns.EXIT_SIGNAL in df.columns
+        assert SignalStrategyExecutorColumns.STRATEGY_NAME in df.columns
+        assert SignalStrategyExecutorColumns.SYMBOL in df.columns
 
 
 @pytest.mark.asyncio
@@ -93,8 +99,8 @@ async def test_run_backtest_skips_done(
         yield pd.DataFrame(
             {
                 "a": [1],
-                StrategyColumns.CLOSE_PRICE: [100],
-                StrategyColumns.TIMESTAMP: pd.to_datetime(["2020-01-01"]),
+                SignalStrategyExecutorColumns.CLOSE_PRICE: [100],
+                SignalStrategyExecutorColumns.TIMESTAMP: pd.to_datetime(["2020-01-01"]),
             }
         )
 
@@ -116,8 +122,8 @@ async def test_run_backtest_handles_page_exception(
         # Return a valid DataFrame for the first page
         return pd.DataFrame(
             {
-                StrategyColumns.ENTRY_SIGNAL: ["buy"] * len(df),
-                StrategyColumns.EXIT_SIGNAL: ["hold"] * len(df),
+                SignalStrategyExecutorColumns.ENTRY_SIGNAL: ["buy"] * len(df),
+                SignalStrategyExecutorColumns.EXIT_SIGNAL: ["hold"] * len(df),
             },
             index=df.index,
         )
@@ -128,15 +134,15 @@ async def test_run_backtest_handles_page_exception(
         yield pd.DataFrame(
             {
                 "a": [1],
-                StrategyColumns.CLOSE_PRICE: [100],
-                StrategyColumns.TIMESTAMP: pd.to_datetime(["2020-01-01"]),
+                SignalStrategyExecutorColumns.CLOSE_PRICE: [100],
+                SignalStrategyExecutorColumns.TIMESTAMP: pd.to_datetime(["2020-01-01"]),
             }
         )
         yield pd.DataFrame(
             {
                 "a": [2],
-                StrategyColumns.CLOSE_PRICE: [200],
-                StrategyColumns.TIMESTAMP: pd.to_datetime(["2020-01-02"]),
+                SignalStrategyExecutorColumns.CLOSE_PRICE: [200],
+                SignalStrategyExecutorColumns.TIMESTAMP: pd.to_datetime(["2020-01-02"]),
             }
         )
 

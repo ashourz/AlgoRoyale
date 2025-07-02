@@ -45,7 +45,7 @@ class MeanVariancePortfolioStrategy(BasePortfolioStrategy):
             ),
         )
 
-    def allocate(self, signals: pd.DataFrame, returns: pd.DataFrame) -> pd.DataFrame:
+    def _allocate(self, signals: pd.DataFrame, returns: pd.DataFrame) -> pd.DataFrame:
         if returns.empty or returns.shape[1] == 0:
             return pd.DataFrame(index=returns.index)
         if returns.shape[1] == 1:

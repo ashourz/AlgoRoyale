@@ -1,7 +1,7 @@
 import pandas as pd
 from optuna import Trial
 
-from algo_royale.backtester.column_names.strategy_columns import StrategyColumns
+from algo_royale.backtester.column_names.strategy_columns import SignalStrategyColumns
 from algo_royale.backtester.strategy.signal.conditions.base_strategy_condition import (
     StrategyCondition,
 )
@@ -20,10 +20,10 @@ class ComboEntryCondition(StrategyCondition):
         self,
         rsi_buy_thresh,
         macd_buy_thresh,
-        rsi_col: StrategyColumns = StrategyColumns.RSI,
-        macd_col: StrategyColumns = StrategyColumns.MACD,
-        volume_col: StrategyColumns = StrategyColumns.VOLUME,
-        vol_ma_col: StrategyColumns = StrategyColumns.VOL_MA_20,
+        rsi_col: SignalStrategyColumns = SignalStrategyColumns.RSI,
+        macd_col: SignalStrategyColumns = SignalStrategyColumns.MACD,
+        volume_col: SignalStrategyColumns = SignalStrategyColumns.VOLUME,
+        vol_ma_col: SignalStrategyColumns = SignalStrategyColumns.VOL_MA_20,
     ):
         super().__init__(
             rsi_col=rsi_col,
@@ -54,15 +54,15 @@ class ComboEntryCondition(StrategyCondition):
     @classmethod
     def available_param_grid(cls) -> dict:
         return {
-            "rsi_col": [StrategyColumns.RSI],
-            "macd_col": [StrategyColumns.MACD],
-            "volume_col": [StrategyColumns.VOLUME],
+            "rsi_col": [SignalStrategyColumns.RSI],
+            "macd_col": [SignalStrategyColumns.MACD],
+            "volume_col": [SignalStrategyColumns.VOLUME],
             "vol_ma_col": [
-                StrategyColumns.VOL_MA_10,
-                StrategyColumns.VOL_MA_20,
-                StrategyColumns.VOL_MA_50,
-                StrategyColumns.VOL_MA_100,
-                StrategyColumns.VOL_MA_200,
+                SignalStrategyColumns.VOL_MA_10,
+                SignalStrategyColumns.VOL_MA_20,
+                SignalStrategyColumns.VOL_MA_50,
+                SignalStrategyColumns.VOL_MA_100,
+                SignalStrategyColumns.VOL_MA_200,
             ],
             "rsi_buy_thresh": [20, 30, 35, 40, 45, 50],
             "macd_buy_thresh": [-0.1, 0, 0.1, 0.2, 0.5],
@@ -72,22 +72,22 @@ class ComboEntryCondition(StrategyCondition):
     def optuna_suggest(cls, trial: Trial, prefix: str = ""):
         return cls(
             rsi_col=trial.suggest_categorical(
-                f"{prefix}rsi_col", [StrategyColumns.RSI]
+                f"{prefix}rsi_col", [SignalStrategyColumns.RSI]
             ),
             macd_col=trial.suggest_categorical(
-                f"{prefix}macd_col", [StrategyColumns.MACD]
+                f"{prefix}macd_col", [SignalStrategyColumns.MACD]
             ),
             volume_col=trial.suggest_categorical(
-                f"{prefix}volume_col", [StrategyColumns.VOLUME]
+                f"{prefix}volume_col", [SignalStrategyColumns.VOLUME]
             ),
             vol_ma_col=trial.suggest_categorical(
                 f"{prefix}vol_ma_col",
                 [
-                    StrategyColumns.VOL_MA_10,
-                    StrategyColumns.VOL_MA_20,
-                    StrategyColumns.VOL_MA_50,
-                    StrategyColumns.VOL_MA_100,
-                    StrategyColumns.VOL_MA_200,
+                    SignalStrategyColumns.VOL_MA_10,
+                    SignalStrategyColumns.VOL_MA_20,
+                    SignalStrategyColumns.VOL_MA_50,
+                    SignalStrategyColumns.VOL_MA_100,
+                    SignalStrategyColumns.VOL_MA_200,
                 ],
             ),
             rsi_buy_thresh=trial.suggest_int(f"{prefix}rsi_buy_thresh", 20, 50),

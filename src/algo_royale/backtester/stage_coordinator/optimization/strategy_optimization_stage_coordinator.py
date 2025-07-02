@@ -138,7 +138,7 @@ class StrategyOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
                     continue
 
                 # Save optimization metrics to optimization_result.json under window_id
-                out_path = self.get_output_path(
+                out_path = self._get_output_path(
                     strategy_name,
                     symbol,
                     self.start_date,
@@ -176,7 +176,7 @@ class StrategyOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
 
         return results
 
-    def get_output_path(
+    def _get_output_path(
         self, strategy_name: str, symbol: str, start_date: datetime, end_date: datetime
     ):
         """Get the output path for the optimization results JSON file."""

@@ -1,7 +1,7 @@
 import pandas as pd
 from optuna import Trial
 
-from algo_royale.backtester.column_names.strategy_columns import StrategyColumns
+from algo_royale.backtester.column_names.strategy_columns import SignalStrategyColumns
 from algo_royale.backtester.strategy.signal.conditions.base_strategy_condition import (
     StrategyCondition,
 )
@@ -15,8 +15,8 @@ class EMAAboveSMARollingCondition(StrategyCondition):
 
     def __init__(
         self,
-        ema_col=StrategyColumns.EMA_20,
-        sma_col=StrategyColumns.SMA_50,
+        ema_col=SignalStrategyColumns.EMA_20,
+        sma_col=SignalStrategyColumns.SMA_50,
         window: int = 3,
     ):
         super().__init__(ema_col=ema_col, sma_col=sma_col, window=window)
@@ -38,8 +38,8 @@ class EMAAboveSMARollingCondition(StrategyCondition):
     def available_param_grid(cls) -> dict:
         ema_periods = [9, 10, 12, 20, 26, 50, 100, 150, 200]
         sma_periods = [10, 20, 50, 100, 150, 200]
-        ema_cols = [getattr(StrategyColumns, f"EMA_{p}") for p in ema_periods]
-        sma_cols = [getattr(StrategyColumns, f"SMA_{p}") for p in sma_periods]
+        ema_cols = [getattr(SignalStrategyColumns, f"EMA_{p}") for p in ema_periods]
+        sma_cols = [getattr(SignalStrategyColumns, f"SMA_{p}") for p in sma_periods]
 
         return {
             "ema_col": ema_cols,

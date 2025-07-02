@@ -1,7 +1,7 @@
 import pandas as pd
 from optuna import Trial
 
-from algo_royale.backtester.column_names.strategy_columns import StrategyColumns
+from algo_royale.backtester.column_names.strategy_columns import SignalStrategyColumns
 from algo_royale.backtester.strategy.signal.conditions.base_strategy_condition import (
     StrategyCondition,
 )
@@ -11,8 +11,8 @@ from algo_royale.backtester.strategy.signal.conditions.base_strategy_condition i
 def macd_bearish_cross(
     current_row,
     prev_row,
-    macd_col: StrategyColumns = StrategyColumns.MACD,
-    signal_col: StrategyColumns = StrategyColumns.MACD_SIGNAL,
+    macd_col: SignalStrategyColumns = SignalStrategyColumns.MACD,
+    signal_col: SignalStrategyColumns = SignalStrategyColumns.MACD_SIGNAL,
 ):
     """
     Returns True if MACD crosses below its signal line between previous and current rows,
@@ -54,8 +54,8 @@ class MACDBearishCrossCondition(StrategyCondition):
 
     def __init__(
         self,
-        macd_col: StrategyColumns = StrategyColumns.MACD,
-        signal_col: StrategyColumns = StrategyColumns.MACD_SIGNAL,
+        macd_col: SignalStrategyColumns = SignalStrategyColumns.MACD,
+        signal_col: SignalStrategyColumns = SignalStrategyColumns.MACD_SIGNAL,
     ):
         super().__init__(macd_col=macd_col, signal_col=signal_col)
         self.macd_col = macd_col
@@ -76,8 +76,8 @@ class MACDBearishCrossCondition(StrategyCondition):
     @classmethod
     def available_param_grid(cls) -> dict:
         return {
-            "macd_col": [StrategyColumns.MACD],
-            "signal_col": [StrategyColumns.MACD_SIGNAL],
+            "macd_col": [SignalStrategyColumns.MACD],
+            "signal_col": [SignalStrategyColumns.MACD_SIGNAL],
         }
 
     @classmethod
@@ -85,10 +85,10 @@ class MACDBearishCrossCondition(StrategyCondition):
         return cls(
             macd_col=trial.suggest_categorical(
                 f"{prefix}macd_col",
-                [StrategyColumns.MACD],
+                [SignalStrategyColumns.MACD],
             ),
             signal_col=trial.suggest_categorical(
                 f"{prefix}signal_col",
-                [StrategyColumns.MACD_SIGNAL],
+                [SignalStrategyColumns.MACD_SIGNAL],
             ),
         )

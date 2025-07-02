@@ -1,4 +1,4 @@
-from algo_royale.backtester.column_names.strategy_columns import StrategyColumns
+from algo_royale.backtester.column_names.strategy_columns import SignalStrategyColumns
 from algo_royale.backtester.strategy.signal.base_signal_strategy import (
     BaseSignalStrategy,
 )
@@ -23,15 +23,15 @@ class VWAPReversionStrategy(BaseSignalStrategy):
         entry_conditions: list[VWAPReversionEntryCondition] = [
             VWAPReversionEntryCondition(
                 deviation_threshold=0.01,
-                vwap_col=StrategyColumns.VWAP_20,
-                vwp_col=StrategyColumns.VOLUME_WEIGHTED_PRICE,
+                vwap_col=SignalStrategyColumns.VWAP_20,
+                vwp_col=SignalStrategyColumns.VOLUME_WEIGHTED_PRICE,
             )
         ],
         exit_conditions: list[VWAPReversionExitCondition] = [
             VWAPReversionExitCondition(
                 deviation_threshold=0.01,
-                vwap_col=StrategyColumns.VWAP_20,
-                vwp_col=StrategyColumns.VOLUME_WEIGHTED_PRICE,
+                vwap_col=SignalStrategyColumns.VWAP_20,
+                vwp_col=SignalStrategyColumns.VOLUME_WEIGHTED_PRICE,
             )
         ],
     ):

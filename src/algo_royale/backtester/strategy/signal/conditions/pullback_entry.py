@@ -1,7 +1,7 @@
 import pandas as pd
 from optuna import Trial
 
-from algo_royale.backtester.column_names.strategy_columns import StrategyColumns
+from algo_royale.backtester.column_names.strategy_columns import SignalStrategyColumns
 from algo_royale.backtester.strategy.signal.conditions.base_strategy_condition import (
     StrategyCondition,
 )
@@ -10,8 +10,8 @@ from algo_royale.backtester.strategy.signal.conditions.base_strategy_condition i
 class PullbackEntryCondition(StrategyCondition):
     def __init__(
         self,
-        ma_col: StrategyColumns = StrategyColumns.SMA_20,
-        close_col: StrategyColumns = StrategyColumns.CLOSE_PRICE,
+        ma_col: SignalStrategyColumns = SignalStrategyColumns.SMA_20,
+        close_col: SignalStrategyColumns = SignalStrategyColumns.CLOSE_PRICE,
     ):
         super().__init__(ma_col=ma_col, close_col=close_col)
         self.ma_col = ma_col
@@ -30,22 +30,25 @@ class PullbackEntryCondition(StrategyCondition):
     def available_param_grid(cls) -> dict:
         return {
             "ma_col": [
-                StrategyColumns.SMA_10,
-                StrategyColumns.SMA_20,
-                StrategyColumns.SMA_50,
-                StrategyColumns.SMA_100,
-                StrategyColumns.SMA_150,
-                StrategyColumns.SMA_200,
-                StrategyColumns.EMA_9,
-                StrategyColumns.EMA_10,
-                StrategyColumns.EMA_20,
-                StrategyColumns.EMA_26,
-                StrategyColumns.EMA_50,
-                StrategyColumns.EMA_100,
-                StrategyColumns.EMA_150,
-                StrategyColumns.EMA_200,
+                SignalStrategyColumns.SMA_10,
+                SignalStrategyColumns.SMA_20,
+                SignalStrategyColumns.SMA_50,
+                SignalStrategyColumns.SMA_100,
+                SignalStrategyColumns.SMA_150,
+                SignalStrategyColumns.SMA_200,
+                SignalStrategyColumns.EMA_9,
+                SignalStrategyColumns.EMA_10,
+                SignalStrategyColumns.EMA_20,
+                SignalStrategyColumns.EMA_26,
+                SignalStrategyColumns.EMA_50,
+                SignalStrategyColumns.EMA_100,
+                SignalStrategyColumns.EMA_150,
+                SignalStrategyColumns.EMA_200,
             ],
-            "close_col": [StrategyColumns.CLOSE_PRICE, StrategyColumns.OPEN_PRICE],
+            "close_col": [
+                SignalStrategyColumns.CLOSE_PRICE,
+                SignalStrategyColumns.OPEN_PRICE,
+            ],
         }
 
     @classmethod
@@ -54,24 +57,24 @@ class PullbackEntryCondition(StrategyCondition):
             ma_col=trial.suggest_categorical(
                 f"{prefix}ma_col",
                 [
-                    StrategyColumns.SMA_10,
-                    StrategyColumns.SMA_20,
-                    StrategyColumns.SMA_50,
-                    StrategyColumns.SMA_100,
-                    StrategyColumns.SMA_150,
-                    StrategyColumns.SMA_200,
-                    StrategyColumns.EMA_9,
-                    StrategyColumns.EMA_10,
-                    StrategyColumns.EMA_20,
-                    StrategyColumns.EMA_26,
-                    StrategyColumns.EMA_50,
-                    StrategyColumns.EMA_100,
-                    StrategyColumns.EMA_150,
-                    StrategyColumns.EMA_200,
+                    SignalStrategyColumns.SMA_10,
+                    SignalStrategyColumns.SMA_20,
+                    SignalStrategyColumns.SMA_50,
+                    SignalStrategyColumns.SMA_100,
+                    SignalStrategyColumns.SMA_150,
+                    SignalStrategyColumns.SMA_200,
+                    SignalStrategyColumns.EMA_9,
+                    SignalStrategyColumns.EMA_10,
+                    SignalStrategyColumns.EMA_20,
+                    SignalStrategyColumns.EMA_26,
+                    SignalStrategyColumns.EMA_50,
+                    SignalStrategyColumns.EMA_100,
+                    SignalStrategyColumns.EMA_150,
+                    SignalStrategyColumns.EMA_200,
                 ],
             ),
             close_col=trial.suggest_categorical(
                 f"{prefix}close_col",
-                [StrategyColumns.CLOSE_PRICE, StrategyColumns.OPEN_PRICE],
+                [SignalStrategyColumns.CLOSE_PRICE, SignalStrategyColumns.OPEN_PRICE],
             ),
         )

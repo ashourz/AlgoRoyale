@@ -19,7 +19,7 @@ def test_volatility_weighted_basic():
     )
     signals = returns.copy()
     strategy = VolatilityWeightedPortfolioStrategy(window=2)
-    weights = strategy.allocate(signals, returns)
+    weights = strategy._allocate(signals, returns)
     assert weights.shape == returns.shape
     for i, row in weights.iterrows():
         s = row.sum()
@@ -37,7 +37,7 @@ def test_volatility_weighted_all_zero_returns():
     )
     signals = returns.copy()
     strategy = VolatilityWeightedPortfolioStrategy(window=2)
-    weights = strategy.allocate(signals, returns)
+    weights = strategy._allocate(signals, returns)
     # Accept all-zero weights or any valid allocation (sum to 1, all weights >= 0)
     for i, row in weights.iterrows():
         s = row.sum()

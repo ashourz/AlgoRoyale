@@ -19,7 +19,7 @@ def test_mean_variance_basic():
     )
     signals = returns.copy()
     strategy = MeanVariancePortfolioStrategy(lookback=2, risk_aversion=1.0)
-    weights = strategy.allocate(signals, returns)
+    weights = strategy._allocate(signals, returns)
     assert weights.shape == returns.shape
     for i, row in weights.iterrows():
         s = row.sum()
@@ -43,8 +43,8 @@ def test_mean_variance_risk_aversion_param():
     signals = returns.copy()
     strategy1 = MeanVariancePortfolioStrategy(lookback=2, risk_aversion=0.1)
     strategy2 = MeanVariancePortfolioStrategy(lookback=2, risk_aversion=10.0)
-    w1 = strategy1.allocate(signals, returns)
-    w2 = strategy2.allocate(signals, returns)
+    w1 = strategy1._allocate(signals, returns)
+    w2 = strategy2._allocate(signals, returns)
     if not (np.allclose(w1.values, 0) or np.allclose(w2.values, 0)):
         assert not w1.equals(w2)
 
@@ -55,7 +55,7 @@ def test_mean_variance_all_zero_returns():
     )
     signals = returns.copy()
     strategy = MeanVariancePortfolioStrategy(lookback=2, risk_aversion=1.0)
-    weights = strategy.allocate(signals, returns)
+    weights = strategy._allocate(signals, returns)
     # Accept either all-zero weights or any valid allocation (sum to 1, all >= 0)
     for i, row in weights.iterrows():
         s = row.sum()

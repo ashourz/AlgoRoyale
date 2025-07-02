@@ -1,4 +1,4 @@
-from algo_royale.backtester.column_names.strategy_columns import StrategyColumns
+from algo_royale.backtester.column_names.strategy_columns import SignalStrategyColumns
 from algo_royale.backtester.strategy.signal.base_signal_strategy import (
     BaseSignalStrategy,
 )
@@ -32,7 +32,8 @@ class MeanReversionStrategy(BaseSignalStrategy):
         self,
         trend_conditions: list[PriceAboveSMACondition] = [
             PriceAboveSMACondition(
-                close_col=StrategyColumns.CLOSE_PRICE, sma_col=StrategyColumns.SMA_200
+                close_col=SignalStrategyColumns.CLOSE_PRICE,
+                sma_col=SignalStrategyColumns.SMA_200,
             )
         ],
         stateful_logic: MeanReversionStatefulLogic = MeanReversionStatefulLogic(
@@ -41,7 +42,7 @@ class MeanReversionStrategy(BaseSignalStrategy):
             stop_pct=0.02,
             profit_target_pct=0.04,
             reentry_cooldown=5,
-            close_col=StrategyColumns.CLOSE_PRICE,
+            close_col=SignalStrategyColumns.CLOSE_PRICE,
         ),
     ):
         """Initialize the Mean Reversion Strategy with trend conditions and stateful logic.

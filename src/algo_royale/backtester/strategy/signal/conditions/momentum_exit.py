@@ -1,7 +1,7 @@
 import pandas as pd
 from optuna import Trial
 
-from algo_royale.backtester.column_names.strategy_columns import StrategyColumns
+from algo_royale.backtester.column_names.strategy_columns import SignalStrategyColumns
 from algo_royale.backtester.strategy.signal.conditions.base_strategy_condition import (
     StrategyCondition,
 )
@@ -10,7 +10,7 @@ from algo_royale.backtester.strategy.signal.conditions.base_strategy_condition i
 class MomentumExitCondition(StrategyCondition):
     def __init__(
         self,
-        close_col: StrategyColumns = StrategyColumns.CLOSE_PRICE,
+        close_col: SignalStrategyColumns = SignalStrategyColumns.CLOSE_PRICE,
         lookback=10,
         threshold=0.0,
         smooth_window=None,
@@ -51,7 +51,10 @@ class MomentumExitCondition(StrategyCondition):
     @classmethod
     def available_param_grid(cls) -> dict:
         return {
-            "close_col": [StrategyColumns.CLOSE_PRICE, StrategyColumns.OPEN_PRICE],
+            "close_col": [
+                SignalStrategyColumns.CLOSE_PRICE,
+                SignalStrategyColumns.OPEN_PRICE,
+            ],
             "lookback": [2, 3, 5, 10, 15, 20, 30],
             "threshold": [0.005, 0.01, 0.02, 0.03, 0.05],
             "smooth_window": [None, 3, 5, 10],
@@ -63,7 +66,7 @@ class MomentumExitCondition(StrategyCondition):
         return cls(
             close_col=trial.suggest_categorical(
                 f"{prefix}close_col",
-                [StrategyColumns.CLOSE_PRICE, StrategyColumns.OPEN_PRICE],
+                [SignalStrategyColumns.CLOSE_PRICE, SignalStrategyColumns.OPEN_PRICE],
             ),
             lookback=trial.suggest_int(f"{prefix}lookback", 2, 30),
             threshold=trial.suggest_float(f"{prefix}threshold", 0.001, 0.05),

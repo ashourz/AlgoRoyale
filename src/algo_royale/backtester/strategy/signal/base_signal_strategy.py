@@ -5,7 +5,7 @@ from typing import Optional
 
 import pandas as pd
 
-from algo_royale.backtester.column_names.strategy_columns import StrategyColumns
+from algo_royale.backtester.column_names.strategy_columns import SignalStrategyColumns
 from algo_royale.backtester.enum.signal_type import SignalType
 from algo_royale.backtester.strategy.base_strategy import BaseStrategy
 from algo_royale.backtester.strategy.signal.conditions.base_strategy_condition import (
@@ -183,8 +183,8 @@ class BaseSignalStrategy(BaseStrategy):
             missing = required_cols - set(df.columns)
             if missing:
                 df = df.copy()
-                df[StrategyColumns.ENTRY_SIGNAL] = SignalType.HOLD.value
-                df[StrategyColumns.EXIT_SIGNAL] = SignalType.HOLD.value
+                df[SignalStrategyColumns.ENTRY_SIGNAL] = SignalType.HOLD.value
+                df[SignalStrategyColumns.EXIT_SIGNAL] = SignalType.HOLD.value
                 return df
             if self.debug:
                 print(f"Generating signals for strategy: {self.get_description()}")
@@ -225,15 +225,15 @@ class BaseSignalStrategy(BaseStrategy):
                 exit_signals = exit_signals_new
 
             df = df.copy()
-            df[StrategyColumns.ENTRY_SIGNAL] = entry_signals
-            df[StrategyColumns.EXIT_SIGNAL] = exit_signals
+            df[SignalStrategyColumns.ENTRY_SIGNAL] = entry_signals
+            df[SignalStrategyColumns.EXIT_SIGNAL] = exit_signals
             return df
         except Exception as e:
             if self.debug:
                 print(f"Error generating signals: {e}")
             df = df.copy()
-            df[StrategyColumns.ENTRY_SIGNAL] = SignalType.HOLD.value
-            df[StrategyColumns.EXIT_SIGNAL] = SignalType.HOLD.value
+            df[SignalStrategyColumns.ENTRY_SIGNAL] = SignalType.HOLD.value
+            df[SignalStrategyColumns.EXIT_SIGNAL] = SignalType.HOLD.value
             return df
 
     def get_description(self):

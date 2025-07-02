@@ -19,7 +19,7 @@ def test_risk_parity_basic():
     )
     signals = returns.copy()
     strategy = RiskParityPortfolioStrategy(window=2, max_iter=100, tol=1e-6)
-    weights = strategy.allocate(signals, returns)
+    weights = strategy._allocate(signals, returns)
     assert weights.shape == returns.shape
     for i, row in weights.iterrows():
         s = row.sum()
@@ -43,8 +43,8 @@ def test_risk_parity_param_effect():
     signals = returns.copy()
     strategy1 = RiskParityPortfolioStrategy(window=2, max_iter=100, tol=1e-6)
     strategy2 = RiskParityPortfolioStrategy(window=2, max_iter=200, tol=1e-8)
-    w1 = strategy1.allocate(signals, returns)
-    w2 = strategy2.allocate(signals, returns)
+    w1 = strategy1._allocate(signals, returns)
+    w2 = strategy2._allocate(signals, returns)
     if not (np.allclose(w1.values, 0) or np.allclose(w2.values, 0)):
         assert not w1.equals(w2)
 
@@ -55,7 +55,7 @@ def test_risk_parity_all_zero_returns():
     )
     signals = returns.copy()
     strategy = RiskParityPortfolioStrategy(window=2, max_iter=100, tol=1e-6)
-    weights = strategy.allocate(signals, returns)
+    weights = strategy._allocate(signals, returns)
     # Accept either all-zero weights or any valid allocation (sum to 1, all >= 0)
     for i, row in weights.iterrows():
         s = row.sum()

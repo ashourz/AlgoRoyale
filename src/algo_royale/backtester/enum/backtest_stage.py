@@ -6,7 +6,13 @@ from algo_royale.backtester.column_names.data_ingest_columns import DataIngestCo
 from algo_royale.backtester.column_names.feature_engineering_columns import (
     FeatureEngineeringColumns,
 )
-from algo_royale.backtester.column_names.strategy_columns import StrategyColumns
+from algo_royale.backtester.column_names.portfolio_strategy_columns import (
+    PortfolioStrategyInputColumns,
+    PortfolioStrategyOutputColumns,
+)
+from algo_royale.backtester.column_names.strategy_columns import (
+    SignalStrategyColumns,
+)
 from algo_royale.backtester.enum.backtest_stage_dict_validation import (
     BacktestStageDictValidation,
 )
@@ -24,6 +30,7 @@ class BacktestStageName(str):
     STRATEGY_EVALUATION = "strategy_evaluation"
     SYMBOL_EVALUATION = "symbol_evaluation"
     ##PORTFOLIO
+    PORTFOLIO_STRATEGY = "portfolio_strategy"
     PORTFOLIO_BACKTEST_EXECUTOR = "portfolio_backtest_executor"
     PORTFOLIO_OPTIMIZATION = "portfolio_optimization"
     PORTFOLIO_TESTING = "portfolio_testing"
@@ -61,8 +68,8 @@ class InputOutputMetricValidationStageDef(BaseStageDef):
 
 @dataclass(frozen=True)
 class FullMetricValidationStageDef(BaseStageDef):
-    input_metric_validation_fn: Callable[[Any], bool]
-    output_metric_validation_fn: Callable[[Any], bool]
+    input_validation_fn: Callable[[Any], bool]
+    output_data_validation_fn: Callable[[Any], bool]
 
 
 class BacktestStage(Enum):
@@ -91,20 +98,20 @@ class BacktestStage(Enum):
         description="Defining trading strategies based on signals",
         input_stage_name=BacktestStageName.FEATURE_ENGINEERING,
         input_columns=FeatureEngineeringColumns.get_all_column_values(),
-        output_columns=StrategyColumns.get_all_column_values(),
+        output_columns=SignalStrategyColumns.get_all_column_values(),
     )
-    SIGNAL_BACKTEST_EXECUTOR = TabularStageDef(
+    SIGNAL_BACKTEST_EXECUTOR = FullMetricValidationStageDef(
         value=BacktestStageName.SIGNAL_BACKTEST_EXECUTOR,
         description="Executing backtests for individual trading strategies",
         input_stage_name=BacktestStageName.FEATURE_ENGINEERING,
-        input_columns=FeatureEngineeringColumns.get_all_column_values(),
-        output_columns=StrategyColumns.get_all_column_values(),
+        input_validation_fn=BacktestStageDictValidation.SIGNAL_BACKTEST_EXECUTOR_INPUT,
+        output_data_validation_fn=BacktestStageDictValidation.SIGNAL_BACKTEST_EXECUTOR_OUTPUT,
     )
     SIGNAL_BACKTEST_EVALUATOR = OutputMetricValidationStageDef(
         value=BacktestStageName.SIGNAL_BACKTEST_EVALUATOR,
         description="Evaluating backtest results for individual trading strategies",
         input_stage_name=BacktestStageName.SIGNAL_STRATEGY,
-        input_columns=StrategyColumns.get_all_column_values(),
+        input_columns=FeatureEngineeringColumns.get_all_column_values(),
         output_metric_validation_fn=BacktestStageDictValidation.SIGNAL_BACKTEST_EVALUATOR,
     )
     STRATEGY_OPTIMIZATION = OutputMetricValidationStageDef(
@@ -112,44 +119,51 @@ class BacktestStage(Enum):
         description="Optimizing strategies using historical data",
         input_stage_name=BacktestStageName.FEATURE_ENGINEERING,
         input_columns=FeatureEngineeringColumns.get_all_column_values(),
-        output_metric_validation_fn=BacktestStageDictValidation.STRATEGY_OPTIMIZATION,
+        output_metric_validation_fn=BacktestStageDictValidation.STRATEGY_OPTIMIZATION_OUTPUT,
     )
     STRATEGY_TESTING = InputOutputMetricValidationStageDef(
         value=BacktestStageName.STRATEGY_TESTING,
         description="Testing strategies using historical data",
         input_stage_name=BacktestStageName.FEATURE_ENGINEERING,
         input_columns=FeatureEngineeringColumns.get_all_column_values(),
-        input_metric_validation_fn=BacktestStageDictValidation.STRATEGY_OPTIMIZATION,
-        output_metric_validation_fn=BacktestStageDictValidation.STRATEGY_TESTING,
+        input_metric_validation_fn=BacktestStageDictValidation.STRATEGY_OPTIMIZATION_OUTPUT,
+        output_metric_validation_fn=BacktestStageDictValidation.STRATEGY_TESTING_OUTPUT,
     )
     STRATEGY_EVALUATION = FullMetricValidationStageDef(
         value=BacktestStageName.STRATEGY_EVALUATION,
         description="Evaluating strategies based on performance metrics",
         input_stage_name=None,
-        input_metric_validation_fn=BacktestStageDictValidation.STRATEGY_OPTIMIZATION_TESTING,
-        output_metric_validation_fn=BacktestStageDictValidation.SIGNAL_STRATEGY_EVALUATION,
+        input_validation_fn=BacktestStageDictValidation.STRATEGY_OPTIMIZATION_TESTING_OUTPUT,
+        output_data_validation_fn=BacktestStageDictValidation.SIGNAL_STRATEGY_EVALUATION,
     )
     SYMBOL_EVALUATION = FullMetricValidationStageDef(
         value=BacktestStageName.SYMBOL_EVALUATION,
         description="Evaluating symbols based on performance metrics",
         input_stage_name=None,
-        input_metric_validation_fn=BacktestStageDictValidation.SIGNAL_STRATEGY_EVALUATION,
-        output_metric_validation_fn=BacktestStageDictValidation.SIGNAL_SYMBOL_EVALUATION,
+        input_validation_fn=BacktestStageDictValidation.SIGNAL_STRATEGY_EVALUATION,
+        output_data_validation_fn=BacktestStageDictValidation.SIGNAL_SYMBOL_EVALUATION,
     )
     ## PORTFOLIO
-    PORTFOLIO_BACKTEST_EXECUTOR = BacktestStageDef(
+    PORTFOLIO_STRATEGY = TabularStageDef(
+        value=BacktestStageName.PORTFOLIO_STRATEGY,
+        description="Defining portfolio strategies based on multiple signal strategies",
+        input_stage_name=BacktestStageName.FEATURE_ENGINEERING,
+        input_columns=PortfolioStrategyInputColumns.get_all_column_values(),
+        output_columns=PortfolioStrategyOutputColumns.get_all_column_values(),
+    )
+    PORTFOLIO_BACKTEST_EXECUTOR = FullMetricValidationStageDef(
         value=BacktestStageName.PORTFOLIO_BACKTEST_EXECUTOR,
         description="Executing backtests for a portfolio of strategies",
         input_stage_name=BacktestStageName.FEATURE_ENGINEERING,
-        input_columns=FeatureEngineeringColumns.get_all_column_values(),
-        output_columns=[],
+        input_validation_fn=BacktestStageDictValidation.PORTFOLIO_BACKTEST_EXECUTOR_INPUT,
+        output_data_validation_fn=BacktestStageDictValidation.PORTFOLIO_BACKTEST_EXECUTOR_OUTPUT,
     )
-    PORTFOLIO_OPTIMIZATION = BacktestStageDef(
+    PORTFOLIO_OPTIMIZATION = FullMetricValidationStageDef(
         value=BacktestStageName.PORTFOLIO_OPTIMIZATION,
         description="Optimizing a portfolio of strategies",
         input_stage_name=BacktestStageName.FEATURE_ENGINEERING,
-        input_columns=FeatureEngineeringColumns.get_all_column_values(),
-        output_columns=[],
+        input_validation_fn=BacktestStageDictValidation.PORTFOLIO_OPTIMIZATION_INPUT,
+        output_data_validation_fn=BacktestStageDictValidation.PORTFOLIO_OPTIMIZATION_OUTPUT,
     )
     PORTFOLIO_TESTING = BacktestStageDef(
         value=BacktestStageName.PORTFOLIO_TESTING,

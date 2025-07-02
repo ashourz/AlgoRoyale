@@ -1,4 +1,4 @@
-from algo_royale.backtester.column_names.strategy_columns import StrategyColumns
+from algo_royale.backtester.column_names.strategy_columns import SignalStrategyColumns
 from algo_royale.backtester.strategy.signal.base_signal_strategy import (
     BaseSignalStrategy,
 )
@@ -20,14 +20,14 @@ class MovingAverageStrategy(BaseSignalStrategy):
         self,
         entry_conditions: list[MovingAverageEntryCondition] = [
             MovingAverageEntryCondition(
-                close_col=StrategyColumns.CLOSE_PRICE,
+                close_col=SignalStrategyColumns.CLOSE_PRICE,
                 short_window=50,
                 long_window=200,
             )
         ],
         exit_conditions: list[MovingAverageExitCondition] = [
             MovingAverageExitCondition(
-                close_col=StrategyColumns.CLOSE_PRICE,
+                close_col=SignalStrategyColumns.CLOSE_PRICE,
                 short_window=50,
                 long_window=200,
             )
