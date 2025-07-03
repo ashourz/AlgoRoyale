@@ -180,20 +180,20 @@ class BacktestStage(Enum):
         output_data_validation_fn=BacktestStageDictValidation.PORTFOLIO_EVALUATION_OUTPUT,
     )
     ## WALK FORWARD
-    SIGNAL_STRATEGY_WALK_FORWARD = BacktestStageDef(
-        value=BacktestStageName.SIGNAL_STRATEGY_WALK_FORWARD,
-        description="Walk forward evaluation of signal strategies",
-        input_stage_name=BacktestStageName.SIGNAL_BACKTEST_EVALUATOR,
-        input_columns=[],
-        output_columns=[],
-    )
-    PORTFOLIO_STRATEGY_WALK_FORWARD = BacktestStageDef(
-        value=BacktestStageName.PORTFOLIO_STRATEGY_WALK_FORWARD,
-        description="Walk forward evaluation of portfolio strategies",
-        input_stage_name=BacktestStageName.PORTFOLIO_BACKTEST_EXECUTOR,
-        input_columns=[],
-        output_columns=[],
-    )
+    # SIGNAL_STRATEGY_WALK_FORWARD = BacktestStageDef(
+    #     value=BacktestStageName.SIGNAL_STRATEGY_WALK_FORWARD,
+    #     description="Walk forward evaluation of signal strategies",
+    #     input_stage_name=BacktestStageName.SIGNAL_BACKTEST_EVALUATOR,
+    #     input_columns=[],
+    #     output_columns=[],
+    # )
+    # PORTFOLIO_STRATEGY_WALK_FORWARD = BacktestStageDef(
+    #     value=BacktestStageName.PORTFOLIO_STRATEGY_WALK_FORWARD,
+    #     description="Walk forward evaluation of portfolio strategies",
+    #     input_stage_name=BacktestStageName.PORTFOLIO_BACKTEST_EXECUTOR,
+    #     input_columns=[],
+    #     output_columns=[],
+    # )
 
     @property
     def input_stage(self) -> Optional["BacktestStage"]:

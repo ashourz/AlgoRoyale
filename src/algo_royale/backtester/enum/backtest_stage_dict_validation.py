@@ -58,7 +58,7 @@ class BacktestStageDictValidation(Enum):
     """ Validator for the output of the signal strategy optimization stage."""
     STRATEGY_TESTING_OUTPUT = signal_strategy_testing_validator
     """ Validator for the output of the signal strategy testing stage."""
-    STRATEGY_OPTIMIZATION_TESTING = signal_strategy_full_result_validator
+    STRATEGY_OPTIMIZATION_TESTING_OUTPUT = signal_strategy_full_result_validator
     """ Validator for the combined output of the signal strategy optimization and testing stages."""
     # Signal Strategy Evaluation
     SIGNAL_STRATEGY_EVALUATION = signal_evaluation_result_validator
