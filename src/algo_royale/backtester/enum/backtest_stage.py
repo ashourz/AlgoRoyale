@@ -82,7 +82,7 @@ class BacktestStage(Enum):
         value=BacktestStageName.DATA_INGEST,
         description="Loading and staging raw/unprocessed data (from API, files, DB, etc.)",
         input_stage_name=None,
-        input_columns=DataIngestColumns.get_all_column_values(),
+        input_columns=None,
         output_columns=DataIngestColumns.get_all_column_values(),
     )
     FEATURE_ENGINEERING = TabularStageDef(

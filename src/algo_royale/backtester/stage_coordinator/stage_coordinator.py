@@ -150,7 +150,7 @@ class StageCoordinator(ABC):
                         f"Calling factory for {symbol}, df_iter_factory={df_iter_factory}"
                     )
                     return self.data_preparer.normalize_stream(
-                        stage=stage, symbol=symbol, iterator_factory=df_iter_factory
+                        iterator_factory=df_iter_factory
                     )
                 except Exception as e:
                     self.logger.error(

@@ -27,7 +27,6 @@ from algo_royale.backtester.strategy_combinator.portfolio.base_portfolio_strateg
 )
 
 
-##TODO: THIS IS NOT REALLY NEEDED
 class PortfolioTestingStageCoordinator(BaseTestingStageCoordinator):
     def __init__(
         self,

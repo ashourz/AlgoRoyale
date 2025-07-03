@@ -42,9 +42,7 @@ async def test_normalize_stream_handles_exception(preparer, logger):
         yield pd.DataFrame({"bad": [2]})  # This will fail
 
     results = []
-    async for df in preparer.normalize_stream(
-        DummyStage(), "AAPL", lambda: async_gen()
-    ):
+    async for df in preparer.normalize_stream(lambda: async_gen()):
         results.append(df)
     # Only the first should yield, and it should have the required columns
     assert len(results) == 1
@@ -68,6 +66,6 @@ async def test_normalize_stream_aclose_called(preparer):
             closed = True
 
     iterator = Iterator()
-    async for _ in preparer.normalize_stream(DummyStage(), "AAPL", lambda: iterator):
+    async for _ in preparer.normalize_stream(lambda: iterator):
         pass
     assert closed

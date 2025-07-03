@@ -6,7 +6,6 @@ from algo_royale.backtester.data_preparer.asset_matrix_preparer import (
     AssetMatrixPreparer,
 )
 from algo_royale.backtester.data_preparer.async_data_preparer import AsyncDataPreparer
-from algo_royale.backtester.data_preparer.data_preparer import DataPreparer
 from algo_royale.backtester.evaluator.backtest.portfolio_backtest_evaluator import (
     PortfolioBacktestEvaluator,
 )
@@ -280,8 +279,6 @@ class DIContainer(containers.DeclarativeContainer):
     stage_data_manager = providers.Singleton(
         StageDataManager, data_dir=data_dir, logger=logger_backtest_prod
     )
-
-    data_preparer = providers.Singleton(DataPreparer, logger=logger_backtest_prod)
 
     async_data_preparer = providers.Singleton(
         AsyncDataPreparer, logger=logger_backtest_prod
