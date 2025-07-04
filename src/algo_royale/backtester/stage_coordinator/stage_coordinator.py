@@ -150,7 +150,7 @@ class StageCoordinator(ABC):
                         f"Calling factory for {symbol}, df_iter_factory={df_iter_factory}"
                     )
                     return self.data_preparer.normalize_stream(
-                        iterator_factory=df_iter_factory
+                        stage=stage, iterator_factory=df_iter_factory
                     )
                 except Exception as e:
                     self.logger.error(
@@ -171,7 +171,7 @@ class StageCoordinator(ABC):
         )
         return prepared_data
 
-    async def _write_(
+    async def _write(
         self,
         stage: BacktestStage,
         processed_data: Dict[str, Dict[str, Callable[[], AsyncIterator[pd.DataFrame]]]],

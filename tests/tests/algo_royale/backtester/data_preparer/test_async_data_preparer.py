@@ -27,9 +27,7 @@ async def test_normalize_stream_yields_normalized(preparer):
         yield pd.DataFrame({"new": [3], "bar": [4]})
 
     results = []
-    async for df in preparer.normalize_stream(
-        DummyStage(), "AAPL", lambda: async_gen()
-    ):
+    async for df in preparer.normalize_stream(DummyStage(), lambda: async_gen()):
         results.append(df)
     assert len(results) == 2
     assert list(results[0].columns) == ["new", "bar"]
@@ -42,7 +40,7 @@ async def test_normalize_stream_handles_exception(preparer, logger):
         yield pd.DataFrame({"bad": [2]})  # This will fail
 
     results = []
-    async for df in preparer.normalize_stream(lambda: async_gen()):
+    async for df in preparer.normalize_stream(DummyStage(), lambda: async_gen()):
         results.append(df)
     # Only the first should yield, and it should have the required columns
     assert len(results) == 1
@@ -66,6 +64,6 @@ async def test_normalize_stream_aclose_called(preparer):
             closed = True
 
     iterator = Iterator()
-    async for _ in preparer.normalize_stream(lambda: iterator):
+    async for _ in preparer.normalize_stream(DummyStage(), lambda: iterator):
         pass
     assert closed

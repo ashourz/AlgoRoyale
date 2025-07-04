@@ -10,13 +10,22 @@ class AsyncDataPreparer:
         """
         self.logger: logging.Logger = logger
 
-    async def normalize_stream(self, iterator_factory):
+    async def normalize_stream(self, stage, iterator_factory):
         iterator = iterator_factory()
         if not hasattr(iterator, "__aiter__"):
             self.logger.error(f"Expected async iterator, got {type(iterator)}")
             raise TypeError(f"Expected async iterator, got {type(iterator)}")
         try:
             async for df in iterator:
+                # Validate DataFrame columns
+                missing_columns = [
+                    col for col in stage.required_input_columns if col not in df.columns
+                ]
+                if missing_columns:
+                    self.logger.error(
+                        f"Missing required columns: {missing_columns} in DataFrame for stage: {stage}"
+                    )
+                    continue  # Skip invalid DataFrame
                 yield df
         finally:
             if hasattr(iterator, "aclose"):

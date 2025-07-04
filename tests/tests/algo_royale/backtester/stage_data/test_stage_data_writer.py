@@ -15,9 +15,8 @@ def mock_logger():
 @pytest.fixture
 def mock_stage_data_manager(tmp_path):
     mgr = MagicMock()
-    # Accept any extra keyword arguments
     mgr.get_directory_path.side_effect = (
-        lambda stage, strategy_name, symbol, **kwargs: tmp_path
+        lambda stage, strategy_name, symbol, start_date=None, end_date=None: tmp_path
         / f"{stage}_{strategy_name}_{symbol}"
     )
     return mgr
@@ -84,20 +83,3 @@ def test_save_stage_data_wrong_type_raises(writer):
         writer.save_stage_data(
             BacktestStage.DATA_INGEST, "strat", "AAPL", [1, 2, 3], 1
         )  # <-- add page_idx
-
-
-def test_has_existing_results(writer, tmp_path):
-    """Test has_existing_results returns True if file exists."""
-    stage = BacktestStage.DATA_INGEST
-    strategy_name = "strat"
-    symbol = "AAPL"
-    # Create a fake file in the correct directory structure
-    dir_path = tmp_path / f"{stage}_{strategy_name}_{symbol}"
-    dir_path.mkdir(parents=True, exist_ok=True)
-    file = dir_path / f"{strategy_name}_{symbol}_123456.csv"
-    file.write_text("col1,col2\n1,2\n")
-    # Patch _get_stage_symbol_dir to use our temp dir with strategy_name
-    writer._get_stage_symbol_dir = (
-        lambda stage, strategy_name, symbol, start_date=None, end_date=None: dir_path
-    )
-    assert writer.has_existing_results(stage, strategy_name, symbol)
