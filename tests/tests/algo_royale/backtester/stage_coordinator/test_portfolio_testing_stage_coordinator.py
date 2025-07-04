@@ -28,16 +28,18 @@ def mock_writer():
 
 @pytest.fixture
 def mock_manager(tmp_path):
-    m = MagicMock()
-    m.get_directory_path.return_value = tmp_path
-
-    # Always return the same directory for get_extended_path
-    def get_extended_path(base_dir, strategy_name, symbol, start_date, end_date):
-        return tmp_path
-
-    m.get_extended_path.side_effect = get_extended_path
-
-    return m
+    mgr = MagicMock()
+    # Patch get_directory_path to return a real temp directory
+    mgr.get_directory_path.side_effect = (
+        lambda base_dir=None,
+        stage=None,
+        symbol=None,
+        strategy_name=None,
+        start_date=None,
+        end_date=None: tmp_path
+        / f"{stage.name if stage else 'default_stage'}_{strategy_name if strategy_name else 'default_strategy'}_{symbol if symbol else 'default_symbol'}"
+    )
+    return mgr
 
 
 @pytest.fixture
@@ -158,6 +160,14 @@ async def test_portfolio_testing_process(
     coordinator.test_window_id = (
         f"{test_start.strftime('%Y%m%d')}_{test_end.strftime('%Y%m%d')}"
     )
+
+    # Mock _get_optimization_results to return valid data
+    coordinator._get_optimization_results = (
+        lambda strategy_name, symbol, start_date, end_date: {
+            train_window_id: {"optimization": {"best_params": {"a": 1}}}
+        }
+    )
+
     results = await coordinator.process(prepared_data=prepared_data)
     print("DEBUG RESULTS:", results)
     mock_evaluator.evaluate.assert_called()

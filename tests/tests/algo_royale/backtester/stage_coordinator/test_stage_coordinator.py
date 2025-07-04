@@ -230,16 +230,31 @@ async def test_write_success(coordinator, mock_data_writer, mock_stage_data_mana
     async def async_gen():
         yield pd.DataFrame({"a": [1]})
 
+    # Mock async_write_data_batches as an async function
+    async def mock_async_write_data_batches(
+        stage, strategy_name, symbol, gen, start_date, end_date
+    ):
+        async for _ in gen:
+            pass  # Simulate processing the async generator
+
+    mock_data_writer.async_write_data_batches = MagicMock(
+        side_effect=mock_async_write_data_batches
+    )
+
     processed_data = {"AAPL": {"strat": lambda: async_gen()}}
     coordinator.start_date = pd.Timestamp("2024-01-01")
     coordinator.end_date = pd.Timestamp("2024-01-31")
     await coordinator._write(BacktestStage.DATA_INGEST, processed_data)
-    mock_data_writer.save_stage_data.assert_called_with(
+
+    # Inspect the actual arguments passed to async_write_data_batches
+    print("Actual call arguments:", mock_data_writer.async_write_data_batches.call_args)
+
+    # Assert that async_write_data_batches was called with the expected arguments
+    mock_data_writer.async_write_data_batches.assert_called_once_with(
         stage=BacktestStage.DATA_INGEST,
         strategy_name="strat",
         symbol="AAPL",
-        results_df=ANY,
-        page_idx=ANY,
+        gen=ANY,
         start_date=coordinator.start_date,
         end_date=coordinator.end_date,
     )

@@ -180,10 +180,9 @@ class PortfolioOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
 
     def _get_output_path(self, strategy_name, start_date: datetime, end_date: datetime):
         """Get the output path for the optimization results JSON file."""
-        out_dir = self.stage_data_manager.get_extended_path(
+        out_dir = self.stage_data_manager.get_directory_path(
             base_dir=self.optimization_root,
             strategy_name=strategy_name,
-            symbol=None,
             start_date=start_date,
             end_date=end_date,
         )

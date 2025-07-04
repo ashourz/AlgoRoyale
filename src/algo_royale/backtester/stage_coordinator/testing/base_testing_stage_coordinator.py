@@ -125,7 +125,7 @@ class BaseTestingStageCoordinator(StageCoordinator):
         end_date: datetime,
     ) -> Path:
         """Get the path to the optimization result JSON file for a given strategy and symbol."""
-        out_dir = self.stage_data_manager.get_extended_path(
+        out_dir = self.stage_data_manager.get_directory_path(
             base_dir=self.optimization_root,
             strategy_name=strategy_name,
             symbol=symbol,

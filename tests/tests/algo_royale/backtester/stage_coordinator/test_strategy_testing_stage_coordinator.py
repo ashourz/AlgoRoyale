@@ -31,8 +31,13 @@ def mock_manager(tmp_path):
     mgr = MagicMock()
     # Patch get_directory_path to return a real temp directory
     mgr.get_directory_path.side_effect = (
-        lambda stage, strategy_name, symbol: tmp_path
-        / f"{stage}_{strategy_name}_{symbol}"
+        lambda base_dir=None,
+        stage=None,
+        symbol=None,
+        strategy_name=None,
+        start_date=None,
+        end_date=None: tmp_path
+        / f"{stage.name if stage else 'default_stage'}_{strategy_name if strategy_name else 'default_strategy'}_{symbol if symbol else 'default_symbol'}"
     )
     return mgr
 
@@ -121,65 +126,61 @@ async def test_process_returns_metrics(
     class DummyCombinator:
         strategy_class = DummyStrategy
 
-    # Patch BacktestStage.STRATEGY_TESTING to have output_stage
-    with mock.patch.object(
-        BacktestStage.STRATEGY_TESTING,
-        "output_stage",
-        create=True,
-        new=None,
-    ):
-        # Prepare a fake optimization_result.json with best_params
-        opt_dir = tmp_path / "optimization_StrategyA_AAPL"
-        opt_dir.mkdir(parents=True, exist_ok=True)
-        opt_path = opt_dir / "test.json"
-        train_window_id = "20240101_20240131"
-        test_window_id = "20240201_20240228"
-        with open(opt_path, "w") as f:
-            import json
+    # Prepare a fake optimization_result.json with best_params
+    opt_dir = tmp_path / "optimization_StrategyA_AAPL"
+    opt_dir.mkdir(parents=True, exist_ok=True)
+    opt_path = opt_dir / "test.json"
+    train_window_id = "20240101_20240131"
+    test_window_id = "20240201_20240228"
+    with open(opt_path, "w") as f:
+        import json
 
-            json.dump(
-                {train_window_id: {"optimization": {"best_params": {"foo": "bar"}}}}, f
-            )
-        mock_manager.get_directory_path.side_effect = (
-            lambda stage, strategy_name, symbol, *args, **kwargs: tmp_path
-            / f"optimization_{strategy_name}_{symbol}"
+        json.dump(
+            {train_window_id: {"optimization": {"best_params": {"foo": "bar"}}}}, f
         )
-        mock_manager.get_extended_path.side_effect = (
-            lambda base_dir, strategy_name, symbol, start_date, end_date: tmp_path
-            / f"optimization_{strategy_name}_{symbol}"
-        )
-        StrategyA = type("StrategyA", (), {})
-        CombA = type("CombA", (), {"strategy_class": StrategyA})
-        coordinator = StrategyTestingStageCoordinator(
-            data_loader=mock_loader,
-            data_preparer=mock_preparer,
-            data_writer=mock_writer,
-            stage_data_manager=mock_manager,
-            strategy_executor=mock_executor,
-            strategy_evaluator=mock_evaluator,
-            strategy_factory=mock_factory,
-            logger=mock_logger,
-            strategy_combinators=[CombA],
-            optimization_root=".",
-            optimization_json_filename="test.json",
-        )
-        coordinator.train_window_id = train_window_id
-        coordinator.test_window_id = test_window_id
-        coordinator.train_start_date = datetime(2024, 1, 1)
-        coordinator.train_end_date = datetime(2024, 1, 31)
-        coordinator.test_start_date = datetime(2024, 2, 1)
-        coordinator.test_end_date = datetime(2024, 2, 28)
 
-        async def df_iter():
-            yield pd.DataFrame({"a": [1]})
+    StrategyA = type("StrategyA", (), {})
+    CombA = type("CombA", (), {"strategy_class": StrategyA})
+    coordinator = StrategyTestingStageCoordinator(
+        data_loader=mock_loader,
+        data_preparer=mock_preparer,
+        data_writer=mock_writer,
+        stage_data_manager=mock_manager,
+        strategy_executor=mock_executor,
+        strategy_evaluator=mock_evaluator,
+        strategy_factory=mock_factory,
+        logger=mock_logger,
+        strategy_combinators=[CombA],
+        optimization_root=".",
+        optimization_json_filename="test.json",
+    )
+    coordinator.train_window_id = train_window_id
+    coordinator.test_window_id = test_window_id
+    coordinator.train_start_date = datetime(2024, 1, 1)
+    coordinator.train_end_date = datetime(2024, 1, 31)
+    coordinator.test_start_date = datetime(2024, 2, 1)
+    coordinator.test_end_date = datetime(2024, 2, 28)
 
-        prepared_data = {"AAPL": lambda: df_iter()}
-        mock_factory.build_strategy.return_value = StrategyA()
-        result = await coordinator.process(prepared_data)
-        assert "AAPL" in result
-        assert "StrategyA" in result["AAPL"]
-        assert test_window_id in result["AAPL"]["StrategyA"]
-        assert result["AAPL"]["StrategyA"][test_window_id]["sharpe"] == 2.0
+    async def df_iter():
+        yield pd.DataFrame({"a": [1]})
+
+    prepared_data = {"AAPL": lambda: df_iter()}
+    mock_factory.build_strategy.return_value = StrategyA()
+    mock_executor.run_backtest.return_value = {"AAPL": [pd.DataFrame({"result": [1]})]}
+    mock_evaluator.evaluate.return_value = {"sharpe": 2.0}
+
+    # Mock _get_optimization_results to return valid data
+    coordinator._get_optimization_results = (
+        lambda strategy_name, symbol, start_date, end_date: {
+            train_window_id: {"optimization": {"best_params": {"foo": "bar"}}}
+        }
+    )
+
+    result = await coordinator.process(prepared_data)
+    assert "AAPL" in result
+    assert "StrategyA" in result["AAPL"]
+    assert test_window_id in result["AAPL"]["StrategyA"]
+    assert result["AAPL"]["StrategyA"][test_window_id]["sharpe"] == 2.0
 
 
 @pytest.mark.asyncio
@@ -206,10 +207,6 @@ async def test_process_warns_on_missing_optimization(
         create=True,
         new=None,
     ):
-        mock_manager.get_directory_path.side_effect = (
-            lambda stage, strategy_name, symbol, *args, **kwargs: tmp_path
-            / f"optimization_{strategy_name}_{symbol}"
-        )
         coordinator = StrategyTestingStageCoordinator(
             data_loader=mock_loader,
             data_preparer=mock_preparer,
@@ -265,10 +262,6 @@ async def test_process_warns_on_no_data(
         create=True,
         new=None,
     ):
-        mock_manager.get_directory_path.side_effect = (
-            lambda stage, strategy_name, symbol: tmp_path
-            / f"optimization_{strategy_name}_{symbol}"
-        )
         coordinator = StrategyTestingStageCoordinator(
             data_loader=mock_loader,
             data_preparer=mock_preparer,

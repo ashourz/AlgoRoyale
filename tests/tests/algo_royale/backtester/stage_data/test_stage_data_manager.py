@@ -63,7 +63,7 @@ def test_mark_and_check_stage_done(temp_stage_data_manager):
 def test_write_error_file(temp_stage_data_manager):
     mgr = temp_stage_data_manager
     mgr.write_error_file(BacktestStage.DATA_INGEST, None, "AAPL", "errfile", "error!")
-    dir_path = mgr.get_directory_path(BacktestStage.DATA_INGEST, None, "AAPL")
+    dir_path = mgr.get_directory_path(stage=BacktestStage.DATA_INGEST, symbol="AAPL")
     error_file = dir_path / "errfile.error.csv"
     assert error_file.exists()
     assert error_file.read_text().strip() == "error!"
@@ -72,15 +72,16 @@ def test_write_error_file(temp_stage_data_manager):
 def test_get_file_path_and_directory_path(temp_stage_data_manager):
     mgr = temp_stage_data_manager
     path = mgr.get_file_path(
-        BacktestStage.DATA_INGEST,
-        "strategy1",
-        "AAPL",
-        "file",
-        DataExtension.UNPROCESSED,
+        stage=BacktestStage.DATA_INGEST,
+        strategy_name="strategy1",
+        symbol="AAPL",
+        filename="file",
+        extension=DataExtension.UNPROCESSED,
     )
     assert "strategy1" in str(path)
-    dir_path = mgr.get_directory_path(BacktestStage.DATA_INGEST, "strategy1", "AAPL")
-    print(dir_path)
+    dir_path = mgr.get_directory_path(
+        stage=BacktestStage.DATA_INGEST, strategy_name="strategy1", symbol="AAPL"
+    )
     assert dir_path.name == "strategy1"
 
 
@@ -101,11 +102,12 @@ def test_mark_symbol_stage_removes_old_markers(temp_stage_data_manager):
     mgr = temp_stage_data_manager
     mgr.mark_symbol_stage(BacktestStage.DATA_INGEST, None, "AAPL", DataExtension.ERROR)
     mgr.mark_symbol_stage(BacktestStage.DATA_INGEST, None, "AAPL", DataExtension.DONE)
-    dir_path = mgr.get_directory_path(BacktestStage.DATA_INGEST, None, "AAPL")
+    dir_path = mgr.get_directory_path(
+        stage=BacktestStage.DATA_INGEST, strategy_name=None, symbol="AAPL"
+    )
     files = list(dir_path.glob("*"))
     # Ensure only the DONE marker is present
     assert any(f.name.endswith(f"{DataExtension.DONE.value}.csv") for f in files)
-
     assert not any(
         f.name.endswith(f"{DataExtension.ERROR.value}.csv")
         for f in files
@@ -175,8 +177,12 @@ def test_clear_directory(temp_stage_data_manager):
         DataExtension.PROCESSED,
         "a",
     )
-    mgr.clear_directory(BacktestStage.DATA_INGEST, None, "AAPL")
-    dir_path = mgr.get_directory_path(BacktestStage.DATA_INGEST, None, "AAPL")
+    mgr.clear_directory(
+        stage=BacktestStage.DATA_INGEST, strategy_name=None, symbol="AAPL"
+    )
+    dir_path = mgr.get_directory_path(
+        stage=BacktestStage.DATA_INGEST, strategy_name=None, symbol="AAPL"
+    )
     assert not dir_path.exists()
 
 

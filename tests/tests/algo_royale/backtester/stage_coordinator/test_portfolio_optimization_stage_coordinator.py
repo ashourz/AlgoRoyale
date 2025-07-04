@@ -29,14 +29,18 @@ def mock_writer():
 
 @pytest.fixture
 def mock_manager(tmp_path):
-    class Manager:
-        def get_directory_path(self):
-            return tmp_path
-
-        def get_extended_path(self, **kwargs):
-            return tmp_path
-
-    return Manager()
+    mgr = MagicMock()
+    # Patch get_directory_path to return a real temp directory
+    mgr.get_directory_path.side_effect = (
+        lambda base_dir=None,
+        stage=None,
+        symbol=None,
+        strategy_name=None,
+        start_date=None,
+        end_date=None: tmp_path
+        / f"{stage.name if stage else 'default_stage'}_{strategy_name if strategy_name else 'default_strategy'}_{symbol if symbol else 'default_symbol'}"
+    )
+    return mgr
 
 
 @pytest.fixture

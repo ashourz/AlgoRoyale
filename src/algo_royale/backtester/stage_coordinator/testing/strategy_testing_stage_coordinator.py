@@ -77,9 +77,11 @@ class StrategyTestingStageCoordinator(BaseTestingStageCoordinator):
         ] = None,
     ) -> Dict[str, Dict[str, Dict[str, float]]]:
         """Run backtests for all strategies in the watchlist using the best parameters from optimization."""
+        print(f"Prepared data: {prepared_data}")
         results = {}
 
         for symbol, df_iter_factory in prepared_data.items():
+            print(f"Processing symbol: {symbol}")
             if symbol not in prepared_data:
                 self.logger.warning(f"No prepared data for symbol: {symbol}")
                 continue
@@ -87,13 +89,14 @@ class StrategyTestingStageCoordinator(BaseTestingStageCoordinator):
             dfs = []
             async for df in df_iter_factory():
                 dfs.append(df)
+            print(f"DataFrames for {symbol}: {dfs}")
             if not dfs:
                 self.logger.warning(
                     f"No data for symbol: {symbol} in window {self.train_window_id}"
                 )
                 continue
             test_df = pd.concat(dfs, ignore_index=True)
-
+            print(f"Test DataFrame for {symbol}: {test_df}")
             for strategy_combinator in self.strategy_combinators:
                 strategy_class = strategy_combinator.strategy_class
                 strategy_name = strategy_class.__name__
@@ -102,6 +105,9 @@ class StrategyTestingStageCoordinator(BaseTestingStageCoordinator):
                     symbol=symbol,
                     start_date=self.train_start_date,
                     end_date=self.train_end_date,
+                )
+                print(
+                    f"Optimization results for {symbol} {strategy_name}: {train_opt_results}"
                 )
                 if not train_opt_results:
                     self.logger.warning(
@@ -176,5 +182,8 @@ class StrategyTestingStageCoordinator(BaseTestingStageCoordinator):
                 results.setdefault(symbol, {})[strategy_name] = {
                     self.test_window_id: metrics
                 }
-
+                print(f"Raw results: {raw_results}")
+                print(f"Metrics: {metrics}")
+                print(f"Results so far: {results}")
+        print(f"Final results: {results}")
         return results

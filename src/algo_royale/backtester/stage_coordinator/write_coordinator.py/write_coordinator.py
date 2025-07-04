@@ -64,13 +64,25 @@ class WriteCoordinator:
                 )
                 return
 
-            self._clear_existing_data_if_needed(stage, strategy_name, symbol)
-
+            self.stage_data_manager.clear_directory(
+                stage=stage,
+                strategy_name=strategy_name,
+                symbol=symbol,
+                start_date=self.start_date,
+                end_date=self.end_date,
+            )
             gen = df_iter_factory()
             if not hasattr(gen, "__aiter__"):
                 raise TypeError(f"Expected async iterator, got {type(gen)}")
 
-            await self._write_pages(stage, strategy_name, symbol, gen)
+            await self.data_writer.async_write_data_batches(
+                stage=stage,
+                strategy_name=strategy_name,
+                symbol=symbol,
+                gen=gen,
+                start_date=self.start_date,
+                end_date=self.end_date,
+            )
             self.stage_data_manager.mark_symbol_stage(
                 stage=stage,
                 strategy_name=strategy_name,
@@ -81,42 +93,6 @@ class WriteCoordinator:
             )
         except Exception as e:
             self._handle_strategy_write_error(stage, strategy_name, symbol, e)
-
-    async def _write_pages(
-        self,
-        stage: BacktestStage,
-        strategy_name: str,
-        symbol: str,
-        gen: AsyncIterator[pd.DataFrame],
-    ):
-        """Write pages of data for a strategy."""
-        page_idx = 1
-        async for df in gen:
-            self.data_writer.save_stage_data(
-                stage=stage,
-                strategy_name=strategy_name,
-                symbol=symbol,
-                results_df=df,
-                page_idx=page_idx,
-                start_date=self.start_date,
-                end_date=self.end_date,
-            )
-            page_idx += 1
-
-    def _clear_existing_data_if_needed(
-        self, stage: BacktestStage, strategy_name: str, symbol: str
-    ):
-        """Clear existing data if the directory is not marked as done."""
-        out_dir = self.stage_data_manager.get_directory_path(
-            stage, strategy_name, symbol, self.start_date, self.end_date
-        )
-        if out_dir.exists() and any(out_dir.iterdir()):
-            self.logger.info(
-                f"Clearing existing data for {symbol} at stage:{stage} | strategy:{strategy_name} | start_date:{self.start_date} | end_date:{self.end_date}"
-            )
-            self.stage_data_manager.clear_directory(
-                stage, strategy_name, symbol, self.start_date, self.end_date
-            )
 
     def _handle_global_write_error(self, stage: BacktestStage, e: Exception):
         """Handle errors during the global write process."""
