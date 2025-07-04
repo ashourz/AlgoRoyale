@@ -19,7 +19,7 @@ from algo_royale.backtester.stage_coordinator.optimization.base_optimization_sta
 from algo_royale.backtester.stage_coordinator.testing.base_testing_stage_coordinator import (
     BaseTestingStageCoordinator,
 )
-from algo_royale.backtester.stage_data.stage_data_loader import StageDataLoader
+from algo_royale.backtester.stage_data.loader.stage_data_loader import StageDataLoader
 
 if TYPE_CHECKING:
     pass

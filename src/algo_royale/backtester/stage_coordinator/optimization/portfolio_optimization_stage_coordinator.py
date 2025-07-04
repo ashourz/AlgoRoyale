@@ -9,7 +9,7 @@ import pandas as pd
 from algo_royale.backtester.data_preparer.asset_matrix_preparer import (
     AssetMatrixPreparer,
 )
-from algo_royale.backtester.data_preparer.async_data_preparer import AsyncDataPreparer
+from algo_royale.backtester.data_preparer.stage_data_preparer import StageDataPreparer
 from algo_royale.backtester.enum.backtest_stage import BacktestStage
 from algo_royale.backtester.evaluator.backtest.portfolio_backtest_evaluator import (
     PortfolioBacktestEvaluator,
@@ -24,9 +24,8 @@ from algo_royale.backtester.optimizer.portfolio.portfolio_strategy_optimizer_fac
 from algo_royale.backtester.stage_coordinator.optimization.base_optimization_stage_coordinator import (
     BaseOptimizationStageCoordinator,
 )
-from algo_royale.backtester.stage_data.stage_data_loader import StageDataLoader
+from algo_royale.backtester.stage_data.loader.stage_data_loader import StageDataLoader
 from algo_royale.backtester.stage_data.stage_data_manager import StageDataManager
-from algo_royale.backtester.stage_data.stage_data_writer import StageDataWriter
 from algo_royale.backtester.strategy_combinator.portfolio.base_portfolio_strategy_combinator import (
     PortfolioStrategyCombinator,
 )
@@ -38,8 +37,7 @@ class PortfolioOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
     Optimizes portfolio strategies for a list of symbols using the provided data loader, data preparer, data writer, and optimizer.
     Params:
         data_loader (StageDataLoader): Loader for stage data.
-        data_preparer (AsyncDataPreparer): Prepares data asynchronously for the stage.
-        data_writer (StageDataWriter): Writes stage data to disk.
+        data_preparer (StageDataPreparer): Prepares data asynchronously for the stage.
         stage_data_manager (StageDataManager): Manages stage data paths and directories.
         logger (Logger): Logger for debugging and information.
         strategy_combinators (Sequence[type[PortfolioStrategyCombinator]]): List of strategy combinators to generate strategy combinations.
@@ -54,8 +52,7 @@ class PortfolioOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
     def __init__(
         self,
         data_loader: StageDataLoader,
-        data_preparer: AsyncDataPreparer,
-        data_writer: StageDataWriter,
+        data_preparer: StageDataPreparer,
         stage_data_manager: StageDataManager,
         logger: Logger,
         strategy_combinators: Sequence[type[PortfolioStrategyCombinator]],
@@ -70,12 +67,11 @@ class PortfolioOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
             stage=BacktestStage.PORTFOLIO_OPTIMIZATION,
             data_loader=data_loader,
             data_preparer=data_preparer,
-            data_writer=data_writer,
             stage_data_manager=stage_data_manager,
-            logger=logger,
             evaluator=evaluator,
             executor=executor,
             strategy_combinators=strategy_combinators,
+            logger=logger,
         )
         self.optimization_root = Path(optimization_root)
         if not self.optimization_root.is_dir():
@@ -85,7 +81,7 @@ class PortfolioOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
         self.asset_matrix_preparer = asset_matrix_preparer
         self.portfolio_strategy_optimizer_factory = portfolio_strategy_optimizer_factory
 
-    async def process(
+    async def _process(
         self,
         prepared_data: Optional[
             Dict[str, Callable[[], AsyncIterator[pd.DataFrame]]]
@@ -208,3 +204,14 @@ class PortfolioOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
             self.logger.error(f"Portfolio backtest/evaluation failed: {e}")
             print(f"DEBUG: _backtest_and_evaluate exception: {e}")
             return {}
+
+    def _write(
+        self,
+        stage: BacktestStage,
+        processed_data: Dict[str, Dict[str, Dict[str, float]]],
+    ) -> None:
+        """
+        No-op: writing is handled in process().
+        """
+        self.logger.info(f"Processed data for stage {stage} is ready, but not written.")
+        # Writing is handled in _process() where optimization results are saved

@@ -187,13 +187,13 @@ async def test_process_returns_factories(
             mock_optimizer_instance = MagicMock()
             mock_optimizer_instance.optimize.return_value = {"param": 1, "score": 0.95}
             MockOptimizer.return_value = mock_optimizer_instance
-            result = await coordinator.process(prepared_data)
+            result = await coordinator._process(prepared_data)
             assert "AAPL" in result
             assert "DummyStrategy" in result["AAPL"]
             # The result should be a dict with window_id as a key for the DummyStrategy
             assert coordinator.window_id in result["AAPL"]["DummyStrategy"]
             # The value should be the optimization result
-            result = await coordinator.process(prepared_data)
+            result = await coordinator._process(prepared_data)
             strategy_result = result["AAPL"]["DummyStrategy"][coordinator.window_id]
 
             assert strategy_result["strategy"] == "DummyStrategy"
@@ -266,7 +266,7 @@ async def test_fetch_symbol_optimization_exception_logs_error(
 
         optimizer_factory.create = lambda *a, **k: FailingOptimizer()
 
-        result = await coordinator.process(prepared_data)
+        result = await coordinator._process(prepared_data)
         assert result == {}
 
 
@@ -343,7 +343,7 @@ async def test_process_skips_symbol_with_no_data(
             mock_optimizer_instance = MagicMock()
             mock_optimizer_instance.optimize.return_value = {"param": 1, "score": 0.95}
             MockOptimizer.return_value = mock_optimizer_instance
-            result = await coordinator.process(prepared_data)
+            result = await coordinator._process(prepared_data)
             assert result == {}
 
 
@@ -429,7 +429,7 @@ async def test_process_multiple_strategies(
             mock_optimizer_instance = MagicMock()
             mock_optimizer_instance.optimize.return_value = {"param": 1, "score": 0.95}
             MockOptimizer.return_value = mock_optimizer_instance
-            result = await coordinator.process(prepared_data)
+            result = await coordinator._process(prepared_data)
             assert "AAPL" in result
             assert "StratA" in result["AAPL"]
             assert "StratB" in result["AAPL"]
@@ -505,7 +505,7 @@ async def test_process_optimizer_exception_logs_error(
         ):
             instance = MockOptimizer.return_value
             instance.optimize.side_effect = Exception("Test error")
-            result = await coordinator.process(prepared_data)
+            result = await coordinator._process(prepared_data)
             assert "AAPL" in result
             assert "DummyStrategy" in result["AAPL"]
             assert coordinator.window_id in result["AAPL"]["DummyStrategy"]

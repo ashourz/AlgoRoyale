@@ -7,11 +7,11 @@ from alpaca.common.enums import SupportedCurrencies
 
 from algo_royale.backtester.column_names.data_ingest_columns import DataIngestColumns
 from algo_royale.backtester.enum.backtest_stage import BacktestStage
-from algo_royale.backtester.stage_coordinator.data_staging.symbol_strategy_data_writer import (
+from algo_royale.backtester.stage_coordinator.stage_coordinator import StageCoordinator
+from algo_royale.backtester.stage_data.loader.stage_data_loader import StageDataLoader
+from algo_royale.backtester.stage_data.writer.symbol_strategy_data_writer import (
     SymbolStrategyDataWriter,
 )
-from algo_royale.backtester.stage_coordinator.stage_coordinator import StageCoordinator
-from algo_royale.backtester.stage_data.stage_data_loader import StageDataLoader
 from algo_royale.models.alpaca_market_data.enums import DataFeed
 from algo_royale.services.market_data.alpaca_stock_service import AlpacaQuoteService
 
@@ -26,11 +26,7 @@ class DataIngestStageCoordinator(StageCoordinator):
         load_watchlist: Callable[[str], list[str]],
         watchlist_path_string: str,
     ):
-        super().__init__(
-            stage_data_manager=stage_data_manager,
-            data_writer=data_writer,
-            logger=logger,
-        )
+        super().__init__()
         self.stage = BacktestStage.DATA_INGEST
         self.data_loader = data_loader
         self.data_writer = data_writer

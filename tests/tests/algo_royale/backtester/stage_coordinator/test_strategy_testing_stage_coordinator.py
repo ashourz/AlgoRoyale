@@ -176,7 +176,7 @@ async def test_process_returns_metrics(
         }
     )
 
-    result = await coordinator.process(prepared_data)
+    result = await coordinator._process(prepared_data)
     assert "AAPL" in result
     assert "StrategyA" in result["AAPL"]
     assert test_window_id in result["AAPL"]["StrategyA"]
@@ -233,7 +233,7 @@ async def test_process_warns_on_missing_optimization(
             yield pd.DataFrame({"a": [1]})
 
         prepared_data = {"AAPL": lambda: df_iter()}
-        result = await coordinator.process(prepared_data)
+        result = await coordinator._process(prepared_data)
         assert result == {}
         assert mock_logger.warning.called
 
@@ -285,7 +285,7 @@ async def test_process_warns_on_no_data(
                 yield
 
         prepared_data = {"AAPL": lambda: empty_df_iter()}
-        result = await coordinator.process(prepared_data)
+        result = await coordinator._process(prepared_data)
         assert result == {}
         assert mock_logger.warning.called
 

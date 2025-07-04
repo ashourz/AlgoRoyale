@@ -1,16 +1,18 @@
+from datetime import datetime
 from logging import Logger
-from typing import Sequence
+from typing import Optional, Sequence
 
-from algo_royale.backtester.data_preparer.async_data_preparer import AsyncDataPreparer
+from algo_royale.backtester.data_preparer.stage_data_preparer import StageDataPreparer
 from algo_royale.backtester.enum.backtest_stage import BacktestStage
 from algo_royale.backtester.evaluator.backtest.base_backtest_evaluator import (
     BacktestEvaluator,
 )
 from algo_royale.backtester.executor.base_backtest_executor import BacktestExecutor
 from algo_royale.backtester.stage_coordinator.stage_coordinator import StageCoordinator
-from algo_royale.backtester.stage_data.stage_data_loader import StageDataLoader
+from algo_royale.backtester.stage_data.loader.symbol_strategy_data_loader import (
+    SymbolStrategyDataLoader,
+)
 from algo_royale.backtester.stage_data.stage_data_manager import StageDataManager
-from algo_royale.backtester.stage_data.stage_data_writer import StageDataWriter
 from algo_royale.backtester.strategy_combinator.base_strategy_combinator import (
     BaseStrategyCombinator,
 )
@@ -23,9 +25,7 @@ class BaseOptimizationStageCoordinator(StageCoordinator):
     Parameters:
         data_loader: Data loader for the stage.
         data_preparer: Data preparer for the stage.
-        data_writer: Data writer for the stage.
         stage_data_manager: Stage data manager.
-        strategy_factory: Strategy factory for creating strategies.
         stage: BacktestStage enum value indicating the stage of the backtest.
         logger: Logger instance.
         strategy_executor: StrategyBacktestExecutor instance for executing backtests.
@@ -35,29 +35,77 @@ class BaseOptimizationStageCoordinator(StageCoordinator):
 
     def __init__(
         self,
-        data_loader: StageDataLoader,
-        data_preparer: AsyncDataPreparer,
-        data_writer: StageDataWriter,
-        stage_data_manager: StageDataManager,
         stage: BacktestStage,
-        logger: Logger,
+        data_loader: SymbolStrategyDataLoader,
+        data_preparer: StageDataPreparer,
+        stage_data_manager: StageDataManager,
         executor: BacktestExecutor,
         evaluator: BacktestEvaluator,
         strategy_combinators: Sequence[type[BaseStrategyCombinator]],
+        logger: Logger,
     ):
         """Coordinator for the backtest stage."""
-        super().__init__(
-            stage=stage,
-            data_loader=data_loader,
-            data_preparer=data_preparer,
-            data_writer=data_writer,
-            stage_data_manager=stage_data_manager,
-            logger=logger,
-        )
+        super().__init__()
+        self.stage = stage
+        self.data_loader = data_loader
+        self.data_preparer = data_preparer
+        self.stage_data_manager = stage_data_manager
         self.strategy_combinators = strategy_combinators
         self.executor = executor
         self.evaluator = evaluator
+        self.logger = logger
 
-    async def _write(self, stage, processed_data):
-        # No-op: writing is handled in process()
-        pass
+    async def run(
+        self,
+        start_date: Optional[datetime] = None,
+        end_date: Optional[datetime] = None,
+    ) -> bool:
+        """
+        Orchestrate the stage: load, prepare, process, write.
+        """
+        self.start_date = start_date
+        self.end_date = end_date
+        self.window_id = self.stage_data_manager.get_window_id(
+            start_date=self.start_date,
+            end_date=self.end_date,
+        )
+
+        self.logger.info(
+            f"Starting stage: {self.stage} | start_date: {start_date} | end_date: {end_date}"
+        )
+        if not self.stage.input_stage:
+            """ If no incoming stage is defined, skip loading data """
+            self.logger.error(f"Stage {self.stage} has no incoming stage defined.")
+            prepared_data = None
+        else:
+            """ Load data from the incoming stage """
+            self.logger.info(f"stage:{self.stage} starting data loading.")
+            data = await self.data_loader.load_data(
+                stage=self.stage.input_stage,
+                start_date=self.start_date,
+                end_date=self.end_date,
+                reverse_pages=True,
+            )
+            if not data:
+                self.logger.error(f"No data loaded from stage:{self.stage.input_stage}")
+                return False
+
+            prepared_data = self.data_preparer.normalize_stage_data(
+                stage=self.stage, data=data
+            )
+            if not prepared_data:
+                self.logger.error(f"No data prepared for stage:{self.stage}")
+                return False
+
+        processed_data = await self._process(prepared_data)
+
+        if not processed_data:
+            self.logger.error(f"Processing failed for stage:{self.stage}")
+            return False
+
+        await self._write(
+            stage=self.stage,
+            processed_data=processed_data,
+        )
+        self.logger.info(f"stage:{self.stage} completed and files saved.")
+        return True

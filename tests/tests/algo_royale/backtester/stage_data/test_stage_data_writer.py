@@ -24,7 +24,9 @@ def mock_stage_data_manager(tmp_path):
 
 @pytest.fixture
 def writer(mock_logger, mock_stage_data_manager):
-    from algo_royale.backtester.stage_data.stage_data_writer import StageDataWriter
+    from algo_royale.backtester.stage_data.writer.stage_data_writer import (
+        StageDataWriter,
+    )
 
     return StageDataWriter(
         logger=mock_logger,

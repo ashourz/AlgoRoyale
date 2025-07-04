@@ -126,7 +126,7 @@ async def test_process_returns_factories(
     )
     coordinator.start_date = datetime(2024, 1, 1)
     coordinator.end_date = datetime(2024, 1, 31)
-    result = await coordinator.process(prepared_data=None)
+    result = await coordinator._process(prepared_data=None)
     assert "AAPL" in result and "GOOG" in result
 
 

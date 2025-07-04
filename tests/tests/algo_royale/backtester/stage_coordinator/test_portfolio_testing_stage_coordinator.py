@@ -168,7 +168,7 @@ async def test_portfolio_testing_process(
         }
     )
 
-    results = await coordinator.process(prepared_data=prepared_data)
+    results = await coordinator._process(prepared_data=prepared_data)
     print("DEBUG RESULTS:", results)
     mock_evaluator.evaluate.assert_called()
     assert "AAPL" in results

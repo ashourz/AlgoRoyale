@@ -5,7 +5,7 @@ from typing import AsyncIterator, Callable, Dict, Optional, Sequence
 
 import pandas as pd
 
-from algo_royale.backtester.data_preparer.async_data_preparer import AsyncDataPreparer
+from algo_royale.backtester.data_preparer.stage_data_preparer import StageDataPreparer
 from algo_royale.backtester.enum.backtest_stage import BacktestStage
 from algo_royale.backtester.evaluator.backtest.base_backtest_evaluator import (
     BacktestEvaluator,
@@ -16,9 +16,9 @@ from algo_royale.backtester.executor.strategy_backtest_executor import (
 from algo_royale.backtester.stage_coordinator.testing.base_testing_stage_coordinator import (
     BaseTestingStageCoordinator,
 )
-from algo_royale.backtester.stage_data.stage_data_loader import StageDataLoader
+from algo_royale.backtester.stage_data.loader.stage_data_loader import StageDataLoader
 from algo_royale.backtester.stage_data.stage_data_manager import StageDataManager
-from algo_royale.backtester.stage_data.stage_data_writer import StageDataWriter
+from algo_royale.backtester.stage_data.writer.stage_data_writer import StageDataWriter
 from algo_royale.backtester.strategy_combinator.signal.base_signal_strategy_combinator import (
     SignalStrategyCombinator,
 )
@@ -31,7 +31,7 @@ class StrategyTestingStageCoordinator(BaseTestingStageCoordinator):
     def __init__(
         self,
         data_loader: StageDataLoader,
-        data_preparer: AsyncDataPreparer,
+        data_preparer: StageDataPreparer,
         data_writer: StageDataWriter,
         stage_data_manager: StageDataManager,
         strategy_executor: StrategyBacktestExecutor,
@@ -45,7 +45,7 @@ class StrategyTestingStageCoordinator(BaseTestingStageCoordinator):
         """Coordinator for the strategy testing stage of the backtest pipeline.
         Params:
             data_loader: StageDataLoader instance for loading data.
-            data_preparer: AsyncDataPreparer instance for preparing data.
+            data_preparer: StageDataPreparer instance for preparing data.
             data_writer: StageDataWriter instance for writing data.
             stage_data_manager: StageDataManager instance for managing stage data.
             strategy_executor: StrategyBacktestExecutor instance for executing backtests.
@@ -70,7 +70,7 @@ class StrategyTestingStageCoordinator(BaseTestingStageCoordinator):
         )
         self.strategy_factory = strategy_factory
 
-    async def process(
+    async def _process(
         self,
         prepared_data: Optional[
             Dict[str, Callable[[], AsyncIterator[pd.DataFrame]]]
@@ -187,3 +187,14 @@ class StrategyTestingStageCoordinator(BaseTestingStageCoordinator):
                 print(f"Results so far: {results}")
         print(f"Final results: {results}")
         return results
+
+    def _write(
+        self,
+        stage: BacktestStage,
+        processed_data: Dict[str, Dict[str, Dict[str, float]]],
+    ) -> None:
+        """
+        No-op: writing is handled in process().
+        """
+        self.logger.info(f"Processed data for stage {stage} is ready, but not written.")
+        # Writing is handled in _process() where optimization results are saved

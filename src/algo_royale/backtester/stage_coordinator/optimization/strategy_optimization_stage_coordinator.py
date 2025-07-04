@@ -6,7 +6,7 @@ from typing import AsyncIterator, Callable, Dict, Optional, Sequence
 
 import pandas as pd
 
-from algo_royale.backtester.data_preparer.async_data_preparer import AsyncDataPreparer
+from algo_royale.backtester.data_preparer.stage_data_preparer import StageDataPreparer
 from algo_royale.backtester.enum.backtest_stage import BacktestStage
 from algo_royale.backtester.evaluator.backtest.base_backtest_evaluator import (
     BacktestEvaluator,
@@ -20,9 +20,8 @@ from algo_royale.backtester.optimizer.signal.signal_strategy_optimizer_factory i
 from algo_royale.backtester.stage_coordinator.optimization.base_optimization_stage_coordinator import (
     BaseOptimizationStageCoordinator,
 )
-from algo_royale.backtester.stage_data.stage_data_loader import StageDataLoader
+from algo_royale.backtester.stage_data.loader.stage_data_loader import StageDataLoader
 from algo_royale.backtester.stage_data.stage_data_manager import StageDataManager
-from algo_royale.backtester.stage_data.stage_data_writer import StageDataWriter
 from algo_royale.backtester.strategy.signal.base_signal_strategy import (
     BaseSignalStrategy,
 )
@@ -41,7 +40,6 @@ class StrategyOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
     Parameters:
         data_loader: Data loader for the stage.
         data_preparer: Data preparer for the stage.
-        data_writer: Data writer for the stage.
         stage_data_manager: Stage data manager.
         strategy_factory: StrategyFactory instance for creating strategies.
         logger: Logger instance.
@@ -54,8 +52,7 @@ class StrategyOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
     def __init__(
         self,
         data_loader: StageDataLoader,
-        data_preparer: AsyncDataPreparer,
-        data_writer: StageDataWriter,
+        data_preparer: StageDataPreparer,
         stage_data_manager: StageDataManager,
         logger: Logger,
         strategy_executor: StrategyBacktestExecutor,
@@ -70,7 +67,6 @@ class StrategyOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
             config: Configuration object.
             data_loader: Data loader for the stage.
             data_preparer: Data preparer for the stage.
-            data_writer: Data writer for the stage.
             stage_data_manager: Stage data manager.
             logger: Logger instance.
             strategy_combinators: List of strategy combinator classes to use.
@@ -79,7 +75,6 @@ class StrategyOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
             stage=BacktestStage.STRATEGY_OPTIMIZATION,
             data_loader=data_loader,
             data_preparer=data_preparer,
-            data_writer=data_writer,
             stage_data_manager=stage_data_manager,
             executor=strategy_executor,
             evaluator=strategy_evaluator,
@@ -93,7 +88,7 @@ class StrategyOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
         self.optimization_json_filename = optimization_json_filename
         self.signal_strategy_optimizer_factory = signal_strategy_optimizer_factory
 
-    async def process(
+    async def _process(
         self,
         prepared_data: Optional[
             Dict[str, Callable[[], AsyncIterator[pd.DataFrame]]]
@@ -211,3 +206,14 @@ class StrategyOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
         full_df = pd.concat(dfs, ignore_index=True)
         metrics = self.evaluator.evaluate(strategy, full_df)
         return metrics
+
+    def _write(
+        self,
+        stage: BacktestStage,
+        processed_data: Dict[str, Dict[str, Dict[str, float]]],
+    ) -> None:
+        """
+        No-op: writing is handled in process().
+        """
+        self.logger.info(f"Processed data for stage {stage} is ready, but not written.")
+        # Writing is handled in _process() where optimization results are saved

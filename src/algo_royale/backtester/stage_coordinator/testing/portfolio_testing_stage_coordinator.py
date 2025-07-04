@@ -8,7 +8,7 @@ import pandas as pd
 from algo_royale.backtester.data_preparer.asset_matrix_preparer import (
     AssetMatrixPreparer,
 )
-from algo_royale.backtester.data_preparer.async_data_preparer import AsyncDataPreparer
+from algo_royale.backtester.data_preparer.stage_data_preparer import StageDataPreparer
 from algo_royale.backtester.enum.backtest_stage import BacktestStage
 from algo_royale.backtester.evaluator.backtest.portfolio_backtest_evaluator import (
     PortfolioBacktestEvaluator,
@@ -19,9 +19,9 @@ from algo_royale.backtester.executor.portfolio_backtest_executor import (
 from algo_royale.backtester.stage_coordinator.testing.base_testing_stage_coordinator import (
     BaseTestingStageCoordinator,
 )
-from algo_royale.backtester.stage_data.stage_data_loader import StageDataLoader
+from algo_royale.backtester.stage_data.loader.stage_data_loader import StageDataLoader
 from algo_royale.backtester.stage_data.stage_data_manager import StageDataManager
-from algo_royale.backtester.stage_data.stage_data_writer import StageDataWriter
+from algo_royale.backtester.stage_data.writer.stage_data_writer import StageDataWriter
 from algo_royale.backtester.strategy_combinator.portfolio.base_portfolio_strategy_combinator import (
     PortfolioStrategyCombinator,
 )
@@ -31,7 +31,7 @@ class PortfolioTestingStageCoordinator(BaseTestingStageCoordinator):
     def __init__(
         self,
         data_loader: StageDataLoader,
-        data_preparer: AsyncDataPreparer,
+        data_preparer: StageDataPreparer,
         data_writer: StageDataWriter,
         stage_data_manager: StageDataManager,
         logger: Logger,
@@ -58,7 +58,7 @@ class PortfolioTestingStageCoordinator(BaseTestingStageCoordinator):
 
         self.asset_matrix_preparer = asset_matrix_preparer
 
-    async def process(
+    async def _process(
         self,
         prepared_data: Optional[
             Dict[str, Callable[[], AsyncIterator[pd.DataFrame]]]
@@ -178,3 +178,14 @@ class PortfolioTestingStageCoordinator(BaseTestingStageCoordinator):
                         self.test_window_id
                     ] = metrics
         return results
+
+    def _write(
+        self,
+        stage: BacktestStage,
+        processed_data: Dict[str, Dict[str, Dict[str, float]]],
+    ) -> None:
+        """
+        No-op: writing is handled in process().
+        """
+        self.logger.info(f"Processed data for stage {stage} is ready, but not written.")
+        # Writing is handled in _process() where optimization results are saved

@@ -3,7 +3,7 @@ from unittest.mock import MagicMock
 import pandas as pd
 import pytest
 
-from algo_royale.backtester.data_preparer.async_data_preparer import AsyncDataPreparer
+from algo_royale.backtester.data_preparer.stage_data_preparer import StageDataPreparer
 
 
 class DummyStage:
@@ -17,7 +17,7 @@ def logger():
 
 @pytest.fixture
 def preparer(logger):
-    return AsyncDataPreparer(logger)
+    return StageDataPreparer(logger)
 
 
 @pytest.mark.asyncio

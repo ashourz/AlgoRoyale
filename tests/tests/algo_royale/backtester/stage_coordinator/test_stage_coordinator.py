@@ -88,7 +88,7 @@ def coordinator(
     )
 
     class TestCoordinator(StageCoordinator):
-        async def process(self, prepared_data):
+        async def _process(self, prepared_data):
             return prepared_data
 
     # Use a real BacktestStage value for stage
