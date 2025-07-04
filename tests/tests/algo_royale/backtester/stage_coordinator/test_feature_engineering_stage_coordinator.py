@@ -3,7 +3,7 @@ from unittest.mock import ANY, AsyncMock, MagicMock
 import pandas as pd
 import pytest
 
-from algo_royale.backtester.stage_coordinator.feature_engineering_stage_coordinator import (
+from algo_royale.backtester.stage_coordinator.data_staging.feature_engineering_stage_coordinator import (
     FeatureEngineeringStageCoordinator,
 )
 

@@ -1,3 +1,4 @@
+from datetime import datetime
 from logging import Logger
 from typing import AsyncIterator, Callable, Dict, Optional
 
@@ -5,12 +6,12 @@ import pandas as pd
 from alpaca.common.enums import SupportedCurrencies
 
 from algo_royale.backtester.column_names.data_ingest_columns import DataIngestColumns
-from algo_royale.backtester.data_preparer.async_data_preparer import AsyncDataPreparer
 from algo_royale.backtester.enum.backtest_stage import BacktestStage
+from algo_royale.backtester.stage_coordinator.data_staging.symbol_strategy_data_writer import (
+    SymbolStrategyDataWriter,
+)
 from algo_royale.backtester.stage_coordinator.stage_coordinator import StageCoordinator
 from algo_royale.backtester.stage_data.stage_data_loader import StageDataLoader
-from algo_royale.backtester.stage_data.stage_data_manager import StageDataManager
-from algo_royale.backtester.stage_data.stage_data_writer import StageDataWriter
 from algo_royale.models.alpaca_market_data.enums import DataFeed
 from algo_royale.services.market_data.alpaca_stock_service import AlpacaQuoteService
 
@@ -19,39 +20,83 @@ class DataIngestStageCoordinator(StageCoordinator):
     def __init__(
         self,
         data_loader: StageDataLoader,
-        data_preparer: AsyncDataPreparer,
-        data_writer: StageDataWriter,
-        stage_data_manager: StageDataManager,
+        data_writer: SymbolStrategyDataWriter,
         logger: Logger,
         quote_service: AlpacaQuoteService,
         load_watchlist: Callable[[str], list[str]],
         watchlist_path_string: str,
     ):
         super().__init__(
-            stage=BacktestStage.DATA_INGEST,
-            data_loader=data_loader,
-            data_preparer=data_preparer,
-            data_writer=data_writer,
             stage_data_manager=stage_data_manager,
+            data_writer=data_writer,
             logger=logger,
         )
+        self.stage = BacktestStage.DATA_INGEST
+        self.data_loader = data_loader
+        self.data_writer = data_writer
+        self.logger = logger
+        self.quote_service = quote_service
         self.load_watchlist = load_watchlist
         self.watchlist_path = watchlist_path_string
-        self.quote_service = quote_service
         if not watchlist_path_string:
             raise ValueError("watchlist_path_string must be provided")
-        if not self.get_watchlist():
-            raise ValueError("Watchlist is empty")
 
-    def get_watchlist(self):
+    async def run(
+        self,
+        start_date: Optional[datetime] = None,
+        end_date: Optional[datetime] = None,
+    ) -> bool:
+        """
+        Orchestrate the stage: load, prepare, process, write.
+        """
+        self.logger.info(
+            f"Starting stage: {self.stage} | start_date: {start_date} | end_date: {end_date}"
+        )
+        # Validate dates
+        self.start_date = start_date
+        self.end_date = end_date
+        if not self.start_date or not self.end_date:
+            self.logger.error(
+                f"Start date and end date must be provided for stage: {self.stage}"
+            )
+            return False
+
+        # Load the watchlist
+        watchlist = self._get_watchlist()
+        if not watchlist:
+            self.logger.error(
+                f"Watchlist is empty for stage: {self.stage}. Cannot proceed with data ingestion."
+            )
+            return False
+        self.logger.info(
+            f"Watchlist loaded with {len(watchlist)} symbols for stage: {self.stage}"
+        )
+
+        # Fetch data for all symbols in the watchlist
+        watchlist_symbol_data = await self._fetch_watchlist_symbol_data(
+            watchlist=watchlist
+        )
+        if not watchlist_symbol_data:
+            self.logger.error(f"Data fetching failed for stage:{self.stage}")
+            return False
+
+        # Write watchlist symbol data to disk
+        await self._write(
+            stage=self.stage,
+            processed_data=watchlist_symbol_data,
+        )
+        self.logger.info(f"stage:{self.stage} completed and files saved.")
+        return True
+
+    def _get_watchlist(self):
         """
         Load the watchlist from the specified path.
         """
-        return self.load_watchlist(self.watchlist_path)
+        return self.data_loader.get_watchlist()
 
-    async def process(
+    async def _fetch_watchlist_symbol_data(
         self,
-        prepared_data: Optional[Dict[str, Callable[[], AsyncIterator[pd.DataFrame]]]],
+        watchlist: list[str],
     ) -> Dict[str, Dict[str, Callable[[], AsyncIterator[pd.DataFrame]]]]:
         """
         Fetch data for all symbols and return as async iterators of DataFrames.
@@ -59,7 +104,7 @@ class DataIngestStageCoordinator(StageCoordinator):
         """
         result: Dict[str, Dict[str, Callable[[], AsyncIterator[pd.DataFrame]]]] = {}
 
-        for symbol in self.get_watchlist():
+        for symbol in watchlist:
             # Wrap the factory in a dict with None as the strategy name
             result[symbol] = {
                 None: (lambda symbol=symbol: self._fetch_symbol_data(symbol=symbol))
@@ -126,3 +171,16 @@ class DataIngestStageCoordinator(StageCoordinator):
         finally:
             await self.quote_service.client.aclose()
             self.logger.info(f"Closed connection for {symbol}")
+
+    async def _write(
+        self,
+        stage: BacktestStage,
+        processed_data: Dict[str, Dict[str, Callable[[], AsyncIterator[pd.DataFrame]]]],
+    ):
+        """Write processed data to disk."""
+        return await self.data_writer.write_symbol_strategy_data_factory(
+            stage=stage,
+            symbol_strategy_data_factory=processed_data,
+            start_data=self.start_data,
+            end_data=self.end_data,
+        )

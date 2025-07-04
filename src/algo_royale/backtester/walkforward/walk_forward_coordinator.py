@@ -7,10 +7,10 @@ from typing import TYPE_CHECKING
 from matplotlib.dates import relativedelta
 
 from algo_royale.backtester.enum.backtest_stage import BacktestStage
-from algo_royale.backtester.stage_coordinator.data_ingest_stage_coordinator import (
+from algo_royale.backtester.stage_coordinator.data_staging.data_ingest_stage_coordinator import (
     DataIngestStageCoordinator,
 )
-from algo_royale.backtester.stage_coordinator.feature_engineering_stage_coordinator import (
+from algo_royale.backtester.stage_coordinator.data_staging.feature_engineering_stage_coordinator import (
     FeatureEngineeringStageCoordinator,
 )
 from algo_royale.backtester.stage_coordinator.optimization.base_optimization_stage_coordinator import (
@@ -19,6 +19,7 @@ from algo_royale.backtester.stage_coordinator.optimization.base_optimization_sta
 from algo_royale.backtester.stage_coordinator.testing.base_testing_stage_coordinator import (
     BaseTestingStageCoordinator,
 )
+from algo_royale.backtester.stage_data.stage_data_loader import StageDataLoader
 
 if TYPE_CHECKING:
     pass
@@ -27,12 +28,14 @@ if TYPE_CHECKING:
 class WalkForwardCoordinator:
     def __init__(
         self,
+        stage_data_loader: StageDataLoader,
         data_ingest_stage_coordinator: DataIngestStageCoordinator,
         feature_engineering_stage_coordinator: FeatureEngineeringStageCoordinator,
         optimization_stage_coordinator: BaseOptimizationStageCoordinator,
         testing_stage_coordinator: BaseTestingStageCoordinator,
         logger: Logger,
     ):
+        self.stage_data_loader = stage_data_loader
         self.logger = logger
         self.data_ingest_stage_coordinator = data_ingest_stage_coordinator
         self.feature_engineering_stage_coordinator = (
@@ -216,7 +219,7 @@ class WalkForwardCoordinator:
         """
         Returns True if any symbol has a non-empty data file for the given stage and window.
         """
-        for symbol in self.data_ingest_stage_coordinator.get_watchlist():
+        for symbol in self.stage_data_loader.get_watchlist():
             data_dir = self.data_ingest_stage_coordinator.stage_data_manager.get_directory_path(
                 stage=BacktestStage.DATA_INGEST,
                 strategy_name=None,

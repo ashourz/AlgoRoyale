@@ -41,10 +41,10 @@ from algo_royale.backtester.optimizer.signal.signal_strategy_optimizer_factory i
     SignalStrategyOptimizerFactoryImpl,
 )
 from algo_royale.backtester.pipeline.pipeline_coordinator import PipelineCoordinator
-from algo_royale.backtester.stage_coordinator.data_ingest_stage_coordinator import (
+from algo_royale.backtester.stage_coordinator.data_staging.data_ingest_stage_coordinator import (
     DataIngestStageCoordinator,
 )
-from algo_royale.backtester.stage_coordinator.feature_engineering_stage_coordinator import (
+from algo_royale.backtester.stage_coordinator.data_staging.feature_engineering_stage_coordinator import (
     FeatureEngineeringStageCoordinator,
 )
 from algo_royale.backtester.stage_coordinator.optimization.portfolio_optimization_stage_coordinator import (

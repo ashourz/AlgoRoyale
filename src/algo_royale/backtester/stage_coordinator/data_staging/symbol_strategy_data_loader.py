@@ -1,105 +1,47 @@
-from abc import ABC, abstractmethod
 from datetime import datetime
 from logging import Logger
 from typing import AsyncIterator, Callable, Dict, Optional
 
 import pandas as pd
 
-from algo_royale.backtester.data_preparer.async_data_preparer import AsyncDataPreparer
 from algo_royale.backtester.enum.backtest_stage import BacktestStage
 from algo_royale.backtester.stage_data.stage_data_loader import StageDataLoader
 from algo_royale.backtester.stage_data.stage_data_manager import StageDataManager
-from algo_royale.backtester.stage_data.stage_data_writer import StageDataWriter
 
 
-class StageCoordinator(ABC):
+class SymbolStrategyDataLoader:
+    """
+    A class to load symbol strategy data for backtesting.
+    """
+
     def __init__(
         self,
-        stage: BacktestStage,
-        data_loader: StageDataLoader,
-        data_preparer: AsyncDataPreparer,
-        data_writer: StageDataWriter,
         stage_data_manager: StageDataManager,
+        stage_data_loader: StageDataLoader,
         logger: Logger,
     ):
-        self.stage = stage
-        self.data_loader = data_loader
-        self.data_preparer = data_preparer
-        self.data_writer = data_writer
-        self.logger = logger
+        self.stage_data_loader = stage_data_loader
         self.stage_data_manager = stage_data_manager
-        incoming = self.stage.input_stage.name if self.stage.input_stage else "None"
-        outgoing = self.stage.name
+        self.logger = logger
 
-        self.logger.info(f"{incoming} -> {outgoing} StageCoordinator initialized")
-
-    @abstractmethod
-    async def process(
-        self,
-        prepared_data: Optional[Dict[str, Callable[[], AsyncIterator[pd.DataFrame]]]],
-    ) -> Dict[str, Dict[str, Callable[[], AsyncIterator[pd.DataFrame]]]]:
+    async def load(self, stage: BacktestStage):
         """
-        Process the prepared data and return a dict mapping symbol to a factory that yields result DataFrames.
-        This method should be implemented by subclasses to define the specific processing logic.
-        :param prepared_data: Data prepared for processing, typically a dict mapping symbol to an async iterator factory.
-        :return: A dict mapping symbol to a dict of strategy names and their corresponding async iterator factories.
-        :rtype: Dict[str, Dict[str, Callable[[], AsyncIterator[pd.DataFrame]]]]
+        Load symbol strategy data from the specified stage.
+
+        Args:
+            stage (BacktestStage): The stage from which to load data.
+
+        Returns:
+            AsyncIterator[Dict[str, pd.DataFrame]]: An iterator yielding dataframes for each symbol.
         """
-        pass
-
-    async def run(
-        self,
-        start_date: Optional[datetime] = None,
-        end_date: Optional[datetime] = None,
-    ) -> bool:
-        """
-        Orchestrate the stage: load, prepare, process, write.
-        """
-        self.start_date = start_date
-        self.end_date = end_date
-        self.window_id = self.stage_data_manager.get_window_id(
-            start_date=self.start_date,
-            end_date=self.end_date,
-        )
-
-        self.logger.info(
-            f"Starting stage: {self.stage} | start_date: {start_date} | end_date: {end_date}"
-        )
-        if not self.stage.input_stage:
-            """ If no incoming stage is defined, skip loading data """
-            self.logger.error(f"Stage {self.stage} has no incoming stage defined.")
-            prepared_data = None
-        else:
-            """ Load data from the incoming stage """
-            self.logger.info(f"stage:{self.stage} starting data loading.")
-            data = await self._load_data(
-                stage=self.stage.input_stage, reverse_pages=load_in_reverse
-            )
-            if not data:
-                self.logger.error(f"No data loaded from stage:{self.stage.input_stage}")
-                return False
-
-            prepared_data = self._prepare_data(stage=self.stage, data=data)
-            if not prepared_data:
-                self.logger.error(f"No data prepared for stage:{self.stage}")
-                return False
-
-        processed_data = await self.process(prepared_data)
-
-        if not processed_data:
-            self.logger.error(f"Processing failed for stage:{self.stage}")
-            return False
-
-        await self._write(
-            stage=self.stage,
-            processed_data=processed_data,
-        )
-        self.logger.info(f"stage:{self.stage} completed and files saved.")
-        return True
+        return await self.stage_data_loader.load(stage)
 
     async def _load_data(
         self,
         stage: BacktestStage,
+        start_date: datetime,
+        end_date: datetime,
+        symbol: Optional[str] = None,
         strategy_name: Optional[str] = None,
         reverse_pages: bool = False,
     ) -> Dict[str, Callable[[], AsyncIterator[pd.DataFrame]]]:
@@ -108,7 +50,7 @@ class StageCoordinator(ABC):
             self.logger.info(
                 f"Loading data for stage:{stage} | strategy:{strategy_name} | start_date:{self.start_date} | end_date:{self.end_date}"
             )
-            data = await self.data_loader.load_all_stage_data(
+            data = await self.stage_data_loader.load_all_stage_data(
                 stage=stage,
                 strategy_name=strategy_name,
                 start_date=self.start_date,
@@ -123,7 +65,7 @@ class StageCoordinator(ABC):
             self.stage_data_manager.write_error_file(
                 stage=stage,
                 strategy_name=strategy_name,
-                symbol="",
+                symbol=symbol,
                 filename="load_data",
                 error_message=f"stage:{stage} | strategy:{strategy_name} | start_date:{self.start_date} | end_date:{self.end_date} data loading failed: {e}",
                 start_date=self.start_date,

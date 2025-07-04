@@ -4,7 +4,7 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-from algo_royale.backtester.stage_coordinator.data_ingest_stage_coordinator import (
+from algo_royale.backtester.stage_coordinator.data_staging.data_ingest_stage_coordinator import (
     DataIngestStageCoordinator,
 )
 
@@ -141,7 +141,7 @@ async def test_fetch_symbol_data_success(
     monkeypatch,
 ):
     # Patch required enums/constants
-    import algo_royale.backtester.stage_coordinator.data_ingest_stage_coordinator as dic_mod
+    import algo_royale.backtester.stage_coordinator.data_staging.data_ingest_stage_coordinator as dic_mod
 
     monkeypatch.setattr(
         dic_mod, "SupportedCurrencies", types.SimpleNamespace(USD="USD")
