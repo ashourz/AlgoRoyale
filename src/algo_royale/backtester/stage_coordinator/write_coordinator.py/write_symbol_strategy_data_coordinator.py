@@ -6,8 +6,8 @@ from algo_royale.backtester.enum.backtest_stage import BacktestStage
 from algo_royale.backtester.enum.data_extension import DataExtension
 
 
-class WriteCoordinator:
-    """Coordinator for writing processed data to disk."""
+class WriteSymbolStrategyDataCoordinator:
+    """Coordinator to write symbol strategy data to disk."""
 
     def __init__(self, data_writer, logger, start_date, end_date):
         self.data_writer = data_writer

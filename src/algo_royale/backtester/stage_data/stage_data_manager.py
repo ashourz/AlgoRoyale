@@ -88,27 +88,6 @@ class StageDataManager:
         self.logger.debug(f"Generated directory path: {path}")
         return path
 
-    def get_extended_path(
-        self,
-        base_dir: str,
-        strategy_name: Optional[str],
-        symbol: Optional[str],
-        start_date: Optional[datetime] = None,
-        end_date: Optional[datetime] = None,
-    ) -> Path:
-        """Generate the directory path for a given base directory, strategy, and symbol."""
-        path = base_dir
-        if symbol:
-            path = path / symbol
-        if strategy_name:
-            path = path / strategy_name
-        if start_date and end_date:
-            date_window_id = self.get_window_id(start_date, end_date)
-            path = path / date_window_id
-
-        self.logger.debug(f"Generated directory path: {path}")
-        return path
-
     def get_stage_path(self, stage: BacktestStage) -> Path:
         path = self.base_dir / stage.name
         path.mkdir(parents=True, exist_ok=True)
