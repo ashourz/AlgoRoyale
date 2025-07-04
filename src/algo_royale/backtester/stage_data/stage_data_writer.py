@@ -1,4 +1,3 @@
-import glob
 from logging import Logger
 from math import ceil
 from pathlib import Path
@@ -33,24 +32,6 @@ class StageDataWriter:
         self.max_rows_per_file = max_rows_per_file
         self.logger = logger
 
-    def has_existing_results(
-        self,
-        stage: BacktestStage,
-        strategy_name: Optional[str],
-        symbol: str,
-        start_date: Optional[str] = None,
-        end_date: Optional[str] = None,
-    ) -> bool:
-        """
-        Check if results already exist for the given stage, strategy, and symbol.
-        This is useful to avoid overwriting existing results.
-        """
-        search_dir = self._get_stage_symbol_dir(
-            stage, strategy_name, symbol, start_date, end_date
-        )
-        pattern = str(search_dir / f"{strategy_name}_{symbol}_*.csv")
-        return len(glob.glob(pattern)) > 0
-
     def save_stage_data(
         self,
         stage: BacktestStage,
@@ -69,7 +50,7 @@ class StageDataWriter:
         if not isinstance(results_df, pd.DataFrame):
             raise TypeError(f"Expected DataFrame, got {type(results_df)}")
 
-        output_dir = self._get_stage_symbol_dir(
+        output_dir = self.stage_data_manager.get_directory_path(
             stage, strategy_name, symbol, start_date, end_date
         )
         output_dir.mkdir(parents=True, exist_ok=True)
@@ -108,23 +89,6 @@ class StageDataWriter:
                 raise
 
         return filepaths
-
-    def _get_stage_symbol_dir(
-        self,
-        stage: BacktestStage,
-        strategy_name: Optional[str],
-        symbol: str,
-        start_date: Optional[str] = None,
-        end_date: Optional[str] = None,
-    ) -> Path:
-        """Get the directory for a symbol in the stage, optionally with strategy_name."""
-        return self.stage_data_manager.get_directory_path(
-            stage=stage,
-            strategy_name=strategy_name,
-            symbol=symbol,
-            start_date=start_date,
-            end_date=end_date,
-        )
 
 
 def mockStageDataWriter(

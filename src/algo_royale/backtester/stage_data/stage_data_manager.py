@@ -245,6 +245,7 @@ class StageDataManager:
         start_date: Optional[datetime] = None,
         end_date: Optional[datetime] = None,
     ) -> None:
+        """Write an error message to a file in the specified stage and symbol directory."""
         dir_path = self.get_directory_path(
             stage, strategy_name, symbol, start_date, end_date
         )
@@ -327,6 +328,41 @@ class StageDataManager:
             self.logger.warning(
                 f"Could not remove base directory (not empty or error): {self.base_dir}"
             )
+
+    def dir_has_files(
+        self,
+        stage: BacktestStage,
+        strategy_name: Optional[str],
+        symbol: str,
+        start_date: Optional[datetime] = None,
+        end_date: Optional[datetime] = None,
+        file_pattern: Optional[str] = None,
+    ) -> bool:
+        """Check if a directory has files matching a given pattern or any files if no pattern is provided."""
+        dir_path = self.get_directory_path(
+            stage, strategy_name, symbol, start_date, end_date
+        )
+        if not dir_path.exists():
+            self.logger.warning(f"Tried to check non-existent directory: {dir_path}")
+            return False
+        if not dir_path.is_dir():
+            self.logger.warning(f"Tried to check a non-directory path: {dir_path}")
+            return False
+        if not dir_path.is_absolute():
+            self.logger.warning(f"Path is not absolute: {dir_path}")
+            return False
+        # If a file pattern is provided, check if the directory has files matching the pattern
+        if file_pattern:
+            files = list(dir_path.glob(file_pattern))
+            has_files = bool(files)
+            self.logger.debug(
+                f"Checked if directory has files matching pattern '{file_pattern}' ({dir_path}): {has_files}"
+            )
+            return has_files
+        # If no pattern is provided, check if the directory has any files
+        has_files = any(dir_path.iterdir())
+        self.logger.debug(f"Checked if directory has files ({dir_path}): {has_files}")
+        return has_files
 
 
 def mockStageDataManager(data_dir: Path) -> StageDataManager:

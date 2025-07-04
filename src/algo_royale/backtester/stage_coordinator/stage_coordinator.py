@@ -171,134 +171,148 @@ class StageCoordinator(ABC):
         )
         return prepared_data
 
-    async def _write(
+    async def _write_(
         self,
         stage: BacktestStage,
-        processed_data: Dict[
-            str, Dict[str, Callable[[], AsyncIterator[pd.DataFrame]]]
-        ],  # symbol -> strategy_name -> factory
+        processed_data: Dict[str, Dict[str, Callable[[], AsyncIterator[pd.DataFrame]]]],
     ):
-        """Write processed data to disk
-        This method iterates through the processed data, checks if the data for each symbol and strategy is already marked as done,
-        and if not, writes the data to the appropriate directory. If the directory already contains data but is not marked as done,
-        it clears the directory before writing the new data. It also handles errors by logging them and writing error files.
-
-        :param stage: The current stage of processing.
-        :param processed_data: A dictionary mapping symbols to strategy factories that yield DataFrames.
-        :type processed_data: Dict[str, Dict[str, Callable[[], AsyncIterator[pd.DataFrame]]]]
-        """
+        """Write processed data to disk."""
         self.logger.info(f"Writing data for stage: {stage}")
         try:
             for symbol, strategy_factories in processed_data.items():
-                try:
-                    self.logger.info(
-                        f"Writing data for symbol: {symbol} at stage: {stage}"
-                    )
-                    for strategy_name, df_iter_factory in strategy_factories.items():
-                        try:
-                            self.logger.info(
-                                f"Processing symbol: {symbol} for strategy: {strategy_name}"
-                            )
-                            # Check if symbol/stage is already marked as done
-                            if self.stage_data_manager.is_symbol_stage_done(
-                                stage,
-                                strategy_name,
-                                symbol,
-                                self.start_date,
-                                self.end_date,
-                            ):
-                                self.logger.info(
-                                    f"Skipping {symbol} for stage:{stage} | strategy:{strategy_name} | start_date:{self.start_date} | end_date:{self.end_date} (already marked as done)"
-                                )
-                                continue
-
-                            # If folder has data but is not marked as done, clear it
-                            out_dir = self.stage_data_manager.get_directory_path(
-                                stage,
-                                strategy_name,
-                                symbol,
-                                self.start_date,
-                                self.end_date,
-                            )
-                            if out_dir.exists() and any(out_dir.iterdir()):
-                                self.logger.info(
-                                    f"Clearing existing data for {symbol} at stage:{stage} | strategy:{strategy_name} | start_date:{self.start_date} | end_date:{self.end_date}"
-                                )
-                                self.stage_data_manager.clear_directory(
-                                    stage,
-                                    strategy_name,
-                                    symbol,
-                                    self.start_date,
-                                    self.end_date,
-                                )
-
-                            gen = df_iter_factory()
-                            if not hasattr(gen, "__aiter__"):
-                                self.logger.error(
-                                    f"Factory for {symbol}/{strategy_name}/{self.start_date}_{self.end_date} did not return an async iterator. Got: {type(gen)} Value: {gen}"
-                                )
-                                raise TypeError(
-                                    f"Expected async iterator, got {type(gen)}"
-                                )
-
-                            # Now write the new data
-                            page_idx: int = 1
-                            async for df in gen:
-                                self.data_writer.save_stage_data(
-                                    stage=stage,
-                                    strategy_name=strategy_name,
-                                    symbol=symbol,
-                                    results_df=df,
-                                    page_idx=page_idx,
-                                    start_date=self.start_date,
-                                    end_date=self.end_date,
-                                )
-                                page_idx += 1
-                            self.stage_data_manager.mark_symbol_stage(
-                                stage=stage,
-                                strategy_name=strategy_name,
-                                symbol=symbol,
-                                statusExtension=DataExtension.DONE,
-                                start_date=self.start_date,
-                                end_date=self.end_date,
-                            )
-                        except Exception as e:
-                            self.logger.error(
-                                f"stage:{stage} | strategy:{strategy_name} | start_date:{self.start_date} | end_date:{self.end_date} data writing failed for symbol {symbol}: {e}"
-                            )
-                            self.stage_data_manager.write_error_file(
-                                stage=stage,
-                                strategy_name=strategy_name,
-                                symbol=symbol,
-                                filename="write",
-                                error_message=f"stage:{stage} | strategy:{strategy_name} data writing failed for symbol {symbol}: {e}",
-                                start_date=self.start_date,
-                                end_date=self.end_date,
-                            )
-                            continue
-                except Exception as e:
-                    self.logger.error(
-                        f"stage:{stage} data writing failed for symbol {symbol}: {e}"
-                    )
-                    self.stage_data_manager.write_error_file(
-                        stage=stage,
-                        strategy_name=None,
-                        symbol=symbol,
-                        filename="write",
-                        error_message=f"stage:{stage} data writing failed for symbol {symbol}: {e}",
-                        start_date=self.start_date,
-                        end_date=self.end_date,
-                    )
-                    continue
+                await self._write_symbol_data(stage, symbol, strategy_factories)
         except Exception as e:
-            self.logger.error(f"stage:{stage} data writing failed: {e}")
-            self.stage_data_manager.write_error_file(
+            self._handle_global_write_error(stage, e)
+            return False
+
+    async def _write_symbol_data(
+        self,
+        stage: BacktestStage,
+        symbol: str,
+        strategy_factories: Dict[str, Callable[[], AsyncIterator[pd.DataFrame]]],
+    ):
+        """Write data for a specific symbol."""
+        try:
+            self.logger.info(f"Writing data for symbol: {symbol} at stage: {stage}")
+            for strategy_name, df_iter_factory in strategy_factories.items():
+                await self._write_strategy_data(
+                    stage, symbol, strategy_name, df_iter_factory
+                )
+        except Exception as e:
+            self._handle_symbol_write_error(stage, symbol, e)
+
+    async def _write_strategy_data(
+        self,
+        stage: BacktestStage,
+        symbol: str,
+        strategy_name: str,
+        df_iter_factory: Callable[[], AsyncIterator[pd.DataFrame]],
+    ):
+        """Write data for a specific strategy."""
+        try:
+            if self.stage_data_manager.is_symbol_stage_done(
+                stage, strategy_name, symbol, self.start_date, self.end_date
+            ):
+                self.logger.info(
+                    f"Skipping {symbol} for stage:{stage} | strategy:{strategy_name} | start_date:{self.start_date} | end_date:{self.end_date} (already marked as done)"
+                )
+                return
+
+            self._clear_existing_data_if_needed(stage, strategy_name, symbol)
+
+            gen = df_iter_factory()
+            if not hasattr(gen, "__aiter__"):
+                raise TypeError(f"Expected async iterator, got {type(gen)}")
+
+            await self._write_pages(stage, strategy_name, symbol, gen)
+            self.stage_data_manager.mark_symbol_stage(
                 stage=stage,
-                strategy_name=None,
+                strategy_name=strategy_name,
                 symbol=symbol,
-                filename="write",
-                error_message=f"stage:{stage} data writing failed: {e}",
+                statusExtension=DataExtension.DONE,
                 start_date=self.start_date,
                 end_date=self.end_date,
             )
-            return False
+        except Exception as e:
+            self._handle_strategy_write_error(stage, strategy_name, symbol, e)
+
+    async def _write_pages(
+        self,
+        stage: BacktestStage,
+        strategy_name: str,
+        symbol: str,
+        gen: AsyncIterator[pd.DataFrame],
+    ):
+        """Write pages of data for a strategy."""
+        page_idx = 1
+        async for df in gen:
+            self.data_writer.save_stage_data(
+                stage=stage,
+                strategy_name=strategy_name,
+                symbol=symbol,
+                results_df=df,
+                page_idx=page_idx,
+                start_date=self.start_date,
+                end_date=self.end_date,
+            )
+            page_idx += 1
+
+    def _clear_existing_data_if_needed(
+        self, stage: BacktestStage, strategy_name: str, symbol: str
+    ):
+        """Clear existing data if the directory is not marked as done."""
+        out_dir = self.stage_data_manager.get_directory_path(
+            stage, strategy_name, symbol, self.start_date, self.end_date
+        )
+        if out_dir.exists() and any(out_dir.iterdir()):
+            self.logger.info(
+                f"Clearing existing data for {symbol} at stage:{stage} | strategy:{strategy_name} | start_date:{self.start_date} | end_date:{self.end_date}"
+            )
+            self.stage_data_manager.clear_directory(
+                stage, strategy_name, symbol, self.start_date, self.end_date
+            )
+
+    def _handle_global_write_error(self, stage: BacktestStage, e: Exception):
+        """Handle errors during the global write process."""
+        self.logger.error(f"stage:{stage} data writing failed: {e}")
+        self.stage_data_manager.write_error_file(
+            stage=stage,
+            strategy_name=None,
+            symbol="",
+            filename="write",
+            error_message=f"stage:{stage} data writing failed: {e}",
+            start_date=self.start_date,
+            end_date=self.end_date,
+        )
+
+    def _handle_symbol_write_error(
+        self, stage: BacktestStage, symbol: str, e: Exception
+    ):
+        """Handle errors during the symbol write process."""
+        self.logger.error(f"stage:{stage} data writing failed for symbol {symbol}: {e}")
+        self.stage_data_manager.write_error_file(
+            stage=stage,
+            strategy_name=None,
+            symbol=symbol,
+            filename="write",
+            error_message=f"stage:{stage} data writing failed for symbol {symbol}: {e}",
+            start_date=self.start_date,
+            end_date=self.end_date,
+        )
+
+    def _handle_strategy_write_error(
+        self, stage: BacktestStage, strategy_name: str, symbol: str, e: Exception
+    ):
+        """Handle errors during the strategy write process."""
+        self.logger.error(
+            f"stage:{stage} | strategy:{strategy_name} | start_date:{self.start_date} | end_date:{self.end_date} data writing failed for symbol {symbol}: {e}"
+        )
+        self.stage_data_manager.write_error_file(
+            stage=stage,
+            strategy_name=strategy_name,
+            symbol=symbol,
+            filename="write",
+            error_message=f"stage:{stage} | strategy:{strategy_name} data writing failed for symbol {symbol}: {e}",
+            start_date=self.start_date,
+            end_date=self.end_date,
+        )
