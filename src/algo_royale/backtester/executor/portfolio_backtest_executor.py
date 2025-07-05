@@ -4,6 +4,7 @@ from typing import Any, Dict
 import numpy as np
 import pandas as pd
 
+from algo_royale.backtester.enum.backtest_stage import BacktestStage
 from algo_royale.backtester.executor.base_backtest_executor import BacktestExecutor
 from algo_royale.logging.logger_singleton import mockLogger
 
@@ -54,6 +55,18 @@ class PortfolioBacktestExecutor(BacktestExecutor):
         self.logger.info(
             f"Starting portfolio backtest for strategy: {getattr(strategy, 'get_description', lambda: str(strategy))()}"
         )
+
+        # Validate input data
+        if not self._validate_input(data):
+            self.logger.error(
+                "Input data validation failed for portfolio backtest. "
+                "Ensure the data is a non-empty DataFrame of prices."
+            )
+            raise ValueError(
+                "Input data validation failed for portfolio backtest. "
+                "Ensure the data is a non-empty DataFrame of prices."
+            )
+
         weights = strategy.allocate(data, data)
         self.logger.debug(
             f"Shape of data DataFrame: {data.shape}\n"
@@ -246,7 +259,41 @@ class PortfolioBacktestExecutor(BacktestExecutor):
         except Exception as e:
             self.logger.error(f"Error computing total_return metric: {e}")
             results["metrics"] = {}
+        # Validate output data structure
+        if not self._validate_output(results):
+            self.logger.error(
+                "Output data validation failed for portfolio backtest. "
+                "Ensure the output contains the expected structure."
+            )
+            raise ValueError(
+                "Output data validation failed for portfolio backtest. "
+                "Ensure the output contains the expected structure."
+            )
         return results
+
+    def _validate_input(self, input_data: pd.DataFrame) -> bool:
+        """Validate the input data structure of the backtest executor."""
+        validation_method = (
+            BacktestStage.PORTFOLIO_BACKTEST_EXECUTOR.value.input_validation_fn
+        )
+        if not validation_method:
+            self.logger.warning(
+                "No input validation method defined for PortfolioBacktestExecutor."
+            )
+            return False
+        return validation_method(input_data)
+
+    def _validate_output(self, output_data: Dict[str, Any]) -> bool:
+        """Validate the output data structure of the backtest executor."""
+        validation_method = (
+            BacktestStage.PORTFOLIO_BACKTEST_EXECUTOR.value.output_validation_fn
+        )
+        if not validation_method:
+            self.logger.warning(
+                "No output validation method defined for PortfolioBacktestExecutor."
+            )
+            return False
+        return validation_method(output_data)
 
 
 def mockPortfolioBacktestExecutor(

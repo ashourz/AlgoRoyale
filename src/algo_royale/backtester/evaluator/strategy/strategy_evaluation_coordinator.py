@@ -90,9 +90,8 @@ class StrategyEvaluationCoordinator:
             self.logger.debug(f"Found optimization result file: {opt_json_path}")
             try:
                 self.logger.info(f"Evaluating {opt_json_path}...")
-                evaluator = StrategyEvaluator(
-                    opt_json_path, metric_type=self.evaluation_type
-                )
+                evaluator = StrategyEvaluator(metric_type=self.evaluation_type)
+                evaluator.load_data(results_path=opt_json_path)
                 all_metrics.extend(evaluator.metrics)
                 for window, data in evaluator.results.items():
                     best_params = data.get("optimization", {}).get("best_params")
@@ -175,20 +174,6 @@ class StrategyEvaluationCoordinator:
     def _find_optimization_result_files(self) -> List[Path]:
         """Recursively find all optimization_result.json files under the root."""
         return list(self.opt_root_path.rglob(self.opt_result_json_filename))
-
-    def evaluate_results(self, opt_json_path: Path) -> dict:
-        """Evaluate a single optimization result file."""
-        evaluator = StrategyEvaluator(opt_json_path, metric_type=self.evaluation_type)
-        summary = evaluator.summary()
-        viability_score = evaluator.viability_score()
-        is_viable = evaluator.is_viable()
-        report = {
-            "summary": summary,
-            "viability_score": viability_score,
-            "is_viable": is_viable,
-            "metric_type": self.evaluation_type,
-        }
-        return report
 
     def write_aggregated_evaluation_report(self, out_dir: Path, report: dict):
         """Write the aggregated evaluation report to a JSON file at the root."""

@@ -41,84 +41,112 @@ class PortfolioBacktestEvaluator(BacktestEvaluator):
                 - "profit_factor": Sum of positive returns divided by sum of negative returns (float).
                 - "num_trades": Number of trades (int, if trade data provided).
         """
-        self.logger.info(
-            "Evaluating portfolio backtest results and computing performance metrics."
-        )
-        self.logger.debug(
-            f"Signals DataFrame shape: {signals_df.shape}\n"
-            f"Signals DataFrame columns: {signals_df.columns.tolist()}"
-        )
-        # Use portfolio_values if available, else fallback to portfolio_returns
-        if signals_df.empty:
-            self.logger.error("Input DataFrame is empty. Cannot compute metrics.")
-            return {
-                k: np.nan
-                for k in [
-                    "total_return",
-                    "mean_return",
-                    "volatility",
-                    "sharpe_ratio",
-                    "max_drawdown",
-                    "sortino_ratio",
-                    "calmar_ratio",
-                    "win_rate",
-                    "profit_factor",
-                    "num_trades",
-                ]
-            }
-        if "portfolio_values" in signals_df:
-            values = pd.Series(signals_df["portfolio_values"])
-            returns = values.pct_change().fillna(0)
-        else:
-            returns = pd.Series(signals_df["portfolio_returns"])
-        # Defensive: drop NaN/inf
-        returns = returns.replace([np.inf, -np.inf], np.nan).dropna()
-        if returns.empty or (returns == 0).all():
-            self.logger.error(
-                "No valid or non-zero returns in input DataFrame. Cannot compute metrics."
+        try:
+            self.logger.info(
+                "Evaluating portfolio backtest results and computing performance metrics."
             )
-            return {
-                k: np.nan
-                for k in [
-                    "total_return",
-                    "mean_return",
-                    "volatility",
-                    "sharpe_ratio",
-                    "max_drawdown",
-                    "sortino_ratio",
-                    "calmar_ratio",
-                    "win_rate",
-                    "profit_factor",
-                    "num_trades",
-                ]
+            self.logger.debug(
+                f"Signals DataFrame shape: {signals_df.shape}\n"
+                f"Signals DataFrame columns: {signals_df.columns.tolist()}"
+            )
+
+            # Validate the input DataFrame
+            self._validate_dataframe(signals_df, context="input")
+
+            # Use portfolio_values if available, else fallback to portfolio_returns
+            if signals_df.empty:
+                self.logger.error("Input DataFrame is empty. Cannot compute metrics.")
+                return {
+                    k: np.nan
+                    for k in [
+                        "total_return",
+                        "mean_return",
+                        "volatility",
+                        "sharpe_ratio",
+                        "max_drawdown",
+                        "sortino_ratio",
+                        "calmar_ratio",
+                        "win_rate",
+                        "profit_factor",
+                        "num_trades",
+                    ]
+                }
+            if "portfolio_values" in signals_df:
+                values = pd.Series(signals_df["portfolio_values"])
+                returns = values.pct_change().fillna(0)
+            else:
+                returns = pd.Series(signals_df["portfolio_returns"])
+            # Defensive: drop NaN/inf
+            returns = returns.replace([np.inf, -np.inf], np.nan).dropna()
+            if returns.empty or (returns == 0).all():
+                self.logger.error(
+                    "No valid or non-zero returns in input DataFrame. Cannot compute metrics."
+                )
+                return {
+                    k: np.nan
+                    for k in [
+                        "total_return",
+                        "mean_return",
+                        "volatility",
+                        "sharpe_ratio",
+                        "max_drawdown",
+                        "sortino_ratio",
+                        "calmar_ratio",
+                        "win_rate",
+                        "profit_factor",
+                        "num_trades",
+                    ]
+                }
+            # Metrics
+            total_return = float((returns + 1).prod() - 1)
+            mean_return = float(returns.mean())
+            volatility = float(returns.std())
+            sharpe_ratio = float(returns.mean() / (returns.std() + 1e-8))
+            max_dd = float(self.max_drawdown(returns))
+            sortino_ratio = float(self.sortino_ratio(returns))
+            calmar_ratio = float(total_return / abs(max_dd)) if max_dd != 0 else np.nan
+            win_rate = float((returns > 0).sum() / len(returns))
+            profit_factor = self.profit_factor(returns)
+            num_trades = None
+            if "trades" in signals_df and signals_df["trades"] is not None:
+                num_trades = len(signals_df["trades"])
+            metrics = {
+                "total_return": total_return,
+                "mean_return": mean_return,
+                "volatility": volatility,
+                "sharpe_ratio": sharpe_ratio,
+                "max_drawdown": max_dd,
+                "sortino_ratio": sortino_ratio,
+                "calmar_ratio": calmar_ratio,
+                "win_rate": win_rate,
+                "profit_factor": profit_factor,
             }
-        # Metrics
-        total_return = float((returns + 1).prod() - 1)
-        mean_return = float(returns.mean())
-        volatility = float(returns.std())
-        sharpe_ratio = float(returns.mean() / (returns.std() + 1e-8))
-        max_dd = float(self.max_drawdown(returns))
-        sortino_ratio = float(self.sortino_ratio(returns))
-        calmar_ratio = float(total_return / abs(max_dd)) if max_dd != 0 else np.nan
-        win_rate = float((returns > 0).sum() / len(returns))
-        profit_factor = self.profit_factor(returns)
-        num_trades = None
-        if "trades" in signals_df and signals_df["trades"] is not None:
-            num_trades = len(signals_df["trades"])
-        metrics = {
-            "total_return": total_return,
-            "mean_return": mean_return,
-            "volatility": volatility,
-            "sharpe_ratio": sharpe_ratio,
-            "max_drawdown": max_dd,
-            "sortino_ratio": sortino_ratio,
-            "calmar_ratio": calmar_ratio,
-            "win_rate": win_rate,
-            "profit_factor": profit_factor,
-        }
-        if num_trades is not None:
-            metrics["num_trades"] = num_trades
-        return metrics
+            if num_trades is not None:
+                metrics["num_trades"] = num_trades
+            return metrics
+        except Exception as e:
+            self.logger.error(f"Evaluation failed: {e}")
+            raise ValueError(
+                f"Evaluation failed: {e}. Please check the input DataFrame and ensure it contains valid data."
+            )
+
+    def _validate_dataframe(self, df: pd.DataFrame) -> None:
+        """
+        Validate the DataFrame for required columns, null values, and invalid data.
+        Parameters:
+            df: The DataFrame to validate.
+        """
+        essential_cols = ["portfolio_values", "portfolio_returns"]
+        for col in essential_cols:
+            if col not in df.columns:
+                self.logger.error(f"Missing essential column: {col}")
+                raise ValueError(f"Missing essential column: {col}")
+            if df[col].isnull().any():
+                self.logger.error(f"Null values found in essential column: {col}")
+                raise ValueError(f"Null values found in essential column: {col}")
+            if (df[col] <= 0).any():
+                self.logger.error(f"Invalid values found in essential column: {col}")
+                raise ValueError(f"Invalid values found in essential column: {col}")
 
     @staticmethod
     def max_drawdown(returns: pd.Series) -> float:

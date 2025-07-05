@@ -107,6 +107,7 @@ class BacktestStage(Enum):
         input_validation_fn=BacktestStageDictValidation.SIGNAL_BACKTEST_EXECUTOR_INPUT,
         output_data_validation_fn=BacktestStageDictValidation.SIGNAL_BACKTEST_EXECUTOR_OUTPUT,
     )
+    # VALIDATION APPLIED TO SIGNAL BACKTEST EVALUATOR
     SIGNAL_BACKTEST_EVALUATOR = OutputMetricValidationStageDef(
         value=BacktestStageName.SIGNAL_BACKTEST_EVALUATOR,
         description="Evaluating backtest results for individual trading strategies",
@@ -153,6 +154,7 @@ class BacktestStage(Enum):
         input_columns=PortfolioStrategyInputColumns.get_all_column_values(),
         output_columns=PortfolioStrategyOutputColumns.get_all_column_values(),
     )
+    # VALIDATION APPLIED TO PORTFOLIO BACKTEST EXECUTOR
     PORTFOLIO_BACKTEST_EXECUTOR = FullMetricValidationStageDef(
         value=BacktestStageName.PORTFOLIO_BACKTEST_EXECUTOR,
         description="Executing backtests for a portfolio of strategies",
@@ -160,6 +162,7 @@ class BacktestStage(Enum):
         input_validation_fn=BacktestStageDictValidation.PORTFOLIO_BACKTEST_EXECUTOR_INPUT,
         output_data_validation_fn=BacktestStageDictValidation.PORTFOLIO_BACKTEST_EXECUTOR_OUTPUT,
     )
+    # VALIDATION APPLIED TO PORTFOLIO OPTIMIZATION
     PORTFOLIO_OPTIMIZATION = FullMetricValidationStageDef(
         value=BacktestStageName.PORTFOLIO_OPTIMIZATION,
         description="Optimizing a portfolio of strategies",
@@ -167,6 +170,7 @@ class BacktestStage(Enum):
         input_validation_fn=BacktestStageDictValidation.PORTFOLIO_OPTIMIZATION_INPUT,
         output_data_validation_fn=BacktestStageDictValidation.PORTFOLIO_OPTIMIZATION_OUTPUT,
     )
+    # VALIDATION APPLIED TO PORTFOLIO TESTING
     PORTFOLIO_TESTING = FullMetricValidationStageDef(
         value=BacktestStageName.PORTFOLIO_TESTING,
         description="Testing a portfolio of strategies on historical data",

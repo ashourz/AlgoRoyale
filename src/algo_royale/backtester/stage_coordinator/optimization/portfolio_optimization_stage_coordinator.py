@@ -86,25 +86,14 @@ class PortfolioOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
     ) -> Dict[str, Dict[str, dict]]:
         """Process the portfolio optimization stage by aggregating all symbol data and optimizing the portfolio as a whole."""
         results = {}
-        all_dfs = []
-        for symbol, df_iter_factory in data.items():
-            async for df in df_iter_factory():
-                df["symbol"] = symbol  # Optionally tag symbol
-                all_dfs.append(df)
-        if not all_dfs:
-            self.logger.warning("No data for portfolio optimization window.")
-            return {}
+        portfolio_matrix = await self._get_input_matrix(data)
+        # If no valid portfolio data is available, log a warning and return empty results
+        if portfolio_matrix is None:
+            self.logger.warning("No valid portfolio data available for optimization.")
+            return results
 
-        portfolio_df = pd.concat(all_dfs, ignore_index=True)
-        self.logger.debug(
-            f"Combined portfolio DataFrame shape: {portfolio_df.shape}, columns: {list(portfolio_df.columns)}"
-        )
-        self.logger.debug(f"Combined portfolio DataFrame index: {portfolio_df.index}")
-        # Prepare asset-matrix form for portfolio strategies
-        portfolio_matrix = self.asset_matrix_preparer.prepare(portfolio_df)
-        self.logger.info(
-            f"Asset-matrix DataFrame shape: {portfolio_matrix.shape}, columns: {portfolio_matrix.columns}"
-        )
+        # TODO: Validate portfolio_matrix structure
+
         self.logger.info(
             f"Starting portfolio optimization for dates {self.start_date} to {self.end_date} with {len(portfolio_matrix)} rows of data."
         )
@@ -135,6 +124,12 @@ class PortfolioOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
                     optimization_result = await optimizer.optimize(
                         self.stage.name, portfolio_matrix
                     )
+                    # Validate the optimization results structure
+                    if not self._validate_optimization_results(optimization_result):
+                        self.logger.warning(
+                            f"Validation failed for optimization results of {strategy_name} during {self.window_id}. Skipping."
+                        )
+                        continue
                     # Save optimization metrics to optimization_result.json under window_id
                     results = self._write_results(
                         symbols=list(data.keys()),
@@ -150,6 +145,45 @@ class PortfolioOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
                     )
                     continue
         return results
+
+    async def _get_input_matrix(
+        self, data: Optional[Dict[str, Callable[[], AsyncIterator[pd.DataFrame]]]]
+    ) -> Optional[pd.DataFrame]:
+        """Get the input matrix for the portfolio optimization."""
+        try:
+            if not data:
+                self.logger.warning("No data provided for portfolio optimization.")
+                return None
+            # Aggregate all symbol data into a single DataFrame
+            self.logger.info(
+                f"Aggregating data for {len(data)} symbols for portfolio optimization."
+            )
+            all_dfs = []
+            for symbol, df_iter_factory in data.items():
+                async for df in df_iter_factory():
+                    ## TODO: VALIDATE DATAFRAME
+                    df["symbol"] = symbol  # Optionally tag symbol
+                    all_dfs.append(df)
+            if not all_dfs:
+                self.logger.warning("No data for portfolio optimization window.")
+                return {}
+
+            portfolio_df = pd.concat(all_dfs, ignore_index=True)
+            self.logger.debug(
+                f"Combined portfolio DataFrame shape: {portfolio_df.shape}, columns: {list(portfolio_df.columns)}"
+            )
+            self.logger.debug(
+                f"Combined portfolio DataFrame index: {portfolio_df.index}"
+            )
+            # Prepare asset-matrix form for portfolio strategies
+            portfolio_matrix = self.asset_matrix_preparer.prepare(portfolio_df)
+            self.logger.info(
+                f"Asset-matrix DataFrame shape: {portfolio_matrix.shape}, columns: {portfolio_matrix.columns}"
+            )
+            return portfolio_matrix
+        except Exception as e:
+            self.logger.error(f"Error preparing portfolio matrix for optimization: {e}")
+            return None
 
     def _get_output_path(self, strategy_name, start_date: datetime, end_date: datetime):
         """Get the output path for the optimization results JSON file."""
@@ -181,6 +215,21 @@ class PortfolioOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
             self.logger.error(f"Portfolio backtest/evaluation failed: {e}")
             print(f"DEBUG: _backtest_and_evaluate exception: {e}")
             return {}
+
+    def _validate_optimization_results(
+        self,
+        results: Dict[str, Any],
+    ) -> bool:
+        """Validate the optimization results to ensure they contain the expected structure."""
+        validation_method = (
+            BacktestStage.PORTFOLIO_OPTIMIZATION.value.output_metric_validation_fn
+        )
+        if not validation_method:
+            self.logger.warning(
+                "No validation method defined for portfolio optimization results. Skipping validation."
+            )
+            return False
+        return validation_method(results)
 
     def _write_results(
         self,

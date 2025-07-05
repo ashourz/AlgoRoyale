@@ -185,7 +185,7 @@ class StrategyOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
         )
         if not validation_method:
             self.logger.warning(
-                "No validation method defined for optimization results. Skipping validation."
+                "No validation method defined for strategy optimization results. Skipping validation."
             )
             return False
         return validation_method(results)

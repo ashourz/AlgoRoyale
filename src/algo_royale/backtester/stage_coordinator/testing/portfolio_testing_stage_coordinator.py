@@ -79,24 +79,14 @@ class PortfolioTestingStageCoordinator(BaseTestingStageCoordinator):
         This method does not set these parameters per run.
         """
         results = {}
-        all_dfs = []
-        for symbol, df_iter_factory in data.items():
-            async for df in df_iter_factory():
-                df["symbol"] = symbol  # Optionally tag symbol
-                all_dfs.append(df)
-        if not all_dfs:
-            self.logger.warning("No data for portfolio testing window.")
-            return {}
-        portfolio_df = pd.concat(all_dfs, ignore_index=True)
-        self.logger.debug(
-            f"Combined portfolio DataFrame shape: {portfolio_df.shape}, columns: {list(portfolio_df.columns)}"
-        )
-        self.logger.debug(f"Combined portfolio DataFrame index: {portfolio_df.index}")
-        # Prepare asset-matrix form for portfolio strategies
-        portfolio_matrix = self.asset_matrix_preparer.prepare(portfolio_df)
-        self.logger.info(
-            f"Asset-matrix DataFrame shape: {portfolio_matrix.shape}, columns: {portfolio_matrix.columns}"
-        )
+        portfolio_matrix = await self._get_input_matrix(data)
+        # If no valid portfolio data is available, log a warning and return empty results
+        if portfolio_matrix is None:
+            self.logger.warning("No valid portfolio data available for optimization.")
+            return results
+
+        # TODO: Validate portfolio_matrix structure
+
         self.logger.info(
             f"Starting portfolio testing for window {self.test_window_id} with {len(portfolio_matrix)} rows of data."
         )
@@ -140,6 +130,13 @@ class PortfolioTestingStageCoordinator(BaseTestingStageCoordinator):
                     start_date=self.test_start_date,
                     end_date=self.test_end_date,
                 )
+                # Validate optimization results
+                if not self._validate_optimization_results(test_opt_results):
+                    self.logger.warning(
+                        f"Validation failed for optimization results of {strategy_name} during {self.test_window_id}. Skipping writing results."
+                    )
+                    continue
+
                 results = self._write_test_results(
                     symbols=list(data.keys()),
                     metrics=metrics,
@@ -150,6 +147,45 @@ class PortfolioTestingStageCoordinator(BaseTestingStageCoordinator):
                 )
 
         return results
+
+    async def _get_input_matrix(
+        self, data: Optional[Dict[str, Callable[[], AsyncIterator[pd.DataFrame]]]]
+    ) -> Optional[pd.DataFrame]:
+        """Get the input matrix for the portfolio optimization."""
+        try:
+            if not data:
+                self.logger.warning("No data provided for portfolio optimization.")
+                return None
+            # Aggregate all symbol data into a single DataFrame
+            self.logger.info(
+                f"Aggregating data for {len(data)} symbols for portfolio optimization."
+            )
+            all_dfs = []
+            for symbol, df_iter_factory in data.items():
+                async for df in df_iter_factory():
+                    ## TODO: VALIDATE DATAFRAME
+                    df["symbol"] = symbol  # Optionally tag symbol
+                    all_dfs.append(df)
+            if not all_dfs:
+                self.logger.warning("No data for portfolio optimization window.")
+                return {}
+
+            portfolio_df = pd.concat(all_dfs, ignore_index=True)
+            self.logger.debug(
+                f"Combined portfolio DataFrame shape: {portfolio_df.shape}, columns: {list(portfolio_df.columns)}"
+            )
+            self.logger.debug(
+                f"Combined portfolio DataFrame index: {portfolio_df.index}"
+            )
+            # Prepare asset-matrix form for portfolio strategies
+            portfolio_matrix = self.asset_matrix_preparer.prepare(portfolio_df)
+            self.logger.info(
+                f"Asset-matrix DataFrame shape: {portfolio_matrix.shape}, columns: {portfolio_matrix.columns}"
+            )
+            return portfolio_matrix
+        except Exception as e:
+            self.logger.error(f"Error preparing portfolio matrix for optimization: {e}")
+            return None
 
     def _get_optimized_params(
         self,
@@ -175,7 +211,12 @@ class PortfolioTestingStageCoordinator(BaseTestingStageCoordinator):
                     f"No optimization result for PORTFOLIO {strategy_name} {self.train_window_id}"
                 )
                 return None
-
+            # Validate the optimization results structure
+            if not self._validate_optimization_results(train_opt_results):
+                self.logger.warning(
+                    f"Validation failed for optimization results of {strategy_name} during {self.train_window_id}. Skipping."
+                )
+                return None
             if (
                 self.train_window_id not in train_opt_results
                 or "optimization" not in train_opt_results[self.train_window_id]
@@ -204,6 +245,36 @@ class PortfolioTestingStageCoordinator(BaseTestingStageCoordinator):
                 f"Error retrieving optimized parameters for {strategy_name} during {self.train_window_id}: {e}"
             )
             return None
+
+    def _validate_optimization_results(
+        self,
+        results: Dict[str, Dict[str, dict]],
+    ) -> bool:
+        """Validate the optimization results to ensure they contain the expected structure."""
+        validation_method = (
+            BacktestStage.PORTFOLIO_TESTING.value.input_metric_validation_fn
+        )
+        if not validation_method:
+            self.logger.warning(
+                "No validation method defined for portfolio optimization results. Skipping validation."
+            )
+            return False
+        return validation_method(results)
+
+    def _validate_test_results(
+        self,
+        results: Dict[str, Dict[str, dict]],
+    ) -> bool:
+        """Validate the test results to ensure they contain the expected structure."""
+        validation_method = (
+            BacktestStage.STRATEGY_TESTING.value.output_metric_validation_fn
+        )
+        if not validation_method:
+            self.logger.warning(
+                "No validation method defined for portfolio test results. Skipping validation."
+            )
+            return False
+        return validation_method(results)
 
     def _write_test_results(
         self,
