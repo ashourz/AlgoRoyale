@@ -53,20 +53,20 @@ class TabularStageDef(BaseStageDef):
 @dataclass(frozen=True)
 class OutputMetricValidationStageDef(BaseStageDef):
     input_columns: List[str]
-    output_metric_validation_fn: Callable[[Any], bool]
+    output_validation_fn: Callable[[Any], bool]
 
 
 @dataclass(frozen=True)
 class InputOutputMetricValidationStageDef(BaseStageDef):
     input_columns: List[str]
-    input_metric_validation_fn: Callable[[Any], bool]
-    output_metric_validation_fn: Callable[[Any], bool]
+    input_validation_fn: Callable[[Any], bool]
+    output_validation_fn: Callable[[Any], bool]
 
 
 @dataclass(frozen=True)
 class FullMetricValidationStageDef(BaseStageDef):
     input_validation_fn: Callable[[Any], bool]
-    output_data_validation_fn: Callable[[Any], bool]
+    output_validation_fn: Callable[[Any], bool]
 
 
 class BacktestStage(Enum):
@@ -105,7 +105,7 @@ class BacktestStage(Enum):
         description="Executing backtests for individual trading strategies",
         input_stage_name=BacktestStageName.FEATURE_ENGINEERING,
         input_validation_fn=BacktestStageDictValidation.SIGNAL_BACKTEST_EXECUTOR_INPUT,
-        output_data_validation_fn=BacktestStageDictValidation.SIGNAL_BACKTEST_EXECUTOR_OUTPUT,
+        output_validation_fn=BacktestStageDictValidation.SIGNAL_BACKTEST_EXECUTOR_OUTPUT,
     )
     # VALIDATION APPLIED TO SIGNAL BACKTEST EVALUATOR
     SIGNAL_BACKTEST_EVALUATOR = OutputMetricValidationStageDef(
@@ -113,7 +113,7 @@ class BacktestStage(Enum):
         description="Evaluating backtest results for individual trading strategies",
         input_stage_name=BacktestStageName.SIGNAL_STRATEGY,
         input_columns=FeatureEngineeringColumns.get_all_column_values(),
-        output_metric_validation_fn=BacktestStageDictValidation.SIGNAL_BACKTEST_EVALUATOR,
+        output_validation_fn=BacktestStageDictValidation.SIGNAL_BACKTEST_EVALUATOR,
     )
     # VALIDATION APPLIED TO STRATEGY OPTIMIZATION
     STRATEGY_OPTIMIZATION = OutputMetricValidationStageDef(
@@ -121,7 +121,7 @@ class BacktestStage(Enum):
         description="Optimizing strategies using historical data",
         input_stage_name=BacktestStageName.FEATURE_ENGINEERING,
         input_columns=FeatureEngineeringColumns.get_all_column_values(),
-        output_metric_validation_fn=BacktestStageDictValidation.STRATEGY_OPTIMIZATION_OUTPUT,
+        output_validation_fn=BacktestStageDictValidation.STRATEGY_OPTIMIZATION_OUTPUT,
     )
     # VALIDATION APPLIED TO STRATEGY TESTING
     STRATEGY_TESTING = InputOutputMetricValidationStageDef(
@@ -129,22 +129,22 @@ class BacktestStage(Enum):
         description="Testing strategies using historical data",
         input_stage_name=BacktestStageName.FEATURE_ENGINEERING,
         input_columns=FeatureEngineeringColumns.get_all_column_values(),
-        input_metric_validation_fn=BacktestStageDictValidation.STRATEGY_OPTIMIZATION_OUTPUT,
-        output_metric_validation_fn=BacktestStageDictValidation.STRATEGY_TESTING_OUTPUT,
+        input_validation_fn=BacktestStageDictValidation.STRATEGY_OPTIMIZATION_OUTPUT,
+        output_validation_fn=BacktestStageDictValidation.STRATEGY_TESTING_OUTPUT,
     )
     STRATEGY_EVALUATION = FullMetricValidationStageDef(
         value=BacktestStageName.STRATEGY_EVALUATION,
         description="Evaluating strategies based on performance metrics",
         input_stage_name=None,
         input_validation_fn=BacktestStageDictValidation.STRATEGY_OPTIMIZATION_TESTING_OUTPUT,
-        output_data_validation_fn=BacktestStageDictValidation.SIGNAL_STRATEGY_EVALUATION,
+        output_validation_fn=BacktestStageDictValidation.SIGNAL_STRATEGY_EVALUATION,
     )
     SYMBOL_EVALUATION = FullMetricValidationStageDef(
         value=BacktestStageName.SYMBOL_EVALUATION,
         description="Evaluating symbols based on performance metrics",
         input_stage_name=None,
         input_validation_fn=BacktestStageDictValidation.SIGNAL_STRATEGY_EVALUATION,
-        output_data_validation_fn=BacktestStageDictValidation.SIGNAL_SYMBOL_EVALUATION,
+        output_validation_fn=BacktestStageDictValidation.SIGNAL_SYMBOL_EVALUATION,
     )
     ## PORTFOLIO
     PORTFOLIO_STRATEGY = TabularStageDef(
@@ -160,7 +160,7 @@ class BacktestStage(Enum):
         description="Executing backtests for a portfolio of strategies",
         input_stage_name=BacktestStageName.FEATURE_ENGINEERING,
         input_validation_fn=BacktestStageDictValidation.PORTFOLIO_BACKTEST_EXECUTOR_INPUT,
-        output_data_validation_fn=BacktestStageDictValidation.PORTFOLIO_BACKTEST_EXECUTOR_OUTPUT,
+        output_validation_fn=BacktestStageDictValidation.PORTFOLIO_BACKTEST_EXECUTOR_OUTPUT,
     )
     # VALIDATION APPLIED TO PORTFOLIO OPTIMIZATION
     PORTFOLIO_OPTIMIZATION = FullMetricValidationStageDef(
@@ -168,7 +168,7 @@ class BacktestStage(Enum):
         description="Optimizing a portfolio of strategies",
         input_stage_name=BacktestStageName.FEATURE_ENGINEERING,
         input_validation_fn=BacktestStageDictValidation.PORTFOLIO_OPTIMIZATION_INPUT,
-        output_data_validation_fn=BacktestStageDictValidation.PORTFOLIO_OPTIMIZATION_OUTPUT,
+        output_validation_fn=BacktestStageDictValidation.PORTFOLIO_OPTIMIZATION_OUTPUT,
     )
     # VALIDATION APPLIED TO PORTFOLIO TESTING
     PORTFOLIO_TESTING = FullMetricValidationStageDef(
@@ -176,14 +176,14 @@ class BacktestStage(Enum):
         description="Testing a portfolio of strategies on historical data",
         input_stage_name=BacktestStageName.FEATURE_ENGINEERING,
         input_validation_fn=BacktestStageDictValidation.PORTFOLIO_TESTING_INPUT,
-        output_data_validation_fn=BacktestStageDictValidation.PORTFOLIO_TESTING_OUTPUT,
+        output_validation_fn=BacktestStageDictValidation.PORTFOLIO_TESTING_OUTPUT,
     )
     PORTFOLIO_EVALUATION = FullMetricValidationStageDef(
         value=BacktestStageName.PORTFOLIO_EVALUATION,
         description="Evaluating a portfolio of strategies based on performance metrics",
         input_stage_name=None,
         input_validation_fn=BacktestStageDictValidation.PORTFOLIO_EVALUATION_INPUT,
-        output_data_validation_fn=BacktestStageDictValidation.PORTFOLIO_EVALUATION_OUTPUT,
+        output_validation_fn=BacktestStageDictValidation.PORTFOLIO_EVALUATION_OUTPUT,
     )
 
     @property

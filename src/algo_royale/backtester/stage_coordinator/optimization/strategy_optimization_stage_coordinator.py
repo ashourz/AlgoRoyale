@@ -181,7 +181,7 @@ class StrategyOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
     ) -> bool:
         """Validate the optimization results to ensure they contain the expected structure."""
         validation_method = (
-            BacktestStage.STRATEGY_OPTIMIZATION.value.output_metric_validation_fn
+            BacktestStage.STRATEGY_OPTIMIZATION.value.output_validation_fn
         )
         if not validation_method:
             self.logger.warning(

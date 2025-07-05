@@ -210,9 +210,7 @@ class StrategyTestingStageCoordinator(BaseTestingStageCoordinator):
         results: Dict[str, Dict[str, dict]],
     ) -> bool:
         """Validate the optimization results to ensure they contain the expected structure."""
-        validation_method = (
-            BacktestStage.STRATEGY_TESTING.value.input_metric_validation_fn
-        )
+        validation_method = BacktestStage.STRATEGY_TESTING.value.input_validation_fn
         if not validation_method:
             self.logger.warning(
                 "No validation method defined for strategy optimization results. Skipping validation."
@@ -225,9 +223,7 @@ class StrategyTestingStageCoordinator(BaseTestingStageCoordinator):
         results: Dict[str, Dict[str, dict]],
     ) -> bool:
         """Validate the test results to ensure they contain the expected structure."""
-        validation_method = (
-            BacktestStage.STRATEGY_TESTING.value.output_metric_validation_fn
-        )
+        validation_method = BacktestStage.STRATEGY_TESTING.value.output_validation_fn
         if not validation_method:
             self.logger.warning(
                 "No validation method defined for strategy test results. Skipping validation."
