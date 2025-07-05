@@ -34,7 +34,7 @@ class StageDataPreparer:
             async for df in iterator:
                 # Validate DataFrame columns
                 missing_columns = [
-                    col for col in stage.required_input_columns if col not in df.columns
+                    col for col in stage.input_columns if col not in df.columns
                 ]
                 if missing_columns:
                     self.logger.error(

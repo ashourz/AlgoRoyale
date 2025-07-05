@@ -6,7 +6,6 @@ from typing import Any, AsyncIterator, Callable, Dict, Optional, Sequence
 
 import pandas as pd
 
-from algo_royale.backtester.data_preparer.stage_data_preparer import StageDataPreparer
 from algo_royale.backtester.enum.backtest_stage import BacktestStage
 from algo_royale.backtester.evaluator.backtest.base_backtest_evaluator import (
     BacktestEvaluator,
@@ -35,13 +34,12 @@ from algo_royale.backtester.strategy_combinator.signal.base_signal_strategy_comb
 class StrategyOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
     """Coordinator for the optimization stage of the backtest pipeline.
     This class is responsible for optimizing and backtesting strategies
-    for a list of symbols using the provided data loader, data preparer,
-    data writer, and strategy executor.
+    for a list of symbols using the provided data loader, data writer,
+    and strategy executor.
     It also handles the evaluation of the backtest results.
 
     Parameters:
         data_loader: SymbolStrategyDataLoader instance for loading data.
-        data_preparer: StageDataPreparer instance for preparing data.
         logger: Logger instance for logging information and errors.
         stage_data_manager: StageDataManager instance for managing stage data.
         strategy_executor: StrategyBacktestExecutor instance for executing backtests.
@@ -55,7 +53,6 @@ class StrategyOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
     def __init__(
         self,
         data_loader: SymbolStrategyDataLoader,
-        data_preparer: StageDataPreparer,
         logger: Logger,
         stage_data_manager: StageDataManager,
         strategy_executor: StrategyBacktestExecutor,
@@ -68,7 +65,6 @@ class StrategyOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
         super().__init__(
             stage=BacktestStage.STRATEGY_OPTIMIZATION,
             data_loader=data_loader,
-            data_preparer=data_preparer,
             stage_data_manager=stage_data_manager,
             strategy_combinators=strategy_combinators,
             logger=logger,
@@ -85,19 +81,17 @@ class StrategyOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
 
     async def _process_and_write(
         self,
-        prepared_data: Optional[
-            Dict[str, Callable[[], AsyncIterator[pd.DataFrame]]]
-        ] = None,
+        data: Optional[Dict[str, Callable[[], AsyncIterator[pd.DataFrame]]]] = None,
     ) -> Dict[str, Dict[str, dict]]:
-        """Process the prepared data for optimization and backtesting.
-        This method iterates over the prepared data for each symbol, performing
+        """Process the data for optimization and backtesting.
+        This method iterates over the data for each symbol, performing
         optimization and backtesting as needed.
         """
 
         results = {}
-        for symbol, df_iter_factory in prepared_data.items():
-            if symbol not in prepared_data:
-                self.logger.warning(f"No prepared data for symbol: {symbol}")
+        for symbol, df_iter_factory in data.items():
+            if symbol not in data:
+                self.logger.warning(f"No data for symbol: {symbol}")
                 continue
 
             dfs = []
@@ -123,6 +117,12 @@ class StrategyOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
                         ),
                     )
                     optimization_result = optimizer.optimize(symbol, train_df)
+                    # Validate the optimization results
+                    if not self._validate_optimization_results(optimization_result):
+                        self.logger.error(
+                            f"Optimization results validation failed for {symbol} {strategy_name}"
+                        )
+                        continue
                     # Write the optimization results to JSON
                     results = self._write_results(
                         symbol=symbol,
@@ -175,6 +175,20 @@ class StrategyOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
         full_df = pd.concat(dfs, ignore_index=True)
         metrics = self.evaluator.evaluate(strategy, full_df)
         return metrics
+
+    def _validate_optimization_results(
+        self, results: Dict[str, Dict[str, dict]]
+    ) -> bool:
+        """Validate the optimization results to ensure they contain the expected structure."""
+        validation_method = (
+            BacktestStage.STRATEGY_OPTIMIZATION.value.output_metric_validation_fn
+        )
+        if not validation_method:
+            self.logger.warning(
+                "No validation method defined for optimization results. Skipping validation."
+            )
+            return False
+        return validation_method(results)
 
     def _write_results(
         self,

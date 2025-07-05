@@ -5,7 +5,6 @@ from typing import Any, AsyncIterator, Callable, Dict, Optional, Sequence
 
 import pandas as pd
 
-from algo_royale.backtester.data_preparer.stage_data_preparer import StageDataPreparer
 from algo_royale.backtester.enum.backtest_stage import BacktestStage
 from algo_royale.backtester.evaluator.backtest.base_backtest_evaluator import (
     BacktestEvaluator,
@@ -31,12 +30,11 @@ from algo_royale.backtester.strategy_factory.signal.strategy_factory import (
 class StrategyTestingStageCoordinator(BaseTestingStageCoordinator):
     """Coordinator for the strategy testing stage of the backtest pipeline.
     This class is responsible for testing strategies using the provided data loader,
-    data preparer, and executor. It handles the evaluation of backtest results and manages
+    data manager, and executor. It handles the evaluation of backtest results and manages
     optimization results for strategies.
 
     Parameters:
         data_loader (SymbolStrategyDataLoader): Loader for stage data.
-        data_preparer (StageDataPreparer): Preparer for stage data.
         stage_data_manager (StageDataManager): Manager for stage data directories.
         strategy_executor (StrategyBacktestExecutor): Executor for running strategy backtests.
         strategy_evaluator (BacktestEvaluator): Evaluator for assessing strategy backtest results.
@@ -50,7 +48,6 @@ class StrategyTestingStageCoordinator(BaseTestingStageCoordinator):
     def __init__(
         self,
         data_loader: SymbolStrategyDataLoader,
-        data_preparer: StageDataPreparer,
         stage_data_manager: StageDataManager,
         strategy_executor: StrategyBacktestExecutor,
         strategy_evaluator: BacktestEvaluator,
@@ -62,7 +59,6 @@ class StrategyTestingStageCoordinator(BaseTestingStageCoordinator):
     ):
         super().__init__(
             data_loader=data_loader,
-            data_preparer=data_preparer,
             stage_data_manager=stage_data_manager,
             stage=BacktestStage.STRATEGY_TESTING,
             logger=logger,
@@ -76,18 +72,15 @@ class StrategyTestingStageCoordinator(BaseTestingStageCoordinator):
 
     async def _process_and_write(
         self,
-        prepared_data: Optional[
-            Dict[str, Callable[[], AsyncIterator[pd.DataFrame]]]
-        ] = None,
+        data: Optional[Dict[str, Callable[[], AsyncIterator[pd.DataFrame]]]] = None,
     ) -> Dict[str, Dict[str, Dict[str, float]]]:
         """Run backtests for all strategies in the watchlist using the best parameters from optimization."""
-        print(f"Prepared data: {prepared_data}")
         results = {}
 
-        for symbol, df_iter_factory in prepared_data.items():
+        for symbol, df_iter_factory in data.items():
             print(f"Processing symbol: {symbol}")
-            if symbol not in prepared_data:
-                self.logger.warning(f"No prepared data for symbol: {symbol}")
+            if symbol not in data:
+                self.logger.warning(f"No data for symbol: {symbol}")
                 continue
 
             dfs = []
@@ -141,6 +134,12 @@ class StrategyTestingStageCoordinator(BaseTestingStageCoordinator):
                     self.test_start_date,
                     self.test_end_date,
                 )
+                # Validate test results
+                if not self._validate_test_results(test_opt_results):
+                    self.logger.error(
+                        f"Test results validation failed for {symbol} {strategy_name} {self.test_window_id}"
+                    )
+                    continue
                 # Write test results to optimization results
                 results = self._write_test_results(
                     symbol=symbol,
@@ -173,7 +172,12 @@ class StrategyTestingStageCoordinator(BaseTestingStageCoordinator):
                     f"No optimization result for {symbol} {strategy_name} {self.train_window_id}"
                 )
                 return None
-
+            # validate the optimization results
+            if not self._validate_optimization_results(train_opt_results):
+                self.logger.error(
+                    f"Optimization results validation failed for {symbol} {strategy_name} {self.train_window_id}"
+                )
+                return None
             if (
                 self.train_window_id not in train_opt_results
                 or "optimization" not in train_opt_results[self.train_window_id]
@@ -200,6 +204,36 @@ class StrategyTestingStageCoordinator(BaseTestingStageCoordinator):
                 f"Error retrieving optimized parameters for {strategy_name} during {self.train_window_id}: {e}"
             )
             return None
+
+    def _validate_optimization_results(
+        self,
+        results: Dict[str, Dict[str, dict]],
+    ) -> bool:
+        """Validate the optimization results to ensure they contain the expected structure."""
+        validation_method = (
+            BacktestStage.STRATEGY_TESTING.value.input_metric_validation_fn
+        )
+        if not validation_method:
+            self.logger.warning(
+                "No validation method defined for optimization results. Skipping validation."
+            )
+            return False
+        return validation_method(results)
+
+    def _validate_test_results(
+        self,
+        results: Dict[str, Dict[str, dict]],
+    ) -> bool:
+        """Validate the test results to ensure they contain the expected structure."""
+        validation_method = (
+            BacktestStage.STRATEGY_TESTING.value.output_metric_validation_fn
+        )
+        if not validation_method:
+            self.logger.warning(
+                "No validation method defined for test results. Skipping validation."
+            )
+            return False
+        return validation_method(results)
 
     def _write_test_results(
         self,

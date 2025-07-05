@@ -2,7 +2,6 @@ from datetime import datetime
 from logging import Logger
 from typing import Sequence
 
-from algo_royale.backtester.data_preparer.stage_data_preparer import StageDataPreparer
 from algo_royale.backtester.enum.backtest_stage import BacktestStage
 from algo_royale.backtester.stage_coordinator.stage_coordinator import StageCoordinator
 from algo_royale.backtester.stage_data.loader.symbol_strategy_data_loader import (
@@ -19,18 +18,17 @@ class BaseOptimizationStageCoordinator(StageCoordinator):
     Base class for strategy optimization stage coordinators.
     Subclasses must implement process().
     Parameters:
-        data_loader: Data loader for the stage.
-        data_preparer: Data preparer for the stage.
         stage: BacktestStage enum value indicating the stage of the backtest.
-        logger: Logger instance.
+        data_loader: Data loader for the stage.
+        stage_data_manager: StageDataManager for managing stage data.
         strategy_combinators: List of strategy combinator classes to use.
+        logger: Logger instance.
     """
 
     def __init__(
         self,
         stage: BacktestStage,
         data_loader: SymbolStrategyDataLoader,
-        data_preparer: StageDataPreparer,
         stage_data_manager: StageDataManager,
         strategy_combinators: Sequence[type[BaseStrategyCombinator]],
         logger: Logger,
@@ -39,7 +37,7 @@ class BaseOptimizationStageCoordinator(StageCoordinator):
         super().__init__()
         self.stage = stage
         self.data_loader = data_loader
-        self.data_preparer = data_preparer
+        self.stage_data_manager = stage_data_manager
         self.strategy_combinators = strategy_combinators
         self.logger = logger
 
@@ -49,7 +47,7 @@ class BaseOptimizationStageCoordinator(StageCoordinator):
         end_date: datetime,
     ) -> bool:
         """
-        Orchestrate the stage: load, prepare, process, write.
+        Orchestrate the stage: load, process, write.
         """
         self.start_date = start_date
         self.end_date = end_date
@@ -79,18 +77,9 @@ class BaseOptimizationStageCoordinator(StageCoordinator):
             self.logger.error(f"No data loaded from stage:{self.stage.input_stage}")
             return False
 
-        # Prepare the data for processing
-        self.logger.info(f"stage:{self.stage} starting data preparation.")
-        prepared_data = self.data_preparer.normalize_stage_data(
-            stage=self.stage, data=data
-        )
-        if not prepared_data:
-            self.logger.error(f"No data prepared for stage:{self.stage}")
-            return False
-
-        # Process the prepared data
+        # Process the data
         self.logger.info(f"stage:{self.stage} starting data processing.")
-        processed_data = await self._process_and_write(prepared_data)
+        processed_data = await self._process_and_write(data)
 
         if not processed_data:
             self.logger.error(f"Processing failed for stage:{self.stage}")

@@ -8,7 +8,6 @@ import pandas as pd
 from algo_royale.backtester.data_preparer.asset_matrix_preparer import (
     AssetMatrixPreparer,
 )
-from algo_royale.backtester.data_preparer.stage_data_preparer import StageDataPreparer
 from algo_royale.backtester.enum.backtest_stage import BacktestStage
 from algo_royale.backtester.evaluator.backtest.portfolio_backtest_evaluator import (
     PortfolioBacktestEvaluator,
@@ -31,11 +30,10 @@ from algo_royale.backtester.strategy_combinator.portfolio.base_portfolio_strateg
 class PortfolioTestingStageCoordinator(BaseTestingStageCoordinator):
     """Coordinator for the portfolio testing stage of the backtest pipeline.
     This class is responsible for testing portfolio strategies using the provided data loader,
-    data preparer, and executor. It handles the evaluation of backtest results and manages
+    and executor. It handles the evaluation of backtest results and manages
     optimization results for portfolio strategies.
     Parameters:
         data_loader (SymbolStrategyDataLoader): Loader for stage data.
-        data_preparer (StageDataPreparer): Preparer for stage data.
         stage_data_manager (StageDataManager): Manager for stage data directories.
         logger (Logger): Logger for logging information and errors.
         strategy_combinators (Sequence[type[PortfolioStrategyCombinator]]): List of strategy combinators.
@@ -49,7 +47,6 @@ class PortfolioTestingStageCoordinator(BaseTestingStageCoordinator):
     def __init__(
         self,
         data_loader: SymbolStrategyDataLoader,
-        data_preparer: StageDataPreparer,
         stage_data_manager: StageDataManager,
         logger: Logger,
         strategy_combinators: Sequence[type[PortfolioStrategyCombinator]],
@@ -62,7 +59,6 @@ class PortfolioTestingStageCoordinator(BaseTestingStageCoordinator):
         super().__init__(
             stage=BacktestStage.PORTFOLIO_TESTING,
             data_loader=data_loader,
-            data_preparer=data_preparer,
             stage_data_manager=stage_data_manager,
             logger=logger,
             evaluator=evaluator,
@@ -76,9 +72,7 @@ class PortfolioTestingStageCoordinator(BaseTestingStageCoordinator):
 
     async def _process_and_write(
         self,
-        prepared_data: Optional[
-            Dict[str, Callable[[], AsyncIterator[pd.DataFrame]]]
-        ] = None,
+        data: Optional[Dict[str, Callable[[], AsyncIterator[pd.DataFrame]]]] = None,
     ) -> Dict[str, Dict[str, Dict[str, float]]]:
         """
         The injected executor should be pre-configured with initial_balance, transaction_cost, min_lot, leverage, and slippage.
@@ -86,7 +80,7 @@ class PortfolioTestingStageCoordinator(BaseTestingStageCoordinator):
         """
         results = {}
         all_dfs = []
-        for symbol, df_iter_factory in prepared_data.items():
+        for symbol, df_iter_factory in data.items():
             async for df in df_iter_factory():
                 df["symbol"] = symbol  # Optionally tag symbol
                 all_dfs.append(df)
@@ -147,7 +141,7 @@ class PortfolioTestingStageCoordinator(BaseTestingStageCoordinator):
                     end_date=self.test_end_date,
                 )
                 results = self._write_test_results(
-                    symbols=list(prepared_data.keys()),
+                    symbols=list(data.keys()),
                     metrics=metrics,
                     strategy_name=strategy_name,
                     backtest_results=backtest_results,

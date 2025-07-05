@@ -3,6 +3,7 @@ from typing import AsyncGenerator, AsyncIterator, Callable
 
 import pandas as pd
 
+from algo_royale.backtester.enum.backtest_stage import BacktestStage
 from algo_royale.logging.logger_singleton import mockLogger
 
 
@@ -25,6 +26,12 @@ class FeatureEngineer:
 
         async for df in df_iter:
             try:
+                # Validate the input DataFrame
+                if not self._validate_input(df):
+                    self.logger.error(
+                        f"Input DataFrame for {symbol} is invalid. Skipping feature engineering."
+                    )
+                    continue
                 # Prepend buffer if it exists
                 if buffer is not None and not buffer.empty:
                     df = pd.concat([buffer, df], ignore_index=True)
@@ -35,7 +42,12 @@ class FeatureEngineer:
                 engineered_df: pd.DataFrame = self.feature_engineering_func(
                     df=df, logger=self.logger
                 )
-
+                # Validate the output DataFrame
+                if not self._validate_output(engineered_df):
+                    self.logger.error(
+                        f"Output DataFrame for {symbol} is invalid after feature engineering."
+                    )
+                    continue
                 # Only yield the rows corresponding to the current page
                 # (i.e., drop the buffer rows)
                 if buffer is not None and not buffer.empty:
@@ -57,6 +69,38 @@ class FeatureEngineer:
                 buffer = df.iloc[-self.max_lookback :].copy()
             except Exception as e:
                 self.logger.error(f"Feature engineering failed for {symbol}: {e}")
+
+    def _validate_input(self, df: pd.DataFrame) -> bool:
+        """
+        Validate the DataFrame to ensure it has the required columns.
+        This method can be customized based on the specific requirements of your feature engineering function.
+        """
+        required_input_columns = BacktestStage.FEATURE_ENGINEERING.input_columns
+        missing_columns = [
+            col for col in required_input_columns if col not in df.columns
+        ]
+        if missing_columns:
+            self.logger.error(
+                f"Missing required columns: {missing_columns} in DataFrame."
+            )
+            return False
+        return True
+
+    def _validate_output(self, df: pd.DataFrame) -> bool:
+        """
+        Validate the DataFrame to ensure it has the expected output columns.
+        This method can be customized based on the specific requirements of your feature engineering function.
+        """
+        required_output_columns = BacktestStage.FEATURE_ENGINEERING.output_columns
+        missing_columns = [
+            col for col in required_output_columns if col not in df.columns
+        ]
+        if missing_columns:
+            self.logger.error(
+                f"Missing expected output columns: {missing_columns} in DataFrame."
+            )
+            return False
+        return True
 
 
 def mockFeatureEngineer(

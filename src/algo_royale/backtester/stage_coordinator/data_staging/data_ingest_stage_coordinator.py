@@ -72,13 +72,9 @@ class DataIngestStageCoordinator(StageCoordinator):
         watchlist = self._get_watchlist()
         if not watchlist:
             self.logger.error(
-                f"Watchlist is empty for stage: {self.stage}. Cannot proceed with data ingestion."
+                f"Watchlist loading failed for stage: {self.stage}. Cannot proceed with data ingestion."
             )
             return False
-        self.logger.info(
-            f"Watchlist loaded with {len(watchlist)} symbols for stage: {self.stage}"
-        )
-
         # Fetch data for all symbols in the watchlist
         self.logger.info(f"stage:{self.stage} starting data fetching.")
         watchlist_symbol_data = await self._fetch_watchlist_symbol_data(
@@ -101,7 +97,13 @@ class DataIngestStageCoordinator(StageCoordinator):
         """
         Load the watchlist from the specified path.
         """
-        return self.data_loader.get_watchlist()
+        watchlist = self.data_loader.get_watchlist()
+        if not watchlist:
+            return None
+        self.logger.info(
+            f"Watchlist loaded with {len(watchlist)} symbols for stage: {self.stage}"
+        )
+        return watchlist
 
     async def _fetch_watchlist_symbol_data(
         self,
@@ -156,6 +158,12 @@ class DataIngestStageCoordinator(StageCoordinator):
 
                 bars = response.symbol_bars[symbol]
                 df = pd.DataFrame([bar.model_dump() for bar in bars])
+                is_valid = self._validate_symbol_data(symbol, df)
+                if not is_valid:
+                    self.logger.error(
+                        f"Invalid data for {symbol} on page {page_count}. Skipping."
+                    )
+                    break
                 df[DataIngestColumns.SYMBOL] = symbol
                 df = df.iloc[::-1].reset_index(drop=True)  # Reverse rows
                 total_rows += len(df)
@@ -180,6 +188,23 @@ class DataIngestStageCoordinator(StageCoordinator):
         finally:
             await self.quote_service.client.aclose()
             self.logger.info(f"Closed connection for {symbol}")
+
+    def _validate_symbol_data(self, symbol: str, data: pd.DataFrame) -> bool:
+        """
+        Validate the data for a specific symbol.
+        """
+        if data.empty:
+            self.logger.warning(f"No data found for {symbol}.")
+            return False
+        missing_columns = [
+            column for column in self.stage.output_columns if column not in data.columns
+        ]
+        if missing_columns:
+            self.logger.error(
+                f"Missing required columns {missing_columns} in data for {symbol}."
+            )
+            return False
+        return True
 
     async def _write(
         self,

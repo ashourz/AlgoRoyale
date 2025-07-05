@@ -64,7 +64,7 @@ class StrategyEvaluationCoordinator:
                 self.logger.debug(f"Checking strategy directory: {strategy_dir}")
                 if not strategy_dir.is_dir():
                     continue
-                self.logger.info(f"  Processing strategy: {strategy_dir.name}")
+                self.logger.info(f"Processing strategy: {strategy_dir.name}")
                 self._evaluate_strategy_dir(strategy_dir)
 
     def _evaluate_strategy_dir(self, strategy_dir: Path):

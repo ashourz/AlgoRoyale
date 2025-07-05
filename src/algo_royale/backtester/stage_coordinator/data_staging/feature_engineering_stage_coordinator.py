@@ -4,7 +4,6 @@ from typing import AsyncIterator, Callable, Dict, Optional
 
 import pandas as pd
 
-from algo_royale.backtester.data_preparer.stage_data_preparer import StageDataPreparer
 from algo_royale.backtester.enum.backtest_stage import BacktestStage
 from algo_royale.backtester.feature_engineering.feature_engineer import (
     FeatureEngineer,
@@ -36,7 +35,6 @@ class FeatureEngineeringStageCoordinator(StageCoordinator):
     def __init__(
         self,
         data_loader: SymbolStrategyDataLoader,
-        data_preparer: StageDataPreparer,
         data_writer: SymbolStrategyDataWriter,
         stage_data_manager: StageDataManager,
         logger: Logger,
@@ -44,7 +42,6 @@ class FeatureEngineeringStageCoordinator(StageCoordinator):
     ):
         self.stage = BacktestStage.FEATURE_ENGINEERING
         self.data_loader = data_loader
-        self.data_preparer = data_preparer
         self.data_writer = data_writer
         self.stage_data_manager = stage_data_manager
         self.logger = logger
@@ -81,19 +78,13 @@ class FeatureEngineeringStageCoordinator(StageCoordinator):
             start_date=self.start_date,
             end_date=self.end_date,
         )
-
-        # Prepare the data for feature engineering
-        self.logger
-        prepared_data = self.data_preparer.normalize_stage_data(
-            stage=self.stage, data=data
-        )
-        if not prepared_data:
-            self.logger.error(f"No data prepared for stage:{self.stage}")
+        if not data:
+            self.logger.error(f"No data loaded from stage:{self.stage.input_stage}")
             return False
 
         # Process the prepared data
         self.logger.info(f"stage:{self.stage} starting data processing.")
-        processed_data = await self._process(prepared_data)
+        processed_data = await self._process(data)
 
         if not processed_data:
             self.logger.error(f"Processing failed for stage:{self.stage}")
@@ -114,29 +105,35 @@ class FeatureEngineeringStageCoordinator(StageCoordinator):
         """
         Load data for the given stage and date range.
         """
-        self.logger.info(
-            f"Loading data for stage: {stage} | start_date: {start_date} | end_date: {end_date}"
-        )
-        data = await self.data_loader.load_data(
-            stage=stage,
-            start_date=start_date,
-            end_date=end_date,
-            reverse_pages=True,
-        )
-        if not data:
-            self.logger.error(f"No data loaded for stage: {stage}")
+        try:
+            self.logger.info(
+                f"Loading data for stage: {stage} | start_date: {start_date} | end_date: {end_date}"
+            )
+            data = await self.data_loader.load_data(
+                stage=stage,
+                start_date=start_date,
+                end_date=end_date,
+                reverse_pages=True,
+            )
+            if not data:
+                self.logger.error(f"No data loaded for stage: {stage}")
+                return None
+
+            return data
+        except Exception as e:
+            self.logger.error(
+                f"Error loading data for stage: {stage} | start_date: {start_date} | end_date: {end_date}: {e}"
+            )
             return None
 
-        return data
-
     async def _process(
-        self, prepared_data: Dict[str, Callable[[], AsyncIterator[pd.DataFrame]]]
+        self, data: Dict[str, Callable[[], AsyncIterator[pd.DataFrame]]]
     ) -> Dict[str, Dict[None, Callable[[], AsyncIterator[pd.DataFrame]]]]:
         """
         Process the prepared data for this stage.
         Should return a dict: symbol -> async generator or DataFrame.
         """
-        engineered_data = await self._engineer(prepared_data)
+        engineered_data = await self._engineer(data)
         if not engineered_data:
             self.logger.error("Feature engineering failed")
             return {}

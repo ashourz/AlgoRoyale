@@ -9,7 +9,6 @@ import pandas as pd
 from algo_royale.backtester.data_preparer.asset_matrix_preparer import (
     AssetMatrixPreparer,
 )
-from algo_royale.backtester.data_preparer.stage_data_preparer import StageDataPreparer
 from algo_royale.backtester.enum.backtest_stage import BacktestStage
 from algo_royale.backtester.evaluator.backtest.portfolio_backtest_evaluator import (
     PortfolioBacktestEvaluator,
@@ -39,7 +38,6 @@ class PortfolioOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
     Optimizes portfolio strategies for a list of symbols using the provided data loader, data preparer, data writer, and optimizer.
     Params:
         data_loader (StageDataLoader): Loader for stage data.
-        data_preparer (StageDataPreparer): Prepares data asynchronously for the stage.
         stage_data_manager (StageDataManager): Manages stage data paths and directories.
         logger (Logger): Logger for debugging and information.
         strategy_combinators (Sequence[type[PortfolioStrategyCombinator]]): List of strategy combinators to generate strategy combinations.
@@ -54,7 +52,6 @@ class PortfolioOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
     def __init__(
         self,
         data_loader: SymbolStrategyDataLoader,
-        data_preparer: StageDataPreparer,
         stage_data_manager: StageDataManager,
         logger: Logger,
         strategy_combinators: Sequence[type[PortfolioStrategyCombinator]],
@@ -68,7 +65,6 @@ class PortfolioOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
         super().__init__(
             stage=BacktestStage.PORTFOLIO_OPTIMIZATION,
             data_loader=data_loader,
-            data_preparer=data_preparer,
             stage_data_manager=stage_data_manager,
             strategy_combinators=strategy_combinators,
             logger=logger,
@@ -86,14 +82,12 @@ class PortfolioOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
 
     async def _process_and_write(
         self,
-        prepared_data: Optional[
-            Dict[str, Callable[[], AsyncIterator[pd.DataFrame]]]
-        ] = None,
+        data: Optional[Dict[str, Callable[[], AsyncIterator[pd.DataFrame]]]] = None,
     ) -> Dict[str, Dict[str, dict]]:
         """Process the portfolio optimization stage by aggregating all symbol data and optimizing the portfolio as a whole."""
         results = {}
         all_dfs = []
-        for symbol, df_iter_factory in prepared_data.items():
+        for symbol, df_iter_factory in data.items():
             async for df in df_iter_factory():
                 df["symbol"] = symbol  # Optionally tag symbol
                 all_dfs.append(df)
@@ -143,7 +137,7 @@ class PortfolioOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
                     )
                     # Save optimization metrics to optimization_result.json under window_id
                     results = self._write_results(
-                        symbols=list(prepared_data.keys()),
+                        symbols=list(data.keys()),
                         start_date=self.start_date,
                         end_date=self.end_date,
                         strategy_name=strategy_name,

@@ -133,7 +133,7 @@ async def test_portfolio_optimization_process(
         yield pd.DataFrame({"a": [1, 2, 3]})
 
     prepared_data = {"AAPL": lambda: df_iter()}
-    results = await coordinator._process_and_write(prepared_data=prepared_data)
+    results = await coordinator._process_and_write(data=prepared_data)
     print("DEBUG:RESULTS", results)
     assert "AAPL" in results
     assert "DummyStrategy" in results["AAPL"]

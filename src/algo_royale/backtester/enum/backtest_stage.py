@@ -75,6 +75,7 @@ class BacktestStage(Enum):
     Each stage has a value, description, required columns, and a rename map.
     """
 
+    # VALIDATION APPLIED TO DATA INGEST
     DATA_INGEST = TabularStageDef(
         value=BacktestStageName.DATA_INGEST,
         description="Loading and staging raw/unprocessed data (from API, files, DB, etc.)",
@@ -82,6 +83,7 @@ class BacktestStage(Enum):
         input_columns=None,
         output_columns=DataIngestColumns.get_all_column_values(),
     )
+    # VALIDATION APPLIED TO FEATURE ENGINEERING
     FEATURE_ENGINEERING = TabularStageDef(
         value=BacktestStageName.FEATURE_ENGINEERING,
         description="Creating new features from existing data (technical indicators, etc.)",
@@ -90,6 +92,7 @@ class BacktestStage(Enum):
         output_columns=FeatureEngineeringColumns.get_all_column_values(),
     )
     ## SIGNAL
+    # VALIDATION APPLIED TO SIGNAL STRATEGY
     SIGNAL_STRATEGY = TabularStageDef(
         value=BacktestStageName.SIGNAL_STRATEGY,
         description="Defining trading strategies based on signals",
@@ -111,6 +114,7 @@ class BacktestStage(Enum):
         input_columns=FeatureEngineeringColumns.get_all_column_values(),
         output_metric_validation_fn=BacktestStageDictValidation.SIGNAL_BACKTEST_EVALUATOR,
     )
+    # VALIDATION APPLIED TO STRATEGY OPTIMIZATION
     STRATEGY_OPTIMIZATION = OutputMetricValidationStageDef(
         value=BacktestStageName.STRATEGY_OPTIMIZATION,
         description="Optimizing strategies using historical data",
@@ -118,6 +122,7 @@ class BacktestStage(Enum):
         input_columns=FeatureEngineeringColumns.get_all_column_values(),
         output_metric_validation_fn=BacktestStageDictValidation.STRATEGY_OPTIMIZATION_OUTPUT,
     )
+    # VALIDATION APPLIED TO STRATEGY TESTING
     STRATEGY_TESTING = InputOutputMetricValidationStageDef(
         value=BacktestStageName.STRATEGY_TESTING,
         description="Testing strategies using historical data",

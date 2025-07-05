@@ -4,7 +4,6 @@ from logging import Logger
 from pathlib import Path
 from typing import Dict, Optional, Sequence
 
-from algo_royale.backtester.data_preparer.stage_data_preparer import StageDataPreparer
 from algo_royale.backtester.enum.backtest_stage import BacktestStage
 from algo_royale.backtester.evaluator.backtest.base_backtest_evaluator import (
     BacktestEvaluator,
@@ -23,12 +22,11 @@ from algo_royale.backtester.strategy_combinator.signal.base_signal_strategy_comb
 class BaseTestingStageCoordinator(StageCoordinator):
     """
     Base class for strategy testing stage coordinators.
-    This class orchestrates the testing stage by loading, preparing, processing,
+    This class orchestrates the testing stage by loading, processing,
     and writing data for a given backtest stage.
     It handles the execution of strategies and evaluation of results.
     Parameters:
         data_loader (SymbolStrategyDataLoader): Loader for stage data.
-        data_preparer (StageDataPreparer): Preparer for stage data.
         stage_data_manager (StageDataManager): Manager for stage data directories.
         stage (BacktestStage): The stage of the backtest pipeline.
         logger (Logger): Logger for logging information and errors.
@@ -43,7 +41,6 @@ class BaseTestingStageCoordinator(StageCoordinator):
     def __init__(
         self,
         data_loader: SymbolStrategyDataLoader,
-        data_preparer: StageDataPreparer,
         stage_data_manager: StageDataManager,
         stage: BacktestStage,
         logger: Logger,
@@ -57,7 +54,6 @@ class BaseTestingStageCoordinator(StageCoordinator):
         super().__init__()
         self.stage = stage
         self.data_loader = data_loader
-        self.data_preparer = data_preparer
         self.stage_data_manager = stage_data_manager
         self.strategy_combinators = strategy_combinators
         self.executor = executor
@@ -96,7 +92,7 @@ class BaseTestingStageCoordinator(StageCoordinator):
         end_date: datetime,
     ) -> bool:
         """
-        Orchestrate the stage: load, prepare, process, write.
+        Orchestrate the stage: load, process, write.
         """
         self.start_date = start_date
         self.end_date = end_date
@@ -123,18 +119,9 @@ class BaseTestingStageCoordinator(StageCoordinator):
             self.logger.error(f"No data loaded from stage:{self.stage.input_stage}")
             return False
 
-        # Prepare the data for processing
-        self.logger.info(f"stage:{self.stage} starting data preparation.")
-        prepared_data = self.data_preparer.normalize_stage_data(
-            stage=self.stage, data=data
-        )
-        if not prepared_data:
-            self.logger.error(f"No data prepared for stage:{self.stage}")
-            return False
-
-        # Process the prepared data
+        # Process the data
         self.logger.info(f"stage:{self.stage} starting data processing.")
-        processed_data = await self._process_and_write(prepared_data)
+        processed_data = await self._process_and_write(data)
 
         if not processed_data:
             self.logger.error(f"Processing failed for stage:{self.stage}")
