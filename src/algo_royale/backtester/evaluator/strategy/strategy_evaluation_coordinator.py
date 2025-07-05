@@ -53,19 +53,39 @@ class StrategyEvaluationCoordinator:
 
     def run(self):
         self.logger.info("Starting strategy evaluation...")
-        # Loop over each symbol directory
-        for symbol_dir in self.opt_root_path.iterdir():
-            self.logger.info(f"Evaluating symbol directory: {symbol_dir}")
-            if not symbol_dir.is_dir():
-                continue
-            self.logger.info(f"Processing symbol: {symbol_dir.name}")
-            # Loop over each strategy directory within the symbol
-            for strategy_dir in symbol_dir.iterdir():
-                self.logger.debug(f"Checking strategy directory: {strategy_dir}")
-                if not strategy_dir.is_dir():
+        try:
+            # Loop over each symbol directory
+            for symbol_dir in self.opt_root_path.iterdir():
+                try:
+                    self.logger.info(f"Evaluating symbol directory: {symbol_dir}")
+                    if not symbol_dir.is_dir():
+                        continue
+                    self.logger.info(f"Processing symbol: {symbol_dir.name}")
+                    # Loop over each strategy directory within the symbol
+                    for strategy_dir in symbol_dir.iterdir():
+                        try:
+                            self.logger.debug(
+                                f"Checking strategy directory: {strategy_dir}"
+                            )
+                            if not strategy_dir.is_dir():
+                                continue
+                            self.logger.info(
+                                f"Processing strategy: {strategy_dir.name}"
+                            )
+                            self._evaluate_strategy_dir(strategy_dir)
+                        except Exception as e:
+                            self.logger.error(
+                                f"Error processing strategy directory {strategy_dir}: {e}"
+                            )
+                            continue
+                except Exception as e:
+                    self.logger.error(
+                        f"Error processing symbol directory {symbol_dir}: {e}"
+                    )
                     continue
-                self.logger.info(f"Processing strategy: {strategy_dir.name}")
-                self._evaluate_strategy_dir(strategy_dir)
+        except Exception as e:
+            self.logger.error(f"Error during strategy evaluation: {e}")
+            raise e
 
     def _evaluate_strategy_dir(self, strategy_dir: Path):
         optimization_files = list(strategy_dir.rglob(self.opt_result_json_filename))
