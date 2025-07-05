@@ -20,7 +20,9 @@ from algo_royale.backtester.optimizer.signal.signal_strategy_optimizer_factory i
 from algo_royale.backtester.stage_coordinator.optimization.base_optimization_stage_coordinator import (
     BaseOptimizationStageCoordinator,
 )
-from algo_royale.backtester.stage_data.loader.stage_data_loader import StageDataLoader
+from algo_royale.backtester.stage_data.loader.symbol_strategy_data_loader import (
+    SymbolStrategyDataLoader,
+)
 from algo_royale.backtester.stage_data.stage_data_manager import StageDataManager
 from algo_royale.backtester.strategy.signal.base_signal_strategy import (
     BaseSignalStrategy,
@@ -38,23 +40,24 @@ class StrategyOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
     It also handles the evaluation of the backtest results.
 
     Parameters:
-        data_loader: Data loader for the stage.
-        data_preparer: Data preparer for the stage.
-        stage_data_manager: Stage data manager.
-        strategy_factory: StrategyFactory instance for creating strategies.
-        logger: Logger instance.
+        data_loader: SymbolStrategyDataLoader instance for loading data.
+        data_preparer: StageDataPreparer instance for preparing data.
+        logger: Logger instance for logging information and errors.
+        stage_data_manager: StageDataManager instance for managing stage data.
         strategy_executor: StrategyBacktestExecutor instance for executing backtests.
         strategy_evaluator: BacktestEvaluator instance for evaluating backtest results.
         strategy_combinators: List of strategy combinator classes to use.
+        optimization_root: Root directory for saving optimization results.
+        optimization_json_filename: Name of the JSON file to save optimization results.
         signal_strategy_optimizer_factory: Factory for creating signal strategy optimizers.
     """
 
     def __init__(
         self,
-        data_loader: StageDataLoader,
+        data_loader: SymbolStrategyDataLoader,
         data_preparer: StageDataPreparer,
-        stage_data_manager: StageDataManager,
         logger: Logger,
+        stage_data_manager: StageDataManager,
         strategy_executor: StrategyBacktestExecutor,
         strategy_evaluator: BacktestEvaluator,
         strategy_combinators: Sequence[type[SignalStrategyCombinator]],
@@ -62,22 +65,10 @@ class StrategyOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
         optimization_json_filename: str,
         signal_strategy_optimizer_factory: SignalStrategyOptimizerFactory,
     ):
-        """Coordinator for the backtest stage.
-        Args:
-            config: Configuration object.
-            data_loader: Data loader for the stage.
-            data_preparer: Data preparer for the stage.
-            stage_data_manager: Stage data manager.
-            logger: Logger instance.
-            strategy_combinators: List of strategy combinator classes to use.
-        """
         super().__init__(
             stage=BacktestStage.STRATEGY_OPTIMIZATION,
             data_loader=data_loader,
             data_preparer=data_preparer,
-            stage_data_manager=stage_data_manager,
-            executor=strategy_executor,
-            evaluator=strategy_evaluator,
             strategy_combinators=strategy_combinators,
             logger=logger,
         )
@@ -87,6 +78,9 @@ class StrategyOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
             self.optimization_root.mkdir(parents=True, exist_ok=True)
         self.optimization_json_filename = optimization_json_filename
         self.signal_strategy_optimizer_factory = signal_strategy_optimizer_factory
+        self.executor = strategy_executor
+        self.evaluator = strategy_evaluator
+        self.stage_data_manager = stage_data_manager
 
     async def _process(
         self,

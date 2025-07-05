@@ -24,7 +24,9 @@ from algo_royale.backtester.optimizer.portfolio.portfolio_strategy_optimizer_fac
 from algo_royale.backtester.stage_coordinator.optimization.base_optimization_stage_coordinator import (
     BaseOptimizationStageCoordinator,
 )
-from algo_royale.backtester.stage_data.loader.stage_data_loader import StageDataLoader
+from algo_royale.backtester.stage_data.loader.symbol_strategy_data_loader import (
+    SymbolStrategyDataLoader,
+)
 from algo_royale.backtester.stage_data.stage_data_manager import StageDataManager
 from algo_royale.backtester.strategy_combinator.portfolio.base_portfolio_strategy_combinator import (
     PortfolioStrategyCombinator,
@@ -51,7 +53,7 @@ class PortfolioOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
 
     def __init__(
         self,
-        data_loader: StageDataLoader,
+        data_loader: SymbolStrategyDataLoader,
         data_preparer: StageDataPreparer,
         stage_data_manager: StageDataManager,
         logger: Logger,
@@ -67,9 +69,6 @@ class PortfolioOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
             stage=BacktestStage.PORTFOLIO_OPTIMIZATION,
             data_loader=data_loader,
             data_preparer=data_preparer,
-            stage_data_manager=stage_data_manager,
-            evaluator=evaluator,
-            executor=executor,
             strategy_combinators=strategy_combinators,
             logger=logger,
         )
@@ -80,6 +79,9 @@ class PortfolioOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
         self.optimization_json_filename = optimization_json_filename
         self.asset_matrix_preparer = asset_matrix_preparer
         self.portfolio_strategy_optimizer_factory = portfolio_strategy_optimizer_factory
+        self.stage_data_manager = stage_data_manager
+        self.evaluator = evaluator
+        self.executor = executor
 
     async def _process(
         self,

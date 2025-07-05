@@ -17,6 +17,17 @@ from algo_royale.services.market_data.alpaca_stock_service import AlpacaQuoteSer
 
 
 class DataIngestStageCoordinator(StageCoordinator):
+    """Coordinator for the data ingestion stage of the backtest pipeline.
+    This class is responsible for ingesting market data for a list of symbols.
+    Parameters:
+        data_loader: Data loader for the stage.
+        data_writer: Data writer for the stage.
+        logger: Logger instance.
+        quote_service: AlpacaQuoteService instance for fetching market data.
+        load_watchlist: Callable to load the watchlist from a file or other source.
+        watchlist_path_string: Path to the watchlist file.
+    """
+
     def __init__(
         self,
         data_loader: StageDataLoader,
@@ -26,7 +37,6 @@ class DataIngestStageCoordinator(StageCoordinator):
         load_watchlist: Callable[[str], list[str]],
         watchlist_path_string: str,
     ):
-        super().__init__()
         self.stage = BacktestStage.DATA_INGEST
         self.data_loader = data_loader
         self.data_writer = data_writer
@@ -58,6 +68,7 @@ class DataIngestStageCoordinator(StageCoordinator):
             return False
 
         # Load the watchlist
+        self.logger.info(f"stage:{self.stage} starting watchlist loading.")
         watchlist = self._get_watchlist()
         if not watchlist:
             self.logger.error(
@@ -69,6 +80,7 @@ class DataIngestStageCoordinator(StageCoordinator):
         )
 
         # Fetch data for all symbols in the watchlist
+        self.logger.info(f"stage:{self.stage} starting data fetching.")
         watchlist_symbol_data = await self._fetch_watchlist_symbol_data(
             watchlist=watchlist
         )
@@ -77,6 +89,7 @@ class DataIngestStageCoordinator(StageCoordinator):
             return False
 
         # Write watchlist symbol data to disk
+        self.logger.info(f"stage:{self.stage} starting data writing.")
         await self._write(
             stage=self.stage,
             processed_data=watchlist_symbol_data,

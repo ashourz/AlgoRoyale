@@ -12,6 +12,12 @@ from algo_royale.backtester.stage_data.stage_data_manager import StageDataManage
 class SymbolStrategyDataLoader:
     """
     A class to load symbol strategy data for backtesting.
+    This class is responsible for loading data for a specific stage of the backtest pipeline,
+    including the start and end dates, and optionally filtering by strategy name.
+    Parameters:
+        stage_data_manager: StageDataManager instance for managing stage data.
+        stage_data_loader: StageDataLoader instance for loading data.
+        logger: Logger instance for logging information and errors.
     """
 
     def __init__(

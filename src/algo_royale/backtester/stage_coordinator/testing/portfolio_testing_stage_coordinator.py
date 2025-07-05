@@ -19,20 +19,37 @@ from algo_royale.backtester.executor.portfolio_backtest_executor import (
 from algo_royale.backtester.stage_coordinator.testing.base_testing_stage_coordinator import (
     BaseTestingStageCoordinator,
 )
-from algo_royale.backtester.stage_data.loader.stage_data_loader import StageDataLoader
+from algo_royale.backtester.stage_data.loader.symbol_strategy_data_loader import (
+    SymbolStrategyDataLoader,
+)
 from algo_royale.backtester.stage_data.stage_data_manager import StageDataManager
-from algo_royale.backtester.stage_data.writer.stage_data_writer import StageDataWriter
 from algo_royale.backtester.strategy_combinator.portfolio.base_portfolio_strategy_combinator import (
     PortfolioStrategyCombinator,
 )
 
 
 class PortfolioTestingStageCoordinator(BaseTestingStageCoordinator):
+    """Coordinator for the portfolio testing stage of the backtest pipeline.
+    This class is responsible for testing portfolio strategies using the provided data loader,
+    data preparer, and executor. It handles the evaluation of backtest results and manages
+    optimization results for portfolio strategies.
+    Parameters:
+        data_loader (SymbolStrategyDataLoader): Loader for stage data.
+        data_preparer (StageDataPreparer): Preparer for stage data.
+        stage_data_manager (StageDataManager): Manager for stage data directories.
+        logger (Logger): Logger for logging information and errors.
+        strategy_combinators (Sequence[type[PortfolioStrategyCombinator]]): List of strategy combinators.
+        executor (PortfolioBacktestExecutor): Executor for running portfolio backtests.
+        evaluator (PortfolioBacktestEvaluator): Evaluator for assessing portfolio backtest results.
+        optimization_root (str): Root directory for saving optimization results.
+        optimization_json_filename (str): Name of the JSON file to save optimization results.
+        asset_matrix_preparer (AssetMatrixPreparer): Preparer for converting data to asset-matrix form.
+    """
+
     def __init__(
         self,
-        data_loader: StageDataLoader,
+        data_loader: SymbolStrategyDataLoader,
         data_preparer: StageDataPreparer,
-        data_writer: StageDataWriter,
         stage_data_manager: StageDataManager,
         logger: Logger,
         strategy_combinators: Sequence[type[PortfolioStrategyCombinator]],
@@ -46,7 +63,6 @@ class PortfolioTestingStageCoordinator(BaseTestingStageCoordinator):
             stage=BacktestStage.PORTFOLIO_TESTING,
             data_loader=data_loader,
             data_preparer=data_preparer,
-            data_writer=data_writer,
             stage_data_manager=stage_data_manager,
             logger=logger,
             evaluator=evaluator,

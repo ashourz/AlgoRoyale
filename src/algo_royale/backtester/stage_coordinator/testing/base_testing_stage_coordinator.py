@@ -11,7 +11,9 @@ from algo_royale.backtester.evaluator.backtest.base_backtest_evaluator import (
 )
 from algo_royale.backtester.executor.base_backtest_executor import BacktestExecutor
 from algo_royale.backtester.stage_coordinator.stage_coordinator import StageCoordinator
-from algo_royale.backtester.stage_data.loader.stage_data_loader import StageDataLoader
+from algo_royale.backtester.stage_data.loader.symbol_strategy_data_loader import (
+    SymbolStrategyDataLoader,
+)
 from algo_royale.backtester.stage_data.stage_data_manager import StageDataManager
 from algo_royale.backtester.strategy_combinator.signal.base_signal_strategy_combinator import (
     SignalStrategyCombinator,
@@ -21,12 +23,26 @@ from algo_royale.backtester.strategy_combinator.signal.base_signal_strategy_comb
 class BaseTestingStageCoordinator(StageCoordinator):
     """
     Base class for strategy testing stage coordinators.
-    Subclasses must implement process().
+    This class orchestrates the testing stage by loading, preparing, processing,
+    and writing data for a given backtest stage.
+    It handles the execution of strategies and evaluation of results.
+    Parameters:
+        data_loader (SymbolStrategyDataLoader): Loader for stage data.
+        data_preparer (StageDataPreparer): Preparer for stage data.
+        stage_data_manager (StageDataManager): Manager for stage data directories.
+        stage (BacktestStage): The stage of the backtest pipeline.
+        logger (Logger): Logger for logging information and errors.
+        executor (BacktestExecutor): Executor for running backtests.
+        evaluator (BacktestEvaluator): Evaluator for assessing backtest results.
+        strategy_combinators (Sequence[type[SignalStrategyCombinator]]): List of strategy
+            combinator classes to use for combining strategies.
+        optimization_root (str): Root directory for saving optimization results.
+        optimization_json_filename (str): Name of the JSON file to save optimization results.
     """
 
     def __init__(
         self,
-        data_loader: StageDataLoader,
+        data_loader: SymbolStrategyDataLoader,
         data_preparer: StageDataPreparer,
         stage_data_manager: StageDataManager,
         stage: BacktestStage,
@@ -62,19 +78,13 @@ class BaseTestingStageCoordinator(StageCoordinator):
     ) -> bool:
         self.train_start_date = train_start_date
         self.train_end_date = train_end_date
-        self.train_window_id = (
-            f"{train_start_date.strftime('%Y%m%d')}_{train_end_date.strftime('%Y%m%d')}"
-        )
         self.logger.info(
-            f"Running {self.stage} for window {self.train_window_id} from {train_start_date} to {train_end_date}"
+            f"Running {self.stage} for {train_start_date} to {train_end_date}"
         )
         self.test_start_date = test_start_date
         self.test_end_date = test_end_date
-        self.test_window_id = (
-            f"{test_start_date.strftime('%Y%m%d')}_{test_end_date.strftime('%Y%m%d')}"
-        )
         self.logger.info(
-            f"Running {self.stage} for test window {self.test_window_id} from {test_start_date} to {test_end_date}"
+            f"Running {self.stage} for {test_start_date} to {test_end_date}"
         )
         return await super().run_test(
             start_date=test_start_date, end_date=test_end_date
@@ -90,10 +100,6 @@ class BaseTestingStageCoordinator(StageCoordinator):
         """
         self.start_date = start_date
         self.end_date = end_date
-        self.window_id = self.stage_data_manager.get_window_id(
-            start_date=self.start_date,
-            end_date=self.end_date,
-        )
 
         self.logger.info(
             f"Starting stage: {self.stage} | start_date: {start_date} | end_date: {end_date}"
@@ -101,33 +107,41 @@ class BaseTestingStageCoordinator(StageCoordinator):
         if not self.stage.input_stage:
             """ If no incoming stage is defined, skip loading data """
             self.logger.error(f"Stage {self.stage} has no incoming stage defined.")
-            prepared_data = None
-        else:
-            """ Load data from the incoming stage """
-            self.logger.info(f"stage:{self.stage} starting data loading.")
-            data = await self.data_loader.load_data(
-                stage=self.stage.input_stage,
-                start_date=self.start_date,
-                end_date=self.end_date,
-                reverse_pages=True,
+            raise ValueError(
+                f"Stage {self.stage} has no incoming stage defined. Cannot proceed with data loading."
             )
-            if not data:
-                self.logger.error(f"No data loaded from stage:{self.stage.input_stage}")
-                return False
 
-            prepared_data = self.data_preparer.normalize_stage_data(
-                stage=self.stage, data=data
-            )
-            if not prepared_data:
-                self.logger.error(f"No data prepared for stage:{self.stage}")
-                return False
+        # Load data for the given stage and date range
+        self.logger.info(f"stage:{self.stage} starting data loading.")
+        data = await self.data_loader.load_data(
+            stage=self.stage.input_stage,
+            start_date=self.start_date,
+            end_date=self.end_date,
+            reverse_pages=True,
+        )
+        if not data:
+            self.logger.error(f"No data loaded from stage:{self.stage.input_stage}")
+            return False
 
+        # Prepare the data for processing
+        self.logger.info(f"stage:{self.stage} starting data preparation.")
+        prepared_data = self.data_preparer.normalize_stage_data(
+            stage=self.stage, data=data
+        )
+        if not prepared_data:
+            self.logger.error(f"No data prepared for stage:{self.stage}")
+            return False
+
+        # Process the prepared data
+        self.logger.info(f"stage:{self.stage} starting data processing.")
         processed_data = await self._process(prepared_data)
 
         if not processed_data:
             self.logger.error(f"Processing failed for stage:{self.stage}")
             return False
 
+        # Write the processed data to disk
+        self.logger.info(f"stage:{self.stage} starting data writing.")
         await self._write(
             stage=self.stage,
             processed_data=processed_data,

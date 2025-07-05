@@ -11,7 +11,14 @@ from algo_royale.backtester.stage_data.writer.stage_data_writer import StageData
 
 
 class SymbolStrategyDataWriter:
-    """Coordinator to write symbol strategy data to disk."""
+    """Coordinator to write symbol strategy data to disk.
+    This class is responsible for writing processed data for each symbol and strategy
+    to the disk in the specified format.
+    Parameters:
+        stage_data_manager: StageDataManager instance for managing stage data.
+        data_writer: StageDataWriter instance for writing data to disk.
+        logger: Logger instance for logging information and errors.
+    """
 
     def __init__(
         self,

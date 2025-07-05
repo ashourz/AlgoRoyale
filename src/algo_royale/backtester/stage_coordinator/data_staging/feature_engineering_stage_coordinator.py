@@ -20,6 +20,19 @@ from algo_royale.backtester.stage_data.writer.symbol_strategy_data_writer import
 
 
 class FeatureEngineeringStageCoordinator(StageCoordinator):
+    """
+    Coordinate the feature engineering stage.
+    This stage is responsible for loading data, preparing it for feature engineering,
+    processing the data to engineer features, and writing the processed data to disk.
+    Parameters:
+        data_loader: SymbolStrategyDataLoader instance for loading data.
+        data_preparer: StageDataPreparer instance for preparing data.
+        data_writer: SymbolStrategyDataWriter instance for writing data.
+        stage_data_manager: StageDataManager instance for managing stage data.
+        logger: Logger instance for logging information and errors.
+        feature_engineer: FeatureEngineer instance for engineering features.
+    """
+
     def __init__(
         self,
         data_loader: SymbolStrategyDataLoader,
@@ -29,18 +42,13 @@ class FeatureEngineeringStageCoordinator(StageCoordinator):
         logger: Logger,
         feature_engineer: FeatureEngineer,
     ):
-        super().__init__(
-            stage=BacktestStage.FEATURE_ENGINEERING,
-            data_preparer=data_preparer,
-            data_writer=data_writer,
-            stage_data_manager=stage_data_manager,
-            logger=logger,
-        )
         self.stage = BacktestStage.FEATURE_ENGINEERING
         self.data_loader = data_loader
         self.data_preparer = data_preparer
-        self.feature_engineer = feature_engineer
         self.data_writer = data_writer
+        self.stage_data_manager = stage_data_manager
+        self.logger = logger
+        self.feature_engineer = feature_engineer
 
     async def run(
         self,
@@ -63,39 +71,63 @@ class FeatureEngineeringStageCoordinator(StageCoordinator):
         if not self.stage.input_stage:
             """ If no incoming stage is defined, skip loading data """
             self.logger.error(f"Stage {self.stage} has no incoming stage defined.")
-            prepared_data = None
-        else:
-            """ Load data from the incoming stage """
-            self.logger.info(f"stage:{self.stage} starting data loading.")
-            data = await self.data_loader.load_data(
-                stage=self.stage.input_stage,
-                start_date=self.start_date,
-                end_date=self.end_date,
-                reverse_pages=True,
+            raise ValueError(
+                f"Stage {self.stage} has no incoming stage defined. Cannot proceed with data loading."
             )
-            if not data:
-                self.logger.error(f"No data loaded from stage:{self.stage.input_stage}")
-                return False
+        # Load data for the given stage and date range
+        self.logger.info(f"stage:{self.stage} starting data loading.")
+        data = await self._load_data(
+            stage=self.stage.input_stage,
+            start_date=self.start_date,
+            end_date=self.end_date,
+        )
 
-            prepared_data = self.data_preparer.normalize_stage_data(
-                stage=self.stage, data=data
-            )
-            if not prepared_data:
-                self.logger.error(f"No data prepared for stage:{self.stage}")
-                return False
+        # Prepare the data for feature engineering
+        self.logger
+        prepared_data = self.data_preparer.normalize_stage_data(
+            stage=self.stage, data=data
+        )
+        if not prepared_data:
+            self.logger.error(f"No data prepared for stage:{self.stage}")
+            return False
 
+        # Process the prepared data
+        self.logger.info(f"stage:{self.stage} starting data processing.")
         processed_data = await self._process(prepared_data)
 
         if not processed_data:
             self.logger.error(f"Processing failed for stage:{self.stage}")
             return False
 
+        # Write the processed data to disk
+        self.logger.info(f"stage:{self.stage} starting data writing.")
         await self._write(
             stage=self.stage,
             processed_data=processed_data,
         )
         self.logger.info(f"stage:{self.stage} completed and files saved.")
         return True
+
+    async def _load_data(
+        self, stage: BacktestStage, start_date: datetime, end_date: datetime
+    ) -> Optional[Dict[str, Callable[[], AsyncIterator[pd.DataFrame]]]]:
+        """
+        Load data for the given stage and date range.
+        """
+        self.logger.info(
+            f"Loading data for stage: {stage} | start_date: {start_date} | end_date: {end_date}"
+        )
+        data = await self.data_loader.load_data(
+            stage=stage,
+            start_date=start_date,
+            end_date=end_date,
+            reverse_pages=True,
+        )
+        if not data:
+            self.logger.error(f"No data loaded for stage: {stage}")
+            return None
+
+        return data
 
     async def _process(
         self, prepared_data: Dict[str, Callable[[], AsyncIterator[pd.DataFrame]]]

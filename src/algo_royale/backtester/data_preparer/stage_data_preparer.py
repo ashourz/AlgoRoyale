@@ -9,6 +9,15 @@ from algo_royale.logging.logger_singleton import mockLogger
 
 
 class StageDataPreparer:
+    """Class to prepare data for a specific stage of the backtest pipeline.
+    This class is responsible for normalizing the data streams for a given stage,
+    validating the DataFrame columns, and preparing the data for processing.
+
+    Parameters:
+        stage_data_manager: StageDataManager instance for managing stage data.
+        logger: Logger instance for logging information and errors.
+    """
+
     def __init__(self, stage_data_manager: StageDataManager, logger: logging.Logger):
         """
         Initialize the StageDataPreparer with a logger.
