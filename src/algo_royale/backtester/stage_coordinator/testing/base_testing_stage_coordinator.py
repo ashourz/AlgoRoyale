@@ -92,8 +92,8 @@ class BaseTestingStageCoordinator(StageCoordinator):
 
     async def run_test(
         self,
-        start_date: Optional[datetime] = None,
-        end_date: Optional[datetime] = None,
+        start_date: datetime,
+        end_date: datetime,
     ) -> bool:
         """
         Orchestrate the stage: load, prepare, process, write.
@@ -134,24 +134,18 @@ class BaseTestingStageCoordinator(StageCoordinator):
 
         # Process the prepared data
         self.logger.info(f"stage:{self.stage} starting data processing.")
-        processed_data = await self._process(prepared_data)
+        processed_data = await self._process_and_write(prepared_data)
 
         if not processed_data:
             self.logger.error(f"Processing failed for stage:{self.stage}")
             return False
 
-        # Write the processed data to disk
-        self.logger.info(f"stage:{self.stage} starting data writing.")
-        await self._write(
-            stage=self.stage,
-            processed_data=processed_data,
-        )
         self.logger.info(f"stage:{self.stage} completed and files saved.")
         return True
 
     def _get_optimization_results(
         self, strategy_name: str, symbol: str, start_date: datetime, end_date: datetime
-    ) -> Dict:
+    ) -> Dict[str, dict]:
         """Get optimization results for a given strategy and symbol."""
         json_path = self._get_optimization_result_path(
             strategy_name=strategy_name,

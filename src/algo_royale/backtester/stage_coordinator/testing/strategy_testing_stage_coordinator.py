@@ -1,7 +1,7 @@
 import inspect
 import json
 from logging import Logger
-from typing import AsyncIterator, Callable, Dict, Optional, Sequence
+from typing import Any, AsyncIterator, Callable, Dict, Optional, Sequence
 
 import pandas as pd
 
@@ -74,7 +74,7 @@ class StrategyTestingStageCoordinator(BaseTestingStageCoordinator):
         )
         self.strategy_factory = strategy_factory
 
-    async def _process(
+    async def _process_and_write(
         self,
         prepared_data: Optional[
             Dict[str, Callable[[], AsyncIterator[pd.DataFrame]]]
@@ -104,46 +104,20 @@ class StrategyTestingStageCoordinator(BaseTestingStageCoordinator):
             for strategy_combinator in self.strategy_combinators:
                 strategy_class = strategy_combinator.strategy_class
                 strategy_name = strategy_class.__name__
-                train_opt_results = self._get_optimization_results(
-                    strategy_name=strategy_name,
+                # Get optimized parameters for the strategy
+                optimized_params = self._get_optimized_params(
                     symbol=symbol,
-                    start_date=self.train_start_date,
-                    end_date=self.train_end_date,
+                    strategy_name=strategy_name,
+                    strategy_class=strategy_class,
                 )
-                print(
-                    f"Optimization results for {symbol} {strategy_name}: {train_opt_results}"
-                )
-                if not train_opt_results:
+                if optimized_params is None:
                     self.logger.warning(
-                        f"No optimization result for {symbol} {strategy_name} {self.train_window_id}"
+                        f"No optimized parameters found for {symbol} {strategy_name} {self.train_window_id}"
                     )
                     continue
-
-                if (
-                    self.train_window_id not in train_opt_results
-                    or "optimization" not in train_opt_results[self.train_window_id]
-                ):
-                    self.logger.warning(
-                        f"No optimization result for {symbol} {strategy_name} {self.train_window_id}"
-                    )
-                    continue
-
-                best_params = train_opt_results[self.train_window_id]["optimization"][
-                    "best_params"
-                ]
-                # Only keep params accepted by the strategy's __init__
-                valid_params = set(
-                    inspect.signature(strategy_class.__init__).parameters
-                )
-                filtered_params = {
-                    k: v
-                    for k, v in best_params.items()
-                    if k in valid_params and k != "self"
-                }
-                self.logger.info(f"Filtered params: {filtered_params}")
                 # Instantiate strategy and run backtest
                 strategy = self.strategy_factory.build_strategy(
-                    strategy_class, filtered_params
+                    strategy_class, optimized_params
                 )
 
                 async def data_factory():
@@ -160,45 +134,103 @@ class StrategyTestingStageCoordinator(BaseTestingStageCoordinator):
                     continue
                 full_df = pd.concat(dfs, ignore_index=True)
                 metrics = self.evaluator.evaluate(strategy, full_df)
-
+                # Get test optimization results
                 test_opt_results = self._get_optimization_results(
                     strategy_name,
                     symbol,
                     self.test_start_date,
                     self.test_end_date,
                 )
-                # Save test metrics to optimization_result.json under window_id
-                if self.test_window_id not in test_opt_results:
-                    test_opt_results[self.test_window_id] = {}
-
-                test_opt_results[self.test_window_id]["test"] = {"metrics": metrics}
-
-                test_opt_results_path = self._get_optimization_result_path(
-                    strategy_name=strategy_name,
+                # Write test results to optimization results
+                results = self._write_test_results(
                     symbol=symbol,
-                    start_date=self.test_start_date,
-                    end_date=self.test_end_date,
+                    strategy_name=strategy_name,
+                    metrics=metrics,
+                    optimization_result=test_opt_results,
+                    results=results,
                 )
-
-                with open(test_opt_results_path, "w") as f:
-                    json.dump(test_opt_results, f, indent=2, default=str)
-
-                results.setdefault(symbol, {})[strategy_name] = {
-                    self.test_window_id: metrics
-                }
-                print(f"Raw results: {raw_results}")
-                print(f"Metrics: {metrics}")
-                print(f"Results so far: {results}")
-        print(f"Final results: {results}")
         return results
 
-    def _write(
+    def _get_optimized_params(
         self,
-        stage: BacktestStage,
-        processed_data: Dict[str, Dict[str, Dict[str, float]]],
-    ) -> None:
-        """
-        No-op: writing is handled in process().
-        """
-        self.logger.info(f"Processed data for stage {stage} is ready, but not written.")
-        # Writing is handled in _process() where optimization results are saved
+        symbol: str,
+        strategy_name: str,
+        strategy_class: type,
+    ) -> Optional[Dict[str, Any]]:
+        """Retrieve optimized parameters for a given strategy and window ID."""
+        try:
+            self.logger.info(
+                f"Retrieving optimized parameters for {strategy_name} during {self.train_window_id}"
+            )
+            train_opt_results = self._get_optimization_results(
+                strategy_name=strategy_name,
+                symbol=symbol,
+                start_date=self.train_start_date,
+                end_date=self.train_end_date,
+            )
+            if not train_opt_results:
+                self.logger.warning(
+                    f"No optimization result for {symbol} {strategy_name} {self.train_window_id}"
+                )
+                return None
+
+            if (
+                self.train_window_id not in train_opt_results
+                or "optimization" not in train_opt_results[self.train_window_id]
+            ):
+                self.logger.warning(
+                    f"No optimization result for {symbol} {strategy_name} {self.train_window_id}"
+                )
+                return None
+
+            best_params = train_opt_results[self.train_window_id]["optimization"][
+                "best_params"
+            ]
+            # Only keep params accepted by the strategy's __init__
+            valid_params = set(inspect.signature(strategy_class.__init__).parameters)
+            filtered_params = {
+                k: v
+                for k, v in best_params.items()
+                if k in valid_params and k != "self"
+            }
+            self.logger.info(f"Filtered params: {filtered_params}")
+            return filtered_params
+        except Exception as e:
+            self.logger.error(
+                f"Error retrieving optimized parameters for {strategy_name} during {self.train_window_id}: {e}"
+            )
+            return None
+
+    def _write_test_results(
+        self,
+        symbol: str,
+        strategy_name: str,
+        metrics: Dict[str, float],
+        optimization_result: Dict[str, Any],
+        results: Dict[str, Dict[str, dict]],
+    ) -> Dict[str, Dict[str, dict]]:
+        try:
+            # Save test metrics to optimization_result.json under window_id
+            if self.test_window_id not in optimization_result:
+                optimization_result[self.test_window_id] = {}
+
+            optimization_result[self.test_window_id]["test"] = {"metrics": metrics}
+
+            test_opt_results_path = self._get_optimization_result_path(
+                strategy_name=strategy_name,
+                symbol=symbol,
+                start_date=self.test_start_date,
+                end_date=self.test_end_date,
+            )
+
+            with open(test_opt_results_path, "w") as f:
+                json.dump(optimization_result, f, indent=2, default=str)
+
+            results.setdefault(symbol, {})[strategy_name] = {
+                self.test_window_id: metrics
+            }
+        except Exception as e:
+            self.logger.error(
+                f"Error writing test results for {strategy_name} during {self.test_window_id}: {e}"
+            )
+        return results

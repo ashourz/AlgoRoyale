@@ -2,7 +2,7 @@ import json
 from datetime import datetime
 from logging import Logger
 from pathlib import Path
-from typing import AsyncIterator, Callable, Dict, Optional, Sequence
+from typing import Any, AsyncIterator, Callable, Dict, Optional, Sequence
 
 import pandas as pd
 
@@ -69,6 +69,7 @@ class PortfolioOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
             stage=BacktestStage.PORTFOLIO_OPTIMIZATION,
             data_loader=data_loader,
             data_preparer=data_preparer,
+            stage_data_manager=stage_data_manager,
             strategy_combinators=strategy_combinators,
             logger=logger,
         )
@@ -83,7 +84,7 @@ class PortfolioOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
         self.evaluator = evaluator
         self.executor = executor
 
-    async def _process(
+    async def _process_and_write(
         self,
         prepared_data: Optional[
             Dict[str, Callable[[], AsyncIterator[pd.DataFrame]]]
@@ -111,7 +112,7 @@ class PortfolioOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
             f"Asset-matrix DataFrame shape: {portfolio_matrix.shape}, columns: {portfolio_matrix.columns}"
         )
         self.logger.info(
-            f"Starting portfolio optimization for window {self.window_id} with {len(portfolio_matrix)} rows of data."
+            f"Starting portfolio optimization for dates {self.start_date} to {self.end_date} with {len(portfolio_matrix)} rows of data."
         )
         for strategy_combinator in self.strategy_combinators:
             # All combinators must accept 'logger' as a parameter
@@ -119,17 +120,17 @@ class PortfolioOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
                 logger=self.logger
             )
             for strat_factory in combinations:
-                strategy_class = (
-                    strat_factory.func
-                    if hasattr(strat_factory, "func")
-                    else strat_factory
-                )
-                strategy_name = (
-                    strategy_class.__name__
-                    if hasattr(strategy_class, "__name__")
-                    else str(strategy_class)
-                )
                 try:
+                    strategy_class = (
+                        strat_factory.func
+                        if hasattr(strat_factory, "func")
+                        else strat_factory
+                    )
+                    strategy_name = (
+                        strategy_class.__name__
+                        if hasattr(strategy_class, "__name__")
+                        else str(strategy_class)
+                    )
                     optimizer = self.portfolio_strategy_optimizer_factory.create(
                         strategy_class=strategy_class,
                         backtest_fn=lambda strat, df_: self._backtest_and_evaluate(
@@ -138,42 +139,22 @@ class PortfolioOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
                         metric_name=PortfolioMetric.SHARPE_RATIO,
                     )
                     optimization_result = await optimizer.optimize(
-                        "PORTFOLIO", portfolio_matrix
+                        self.stage.name, portfolio_matrix
+                    )
+                    # Save optimization metrics to optimization_result.json under window_id
+                    results = self._write_results(
+                        symbols=list(prepared_data.keys()),
+                        start_date=self.start_date,
+                        end_date=self.end_date,
+                        strategy_name=strategy_name,
+                        optimization_result=optimization_result,
+                        results=results,
                     )
                 except Exception as e:
                     self.logger.error(
                         f"Portfolio optimization failed for strategy {strategy_name}: {e}"
                     )
                     continue
-                # Save optimization metrics to optimization_result.json under window_id
-                out_path = self._get_output_path(
-                    strategy_name,
-                    self.start_date,
-                    self.end_date,
-                )
-                self.logger.info(
-                    f"Saving portfolio optimization results for PORTFOLIO {strategy_name} to {out_path}"
-                )
-                # Robust check for file existence and size (test/production compatible)
-                if out_path.exists() and out_path.stat().st_size > 0:
-                    with open(out_path, "r") as f:
-                        opt_results = json.load(f)
-                else:
-                    opt_results = {}
-                if self.window_id not in opt_results:
-                    opt_results[self.window_id] = {}
-                opt_results[self.window_id]["optimization"] = optimization_result
-                opt_results[self.window_id]["window"] = {
-                    "start_date": str(self.start_date),
-                    "end_date": str(self.end_date),
-                }
-                with open(out_path, "w") as f:
-                    json.dump(opt_results, f, indent=2, default=str)
-                # Fix: results should be keyed by symbol, not 'PORTFOLIO'
-                for symbol in prepared_data.keys():
-                    results.setdefault(symbol, {}).setdefault(strategy_name, {})[
-                        self.window_id
-                    ] = optimization_result
         return results
 
     def _get_output_path(self, strategy_name, start_date: datetime, end_date: datetime):
@@ -207,13 +188,56 @@ class PortfolioOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
             print(f"DEBUG: _backtest_and_evaluate exception: {e}")
             return {}
 
-    def _write(
+    def _write_results(
         self,
-        stage: BacktestStage,
-        processed_data: Dict[str, Dict[str, Dict[str, float]]],
-    ) -> None:
+        symbols: list[str],
+        start_date: datetime,
+        end_date: datetime,
+        strategy_name: str,
+        optimization_result: Dict[str, Any],
+        results: Dict[str, Dict[str, dict]],
+    ) -> Dict[str, Dict[str, dict]]:
+        """Write the optimization results to a JSON file.
+        This method saves the optimization results for the given strategy and symbols
+        to the optimization_result.json file under the specified window_id.
+        It ensures that the results are stored in a structured format, keyed by symbol and strategy name
         """
-        No-op: writing is handled in process().
-        """
-        self.logger.info(f"Processed data for stage {stage} is ready, but not written.")
-        # Writing is handled in _process() where optimization results are saved
+        try:
+            # Save optimization metrics to optimization_result.json under window_id
+            out_path = self._get_output_path(
+                strategy_name,
+                start_date,
+                end_date,
+            )
+            self.logger.info(
+                f"Saving portfolio optimization results for PORTFOLIO {strategy_name} to {out_path}"
+            )
+            # Robust check for file existence and size (test/production compatible)
+            if out_path.exists() and out_path.stat().st_size > 0:
+                with open(out_path, "r") as f:
+                    opt_results = json.load(f)
+            else:
+                opt_results = {}
+
+            # Initialize the window_id entry if it does not exist
+            # This allows us to store multiple optimizations under the same window_id
+            if self.window_id not in opt_results:
+                opt_results[self.window_id] = {}
+            opt_results[self.window_id]["optimization"] = optimization_result
+            opt_results[self.window_id]["window"] = {
+                "start_date": str(start_date),
+                "end_date": str(end_date),
+            }
+            # Write the updated results back to the file
+            with open(out_path, "w") as f:
+                json.dump(opt_results, f, indent=2, default=str)
+
+            for symbol in symbols:
+                results.setdefault(symbol, {}).setdefault(strategy_name, {})[
+                    self.window_id
+                ] = optimization_result
+        except Exception as e:
+            self.logger.error(
+                f"Error writing optimization results for {strategy_name} during {self.window_id}: {e}"
+            )
+        return results

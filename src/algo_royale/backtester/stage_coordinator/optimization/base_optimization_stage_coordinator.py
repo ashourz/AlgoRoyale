@@ -1,6 +1,6 @@
 from datetime import datetime
 from logging import Logger
-from typing import Optional, Sequence
+from typing import Sequence
 
 from algo_royale.backtester.data_preparer.stage_data_preparer import StageDataPreparer
 from algo_royale.backtester.enum.backtest_stage import BacktestStage
@@ -8,6 +8,7 @@ from algo_royale.backtester.stage_coordinator.stage_coordinator import StageCoor
 from algo_royale.backtester.stage_data.loader.symbol_strategy_data_loader import (
     SymbolStrategyDataLoader,
 )
+from algo_royale.backtester.stage_data.stage_data_manager import StageDataManager
 from algo_royale.backtester.strategy_combinator.base_strategy_combinator import (
     BaseStrategyCombinator,
 )
@@ -30,6 +31,7 @@ class BaseOptimizationStageCoordinator(StageCoordinator):
         stage: BacktestStage,
         data_loader: SymbolStrategyDataLoader,
         data_preparer: StageDataPreparer,
+        stage_data_manager: StageDataManager,
         strategy_combinators: Sequence[type[BaseStrategyCombinator]],
         logger: Logger,
     ):
@@ -43,14 +45,17 @@ class BaseOptimizationStageCoordinator(StageCoordinator):
 
     async def run(
         self,
-        start_date: Optional[datetime] = None,
-        end_date: Optional[datetime] = None,
+        start_date: datetime,
+        end_date: datetime,
     ) -> bool:
         """
         Orchestrate the stage: load, prepare, process, write.
         """
         self.start_date = start_date
         self.end_date = end_date
+        self.window_id = self.stage_data_manager.get_window_id(
+            start_date=self.start_date, end_date=self.end_date
+        )
 
         self.logger.info(
             f"Starting stage: {self.stage} | start_date: {start_date} | end_date: {end_date}"
@@ -85,17 +90,11 @@ class BaseOptimizationStageCoordinator(StageCoordinator):
 
         # Process the prepared data
         self.logger.info(f"stage:{self.stage} starting data processing.")
-        processed_data = await self._process(prepared_data)
+        processed_data = await self._process_and_write(prepared_data)
 
         if not processed_data:
             self.logger.error(f"Processing failed for stage:{self.stage}")
             return False
 
-        # Write the processed data to disk
-        self.logger.info(f"stage:{self.stage} starting data writing.")
-        await self._write(
-            stage=self.stage,
-            processed_data=processed_data,
-        )
         self.logger.info(f"stage:{self.stage} completed and files saved.")
         return True
