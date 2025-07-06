@@ -15,21 +15,8 @@ def mock_loader():
 
 
 @pytest.fixture
-def mock_preparer():
-    return MagicMock()
-
-
-@pytest.fixture
 def mock_writer():
     return MagicMock()
-
-
-@pytest.fixture
-def mock_manager():
-    # Return a real Path for get_window_id if needed
-    m = MagicMock()
-    m.get_window_id.return_value = "20240101_20240131"
-    return m
 
 
 @pytest.fixture
@@ -44,18 +31,14 @@ def mock_quote_service():
 
 def test_init_success(
     mock_loader,
-    mock_preparer,
     mock_writer,
-    mock_manager,
     mock_logger,
     mock_quote_service,
 ):
     # Should not raise
     DataIngestStageCoordinator(
         data_loader=mock_loader,
-        data_preparer=mock_preparer,
         data_writer=mock_writer,
-        stage_data_manager=mock_manager,
         logger=mock_logger,
         quote_service=mock_quote_service,
         load_watchlist=lambda path: ["AAPL", "GOOG"],
@@ -65,18 +48,14 @@ def test_init_success(
 
 def test_init_missing_watchlist_path(
     mock_loader,
-    mock_preparer,
     mock_writer,
-    mock_manager,
     mock_logger,
     mock_quote_service,
 ):
     with pytest.raises(ValueError):
         DataIngestStageCoordinator(
             data_loader=mock_loader,
-            data_preparer=mock_preparer,
             data_writer=mock_writer,
-            stage_data_manager=mock_manager,
             logger=mock_logger,
             quote_service=mock_quote_service,
             load_watchlist=lambda path: ["AAPL"],
@@ -86,56 +65,53 @@ def test_init_missing_watchlist_path(
 
 def test_init_empty_watchlist(
     mock_loader,
-    mock_preparer,
     mock_writer,
-    mock_manager,
     mock_logger,
     mock_quote_service,
 ):
-    with pytest.raises(ValueError):
-        DataIngestStageCoordinator(
-            data_loader=mock_loader,
-            data_preparer=mock_preparer,
-            data_writer=mock_writer,
-            stage_data_manager=mock_manager,
-            logger=mock_logger,
-            quote_service=mock_quote_service,
-            load_watchlist=lambda path: [],
-            watchlist_path_string="mock_watchlist.txt",
-        )
+    mock_loader.get_watchlist.return_value = []
+    coordinator = DataIngestStageCoordinator(
+        data_loader=mock_loader,
+        data_writer=mock_writer,
+        logger=mock_logger,
+        quote_service=mock_quote_service,
+        load_watchlist=lambda path: [],
+        watchlist_path_string="mock_watchlist.txt",
+    )
+    with pytest.raises(
+        ValueError,
+        match="Watchlist loaded from mock_watchlist.txt is empty. Cannot proceed with data ingestion.",
+    ):
+        coordinator._get_watchlist()
 
 
 @pytest.mark.asyncio
 async def test_process_returns_factories(
     mock_loader,
-    mock_preparer,
     mock_writer,
-    mock_manager,
     mock_logger,
     mock_quote_service,
 ):
+    mock_loader.get_watchlist.return_value = ["AAPL", "GOOG"]
+    mock_writer.write_symbol_strategy_data_factory = AsyncMock(return_value=True)
     coordinator = DataIngestStageCoordinator(
         data_loader=mock_loader,
-        data_preparer=mock_preparer,
         data_writer=mock_writer,
-        stage_data_manager=mock_manager,
         logger=mock_logger,
         quote_service=mock_quote_service,
         load_watchlist=lambda path: ["AAPL", "GOOG"],
         watchlist_path_string="mock_watchlist.txt",
     )
-    coordinator.start_date = datetime(2024, 1, 1)
-    coordinator.end_date = datetime(2024, 1, 31)
-    result = await coordinator._process(prepared_data=None)
-    assert "AAPL" in result and "GOOG" in result
+    start_date = datetime(2024, 1, 1)
+    end_date = datetime(2024, 1, 31)
+    result = await coordinator.run(start_date=start_date, end_date=end_date)
+    assert result is True
 
 
 @pytest.mark.asyncio
 async def test_fetch_symbol_data_success(
     mock_loader,
-    mock_preparer,
     mock_writer,
-    mock_manager,
     mock_logger,
     mock_quote_service,
     monkeypatch,
@@ -174,9 +150,7 @@ async def test_fetch_symbol_data_success(
 
     coordinator = dic_mod.DataIngestStageCoordinator(
         data_loader=mock_loader,
-        data_preparer=mock_preparer,
         data_writer=mock_writer,
-        stage_data_manager=mock_manager,
         logger=mock_logger,
         quote_service=mock_quote_service,
         load_watchlist=lambda path: ["AAPL"],
@@ -195,9 +169,7 @@ async def test_fetch_symbol_data_success(
 @pytest.mark.asyncio
 async def test_fetch_symbol_data_no_data_warns(
     mock_loader,
-    mock_preparer,
     mock_writer,
-    mock_manager,
     mock_logger,
     mock_quote_service,
 ):
@@ -209,9 +181,7 @@ async def test_fetch_symbol_data_no_data_warns(
     mock_quote_service.fetch_historical_bars.return_value = DummyResponse()
     coordinator = DataIngestStageCoordinator(
         data_loader=mock_loader,
-        data_preparer=mock_preparer,
         data_writer=mock_writer,
-        stage_data_manager=mock_manager,
         logger=mock_logger,
         quote_service=mock_quote_service,
         load_watchlist=lambda path: ["AAPL"],
@@ -230,18 +200,14 @@ async def test_fetch_symbol_data_no_data_warns(
 @pytest.mark.asyncio
 async def test_fetch_symbol_data_exception_logs_error(
     mock_loader,
-    mock_preparer,
     mock_writer,
-    mock_manager,
     mock_logger,
     mock_quote_service,
 ):
     mock_quote_service.fetch_historical_bars.side_effect = Exception("fail!")
     coordinator = DataIngestStageCoordinator(
         data_loader=mock_loader,
-        data_preparer=mock_preparer,
         data_writer=mock_writer,
-        stage_data_manager=mock_manager,
         logger=mock_logger,
         quote_service=mock_quote_service,
         load_watchlist=lambda path: ["AAPL"],

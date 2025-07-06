@@ -99,7 +99,13 @@ class DataIngestStageCoordinator(StageCoordinator):
         """
         watchlist = self.data_loader.get_watchlist()
         if not watchlist:
-            return None
+            return ValueError(
+                f"Watchlist is empty or not loaded correctly from {self.watchlist_path}"
+            )
+        if watchlist.count == 0:
+            raise ValueError(
+                f"Watchlist loaded from {self.watchlist_path} is empty. Cannot proceed with data ingestion."
+            )
         self.logger.info(
             f"Watchlist loaded with {len(watchlist)} symbols for stage: {self.stage}"
         )

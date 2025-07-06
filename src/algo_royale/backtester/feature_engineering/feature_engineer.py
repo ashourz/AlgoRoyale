@@ -26,6 +26,8 @@ class FeatureEngineer:
 
         async for df in df_iter:
             try:
+                self.logger.debug(f"Processing DataFrame for {symbol}: {df.shape}")
+
                 # Validate the input DataFrame
                 if not self._validate_input(df):
                     self.logger.error(
@@ -58,6 +60,9 @@ class FeatureEngineer:
                 self.logger.info(
                     f"Feature engineering output columns: {engineered_df.columns}, shape: {engineered_df.shape}"
                 )
+                self.logger.debug(
+                    f"Yielding engineered DataFrame for {symbol} with shape: {output_df.shape}"
+                )
                 if output_df.empty:
                     self.logger.warning(
                         f"Engineered DataFrame for {symbol} is empty after feature engineering."
@@ -76,6 +81,17 @@ class FeatureEngineer:
         This method can be customized based on the specific requirements of your feature engineering function.
         """
         required_input_columns = BacktestStage.FEATURE_ENGINEERING.input_columns
+        self.logger.debug(
+            f"Validating input DataFrame columns: {df.columns}, expected: {required_input_columns}"
+        )
+        print(
+            f"Validating input DataFrame columns: {df.columns}, expected: {required_input_columns}"
+        )
+        if not required_input_columns:
+            self.logger.error(
+                "No input columns defined for feature engineering. Cannot validate input."
+            )
+            return False
         missing_columns = [
             col for col in required_input_columns if col not in df.columns
         ]
@@ -92,6 +108,17 @@ class FeatureEngineer:
         This method can be customized based on the specific requirements of your feature engineering function.
         """
         required_output_columns = BacktestStage.FEATURE_ENGINEERING.output_columns
+        self.logger.debug(
+            f"Validating output DataFrame columns: {df.columns}, expected: {required_output_columns}"
+        )
+        print(
+            f"Validating output DataFrame columns: {df.columns}, expected: {required_output_columns}"
+        )
+        if not required_output_columns:
+            self.logger.error(
+                "No output columns defined for feature engineering. Cannot validate output."
+            )
+            return False
         missing_columns = [
             col for col in required_output_columns if col not in df.columns
         ]

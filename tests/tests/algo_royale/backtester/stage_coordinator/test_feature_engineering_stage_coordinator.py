@@ -19,11 +19,6 @@ def mock_data_loader():
 
 
 @pytest.fixture
-def mock_data_preparer():
-    return MagicMock()
-
-
-@pytest.fixture
 def mock_data_writer():
     return MagicMock()
 
@@ -50,14 +45,12 @@ def mock_feature_engineer():
 def coordinator(
     mock_logger,
     mock_data_loader,
-    mock_data_preparer,
     mock_data_writer,
     mock_stage_data_manager,
     mock_feature_engineer,
 ):
     return FeatureEngineeringStageCoordinator(
         data_loader=mock_data_loader,
-        data_preparer=mock_data_preparer,
         data_writer=mock_data_writer,
         stage_data_manager=mock_stage_data_manager,
         logger=mock_logger,

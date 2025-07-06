@@ -408,7 +408,6 @@ class DIContainer(containers.DeclarativeContainer):
     strategy_optimization_stage_coordinator = providers.Singleton(
         StrategyOptimizationStageCoordinator,
         data_loader=symbol_strategy_data_loader,
-        data_preparer=stage_data_preparer,
         stage_data_manager=stage_data_manager,
         logger=logger_backtest_prod,
         strategy_combinators=signal_strategy_combinators,
@@ -428,7 +427,6 @@ class DIContainer(containers.DeclarativeContainer):
     strategy_testing_stage_coordinator = providers.Singleton(
         StrategyTestingStageCoordinator,
         data_loader=symbol_strategy_data_loader,
-        data_preparer=stage_data_preparer,
         stage_data_manager=stage_data_manager,
         strategy_executor=strategy_executor,
         strategy_evaluator=strategy_evaluator,
@@ -507,8 +505,6 @@ class DIContainer(containers.DeclarativeContainer):
     portfolio_optimization_stage_coordinator = providers.Singleton(
         PortfolioOptimizationStageCoordinator,
         data_loader=stage_data_loader,
-        data_preparer=stage_data_preparer,
-        data_writer=stage_data_writer,
         stage_data_manager=stage_data_manager,
         executor=portfolio_executor,
         evaluator=portfolio_evaluator,
@@ -531,8 +527,6 @@ class DIContainer(containers.DeclarativeContainer):
     portfolio_testing_stage_coordinator = providers.Singleton(
         PortfolioTestingStageCoordinator,
         data_loader=stage_data_loader,
-        data_preparer=stage_data_preparer,
-        data_writer=stage_data_writer,
         stage_data_manager=stage_data_manager,
         executor=portfolio_executor,
         evaluator=portfolio_evaluator,

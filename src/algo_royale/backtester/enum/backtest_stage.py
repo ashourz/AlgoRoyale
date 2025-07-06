@@ -196,6 +196,42 @@ class BacktestStage(Enum):
         return BacktestStage.get_stage_by_name(self.value.input_stage_name)
 
     @property
+    def input_columns(self) -> Optional[List[str]]:
+        """
+        Returns the input columns for this stage, if applicable.
+        """
+        if self.value.input_columns:
+            return self.value.input_columns
+        return None
+
+    @property
+    def output_columns(self) -> Optional[List[str]]:
+        """
+        Returns the output columns for this stage, if applicable.
+        """
+        if self.value.output_columns:
+            return self.value.output_columns
+        return None
+
+    @property
+    def input_validation_fn(self) -> Optional[Callable[[Any], bool]]:
+        """
+        Returns the input validation function for this stage, if applicable.
+        """
+        if hasattr(self.value, "input_validation_fn"):
+            return self.value.input_validation_fn
+        return None
+
+    @property
+    def output_validation_fn(self) -> Optional[Callable[[Any], bool]]:
+        """
+        Returns the output validation function for this stage, if applicable.
+        """
+        if hasattr(self.value, "output_validation_fn"):
+            return self.value.output_validation_fn
+        return None
+
+    @property
     def name(self) -> str:
         """
         Returns the string value of the BacktestStage.

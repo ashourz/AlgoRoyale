@@ -90,8 +90,6 @@ def mock_portfolio_strategy_optimizer_factory():
 @pytest.mark.asyncio
 async def test_portfolio_optimization_process(
     mock_loader,
-    mock_preparer,
-    mock_writer,
     mock_manager,
     mock_logger,
     mock_combinator,
@@ -111,8 +109,6 @@ async def test_portfolio_optimization_process(
     )
     coordinator = PortfolioOptimizationStageCoordinator(
         data_loader=mock_loader,
-        data_preparer=mock_preparer,
-        data_writer=mock_writer,
         stage_data_manager=mock_manager,
         logger=mock_logger,
         strategy_combinators=[mock_combinator],

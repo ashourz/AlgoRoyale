@@ -17,16 +17,6 @@ def mock_loader():
 
 
 @pytest.fixture
-def mock_preparer():
-    return MagicMock()
-
-
-@pytest.fixture
-def mock_writer():
-    return MagicMock()
-
-
-@pytest.fixture
 def mock_manager(tmp_path):
     mgr = MagicMock()
     # Patch get_directory_path to return a real temp directory
@@ -102,8 +92,6 @@ def mock_asset_matrix_preparer():
 @pytest.mark.asyncio
 async def test_portfolio_testing_process(
     mock_loader,
-    mock_preparer,
-    mock_writer,
     mock_manager,
     mock_logger,
     mock_combinator,
@@ -131,8 +119,6 @@ async def test_portfolio_testing_process(
 
     coordinator = PortfolioTestingStageCoordinator(
         data_loader=mock_loader,
-        data_preparer=mock_preparer,
-        data_writer=mock_writer,
         stage_data_manager=mock_manager,
         logger=mock_logger,
         strategy_combinators=[mock_combinator],

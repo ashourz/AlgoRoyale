@@ -72,8 +72,6 @@ def mock_factory():
 
 def test_init_success(
     mock_loader,
-    mock_preparer,
-    mock_writer,
     mock_manager,
     mock_executor,
     mock_evaluator,
@@ -95,8 +93,6 @@ def test_init_success(
     ):
         StrategyTestingStageCoordinator(
             data_loader=mock_loader,
-            data_preparer=mock_preparer,
-            data_writer=mock_writer,
             stage_data_manager=mock_manager,
             strategy_executor=mock_executor,
             strategy_evaluator=mock_evaluator,
@@ -111,8 +107,6 @@ def test_init_success(
 @pytest.mark.asyncio
 async def test_process_returns_metrics(
     mock_loader,
-    mock_preparer,
-    mock_writer,
     mock_manager,
     mock_executor,
     mock_evaluator,
@@ -143,8 +137,6 @@ async def test_process_returns_metrics(
     CombA = type("CombA", (), {"strategy_class": StrategyA})
     coordinator = StrategyTestingStageCoordinator(
         data_loader=mock_loader,
-        data_preparer=mock_preparer,
-        data_writer=mock_writer,
         stage_data_manager=mock_manager,
         strategy_executor=mock_executor,
         strategy_evaluator=mock_evaluator,
@@ -186,8 +178,6 @@ async def test_process_returns_metrics(
 @pytest.mark.asyncio
 async def test_process_warns_on_missing_optimization(
     mock_loader,
-    mock_preparer,
-    mock_writer,
     mock_manager,
     mock_executor,
     mock_evaluator,
@@ -209,8 +199,6 @@ async def test_process_warns_on_missing_optimization(
     ):
         coordinator = StrategyTestingStageCoordinator(
             data_loader=mock_loader,
-            data_preparer=mock_preparer,
-            data_writer=mock_writer,
             stage_data_manager=mock_manager,
             strategy_executor=mock_executor,
             strategy_evaluator=mock_evaluator,
@@ -241,8 +229,6 @@ async def test_process_warns_on_missing_optimization(
 @pytest.mark.asyncio
 async def test_process_warns_on_no_data(
     mock_loader,
-    mock_preparer,
-    mock_writer,
     mock_manager,
     mock_executor,
     mock_evaluator,
@@ -264,8 +250,6 @@ async def test_process_warns_on_no_data(
     ):
         coordinator = StrategyTestingStageCoordinator(
             data_loader=mock_loader,
-            data_preparer=mock_preparer,
-            data_writer=mock_writer,
             stage_data_manager=mock_manager,
             strategy_executor=mock_executor,
             strategy_evaluator=mock_evaluator,
@@ -293,8 +277,6 @@ async def test_process_warns_on_no_data(
 @pytest.mark.asyncio
 async def test_write_is_noop(
     mock_loader,
-    mock_preparer,
-    mock_writer,
     mock_manager,
     mock_executor,
     mock_evaluator,
@@ -315,8 +297,6 @@ async def test_write_is_noop(
     ):
         coordinator = StrategyTestingStageCoordinator(
             data_loader=mock_loader,
-            data_preparer=mock_preparer,
-            data_writer=mock_writer,
             stage_data_manager=mock_manager,
             strategy_executor=mock_executor,
             strategy_evaluator=mock_evaluator,

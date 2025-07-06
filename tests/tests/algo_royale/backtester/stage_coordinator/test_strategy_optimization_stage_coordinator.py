@@ -62,8 +62,6 @@ def mock_signal_strategy_optimizer_factory():
 @pytest.mark.asyncio
 async def test_init_success(
     mock_loader,
-    mock_preparer,
-    mock_writer,
     mock_manager,
     mock_logger,
     mock_executor,
@@ -96,8 +94,6 @@ async def test_init_success(
     ):
         StrategyOptimizationStageCoordinator(
             data_loader=mock_loader,
-            data_preparer=mock_preparer,
-            data_writer=mock_writer,
             stage_data_manager=mock_manager,
             logger=mock_logger,
             strategy_combinators=[DummyCombinator],
@@ -112,8 +108,6 @@ async def test_init_success(
 @pytest.mark.asyncio
 async def test_process_returns_factories(
     mock_loader,
-    mock_preparer,
-    mock_writer,
     mock_manager,
     mock_logger,
     mock_executor,
@@ -151,8 +145,6 @@ async def test_process_returns_factories(
     ):
         coordinator = StrategyOptimizationStageCoordinator(
             data_loader=mock_loader,
-            data_preparer=mock_preparer,
-            data_writer=mock_writer,
             stage_data_manager=mock_manager,
             logger=mock_logger,
             strategy_combinators=[DummyCombinator],
@@ -206,8 +198,6 @@ async def test_process_returns_factories(
 @pytest.mark.asyncio
 async def test_fetch_symbol_optimization_exception_logs_error(
     mock_loader,
-    mock_preparer,
-    mock_writer,
     mock_manager,
     mock_logger,
     mock_executor,
@@ -239,8 +229,6 @@ async def test_fetch_symbol_optimization_exception_logs_error(
     ):
         coordinator = StrategyOptimizationStageCoordinator(
             data_loader=mock_loader,
-            data_preparer=mock_preparer,
-            data_writer=mock_writer,
             stage_data_manager=mock_manager,
             logger=mock_logger,
             strategy_combinators=[DummyCombinator],
@@ -273,8 +261,6 @@ async def test_fetch_symbol_optimization_exception_logs_error(
 @pytest.mark.asyncio
 async def test_process_skips_symbol_with_no_data(
     mock_loader,
-    mock_preparer,
-    mock_writer,
     mock_manager,
     mock_logger,
     mock_executor,
@@ -306,8 +292,6 @@ async def test_process_skips_symbol_with_no_data(
     ):
         coordinator = StrategyOptimizationStageCoordinator(
             data_loader=mock_loader,
-            data_preparer=mock_preparer,
-            data_writer=mock_writer,
             stage_data_manager=mock_manager,
             logger=mock_logger,
             strategy_combinators=[DummyCombinator],
@@ -350,8 +334,6 @@ async def test_process_skips_symbol_with_no_data(
 @pytest.mark.asyncio
 async def test_process_multiple_strategies(
     mock_loader,
-    mock_preparer,
-    mock_writer,
     mock_manager,
     mock_logger,
     mock_executor,
@@ -393,8 +375,6 @@ async def test_process_multiple_strategies(
     ):
         coordinator = StrategyOptimizationStageCoordinator(
             data_loader=mock_loader,
-            data_preparer=mock_preparer,
-            data_writer=mock_writer,
             stage_data_manager=mock_manager,
             logger=mock_logger,
             strategy_combinators=[CombA, CombB],
@@ -438,8 +418,6 @@ async def test_process_multiple_strategies(
 @pytest.mark.asyncio
 async def test_process_optimizer_exception_logs_error(
     mock_loader,
-    mock_preparer,
-    mock_writer,
     mock_manager,
     mock_logger,
     mock_executor,
@@ -471,8 +449,6 @@ async def test_process_optimizer_exception_logs_error(
     ):
         coordinator = StrategyOptimizationStageCoordinator(
             data_loader=mock_loader,
-            data_preparer=mock_preparer,
-            data_writer=mock_writer,
             stage_data_manager=mock_manager,
             logger=mock_logger,
             strategy_combinators=[DummyCombinator],
@@ -514,8 +490,6 @@ async def test_process_optimizer_exception_logs_error(
 @pytest.mark.asyncio
 async def test_write_is_noop(
     mock_loader,
-    mock_preparer,
-    mock_writer,
     mock_manager,
     mock_logger,
     mock_executor,
@@ -547,8 +521,6 @@ async def test_write_is_noop(
     ):
         coordinator = StrategyOptimizationStageCoordinator(
             data_loader=mock_loader,
-            data_preparer=mock_preparer,
-            data_writer=mock_writer,
             stage_data_manager=mock_manager,
             logger=mock_logger,
             strategy_combinators=[DummyCombinator],
