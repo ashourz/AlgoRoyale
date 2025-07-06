@@ -103,6 +103,9 @@ class PortfolioTestingStageCoordinator(BaseTestingStageCoordinator):
                     else str(strategy_class)
                 )
                 # Retrieve optimized parameters for the strategy
+                self.logger.debug(
+                    f"DEBUG: Strategy name: {strategy_name}, Strategy class: {strategy_class}"
+                )
                 optimize_params = self._get_optimized_params(
                     strategy_name=strategy_name,
                     strategy_class=strategy_class,
@@ -135,7 +138,23 @@ class PortfolioTestingStageCoordinator(BaseTestingStageCoordinator):
                     self.logger.warning(
                         f"Validation failed for optimization results of {strategy_name} during {self.test_window_id}. Skipping writing results."
                     )
+                    self.logger.debug(
+                        f"DEBUG: Skipping strategy {strategy_name} due to validation failure."
+                    )
+                    self.logger.debug(
+                        f"DEBUG: Optimization results: {test_opt_results}"
+                    )
                     continue
+
+                # Debug logs to trace the flow and values
+                self.logger.debug(
+                    f"DEBUG: Strategy name: {strategy_name}, Optimize params: {optimize_params}"
+                )
+                self.logger.debug(
+                    f"DEBUG: Portfolio matrix shape: {portfolio_matrix.shape}"
+                )
+                self.logger.debug(f"DEBUG: Backtest results: {backtest_results}")
+                self.logger.debug(f"DEBUG: Metrics: {metrics}")
 
                 results = self._write_test_results(
                     symbols=list(data.keys()),
@@ -145,6 +164,7 @@ class PortfolioTestingStageCoordinator(BaseTestingStageCoordinator):
                     optimization_result=test_opt_results,
                     results=results,
                 )
+                self.logger.debug(f"DEBUG: Results before writing: {results}")
 
         return results
 
@@ -239,10 +259,21 @@ class PortfolioTestingStageCoordinator(BaseTestingStageCoordinator):
                 if k in valid_params and k != "self"
             }
             self.logger.info(f"Filtered params: {filtered_params}")
+            self.logger.debug(f"DEBUG: Retrieved best_params: {best_params}")
+            self.logger.debug(
+                f"DEBUG: Valid params for {strategy_name}: {valid_params}"
+            )
+            self.logger.debug(f"DEBUG: Filtered params: {filtered_params}")
+            self.logger.debug(
+                f"DEBUG: Retrieved train_opt_results: {train_opt_results}"
+            )
+            self.logger.debug(
+                f"DEBUG: Validation result: {self._validate_optimization_results(train_opt_results)}"
+            )
             return filtered_params
         except Exception as e:
             self.logger.error(
-                f"Error retrieving optimized parameters for {strategy_name} during {self.train_window_id}: {e}"
+                f"Error retrieving optimized parameters for {strategy_name} during {self.train_window_id}: {str(e)}"
             )
             return None
 
@@ -257,7 +288,15 @@ class PortfolioTestingStageCoordinator(BaseTestingStageCoordinator):
                 "No validation method defined for portfolio optimization results. Skipping validation."
             )
             return False
-        return validation_method(results)
+        self.logger.debug(f"DEBUG: Validation method: {validation_method}")
+        self.logger.debug(f"DEBUG: Results being validated: {results}")
+        try:
+            validation_result = validation_method(results)
+            self.logger.debug(f"DEBUG: Validation result: {validation_result}")
+            return validation_result
+        except Exception as e:
+            self.logger.error(f"ERROR: Validation failed with exception: {e}")
+            return False
 
     def _validate_test_results(
         self,
@@ -289,18 +328,22 @@ class PortfolioTestingStageCoordinator(BaseTestingStageCoordinator):
                 "transactions": backtest_results.get("transactions", []),
             }
             # Save optimization metrics to optimization_result.json under window_id
-            out_path = self._get_optimization_result_path(
-                strategy_name=strategy_name,
-                start_date=self.test_start_date,
-                end_date=self.test_end_date,
-            )
-            with open(out_path, "w") as f:
-                json.dump(optimization_result, f, indent=2, default=str)
             # Fix: results should be keyed by symbol, not 'PORTFOLIO'
             for symbol in symbols:
+                out_path = self._get_optimization_result_path(
+                    strategy_name=strategy_name,
+                    start_date=self.test_start_date,
+                    end_date=self.test_end_date,
+                    symbol=symbol,  # Pass the required symbol argument
+                )
+                with open(out_path, "w") as f:
+                    json.dump(optimization_result, f, indent=2, default=str)
                 results.setdefault(symbol, {}).setdefault(strategy_name, {})[
                     self.test_window_id
                 ] = metrics
+                self.logger.debug(
+                    f"DEBUG: Writing test results for strategy: {strategy_name}, metrics: {metrics}, backtest_results: {backtest_results}"
+                )
         except Exception as e:
             self.logger.error(
                 f"Error writing test results for {strategy_name} during {self.test_window_id}: {e}"

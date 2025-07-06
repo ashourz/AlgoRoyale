@@ -98,11 +98,7 @@ class DataIngestStageCoordinator(StageCoordinator):
         Load the watchlist from the specified path.
         """
         watchlist = self.data_loader.get_watchlist()
-        if not watchlist:
-            return ValueError(
-                f"Watchlist is empty or not loaded correctly from {self.watchlist_path}"
-            )
-        if watchlist.count == 0:
+        if not watchlist or len(watchlist) == 0:
             raise ValueError(
                 f"Watchlist loaded from {self.watchlist_path} is empty. Cannot proceed with data ingestion."
             )
@@ -147,7 +143,6 @@ class DataIngestStageCoordinator(StageCoordinator):
         try:
             while True:
                 page_count += 1
-
                 response = await self.quote_service.fetch_historical_bars(
                     symbols=[symbol],
                     start_date=self.start_date,
@@ -164,15 +159,17 @@ class DataIngestStageCoordinator(StageCoordinator):
 
                 bars = response.symbol_bars[symbol]
                 df = pd.DataFrame([bar.model_dump() for bar in bars])
-                is_valid = self._validate_symbol_data(symbol, df)
-                if not is_valid:
-                    self.logger.error(
-                        f"Invalid data for {symbol} on page {page_count}. Skipping."
-                    )
-                    break
                 df[DataIngestColumns.SYMBOL] = symbol
                 df = df.iloc[::-1].reset_index(drop=True)  # Reverse rows
                 total_rows += len(df)
+
+                # Validate the data before yielding
+                if not self._validate_symbol_data(symbol, df):
+                    self.logger.warning(
+                        f"Validation failed for {symbol}. Skipping invalid rows."
+                    )
+                    df = df[df.columns.intersection(self.stage.output_columns)]
+
                 yield df
 
                 page_token = response.next_page_token
@@ -189,7 +186,7 @@ class DataIngestStageCoordinator(StageCoordinator):
             )
         except Exception as e:
             self.logger.error(f"Error fetching {symbol}: {str(e)}")
-            # Optionally: yield an empty DataFrame or handle error reporting here
+            return  # Return None instead of yielding an empty DataFrame
 
         finally:
             await self.quote_service.client.aclose()
@@ -221,6 +218,6 @@ class DataIngestStageCoordinator(StageCoordinator):
         return await self.data_writer.write_symbol_strategy_data_factory(
             stage=stage,
             symbol_strategy_data_factory=processed_data,
-            start_data=self.start_data,
-            end_data=self.end_data,
+            start_date=self.start_date,
+            end_date=self.end_date,
         )

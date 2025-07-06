@@ -1,4 +1,5 @@
 import json
+import logging
 import time
 from datetime import datetime
 from unittest.mock import MagicMock
@@ -34,7 +35,18 @@ def mock_manager(tmp_path):
 
 @pytest.fixture
 def mock_logger():
-    return MagicMock()
+    logger = logging.getLogger("test_logger")
+    logger.setLevel(logging.DEBUG)
+    handler = logging.FileHandler(
+        "c:\\Users\\ashou\\AlgoRoyale\\logs\\test\\testing.log"
+    )
+    handler.setLevel(logging.DEBUG)
+    formatter = logging.Formatter(
+        "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+    )
+    handler.setFormatter(formatter)
+    logger.addHandler(handler)
+    return logger
 
 
 @pytest.fixture
@@ -82,8 +94,9 @@ def mock_asset_matrix_preparer():
     mock = MagicMock()
     mock.prepare.return_value = pd.DataFrame(
         {
-            "AAPL": [100, 101, 102],
-            "GOOG": [200, 202, 204],
+            "price": [100, 101, 102],
+            "volume": [1000, 1100, 1200],
+            "returns": [0.01, 0.02, 0.03],
         }
     )
     return mock
@@ -150,11 +163,20 @@ async def test_portfolio_testing_process(
     # Mock _get_optimization_results to return valid data
     coordinator._get_optimization_results = (
         lambda strategy_name, symbol, start_date, end_date: {
-            train_window_id: {"optimization": {"best_params": {"a": 1}}}
+            coordinator.train_window_id: {
+                "optimization": {
+                    "best_params": {"a": 1},
+                    "metrics": {"sharpe": 2.0},
+                },
+                "window": {
+                    "start_date": train_start.strftime("%Y-%m-%d"),
+                    "end_date": train_end.strftime("%Y-%m-%d"),
+                },
+            }
         }
     )
 
-    results = await coordinator._process(prepared_data=prepared_data)
+    results = await coordinator._process_and_write(data=prepared_data)
     print("DEBUG RESULTS:", results)
     mock_evaluator.evaluate.assert_called()
     assert "AAPL" in results

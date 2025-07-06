@@ -97,8 +97,37 @@ class PortfolioOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
         self.logger.info(
             f"Starting portfolio optimization for dates {self.start_date} to {self.end_date} with {len(portfolio_matrix)} rows of data."
         )
+        self.logger.debug(
+            f"DEBUG: Starting _process_and_write with data keys: {list(data.keys()) if data else 'None'}"
+        )
+        self.logger.debug(
+            f"DEBUG: Portfolio matrix shape: {portfolio_matrix.shape if portfolio_matrix is not None else 'None'}"
+        )
+        self.logger.debug(f"DEBUG: Portfolio matrix: {portfolio_matrix}")
+        self.logger.debug(f"DEBUG: Prepared data keys: {list(data.keys())}")
+        self.logger.debug(
+            f"DEBUG: Portfolio matrix before optimization: {portfolio_matrix}"
+        )
+        self.logger.debug(
+            f"DEBUG: Strategy combinators: {[combinator.__name__ for combinator in self.strategy_combinators]}"
+        )
+
+        print(f"DEBUG: Prepared data keys: {list(data.keys())}")
+        print(f"DEBUG: Portfolio matrix before optimization: {portfolio_matrix}")
+        print(
+            f"DEBUG: Strategy combinators: {[combinator.__name__ for combinator in self.strategy_combinators]}"
+        )
+
+        try:
+            self.logger.debug(f"DEBUG: Starting optimization process with data: {data}")
+            self.logger.debug(f"DEBUG: Portfolio matrix: {portfolio_matrix}")
+        except Exception as e:
+            self.logger.error(f"Error during debug logging in _process_and_write: {e}")
+
         for strategy_combinator in self.strategy_combinators:
-            # All combinators must accept 'logger' as a parameter
+            self.logger.debug(
+                f"DEBUG: Using strategy combinator: {strategy_combinator.__name__}"
+            )
             combinations = strategy_combinator.all_strategy_combinations(
                 logger=self.logger
             )
@@ -114,6 +143,7 @@ class PortfolioOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
                         if hasattr(strategy_class, "__name__")
                         else str(strategy_class)
                     )
+                    self.logger.debug(f"DEBUG: Optimizing strategy: {strategy_name}")
                     optimizer = self.portfolio_strategy_optimizer_factory.create(
                         strategy_class=strategy_class,
                         backtest_fn=lambda strat, df_: self._backtest_and_evaluate(
@@ -124,13 +154,16 @@ class PortfolioOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
                     optimization_result = await optimizer.optimize(
                         self.stage.name, portfolio_matrix
                     )
-                    # Validate the optimization results structure
+                    self.logger.debug(
+                        f"DEBUG: Optimization result for {strategy_name}: {optimization_result}"
+                    )
+
                     if not self._validate_optimization_results(optimization_result):
                         self.logger.warning(
                             f"Validation failed for optimization results of {strategy_name} during {self.window_id}. Skipping."
                         )
                         continue
-                    # Save optimization metrics to optimization_result.json under window_id
+
                     results = self._write_results(
                         symbols=list(data.keys()),
                         start_date=self.start_date,
@@ -138,6 +171,9 @@ class PortfolioOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
                         strategy_name=strategy_name,
                         optimization_result=optimization_result,
                         results=results,
+                    )
+                    self.logger.debug(
+                        f"DEBUG: Results updated for {strategy_name}: {results}"
                     )
                 except Exception as e:
                     self.logger.error(
@@ -158,29 +194,58 @@ class PortfolioOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
             self.logger.info(
                 f"Aggregating data for {len(data)} symbols for portfolio optimization."
             )
+            self.logger.debug(
+                f"DEBUG: Starting _get_input_matrix with data keys: {list(data.keys()) if data else 'None'}"
+            )
+            try:
+                self.logger.debug(
+                    f"DEBUG: Aggregating data for symbols: {list(data.keys())}"
+                )
+                self.logger.debug(f"DEBUG: Data provided: {data}")
+            except Exception as e:
+                self.logger.error(
+                    f"Error during debug logging in _get_input_matrix: {e}"
+                )
+
             all_dfs = []
             for symbol, df_iter_factory in data.items():
+                self.logger.debug(f"DEBUG: Processing symbol: {symbol}")
                 async for df in df_iter_factory():
-                    ## TODO: VALIDATE DATAFRAME
+                    self.logger.debug(f"DEBUG: DataFrame for {symbol}: {df}")
+                    self.logger.debug(f"DEBUG: DataFrame columns: {df.columns}")
+                    self.logger.debug(f"DEBUG: DataFrame shape: {df.shape}")
                     df["symbol"] = symbol  # Optionally tag symbol
                     all_dfs.append(df)
+
             if not all_dfs:
                 self.logger.warning("No data for portfolio optimization window.")
-                return {}
+                return None
 
             portfolio_df = pd.concat(all_dfs, ignore_index=True)
+            self.logger.debug(f"DEBUG: Combined portfolio DataFrame: {portfolio_df}")
             self.logger.debug(
-                f"Combined portfolio DataFrame shape: {portfolio_df.shape}, columns: {list(portfolio_df.columns)}"
+                f"DEBUG: Combined portfolio DataFrame columns: {portfolio_df.columns}"
             )
             self.logger.debug(
-                f"Combined portfolio DataFrame index: {portfolio_df.index}"
+                f"DEBUG: Combined portfolio DataFrame shape: {portfolio_df.shape}"
             )
-            # Prepare asset-matrix form for portfolio strategies
-            portfolio_matrix = self.asset_matrix_preparer.prepare(portfolio_df)
-            self.logger.info(
-                f"Asset-matrix DataFrame shape: {portfolio_matrix.shape}, columns: {portfolio_matrix.columns}"
-            )
-            return portfolio_matrix
+
+            try:
+                print(f"DEBUG: Combined portfolio DataFrame: {portfolio_df}")
+                print(
+                    f"DEBUG: Combined portfolio DataFrame columns: {portfolio_df.columns}"
+                )
+                print(
+                    f"DEBUG: Combined portfolio DataFrame shape: {portfolio_df.shape}"
+                )
+                portfolio_matrix = self.asset_matrix_preparer.prepare(portfolio_df)
+                print(f"DEBUG: Asset-matrix DataFrame shape: {portfolio_matrix.shape}")
+                return portfolio_matrix
+            except Exception as e:
+                self.logger.error(
+                    f"Error preparing portfolio matrix for optimization: {e}"
+                )
+                return None
         except Exception as e:
             self.logger.error(f"Error preparing portfolio matrix for optimization: {e}")
             return None
@@ -229,7 +294,15 @@ class PortfolioOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
                 "No validation method defined for portfolio optimization results. Skipping validation."
             )
             return False
-        return validation_method(results)
+
+        # Wrap the results in the required structure for validation
+        structured_results = {
+            self.window_id: {
+                "optimization": results,
+                "window": {"start_date": self.start_date, "end_date": self.end_date},
+            }
+        }
+        return validation_method(structured_results)
 
     def _write_results(
         self,
@@ -275,10 +348,35 @@ class PortfolioOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
             with open(out_path, "w") as f:
                 json.dump(opt_results, f, indent=2, default=str)
 
+            # Simplified debug logging
+            self.logger.debug(
+                f"Writing results for strategy: {strategy_name}, symbols: {symbols}"
+            )
+            self.logger.debug(f"Optimization result: {optimization_result}")
+            self.logger.debug(f"Window ID: {self.window_id}")
+
+            # Update the results dictionary with the optimization results
             for symbol in symbols:
-                results.setdefault(symbol, {}).setdefault(strategy_name, {})[
-                    self.window_id
-                ] = optimization_result
+                if symbol not in results:
+                    results[symbol] = {}
+                if strategy_name not in results[symbol]:
+                    results[symbol][strategy_name] = {}
+                if self.window_id not in results[symbol][strategy_name]:
+                    results[symbol][strategy_name][self.window_id] = {}
+
+                # Ensure the metrics dictionary is correctly nested
+                # Flatten the metrics dictionary to match the test's expectations
+                metrics = optimization_result.get("metrics", {}).get("metrics", {})
+                results[symbol][strategy_name][self.window_id]["metrics"] = metrics
+                results[symbol][strategy_name][self.window_id]["meta"] = (
+                    optimization_result.get("meta", {})
+                )
+                results[symbol][strategy_name][self.window_id]["window"] = {
+                    "start_date": str(start_date),
+                    "end_date": str(end_date),
+                }
+
+            self.logger.debug(f"DEBUG: Updated results dictionary: {results}")
         except Exception as e:
             self.logger.error(
                 f"Error writing optimization results for {strategy_name} during {self.window_id}: {e}"

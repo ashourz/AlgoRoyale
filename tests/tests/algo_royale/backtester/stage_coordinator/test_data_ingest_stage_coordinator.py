@@ -63,12 +63,11 @@ def test_init_missing_watchlist_path(
         )
 
 
-def test_init_empty_watchlist(
-    mock_loader,
-    mock_writer,
-    mock_logger,
-    mock_quote_service,
+@pytest.mark.asyncio
+async def test_init_empty_watchlist(
+    mock_loader, mock_writer, mock_logger, mock_quote_service
 ):
+    """Test that an empty watchlist raises a ValueError."""
     mock_loader.get_watchlist.return_value = []
     coordinator = DataIngestStageCoordinator(
         data_loader=mock_loader,
@@ -92,6 +91,7 @@ async def test_process_returns_factories(
     mock_logger,
     mock_quote_service,
 ):
+    """Test that the process returns factories successfully."""
     mock_loader.get_watchlist.return_value = ["AAPL", "GOOG"]
     mock_writer.write_symbol_strategy_data_factory = AsyncMock(return_value=True)
     coordinator = DataIngestStageCoordinator(
@@ -116,7 +116,7 @@ async def test_fetch_symbol_data_success(
     mock_quote_service,
     monkeypatch,
 ):
-    # Patch required enums/constants
+    """Test that fetching symbol data yields the correct number of DataFrames."""
     import algo_royale.backtester.stage_coordinator.data_staging.data_ingest_stage_coordinator as dic_mod
 
     monkeypatch.setattr(
@@ -124,7 +124,9 @@ async def test_fetch_symbol_data_success(
     )
     monkeypatch.setattr(dic_mod, "DataFeed", types.SimpleNamespace(IEX="IEX"))
     monkeypatch.setattr(
-        dic_mod, "DataIngestColumns", types.SimpleNamespace(SYMBOL="symbol")
+        dic_mod,
+        "DataIngestColumns",
+        types.SimpleNamespace(SYMBOL="symbol", OPEN="open", CLOSE="close"),
     )
 
     class DummyBar:
@@ -142,7 +144,7 @@ async def test_fetch_symbol_data_success(
     ]
 
     def fetch_historical_bars_side_effect(*args, **kwargs):
-        return responses.pop(0) if responses else DummyResponse([])
+        return responses.pop(0) if responses else None
 
     mock_quote_service.fetch_historical_bars = AsyncMock(
         side_effect=fetch_historical_bars_side_effect
@@ -178,7 +180,7 @@ async def test_fetch_symbol_data_no_data_warns(
             self.symbol_bars = {"AAPL": []}
             self.next_page_token = None
 
-    mock_quote_service.fetch_historical_bars.return_value = DummyResponse()
+    mock_quote_service.fetch_historical_bars.return_value = None
     coordinator = DataIngestStageCoordinator(
         data_loader=mock_loader,
         data_writer=mock_writer,
@@ -217,9 +219,72 @@ async def test_fetch_symbol_data_exception_logs_error(
     coordinator.quote_service.client.aclose = AsyncMock()
     coordinator.start_date = datetime(2024, 1, 1)
     coordinator.end_date = datetime(2024, 1, 31)
-    # Should not raise, but should log error
     results = []
-    async for _ in coordinator._fetch_symbol_data("AAPL"):
-        results.append(_)
-    # Should be empty due to exception
+    async for df in coordinator._fetch_symbol_data("AAPL"):
+        results.append(df)
     assert results == []
+
+
+@pytest.mark.asyncio
+async def test_fetch_symbol_data_validation(
+    mock_loader,
+    mock_writer,
+    mock_logger,
+    mock_quote_service,
+    monkeypatch,
+):
+    """Test that validation of symbol data is applied correctly."""
+    import algo_royale.backtester.stage_coordinator.data_staging.data_ingest_stage_coordinator as dic_mod
+
+    monkeypatch.setattr(
+        dic_mod, "SupportedCurrencies", types.SimpleNamespace(USD="USD")
+    )
+    monkeypatch.setattr(dic_mod, "DataFeed", types.SimpleNamespace(IEX="IEX"))
+    monkeypatch.setattr(
+        dic_mod,
+        "DataIngestColumns",
+        types.SimpleNamespace(SYMBOL="symbol", OPEN="open", CLOSE="close"),
+    )
+
+    class DummyBar:
+        def model_dump(self):
+            return {"open": 1, "close": 2}
+
+    class InvalidBar:
+        def model_dump(self):
+            return {"invalid_column": 1}
+
+    class DummyResponse:
+        def __init__(self, bars, next_page_token=None):
+            self.symbol_bars = {"AAPL": bars}
+            self.next_page_token = next_page_token
+
+    responses = [
+        DummyResponse([DummyBar(), InvalidBar()], next_page_token="token2"),
+        DummyResponse([DummyBar()], next_page_token=None),
+    ]
+
+    def fetch_historical_bars_side_effect(*args, **kwargs):
+        return responses.pop(0) if responses else None
+
+    mock_quote_service.fetch_historical_bars = AsyncMock(
+        side_effect=fetch_historical_bars_side_effect
+    )
+
+    coordinator = dic_mod.DataIngestStageCoordinator(
+        data_loader=mock_loader,
+        data_writer=mock_writer,
+        logger=mock_logger,
+        quote_service=mock_quote_service,
+        load_watchlist=lambda path: ["AAPL"],
+        watchlist_path_string="mock_watchlist.txt",
+    )
+    coordinator.quote_service.client = MagicMock()
+    coordinator.quote_service.client.aclose = AsyncMock()
+    coordinator.start_date = datetime(2024, 1, 1)
+    coordinator.end_date = datetime(2024, 1, 31)
+    results = []
+    async for df in coordinator._fetch_symbol_data("AAPL"):
+        results.append(df)
+    assert len(results) == 2
+    assert "invalid_column" not in results[0].columns

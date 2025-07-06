@@ -75,7 +75,7 @@ async def test_process_success(coordinator, mock_feature_engineer, async_gen_fac
     # prepared_data: symbol -> factory returning async generator
     prepared_data = {"AAPL": async_gen_factory}
 
-    result = await coordinator.process(prepared_data)
+    result = await coordinator._process(prepared_data)
     out = []
     async for df in result["AAPL"][None]():  # <-- Fix: use [None] to get the factory
         out.append(df)
@@ -86,7 +86,7 @@ async def test_process_success(coordinator, mock_feature_engineer, async_gen_fac
 async def test_process_engineer_returns_empty(coordinator, mock_feature_engineer):
     # Patch _engineer to return empty dict
     coordinator._engineer = AsyncMock(return_value={})
-    result = await coordinator.process({"AAPL": lambda: None})
+    result = await coordinator._process({"AAPL": lambda: None})
     assert result == {}
     coordinator.logger.error.assert_called_with("Feature engineering failed")
 
