@@ -192,7 +192,7 @@ class StrategyOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
 
     def _write_results(
         self,
-        symbol: list[str],
+        symbol: str,
         start_date: datetime,
         end_date: datetime,
         strategy_name: str,
@@ -200,6 +200,20 @@ class StrategyOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
         results: Dict[str, Dict[str, dict]],
     ) -> Dict[str, Dict[str, dict]]:
         try:
+            # Update the results dictionary to match the validator's requirements
+            results.setdefault(symbol, {})[strategy_name] = {
+                self.window_id: {
+                    "optimization": {
+                        "strategy": strategy_name,
+                        **optimization_result,
+                    },
+                    "window": {
+                        "start_date": str(start_date),
+                        "end_date": str(end_date),
+                    },
+                }
+            }
+
             # Save optimization metrics to optimization_result.json under window_id
             out_path = self._get_output_path(
                 strategy_name,
@@ -210,34 +224,10 @@ class StrategyOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
             self.logger.info(
                 f"Saving optimization results for {symbol} {strategy_name} to {out_path}"
             )
-            # Load existing results if present
-            if out_path.exists():
-                with open(out_path, "r") as f:
-                    opt_results = json.load(f)
-            else:
-                opt_results = {}
-
-            # Ensure the window_id exists in the results
-            # This is to ensure that we can update the optimization result for this window
-            if self.window_id not in opt_results:
-                opt_results[self.window_id] = {}
-            # Update the optimization result for this window
-            opt_results[self.window_id]["optimization"] = (
-                optimization_result  # or "test" for test results
-            )
-
-            opt_results[self.window_id]["window"] = {
-                "start_date": str(start_date),
-                "end_date": str(end_date),
-            }
-
-            # Save the updated results
+            # Write the updated results to the file
             with open(out_path, "w") as f:
-                json.dump(opt_results, f, indent=2, default=str)
+                json.dump(results[symbol][strategy_name], f, indent=2, default=str)
 
-            results.setdefault(symbol, {})[strategy_name] = {
-                self.window_id: optimization_result
-            }
         except Exception as e:
             self.logger.error(
                 f"Error writing results for {symbol} {strategy_name}: {e}"

@@ -319,6 +319,19 @@ class PortfolioOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
         It ensures that the results are stored in a structured format, keyed by symbol and strategy name
         """
         try:
+            # Update the results dictionary with the optimization results
+            for symbol in symbols:
+                results.setdefault(symbol, {}).setdefault(strategy_name, {}).setdefault(
+                    self.window_id, {}
+                )
+                results[symbol][strategy_name][self.window_id] = {
+                    "optimization": optimization_result,
+                    "window": {
+                        "start_date": str(start_date),
+                        "end_date": str(end_date),
+                    },
+                }
+
             # Save optimization metrics to optimization_result.json under window_id
             out_path = self._get_output_path(
                 strategy_name,
@@ -328,55 +341,10 @@ class PortfolioOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
             self.logger.info(
                 f"Saving portfolio optimization results for PORTFOLIO {strategy_name} to {out_path}"
             )
-            # Robust check for file existence and size (test/production compatible)
-            if out_path.exists() and out_path.stat().st_size > 0:
-                with open(out_path, "r") as f:
-                    opt_results = json.load(f)
-            else:
-                opt_results = {}
-
-            # Initialize the window_id entry if it does not exist
-            # This allows us to store multiple optimizations under the same window_id
-            if self.window_id not in opt_results:
-                opt_results[self.window_id] = {}
-            opt_results[self.window_id]["optimization"] = optimization_result
-            opt_results[self.window_id]["window"] = {
-                "start_date": str(start_date),
-                "end_date": str(end_date),
-            }
             # Write the updated results back to the file
             with open(out_path, "w") as f:
-                json.dump(opt_results, f, indent=2, default=str)
+                json.dump(results, f, indent=2, default=str)
 
-            # Simplified debug logging
-            self.logger.debug(
-                f"Writing results for strategy: {strategy_name}, symbols: {symbols}"
-            )
-            self.logger.debug(f"Optimization result: {optimization_result}")
-            self.logger.debug(f"Window ID: {self.window_id}")
-
-            # Update the results dictionary with the optimization results
-            for symbol in symbols:
-                if symbol not in results:
-                    results[symbol] = {}
-                if strategy_name not in results[symbol]:
-                    results[symbol][strategy_name] = {}
-                if self.window_id not in results[symbol][strategy_name]:
-                    results[symbol][strategy_name][self.window_id] = {}
-
-                # Ensure the metrics dictionary is correctly nested
-                # Flatten the metrics dictionary to match the test's expectations
-                metrics = optimization_result.get("metrics", {}).get("metrics", {})
-                results[symbol][strategy_name][self.window_id]["metrics"] = metrics
-                results[symbol][strategy_name][self.window_id]["meta"] = (
-                    optimization_result.get("meta", {})
-                )
-                results[symbol][strategy_name][self.window_id]["window"] = {
-                    "start_date": str(start_date),
-                    "end_date": str(end_date),
-                }
-
-            self.logger.debug(f"DEBUG: Updated results dictionary: {results}")
         except Exception as e:
             self.logger.error(
                 f"Error writing optimization results for {strategy_name} during {self.window_id}: {e}"

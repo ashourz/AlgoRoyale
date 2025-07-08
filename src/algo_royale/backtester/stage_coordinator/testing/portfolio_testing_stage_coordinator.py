@@ -321,29 +321,37 @@ class PortfolioTestingStageCoordinator(BaseTestingStageCoordinator):
         results: Dict[str, Dict[str, Dict[str, float]]],
     ) -> Dict[str, Dict[str, Dict[str, float]]]:
         try:
-            if self.test_window_id not in optimization_result:
-                optimization_result[self.test_window_id] = {}
+            # Update the optimization result dictionary
+            optimization_result.setdefault(self.test_window_id, {})
             optimization_result[self.test_window_id]["test"] = {
                 "metrics": metrics,
                 "transactions": backtest_results.get("transactions", []),
             }
-            # Save optimization metrics to optimization_result.json under window_id
-            # Fix: results should be keyed by symbol, not 'PORTFOLIO'
+
+            # Update the results dictionary
+            for symbol in symbols:
+                results.setdefault(symbol, {}).setdefault(strategy_name, {}).setdefault(
+                    self.test_window_id, {}
+                )
+                results[symbol][strategy_name][self.test_window_id] = {
+                    "metrics": metrics,
+                    "transactions": backtest_results.get("transactions", []),
+                }
+
+            # Save the updated optimization results to the file
             for symbol in symbols:
                 out_path = self._get_optimization_result_path(
                     strategy_name=strategy_name,
                     start_date=self.test_start_date,
                     end_date=self.test_end_date,
-                    symbol=symbol,  # Pass the required symbol argument
+                    symbol=symbol,
+                )
+                self.logger.info(
+                    f"Saving test results for {strategy_name} and symbol {symbol} to {out_path}"
                 )
                 with open(out_path, "w") as f:
                     json.dump(optimization_result, f, indent=2, default=str)
-                results.setdefault(symbol, {}).setdefault(strategy_name, {})[
-                    self.test_window_id
-                ] = metrics
-                self.logger.debug(
-                    f"DEBUG: Writing test results for strategy: {strategy_name}, metrics: {metrics}, backtest_results: {backtest_results}"
-                )
+
         except Exception as e:
             self.logger.error(
                 f"Error writing test results for {strategy_name} during {self.test_window_id}: {e}"

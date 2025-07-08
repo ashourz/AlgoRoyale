@@ -240,25 +240,33 @@ class StrategyTestingStageCoordinator(BaseTestingStageCoordinator):
         results: Dict[str, Dict[str, dict]],
     ) -> Dict[str, Dict[str, dict]]:
         try:
-            # Save test metrics to optimization_result.json under window_id
-            if self.test_window_id not in optimization_result:
-                optimization_result[self.test_window_id] = {}
+            # Update the optimization result dictionary
+            optimization_result.setdefault(self.test_window_id, {})
+            optimization_result[self.test_window_id]["test"] = {
+                "metrics": metrics,
+            }
 
-            optimization_result[self.test_window_id]["test"] = {"metrics": metrics}
+            # Update the results dictionary
+            results.setdefault(symbol, {}).setdefault(strategy_name, {}).setdefault(
+                self.test_window_id, {}
+            )
+            results[symbol][strategy_name][self.test_window_id] = {
+                "metrics": metrics,
+            }
 
+            # Save the updated optimization results to the file
             test_opt_results_path = self._get_optimization_result_path(
                 strategy_name=strategy_name,
                 symbol=symbol,
                 start_date=self.test_start_date,
                 end_date=self.test_end_date,
             )
-
+            self.logger.info(
+                f"Saving test results for {strategy_name} and symbol {symbol} to {test_opt_results_path}"
+            )
             with open(test_opt_results_path, "w") as f:
                 json.dump(optimization_result, f, indent=2, default=str)
 
-            results.setdefault(symbol, {})[strategy_name] = {
-                self.test_window_id: metrics
-            }
         except Exception as e:
             self.logger.error(
                 f"Error writing test results for {strategy_name} during {self.test_window_id}: {e}"

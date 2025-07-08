@@ -169,9 +169,7 @@ class SignalStrategyOptimizerImpl(SignalStrategyOptimizer):
                 "symbol": symbol,
                 "direction": self.direction,
             },
-            "metrics": study.best_trial.user_attrs.get(
-                "full_result"
-            ),  # <-- add this line
+            "metrics": study.best_trial.user_attrs.get("full_result"),
         }
         self.logger.debug(f"Optimization results: {results}")
         return results
