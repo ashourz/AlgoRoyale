@@ -70,15 +70,86 @@ class StrategyTestingStageCoordinator(BaseTestingStageCoordinator):
         )
         self.strategy_factory = strategy_factory
 
+    def _get_train_optimization_results(
+        self,
+        strategy_name: str,
+        symbol: str,
+        start_date: str,
+        end_date: str,
+    ) -> Optional[Dict[str, Dict[str, dict]]]:
+        """Retrieve train optimization results for a given strategy and window ID."""
+        try:
+            self.logger.info(
+                f"Retrieving train optimization results for {strategy_name} during {self.train_window_id}"
+            )
+            train_opt_results = self._get_optimization_results(
+                strategy_name=strategy_name,
+                symbol=symbol,
+                start_date=start_date,
+                end_date=end_date,
+            )
+            if not train_opt_results:
+                self.logger.warning(
+                    f"No train optimization result for {symbol} {strategy_name} {self.train_window_id}"
+                )
+                return None
+            if not self._validate_optimization_results(train_opt_results):
+                self.logger.error(
+                    f"Train optimization results validation failed for {symbol} {strategy_name} {self.train_window_id}"
+                )
+                return None
+            return train_opt_results
+        except Exception as e:
+            self.logger.error(
+                f"Error retrieving train optimization results for {strategy_name} during {self.train_window_id}: {e}"
+            )
+            return None
+
+    def _get_test_optimization_results(
+        self,
+        strategy_name: str,
+        symbol: str,
+        start_date: str,
+        end_date: str,
+    ) -> Optional[Dict[str, Dict[str, dict]]]:
+        """Retrieve test optimization results for a given strategy and window ID."""
+        try:
+            self.logger.info(
+                f"Retrieving test optimization results for {strategy_name} during {self.test_window_id}"
+            )
+            test_opt_results = self._get_optimization_results(
+                strategy_name=strategy_name,
+                symbol=symbol,
+                start_date=start_date,
+                end_date=end_date,
+            )
+            if not test_opt_results:
+                self.logger.warning(
+                    f"No test optimization result for {symbol} {strategy_name} {self.test_window_id}"
+                )
+                return None
+            if not self._validate_test_results(test_opt_results):
+                self.logger.error(
+                    f"Test optimization results validation failed for {symbol} {strategy_name} {self.test_window_id}"
+                )
+                return None
+            return test_opt_results
+        except Exception as e:
+            self.logger.error(
+                f"Error retrieving test optimization results for {strategy_name} during {self.test_window_id}: {e}"
+            )
+            return None
+
     async def _process_and_write(
         self,
         data: Optional[Dict[str, Callable[[], AsyncIterator[pd.DataFrame]]]] = None,
     ) -> Dict[str, Dict[str, Dict[str, float]]]:
         """Run backtests for all strategies in the watchlist using the best parameters from optimization."""
         results = {}
+        self.logger.debug(f"Initialized results dictionary: {results}")
 
         for symbol, df_iter_factory in data.items():
-            print(f"Processing symbol: {symbol}")
+            self.logger.debug(f"Processing symbol: {symbol}")
             if symbol not in data:
                 self.logger.warning(f"No data for symbol: {symbol}")
                 continue
@@ -86,21 +157,26 @@ class StrategyTestingStageCoordinator(BaseTestingStageCoordinator):
             dfs = []
             async for df in df_iter_factory():
                 dfs.append(df)
-            print(f"DataFrames for {symbol}: {dfs}")
+            self.logger.debug(f"DataFrames for {symbol}: {dfs}")
             if not dfs:
                 self.logger.warning(
                     f"No data for symbol: {symbol} in window {self.train_window_id}"
                 )
                 continue
             test_df = pd.concat(dfs, ignore_index=True)
-            print(f"Test DataFrame for {symbol}: {test_df}")
+            self.logger.debug(f"Test DataFrame for {symbol}: {test_df}")
             for strategy_combinator in self.strategy_combinators:
                 strategy_class = strategy_combinator.strategy_class
                 strategy_name = strategy_class.__name__
-                optimized_params = self._get_optimized_params(
+                self.logger.debug(f"Processing strategy: {strategy_name}")
+                optimized_params = self._get_train_optimization_results(
                     symbol=symbol,
                     strategy_name=strategy_name,
-                    strategy_class=strategy_class,
+                    start_date=self.train_start_date,
+                    end_date=self.train_end_date,
+                )
+                self.logger.debug(
+                    f"Optimized parameters for {strategy_name}: {optimized_params}"
                 )
                 if optimized_params is None:
                     self.logger.warning(
@@ -117,6 +193,7 @@ class StrategyTestingStageCoordinator(BaseTestingStageCoordinator):
                 raw_results = await self.executor.run_backtest(
                     [strategy], {symbol: data_factory}
                 )
+                self.logger.debug(f"Raw results for {symbol}: {raw_results}")
                 dfs = raw_results.get(symbol, [])
                 if not dfs:
                     self.logger.warning(
@@ -124,6 +201,7 @@ class StrategyTestingStageCoordinator(BaseTestingStageCoordinator):
                     )
                     continue
                 full_df = pd.concat(dfs, ignore_index=True)
+                self.logger.debug(f"Full DataFrame for {symbol}: {full_df}")
                 metrics = self.evaluator.evaluate(strategy, full_df)
 
                 required_metrics = [
@@ -133,14 +211,18 @@ class StrategyTestingStageCoordinator(BaseTestingStageCoordinator):
                     "max_drawdown",
                 ]
                 metrics = {k: metrics.get(k, 0.0) for k in required_metrics}
+                self.logger.debug(f"Metrics for {strategy_name}: {metrics}")
 
-                test_opt_results = self._get_optimization_results(
+                test_opt_results = self._get_test_optimization_results(
                     strategy_name,
                     symbol,
                     self.test_start_date,
                     self.test_end_date,
                 )
-                if not self._validate_test_results(test_opt_results):
+                self.logger.debug(
+                    f"Test optimization results for {strategy_name}: {test_opt_results}"
+                )
+                if not test_opt_results:
                     self.logger.error(
                         f"Test results validation failed for {symbol} {strategy_name} {self.test_window_id}"
                     )
@@ -157,8 +239,12 @@ class StrategyTestingStageCoordinator(BaseTestingStageCoordinator):
                     results=results,
                 )
 
-                results.update(updated_results)
+                self.logger.debug(
+                    f"Updated results from _write_test_results: {updated_results}"
+                )
+                results.update(updated_results)  # Fix merging logic
                 self.logger.debug(f"Results dictionary after writing: {results}")
+
         self.logger.debug(f"Final results dictionary: {results}")
         return results
 
@@ -173,7 +259,7 @@ class StrategyTestingStageCoordinator(BaseTestingStageCoordinator):
             self.logger.info(
                 f"Retrieving optimized parameters for {strategy_name} during {self.train_window_id}"
             )
-            train_opt_results = self._get_optimization_results(
+            train_opt_results = self._get_train_optimization_results(
                 strategy_name=strategy_name,
                 symbol=symbol,
                 start_date=self.train_start_date,
@@ -306,5 +392,4 @@ class StrategyTestingStageCoordinator(BaseTestingStageCoordinator):
             self.logger.error(
                 f"Error writing test results for {strategy_name} during {self.test_window_id}: {e}"
             )
-        self.logger.debug(f"Updated results returned: {results}")
         return results

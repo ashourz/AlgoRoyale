@@ -119,8 +119,10 @@ async def test_process_returns_metrics(
     mock_logger,
     tmp_path,
 ):
+    """Test that _process_and_write correctly processes valid data and returns expected results."""
+
     class DummyStrategy:
-        pass
+        __name__ = "StrategyA"
 
     class DummyCombinator:
         strategy_class = DummyStrategy
@@ -135,7 +137,36 @@ async def test_process_returns_metrics(
         import json
 
         json.dump(
-            {train_window_id: {"optimization": {"best_params": {"foo": "bar"}}}}, f
+            {
+                train_window_id: {
+                    "optimization": {
+                        "strategy": "StrategyA",
+                        "best_value": 0.95,
+                        "best_params": {
+                            "entry_conditions": [{"condition": "entry_condition_1"}],
+                            "exit_conditions": [{"condition": "exit_condition_1"}],
+                            "trend_conditions": [{"condition": "trend_condition_1"}],
+                        },
+                        "meta": {
+                            "run_time_sec": 10.5,
+                            "n_trials": 100,
+                            "symbol": "AAPL",
+                            "direction": "maximize",
+                        },
+                        "metrics": {
+                            "total_return": 0.15,
+                            "sharpe_ratio": 2.0,
+                            "win_rate": 0.6,
+                            "max_drawdown": -0.1,
+                        },
+                    },
+                    "window": {
+                        "start_date": "2024-01-01",
+                        "end_date": "2024-01-31",
+                    },
+                }
+            },
+            f,
         )
 
     StrategyA = type("StrategyA", (), {})
@@ -148,11 +179,11 @@ async def test_process_returns_metrics(
         strategy_factory=mock_factory,
         logger=mock_logger,
         strategy_combinators=[CombA],
-        optimization_root=".",
+        optimization_root=tmp_path,  # Use the temp directory for optimization_root
         optimization_json_filename="test.json",
     )
-    coordinator.train_window_id = "20240101_20240131"
-    coordinator.window_id = "20240201_20240228"
+    coordinator.train_window_id = train_window_id
+    coordinator.test_window_id = test_window_id
     coordinator.train_start_date = datetime(2024, 1, 1)
     coordinator.train_end_date = datetime(2024, 1, 31)
     coordinator.test_start_date = datetime(2024, 2, 1)
@@ -164,20 +195,94 @@ async def test_process_returns_metrics(
     prepared_data = {"AAPL": lambda: df_iter()}
     mock_factory.build_strategy.return_value = StrategyA()
     mock_executor.run_backtest.return_value = {"AAPL": [pd.DataFrame({"result": [1]})]}
-    mock_evaluator.evaluate.return_value = {"sharpe_ratio": 2.0}
+    mock_evaluator.evaluate.return_value = {
+        "total_return": 0.15,
+        "sharpe_ratio": 2.0,
+        "win_rate": 0.6,
+        "max_drawdown": -0.1,
+    }
 
     # Mock _get_optimization_results to return valid data
-    coordinator._get_optimization_results = (
+    coordinator._get_train_optimization_results = (
         lambda strategy_name, symbol, start_date, end_date: {
-            train_window_id: {"optimization": {"best_params": {"foo": "bar"}}}
+            "20240101_20240131": {
+                "optimization": {
+                    "strategy": "StrategyA",
+                    "best_value": 0.95,
+                    "best_params": {
+                        "entry_conditions": [{"condition": "entry_condition_1"}],
+                        "exit_conditions": [{"condition": "exit_condition_1"}],
+                        "trend_conditions": [{"condition": "trend_condition_1"}],
+                    },
+                    "meta": {
+                        "run_time_sec": 10.5,
+                        "n_trials": 100,
+                        "symbol": "AAPL",
+                        "direction": "maximize",
+                    },
+                    "metrics": {
+                        "total_return": 0.15,
+                        "sharpe_ratio": 2.0,
+                        "win_rate": 0.6,
+                        "max_drawdown": -0.1,
+                    },
+                },
+            },
+        }
+    )
+
+    coordinator._get_test_optimization_results = (
+        lambda strategy_name, symbol, start_date, end_date: {
+            "20240201_20240228": {
+                "test": {
+                    "metrics": {
+                        "total_return": 0.15,
+                        "sharpe_ratio": 2.0,
+                        "win_rate": 0.6,
+                        "max_drawdown": -0.1,
+                    },
+                    "transactions": [],
+                },
+                "optimization": {
+                    "strategy": "StrategyA",
+                    "best_value": 0.95,
+                    "best_params": {
+                        "entry_conditions": [{"condition": "entry_condition_1"}],
+                        "exit_conditions": [{"condition": "exit_condition_1"}],
+                        "trend_conditions": [{"condition": "trend_condition_1"}],
+                    },
+                    "meta": {
+                        "run_time_sec": 10.5,
+                        "n_trials": 100,
+                        "symbol": "AAPL",
+                        "direction": "maximize",
+                    },
+                    "metrics": {
+                        "total_return": 0.15,
+                        "sharpe_ratio": 2.0,
+                        "win_rate": 0.6,
+                        "max_drawdown": -0.1,
+                    },
+                },
+                "window": {
+                    "start_date": "2024-02-01",
+                    "end_date": "2024-02-28",
+                },
+            },
         }
     )
 
     result = await coordinator._process_and_write(prepared_data)
+
+    # Validate the structure and content of the results dictionary
     assert "AAPL" in result
     assert "StrategyA" in result["AAPL"]
     assert test_window_id in result["AAPL"]["StrategyA"]
-    assert result["AAPL"]["StrategyA"][test_window_id]["metrics"]["sharpe_ratio"] == 2.0
+    metrics = result["AAPL"]["StrategyA"][test_window_id]["metrics"]
+    assert metrics["total_return"] == 0.15
+    assert metrics["sharpe_ratio"] == 2.0
+    assert metrics["win_rate"] == 0.6
+    assert metrics["max_drawdown"] == -0.1
 
 
 @pytest.mark.asyncio
