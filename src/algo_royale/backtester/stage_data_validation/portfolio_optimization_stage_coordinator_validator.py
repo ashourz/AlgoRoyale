@@ -38,7 +38,7 @@ def validate_portfolio_optimization_json_output(output: dict) -> bool:
         ]:
             if meta_key not in opt["meta"]:
                 return False
-        if not isinstance(opt["metrics"], dict) or "metrics" not in opt["metrics"]:
+        if not isinstance(opt["metrics"], dict):
             return False
         # Validate window section
         if not isinstance(win, dict):

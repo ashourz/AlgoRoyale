@@ -97,7 +97,6 @@ class StrategyTestingStageCoordinator(BaseTestingStageCoordinator):
             for strategy_combinator in self.strategy_combinators:
                 strategy_class = strategy_combinator.strategy_class
                 strategy_name = strategy_class.__name__
-                # Get optimized parameters for the strategy
                 optimized_params = self._get_optimized_params(
                     symbol=symbol,
                     strategy_name=strategy_name,
@@ -108,7 +107,6 @@ class StrategyTestingStageCoordinator(BaseTestingStageCoordinator):
                         f"No optimized parameters found for {symbol} {strategy_name} {self.train_window_id}"
                     )
                     continue
-                # Instantiate strategy and run backtest
                 strategy = self.strategy_factory.build_strategy(
                     strategy_class, optimized_params
                 )
@@ -127,27 +125,41 @@ class StrategyTestingStageCoordinator(BaseTestingStageCoordinator):
                     continue
                 full_df = pd.concat(dfs, ignore_index=True)
                 metrics = self.evaluator.evaluate(strategy, full_df)
-                # Get test optimization results
+
+                required_metrics = [
+                    "total_return",
+                    "sharpe_ratio",
+                    "win_rate",
+                    "max_drawdown",
+                ]
+                metrics = {k: metrics.get(k, 0.0) for k in required_metrics}
+
                 test_opt_results = self._get_optimization_results(
                     strategy_name,
                     symbol,
                     self.test_start_date,
                     self.test_end_date,
                 )
-                # Validate test results
                 if not self._validate_test_results(test_opt_results):
                     self.logger.error(
                         f"Test results validation failed for {symbol} {strategy_name} {self.test_window_id}"
                     )
                     continue
-                # Write test results to optimization results
-                results = self._write_test_results(
+                self.logger.debug(f"Metrics before writing: {metrics}")
+                self.logger.debug(f"Test optimization results: {test_opt_results}")
+                self.logger.debug(f"Results dictionary before writing: {results}")
+
+                updated_results = self._write_test_results(
                     symbol=symbol,
                     strategy_name=strategy_name,
                     metrics=metrics,
                     optimization_result=test_opt_results,
                     results=results,
                 )
+
+                results.update(updated_results)
+                self.logger.debug(f"Results dictionary after writing: {results}")
+        self.logger.debug(f"Final results dictionary: {results}")
         return results
 
     def _get_optimized_params(
@@ -240,11 +252,32 @@ class StrategyTestingStageCoordinator(BaseTestingStageCoordinator):
         results: Dict[str, Dict[str, dict]],
     ) -> Dict[str, Dict[str, dict]]:
         try:
+            self.logger.debug(
+                f"Writing test results for symbol: {symbol}, strategy: {strategy_name}"
+            )
+            self.logger.debug(f"Metrics: {metrics}")
+            self.logger.debug(
+                f"Optimization result before update: {optimization_result}"
+            )
+
+            # Ensure metrics contain required keys with default values
+            required_metrics = [
+                "total_return",
+                "sharpe_ratio",
+                "win_rate",
+                "max_drawdown",
+            ]
+            metrics = {k: metrics.get(k, 0.0) for k in required_metrics}
+
             # Update the optimization result dictionary
             optimization_result.setdefault(self.test_window_id, {})
             optimization_result[self.test_window_id]["test"] = {
                 "metrics": metrics,
             }
+
+            self.logger.debug(
+                f"Optimization result after update: {optimization_result}"
+            )
 
             # Update the results dictionary
             results.setdefault(symbol, {}).setdefault(strategy_name, {}).setdefault(
@@ -253,6 +286,8 @@ class StrategyTestingStageCoordinator(BaseTestingStageCoordinator):
             results[symbol][strategy_name][self.test_window_id] = {
                 "metrics": metrics,
             }
+
+            self.logger.debug(f"Results dictionary after update: {results}")
 
             # Save the updated optimization results to the file
             test_opt_results_path = self._get_optimization_result_path(
@@ -271,4 +306,5 @@ class StrategyTestingStageCoordinator(BaseTestingStageCoordinator):
             self.logger.error(
                 f"Error writing test results for {strategy_name} during {self.test_window_id}: {e}"
             )
+        self.logger.debug(f"Updated results returned: {results}")
         return results

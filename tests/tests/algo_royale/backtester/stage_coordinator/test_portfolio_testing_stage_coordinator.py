@@ -182,4 +182,9 @@ async def test_portfolio_testing_process(
     assert "AAPL" in results
     assert "DummyStrategy" in results["AAPL"]
     assert coordinator.test_window_id in results["AAPL"]["DummyStrategy"]
-    assert results["AAPL"]["DummyStrategy"][coordinator.test_window_id]["sharpe"] == 2.0
+    assert (
+        results["AAPL"]["DummyStrategy"][coordinator.test_window_id]["metrics"][
+            "sharpe"
+        ]
+        == 2.0
+    )

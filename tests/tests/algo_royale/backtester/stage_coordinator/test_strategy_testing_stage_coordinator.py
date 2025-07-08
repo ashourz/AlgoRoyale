@@ -44,7 +44,12 @@ def mock_manager(tmp_path):
 
 @pytest.fixture
 def mock_logger():
-    return MagicMock()
+    logger = MagicMock()
+    logger.warning = MagicMock()
+    logger.info = MagicMock()
+    logger.debug = MagicMock()
+    logger.error = MagicMock()
+    return logger
 
 
 @pytest.fixture
@@ -146,8 +151,8 @@ async def test_process_returns_metrics(
         optimization_root=".",
         optimization_json_filename="test.json",
     )
-    coordinator.train_window_id = train_window_id
-    coordinator.test_window_id = test_window_id
+    coordinator.train_window_id = "20240101_20240131"
+    coordinator.window_id = "20240201_20240228"
     coordinator.train_start_date = datetime(2024, 1, 1)
     coordinator.train_end_date = datetime(2024, 1, 31)
     coordinator.test_start_date = datetime(2024, 2, 1)
@@ -159,7 +164,7 @@ async def test_process_returns_metrics(
     prepared_data = {"AAPL": lambda: df_iter()}
     mock_factory.build_strategy.return_value = StrategyA()
     mock_executor.run_backtest.return_value = {"AAPL": [pd.DataFrame({"result": [1]})]}
-    mock_evaluator.evaluate.return_value = {"sharpe": 2.0}
+    mock_evaluator.evaluate.return_value = {"sharpe_ratio": 2.0}
 
     # Mock _get_optimization_results to return valid data
     coordinator._get_optimization_results = (
@@ -168,11 +173,11 @@ async def test_process_returns_metrics(
         }
     )
 
-    result = await coordinator._process(prepared_data)
+    result = await coordinator._process_and_write(prepared_data)
     assert "AAPL" in result
     assert "StrategyA" in result["AAPL"]
     assert test_window_id in result["AAPL"]["StrategyA"]
-    assert result["AAPL"]["StrategyA"][test_window_id]["sharpe"] == 2.0
+    assert result["AAPL"]["StrategyA"][test_window_id]["metrics"]["sharpe_ratio"] == 2.0
 
 
 @pytest.mark.asyncio
@@ -221,7 +226,7 @@ async def test_process_warns_on_missing_optimization(
             yield pd.DataFrame({"a": [1]})
 
         prepared_data = {"AAPL": lambda: df_iter()}
-        result = await coordinator._process(prepared_data)
+        result = await coordinator._process_and_write(prepared_data)
         assert result == {}
         assert mock_logger.warning.called
 
@@ -269,7 +274,7 @@ async def test_process_warns_on_no_data(
                 yield
 
         prepared_data = {"AAPL": lambda: empty_df_iter()}
-        result = await coordinator._process(prepared_data)
+        result = await coordinator._process_and_write(prepared_data)
         assert result == {}
         assert mock_logger.warning.called
 
@@ -306,5 +311,20 @@ async def test_write_is_noop(
             optimization_root=".",
             optimization_json_filename="test.json",
         )
-        result = await coordinator._write(None, None)
-        assert result is None
+        coordinator.test_window_id = "test_window"
+        coordinator.test_start_date = "2024-02-01"
+        coordinator.test_end_date = "2024-02-28"
+
+        result = coordinator._write_test_results(
+            symbol="AAPL",
+            strategy_name="StrategyA",
+            metrics={"sharpe_ratio": 2.0},
+            optimization_result={},
+            results={},
+        )
+        assert "AAPL" in result
+        assert "StrategyA" in result["AAPL"]
+        assert "test_window" in result["AAPL"]["StrategyA"]
+        assert (
+            result["AAPL"]["StrategyA"]["test_window"]["metrics"]["sharpe_ratio"] == 2.0
+        )

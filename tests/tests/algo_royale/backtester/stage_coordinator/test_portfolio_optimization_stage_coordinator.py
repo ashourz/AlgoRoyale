@@ -122,7 +122,7 @@ async def test_portfolio_optimization_process(
                 "direction": "long",
                 "multi_objective": False,
             },
-            "metrics": {"metrics": {PortfolioMetric.SHARPE_RATIO.value: 2.0}},
+            "metrics": {PortfolioMetric.SHARPE_RATIO.value: 2.0},
             "window": {"start_date": "2021-01-01", "end_date": "2021-12-31"},
         }
     )
@@ -167,9 +167,9 @@ async def test_portfolio_optimization_process(
     assert "AAPL" in results
     assert "DummyStrategy" in results["AAPL"]
     assert "window_1" in results["AAPL"]["DummyStrategy"]
-    assert "metrics" in results["AAPL"]["DummyStrategy"]["window_1"]
+    assert "metrics" in results["AAPL"]["DummyStrategy"]["window_1"]["optimization"]
     assert (
-        results["AAPL"]["DummyStrategy"]["window_1"]["metrics"][
+        results["AAPL"]["DummyStrategy"]["window_1"]["optimization"]["metrics"][
             PortfolioMetric.SHARPE_RATIO.value
         ]
         == 2.0

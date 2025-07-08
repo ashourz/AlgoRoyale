@@ -205,7 +205,18 @@ class StrategyOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
                 self.window_id: {
                     "optimization": {
                         "strategy": strategy_name,
-                        **optimization_result,
+                        "best_value": optimization_result.get("best_value"),
+                        "best_params": optimization_result.get("best_params", {}),
+                        "meta": {
+                            "run_time_sec": optimization_result.get("run_time_sec", 0),
+                            "n_trials": optimization_result.get("n_trials", 0),
+                            "symbol": symbol,
+                            "direction": optimization_result.get("direction", "long"),
+                            "multi_objective": optimization_result.get(
+                                "multi_objective", False
+                            ),
+                        },
+                        "metrics": optimization_result.get("metrics", {}),
                     },
                     "window": {
                         "start_date": str(start_date),
