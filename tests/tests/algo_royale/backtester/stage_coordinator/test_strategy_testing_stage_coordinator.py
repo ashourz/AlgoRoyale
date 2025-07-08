@@ -31,15 +31,25 @@ def mock_manager(tmp_path):
     mgr = MagicMock()
     # Patch get_directory_path to return a real temp directory
     mgr.get_directory_path.side_effect = (
-        lambda stage, strategy_name, symbol: tmp_path
-        / f"{stage}_{strategy_name}_{symbol}"
+        lambda base_dir=None,
+        stage=None,
+        symbol=None,
+        strategy_name=None,
+        start_date=None,
+        end_date=None: tmp_path
+        / f"{stage.name if stage else 'default_stage'}_{strategy_name if strategy_name else 'default_strategy'}_{symbol if symbol else 'default_symbol'}"
     )
     return mgr
 
 
 @pytest.fixture
 def mock_logger():
-    return MagicMock()
+    logger = MagicMock()
+    logger.warning = MagicMock()
+    logger.info = MagicMock()
+    logger.debug = MagicMock()
+    logger.error = MagicMock()
+    return logger
 
 
 @pytest.fixture
@@ -67,8 +77,6 @@ def mock_factory():
 
 def test_init_success(
     mock_loader,
-    mock_preparer,
-    mock_writer,
     mock_manager,
     mock_executor,
     mock_evaluator,
@@ -90,8 +98,6 @@ def test_init_success(
     ):
         StrategyTestingStageCoordinator(
             data_loader=mock_loader,
-            data_preparer=mock_preparer,
-            data_writer=mock_writer,
             stage_data_manager=mock_manager,
             strategy_executor=mock_executor,
             strategy_evaluator=mock_evaluator,
@@ -106,8 +112,6 @@ def test_init_success(
 @pytest.mark.asyncio
 async def test_process_returns_metrics(
     mock_loader,
-    mock_preparer,
-    mock_writer,
     mock_manager,
     mock_executor,
     mock_evaluator,
@@ -115,78 +119,175 @@ async def test_process_returns_metrics(
     mock_logger,
     tmp_path,
 ):
+    """Test that _process_and_write correctly processes valid data and returns expected results."""
+
     class DummyStrategy:
-        pass
+        __name__ = "StrategyA"
 
     class DummyCombinator:
         strategy_class = DummyStrategy
 
-    # Patch BacktestStage.STRATEGY_TESTING to have output_stage
-    with mock.patch.object(
-        BacktestStage.STRATEGY_TESTING,
-        "output_stage",
-        create=True,
-        new=None,
-    ):
-        # Prepare a fake optimization_result.json with best_params
-        opt_dir = tmp_path / "optimization_StrategyA_AAPL"
-        opt_dir.mkdir(parents=True, exist_ok=True)
-        opt_path = opt_dir / "test.json"
-        train_window_id = "20240101_20240131"
-        test_window_id = "20240201_20240228"
-        with open(opt_path, "w") as f:
-            import json
+    # Prepare a fake optimization_result.json with best_params
+    opt_dir = tmp_path / "optimization_StrategyA_AAPL"
+    opt_dir.mkdir(parents=True, exist_ok=True)
+    opt_path = opt_dir / "test.json"
+    train_window_id = "20240101_20240131"
+    test_window_id = "20240201_20240228"
+    with open(opt_path, "w") as f:
+        import json
 
-            json.dump(
-                {train_window_id: {"optimization": {"best_params": {"foo": "bar"}}}}, f
-            )
-        mock_manager.get_directory_path.side_effect = (
-            lambda stage, strategy_name, symbol, *args, **kwargs: tmp_path
-            / f"optimization_{strategy_name}_{symbol}"
+        json.dump(
+            {
+                train_window_id: {
+                    "optimization": {
+                        "strategy": "StrategyA",
+                        "best_value": 0.95,
+                        "best_params": {
+                            "entry_conditions": [{"condition": "entry_condition_1"}],
+                            "exit_conditions": [{"condition": "exit_condition_1"}],
+                            "trend_conditions": [{"condition": "trend_condition_1"}],
+                        },
+                        "meta": {
+                            "run_time_sec": 10.5,
+                            "n_trials": 100,
+                            "symbol": "AAPL",
+                            "direction": "maximize",
+                        },
+                        "metrics": {
+                            "total_return": 0.15,
+                            "sharpe_ratio": 2.0,
+                            "win_rate": 0.6,
+                            "max_drawdown": -0.1,
+                        },
+                    },
+                    "window": {
+                        "start_date": "2024-01-01",
+                        "end_date": "2024-01-31",
+                    },
+                }
+            },
+            f,
         )
-        mock_manager.get_extended_path.side_effect = (
-            lambda base_dir, strategy_name, symbol, start_date, end_date: tmp_path
-            / f"optimization_{strategy_name}_{symbol}"
-        )
-        StrategyA = type("StrategyA", (), {})
-        CombA = type("CombA", (), {"strategy_class": StrategyA})
-        coordinator = StrategyTestingStageCoordinator(
-            data_loader=mock_loader,
-            data_preparer=mock_preparer,
-            data_writer=mock_writer,
-            stage_data_manager=mock_manager,
-            strategy_executor=mock_executor,
-            strategy_evaluator=mock_evaluator,
-            strategy_factory=mock_factory,
-            logger=mock_logger,
-            strategy_combinators=[CombA],
-            optimization_root=".",
-            optimization_json_filename="test.json",
-        )
-        coordinator.train_window_id = train_window_id
-        coordinator.test_window_id = test_window_id
-        coordinator.train_start_date = datetime(2024, 1, 1)
-        coordinator.train_end_date = datetime(2024, 1, 31)
-        coordinator.test_start_date = datetime(2024, 2, 1)
-        coordinator.test_end_date = datetime(2024, 2, 28)
 
-        async def df_iter():
-            yield pd.DataFrame({"a": [1]})
+    StrategyA = type("StrategyA", (), {})
+    CombA = type("CombA", (), {"strategy_class": StrategyA})
+    coordinator = StrategyTestingStageCoordinator(
+        data_loader=mock_loader,
+        stage_data_manager=mock_manager,
+        strategy_executor=mock_executor,
+        strategy_evaluator=mock_evaluator,
+        strategy_factory=mock_factory,
+        logger=mock_logger,
+        strategy_combinators=[CombA],
+        optimization_root=tmp_path,  # Use the temp directory for optimization_root
+        optimization_json_filename="test.json",
+    )
+    coordinator.train_window_id = train_window_id
+    coordinator.test_window_id = test_window_id
+    coordinator.train_start_date = datetime(2024, 1, 1)
+    coordinator.train_end_date = datetime(2024, 1, 31)
+    coordinator.test_start_date = datetime(2024, 2, 1)
+    coordinator.test_end_date = datetime(2024, 2, 28)
 
-        prepared_data = {"AAPL": lambda: df_iter()}
-        mock_factory.build_strategy.return_value = StrategyA()
-        result = await coordinator.process(prepared_data)
-        assert "AAPL" in result
-        assert "StrategyA" in result["AAPL"]
-        assert test_window_id in result["AAPL"]["StrategyA"]
-        assert result["AAPL"]["StrategyA"][test_window_id]["sharpe"] == 2.0
+    async def df_iter():
+        yield pd.DataFrame({"a": [1]})
+
+    prepared_data = {"AAPL": lambda: df_iter()}
+    mock_factory.build_strategy.return_value = StrategyA()
+    mock_executor.run_backtest.return_value = {"AAPL": [pd.DataFrame({"result": [1]})]}
+    mock_evaluator.evaluate.return_value = {
+        "total_return": 0.15,
+        "sharpe_ratio": 2.0,
+        "win_rate": 0.6,
+        "max_drawdown": -0.1,
+    }
+
+    # Mock _get_optimization_results to return valid data
+    coordinator._get_train_optimization_results = (
+        lambda strategy_name, symbol, start_date, end_date: {
+            "20240101_20240131": {
+                "optimization": {
+                    "strategy": "StrategyA",
+                    "best_value": 0.95,
+                    "best_params": {
+                        "entry_conditions": [{"condition": "entry_condition_1"}],
+                        "exit_conditions": [{"condition": "exit_condition_1"}],
+                        "trend_conditions": [{"condition": "trend_condition_1"}],
+                    },
+                    "meta": {
+                        "run_time_sec": 10.5,
+                        "n_trials": 100,
+                        "symbol": "AAPL",
+                        "direction": "maximize",
+                    },
+                    "metrics": {
+                        "total_return": 0.15,
+                        "sharpe_ratio": 2.0,
+                        "win_rate": 0.6,
+                        "max_drawdown": -0.1,
+                    },
+                },
+            },
+        }
+    )
+
+    coordinator._get_test_optimization_results = (
+        lambda strategy_name, symbol, start_date, end_date: {
+            "20240201_20240228": {
+                "test": {
+                    "metrics": {
+                        "total_return": 0.15,
+                        "sharpe_ratio": 2.0,
+                        "win_rate": 0.6,
+                        "max_drawdown": -0.1,
+                    },
+                    "transactions": [],
+                },
+                "optimization": {
+                    "strategy": "StrategyA",
+                    "best_value": 0.95,
+                    "best_params": {
+                        "entry_conditions": [{"condition": "entry_condition_1"}],
+                        "exit_conditions": [{"condition": "exit_condition_1"}],
+                        "trend_conditions": [{"condition": "trend_condition_1"}],
+                    },
+                    "meta": {
+                        "run_time_sec": 10.5,
+                        "n_trials": 100,
+                        "symbol": "AAPL",
+                        "direction": "maximize",
+                    },
+                    "metrics": {
+                        "total_return": 0.15,
+                        "sharpe_ratio": 2.0,
+                        "win_rate": 0.6,
+                        "max_drawdown": -0.1,
+                    },
+                },
+                "window": {
+                    "start_date": "2024-02-01",
+                    "end_date": "2024-02-28",
+                },
+            },
+        }
+    )
+
+    result = await coordinator._process_and_write(prepared_data)
+
+    # Validate the structure and content of the results dictionary
+    assert "AAPL" in result
+    assert "StrategyA" in result["AAPL"]
+    assert test_window_id in result["AAPL"]["StrategyA"]
+    metrics = result["AAPL"]["StrategyA"][test_window_id]["metrics"]
+    assert metrics["total_return"] == 0.15
+    assert metrics["sharpe_ratio"] == 2.0
+    assert metrics["win_rate"] == 0.6
+    assert metrics["max_drawdown"] == -0.1
 
 
 @pytest.mark.asyncio
 async def test_process_warns_on_missing_optimization(
     mock_loader,
-    mock_preparer,
-    mock_writer,
     mock_manager,
     mock_executor,
     mock_evaluator,
@@ -206,14 +307,8 @@ async def test_process_warns_on_missing_optimization(
         create=True,
         new=None,
     ):
-        mock_manager.get_directory_path.side_effect = (
-            lambda stage, strategy_name, symbol, *args, **kwargs: tmp_path
-            / f"optimization_{strategy_name}_{symbol}"
-        )
         coordinator = StrategyTestingStageCoordinator(
             data_loader=mock_loader,
-            data_preparer=mock_preparer,
-            data_writer=mock_writer,
             stage_data_manager=mock_manager,
             strategy_executor=mock_executor,
             strategy_evaluator=mock_evaluator,
@@ -236,7 +331,7 @@ async def test_process_warns_on_missing_optimization(
             yield pd.DataFrame({"a": [1]})
 
         prepared_data = {"AAPL": lambda: df_iter()}
-        result = await coordinator.process(prepared_data)
+        result = await coordinator._process_and_write(prepared_data)
         assert result == {}
         assert mock_logger.warning.called
 
@@ -244,8 +339,6 @@ async def test_process_warns_on_missing_optimization(
 @pytest.mark.asyncio
 async def test_process_warns_on_no_data(
     mock_loader,
-    mock_preparer,
-    mock_writer,
     mock_manager,
     mock_executor,
     mock_evaluator,
@@ -265,14 +358,8 @@ async def test_process_warns_on_no_data(
         create=True,
         new=None,
     ):
-        mock_manager.get_directory_path.side_effect = (
-            lambda stage, strategy_name, symbol: tmp_path
-            / f"optimization_{strategy_name}_{symbol}"
-        )
         coordinator = StrategyTestingStageCoordinator(
             data_loader=mock_loader,
-            data_preparer=mock_preparer,
-            data_writer=mock_writer,
             stage_data_manager=mock_manager,
             strategy_executor=mock_executor,
             strategy_evaluator=mock_evaluator,
@@ -292,7 +379,7 @@ async def test_process_warns_on_no_data(
                 yield
 
         prepared_data = {"AAPL": lambda: empty_df_iter()}
-        result = await coordinator.process(prepared_data)
+        result = await coordinator._process_and_write(prepared_data)
         assert result == {}
         assert mock_logger.warning.called
 
@@ -300,8 +387,6 @@ async def test_process_warns_on_no_data(
 @pytest.mark.asyncio
 async def test_write_is_noop(
     mock_loader,
-    mock_preparer,
-    mock_writer,
     mock_manager,
     mock_executor,
     mock_evaluator,
@@ -322,8 +407,6 @@ async def test_write_is_noop(
     ):
         coordinator = StrategyTestingStageCoordinator(
             data_loader=mock_loader,
-            data_preparer=mock_preparer,
-            data_writer=mock_writer,
             stage_data_manager=mock_manager,
             strategy_executor=mock_executor,
             strategy_evaluator=mock_evaluator,
@@ -333,5 +416,20 @@ async def test_write_is_noop(
             optimization_root=".",
             optimization_json_filename="test.json",
         )
-        result = await coordinator._write(None, None)
-        assert result is None
+        coordinator.test_window_id = "test_window"
+        coordinator.test_start_date = "2024-02-01"
+        coordinator.test_end_date = "2024-02-28"
+
+        result = coordinator._write_test_results(
+            symbol="AAPL",
+            strategy_name="StrategyA",
+            metrics={"sharpe_ratio": 2.0},
+            optimization_result={},
+            results={},
+        )
+        assert "AAPL" in result
+        assert "StrategyA" in result["AAPL"]
+        assert "test_window" in result["AAPL"]["StrategyA"]
+        assert (
+            result["AAPL"]["StrategyA"]["test_window"]["metrics"]["sharpe_ratio"] == 2.0
+        )

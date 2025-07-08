@@ -2,11 +2,10 @@ import json
 from datetime import datetime
 from logging import Logger
 from pathlib import Path
-from typing import AsyncIterator, Callable, Dict, Optional, Sequence
+from typing import Any, AsyncIterator, Callable, Dict, Optional, Sequence
 
 import pandas as pd
 
-from algo_royale.backtester.data_preparer.async_data_preparer import AsyncDataPreparer
 from algo_royale.backtester.enum.backtest_stage import BacktestStage
 from algo_royale.backtester.evaluator.backtest.base_backtest_evaluator import (
     BacktestEvaluator,
@@ -20,9 +19,10 @@ from algo_royale.backtester.optimizer.signal.signal_strategy_optimizer_factory i
 from algo_royale.backtester.stage_coordinator.optimization.base_optimization_stage_coordinator import (
     BaseOptimizationStageCoordinator,
 )
-from algo_royale.backtester.stage_data.stage_data_loader import StageDataLoader
+from algo_royale.backtester.stage_data.loader.symbol_strategy_data_loader import (
+    SymbolStrategyDataLoader,
+)
 from algo_royale.backtester.stage_data.stage_data_manager import StageDataManager
-from algo_royale.backtester.stage_data.stage_data_writer import StageDataWriter
 from algo_royale.backtester.strategy.signal.base_signal_strategy import (
     BaseSignalStrategy,
 )
@@ -34,30 +34,27 @@ from algo_royale.backtester.strategy_combinator.signal.base_signal_strategy_comb
 class StrategyOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
     """Coordinator for the optimization stage of the backtest pipeline.
     This class is responsible for optimizing and backtesting strategies
-    for a list of symbols using the provided data loader, data preparer,
-    data writer, and strategy executor.
+    for a list of symbols using the provided data loader, data writer,
+    and strategy executor.
     It also handles the evaluation of the backtest results.
 
     Parameters:
-        data_loader: Data loader for the stage.
-        data_preparer: Data preparer for the stage.
-        data_writer: Data writer for the stage.
-        stage_data_manager: Stage data manager.
-        strategy_factory: StrategyFactory instance for creating strategies.
-        logger: Logger instance.
+        data_loader: SymbolStrategyDataLoader instance for loading data.
+        logger: Logger instance for logging information and errors.
+        stage_data_manager: StageDataManager instance for managing stage data.
         strategy_executor: StrategyBacktestExecutor instance for executing backtests.
         strategy_evaluator: BacktestEvaluator instance for evaluating backtest results.
         strategy_combinators: List of strategy combinator classes to use.
+        optimization_root: Root directory for saving optimization results.
+        optimization_json_filename: Name of the JSON file to save optimization results.
         signal_strategy_optimizer_factory: Factory for creating signal strategy optimizers.
     """
 
     def __init__(
         self,
-        data_loader: StageDataLoader,
-        data_preparer: AsyncDataPreparer,
-        data_writer: StageDataWriter,
-        stage_data_manager: StageDataManager,
+        data_loader: SymbolStrategyDataLoader,
         logger: Logger,
+        stage_data_manager: StageDataManager,
         strategy_executor: StrategyBacktestExecutor,
         strategy_evaluator: BacktestEvaluator,
         strategy_combinators: Sequence[type[SignalStrategyCombinator]],
@@ -65,24 +62,10 @@ class StrategyOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
         optimization_json_filename: str,
         signal_strategy_optimizer_factory: SignalStrategyOptimizerFactory,
     ):
-        """Coordinator for the backtest stage.
-        Args:
-            config: Configuration object.
-            data_loader: Data loader for the stage.
-            data_preparer: Data preparer for the stage.
-            data_writer: Data writer for the stage.
-            stage_data_manager: Stage data manager.
-            logger: Logger instance.
-            strategy_combinators: List of strategy combinator classes to use.
-        """
         super().__init__(
             stage=BacktestStage.STRATEGY_OPTIMIZATION,
             data_loader=data_loader,
-            data_preparer=data_preparer,
-            data_writer=data_writer,
             stage_data_manager=stage_data_manager,
-            executor=strategy_executor,
-            evaluator=strategy_evaluator,
             strategy_combinators=strategy_combinators,
             logger=logger,
         )
@@ -92,19 +75,23 @@ class StrategyOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
             self.optimization_root.mkdir(parents=True, exist_ok=True)
         self.optimization_json_filename = optimization_json_filename
         self.signal_strategy_optimizer_factory = signal_strategy_optimizer_factory
+        self.executor = strategy_executor
+        self.evaluator = strategy_evaluator
+        self.stage_data_manager = stage_data_manager
 
-    async def process(
+    async def _process_and_write(
         self,
-        prepared_data: Optional[
-            Dict[str, Callable[[], AsyncIterator[pd.DataFrame]]]
-        ] = None,
+        data: Optional[Dict[str, Callable[[], AsyncIterator[pd.DataFrame]]]] = None,
     ) -> Dict[str, Dict[str, dict]]:
-        """Process the optimization stage."""
-        results = {}
+        """Process the data for optimization and backtesting.
+        This method iterates over the data for each symbol, performing
+        optimization and backtesting as needed.
+        """
 
-        for symbol, df_iter_factory in prepared_data.items():
-            if symbol not in prepared_data:
-                self.logger.warning(f"No prepared data for symbol: {symbol}")
+        results = {}
+        for symbol, df_iter_factory in data.items():
+            if symbol not in data:
+                self.logger.warning(f"No data for symbol: {symbol}")
                 continue
 
             dfs = []
@@ -112,16 +99,16 @@ class StrategyOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
                 dfs.append(df)
             if not dfs:
                 self.logger.warning(
-                    f"No data for symbol: {symbol} in window {self.window_id}"
+                    f"No data for symbol: {symbol} in window for dates {self.start_date} to {self.end_date}"
                 )
                 continue
             train_df = pd.concat(dfs, ignore_index=True)
 
             for strategy_combinator in self.strategy_combinators:
-                strategy_class = strategy_combinator.strategy_class
-                strategy_name = strategy_class.__name__
-                # Run optimization
                 try:
+                    strategy_class = strategy_combinator.strategy_class
+                    strategy_name = strategy_class.__name__
+                    # Run optimization
                     optimizer = self.signal_strategy_optimizer_factory.create(
                         strategy_class=strategy_class,
                         condition_types=strategy_combinator.get_condition_types(),
@@ -130,49 +117,26 @@ class StrategyOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
                         ),
                     )
                     optimization_result = optimizer.optimize(symbol, train_df)
-
+                    # Validate the optimization results
+                    if not self._validate_optimization_results(optimization_result):
+                        self.logger.error(
+                            f"Optimization results validation failed for {symbol} {strategy_name}"
+                        )
+                        continue
+                    # Write the optimization results to JSON
+                    results = self._write_results(
+                        symbol=symbol,
+                        start_date=self.start_date,
+                        end_date=self.end_date,
+                        strategy_name=strategy_name,
+                        optimization_result=optimization_result,
+                        results=results,
+                    )
                 except Exception as e:
                     self.logger.error(
                         f"Optimization failed for symbol {symbol}, strategy {strategy_name}: {e}"
                     )
                     continue
-
-                # Save optimization metrics to optimization_result.json under window_id
-                out_path = self._get_output_path(
-                    strategy_name,
-                    symbol,
-                    self.start_date,
-                    self.end_date,
-                )
-                self.logger.info(
-                    f"Saving optimization results for {symbol} {strategy_name} to {out_path}"
-                )
-                # Load existing results if present
-                if out_path.exists():
-                    with open(out_path, "r") as f:
-                        opt_results = json.load(f)
-                else:
-                    opt_results = {}
-
-                if self.window_id not in opt_results:
-                    opt_results[self.window_id] = {}
-
-                opt_results[self.window_id]["optimization"] = (
-                    optimization_result  # or "test" for test results
-                )
-
-                opt_results[self.window_id]["window"] = {
-                    "start_date": str(self.start_date),
-                    "end_date": str(self.end_date),
-                }
-
-                # Save the updated results
-                with open(out_path, "w") as f:
-                    json.dump(opt_results, f, indent=2, default=str)
-
-                results.setdefault(symbol, {})[strategy_name] = {
-                    self.window_id: optimization_result
-                }
 
         return results
 
@@ -180,7 +144,7 @@ class StrategyOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
         self, strategy_name: str, symbol: str, start_date: datetime, end_date: datetime
     ):
         """Get the output path for the optimization results JSON file."""
-        out_dir = self.stage_data_manager.get_extended_path(
+        out_dir = self.stage_data_manager.get_directory_path(
             base_dir=self.optimization_root,
             strategy_name=strategy_name,
             symbol=symbol,
@@ -211,3 +175,72 @@ class StrategyOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
         full_df = pd.concat(dfs, ignore_index=True)
         metrics = self.evaluator.evaluate(strategy, full_df)
         return metrics
+
+    def _validate_optimization_results(
+        self, results: Dict[str, Dict[str, dict]]
+    ) -> bool:
+        """Validate the optimization results to ensure they contain the expected structure."""
+        validation_method = (
+            BacktestStage.STRATEGY_OPTIMIZATION.value.output_validation_fn
+        )
+        if not validation_method:
+            self.logger.warning(
+                "No validation method defined for strategy optimization results. Skipping validation."
+            )
+            return False
+        return validation_method(results)
+
+    def _write_results(
+        self,
+        symbol: str,
+        start_date: datetime,
+        end_date: datetime,
+        strategy_name: str,
+        optimization_result: Dict[str, Any],
+        results: Dict[str, Dict[str, dict]],
+    ) -> Dict[str, Dict[str, dict]]:
+        try:
+            # Update the results dictionary to match the validator's requirements
+            results.setdefault(symbol, {})[strategy_name] = {
+                self.window_id: {
+                    "optimization": {
+                        "strategy": strategy_name,
+                        "best_value": optimization_result.get("best_value"),
+                        "best_params": optimization_result.get("best_params", {}),
+                        "meta": {
+                            "run_time_sec": optimization_result.get("run_time_sec", 0),
+                            "n_trials": optimization_result.get("n_trials", 0),
+                            "symbol": symbol,
+                            "direction": optimization_result.get("direction", "long"),
+                            "multi_objective": optimization_result.get(
+                                "multi_objective", False
+                            ),
+                        },
+                        "metrics": optimization_result.get("metrics", {}),
+                    },
+                    "window": {
+                        "start_date": str(start_date),
+                        "end_date": str(end_date),
+                    },
+                }
+            }
+
+            # Save optimization metrics to optimization_result.json under window_id
+            out_path = self._get_output_path(
+                strategy_name,
+                symbol,
+                start_date,
+                end_date,
+            )
+            self.logger.info(
+                f"Saving optimization results for {symbol} {strategy_name} to {out_path}"
+            )
+            # Write the updated results to the file
+            with open(out_path, "w") as f:
+                json.dump(results[symbol][strategy_name], f, indent=2, default=str)
+
+        except Exception as e:
+            self.logger.error(
+                f"Error writing results for {symbol} {strategy_name}: {e}"
+            )
+        return results

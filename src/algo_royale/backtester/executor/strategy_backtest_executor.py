@@ -164,11 +164,14 @@ class StrategyBacktestExecutor(BacktestExecutor):
         ]
         for col in essential_cols:
             if col not in df.columns:
+                self.logger.error(f"Missing essential column: {col}")
                 raise ValueError(f"Missing essential column: {col}")
             if df[col].isnull().any():
+                self.logger.error(f"Null values found in essential column: {col}")
                 raise ValueError(f"Null values found in essential column: {col}")
 
         if (df[SignalStrategyExecutorColumns.CLOSE_PRICE] <= 0).any():
+            self.logger.error("Invalid close prices (<= 0) detected in DataFrame")
             raise ValueError("Invalid close prices (<= 0) detected")
 
         if not pd.api.types.is_datetime64_any_dtype(
@@ -181,12 +184,18 @@ class StrategyBacktestExecutor(BacktestExecutor):
     ) -> None:
         strategy_name = strategy.get_hash_id()
         if len(signals_df) != len(df):
+            self.logger.error(
+                f"Strategy {strategy_name} returned {len(signals_df)} rows for {len(df)} input rows"
+            )
             raise ValueError(
                 f"Strategy {strategy_name} returned "
                 f"{len(signals_df)} rows for {len(df)} input rows"
             )
 
         if not isinstance(signals_df, pd.DataFrame):
+            self.logger.error(
+                f"Strategy {strategy_name} must return a pandas DataFrame, got {type(signals_df)}"
+            )
             raise ValueError(f"Strategy {strategy_name} must return a pandas DataFrame")
 
         for col in [
@@ -194,6 +203,9 @@ class StrategyBacktestExecutor(BacktestExecutor):
             SignalStrategyExecutorColumns.EXIT_SIGNAL,
         ]:
             if col not in signals_df.columns:
+                self.logger.error(
+                    f"Strategy {strategy_name} output missing required column: {col}"
+                )
                 raise ValueError(
                     f"Strategy {strategy_name} output missing required column: {col}"
                 )
@@ -209,6 +221,9 @@ class StrategyBacktestExecutor(BacktestExecutor):
             .any()
             .any()
         ):
+            self.logger.error(
+                f"Strategy {strategy_name} returned signals containing null values"
+            )
             raise ValueError(
                 f"Strategy {strategy_name} returned signals containing null values"
             )

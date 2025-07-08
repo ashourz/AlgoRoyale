@@ -2,9 +2,6 @@ import asyncio
 
 import pandas as pd
 
-from algo_royale.backtester.column_names.feature_engineering_columns import (
-    FeatureEngineeringColumns,
-)
 from algo_royale.backtester.column_names.strategy_columns import (
     SignalStrategyColumns,
     SignalStrategyExecutorColumns,
@@ -87,14 +84,3 @@ def validate_signal_strategy_backtest_executor_output(
     return validate_iterator_dict(
         output, SignalStrategyExecutorColumns.get_all_column_values()
     )
-
-
-def validate_portfolio_optimization_testing_stage_coordinator_input(
-    data: dict[str, callable],
-) -> bool:
-    """
-    Validate input for PortfolioOptimizationStageCoordinator.
-    Each value must be a callable returning an async iterator yielding DataFrames with required columns.
-    """
-    required_columns = FeatureEngineeringColumns.get_all_column_values()
-    return validate_async_iterator_dict(data, required_columns)

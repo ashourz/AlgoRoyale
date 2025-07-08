@@ -3,7 +3,7 @@ from unittest.mock import ANY, AsyncMock, MagicMock
 import pandas as pd
 import pytest
 
-from algo_royale.backtester.stage_coordinator.feature_engineering_stage_coordinator import (
+from algo_royale.backtester.stage_coordinator.data_staging.feature_engineering_stage_coordinator import (
     FeatureEngineeringStageCoordinator,
 )
 
@@ -15,11 +15,6 @@ def mock_logger():
 
 @pytest.fixture
 def mock_data_loader():
-    return MagicMock()
-
-
-@pytest.fixture
-def mock_data_preparer():
     return MagicMock()
 
 
@@ -50,14 +45,12 @@ def mock_feature_engineer():
 def coordinator(
     mock_logger,
     mock_data_loader,
-    mock_data_preparer,
     mock_data_writer,
     mock_stage_data_manager,
     mock_feature_engineer,
 ):
     return FeatureEngineeringStageCoordinator(
         data_loader=mock_data_loader,
-        data_preparer=mock_data_preparer,
         data_writer=mock_data_writer,
         stage_data_manager=mock_stage_data_manager,
         logger=mock_logger,
@@ -82,7 +75,7 @@ async def test_process_success(coordinator, mock_feature_engineer, async_gen_fac
     # prepared_data: symbol -> factory returning async generator
     prepared_data = {"AAPL": async_gen_factory}
 
-    result = await coordinator.process(prepared_data)
+    result = await coordinator._process(prepared_data)
     out = []
     async for df in result["AAPL"][None]():  # <-- Fix: use [None] to get the factory
         out.append(df)
@@ -93,7 +86,7 @@ async def test_process_success(coordinator, mock_feature_engineer, async_gen_fac
 async def test_process_engineer_returns_empty(coordinator, mock_feature_engineer):
     # Patch _engineer to return empty dict
     coordinator._engineer = AsyncMock(return_value={})
-    result = await coordinator.process({"AAPL": lambda: None})
+    result = await coordinator._process({"AAPL": lambda: None})
     assert result == {}
     coordinator.logger.error.assert_called_with("Feature engineering failed")
 

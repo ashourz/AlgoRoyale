@@ -2,6 +2,7 @@ import json
 from logging import Logger
 from pathlib import Path
 
+from algo_royale.backtester.enum.backtest_stage import BacktestStage
 from algo_royale.logging.logger_singleton import mockLogger
 
 
@@ -37,59 +38,82 @@ class SymbolEvaluationCoordinator:
     def run(self):
         self.logger.info("Starting symbol evaluation...")
         # Loop over all symbol directories
-        for symbol_dir in self.optimization_root.iterdir():
-            self.logger.info(f"Evaluating symbol directory: {symbol_dir}")
-            if not symbol_dir.is_dir():
-                continue
-            symbol = symbol_dir.name
-            strategy_dirs = [d for d in symbol_dir.iterdir() if d.is_dir()]
-            results = []
-            for strat_dir in strategy_dirs:
-                self.logger.debug(f"Checking strategy directory: {strat_dir}")
-                eval_path = strat_dir / self.evaluation_json_filename
-                if eval_path.exists():
-                    with open(eval_path) as f:
-                        report = json.load(f)
+        try:
+            for symbol_dir in self.optimization_root.iterdir():
+                self.logger.info(f"Evaluating symbol directory: {symbol_dir}")
+                if not symbol_dir.is_dir():
+                    continue
+                symbol = symbol_dir.name
+                strategy_dirs = [d for d in symbol_dir.iterdir() if d.is_dir()]
+                results = []
+                for strat_dir in strategy_dirs:
+                    self.logger.debug(f"Checking strategy directory: {strat_dir}")
+                    eval_path = strat_dir / self.evaluation_json_filename
+                    if eval_path.exists():
+                        with open(eval_path) as f:
+                            loaded_results = json.load(f)
+                        if not self._validate_input_report(loaded_results):
+                            self.logger.warning(
+                                f"Invalid evaluation report for {symbol} in {strat_dir}. Skipping."
+                            )
+                            continue
+                        report = loaded_results
                         report["strategy"] = strat_dir.name
                         results.append(report)
 
-            if not results:
-                print(f"No evaluation results found for {symbol}")
-                continue
+                if not results:
+                    print(f"No evaluation results found for {symbol}")
+                    continue
 
-            # Filter only viable strategies
-            viable_strategies = [
-                r
-                for r in results
-                if r.get("viability_score", 0) >= self.viability_threshold
-            ]
+                # Filter only viable strategies
+                viable_strategies = [
+                    r
+                    for r in results
+                    if r.get("viability_score", 0) >= self.viability_threshold
+                ]
 
-            if viable_strategies:
-                # Sort by viability_score, then by param_consistency
-                best = max(
-                    viable_strategies,
-                    key=lambda r: (
-                        r.get("viability_score", 0),
-                        r.get("param_consistency", 0),
-                    ),
-                )
-                print(
-                    f"Selected strategy for {symbol}: {best['strategy']} "
-                    f"(viability_score={best['viability_score']}, param_consistency={best.get('param_consistency', 0)})"
-                )
-            else:
-                # If no viable strategy, pick the one with highest viability_score anyway
-                best = max(results, key=lambda r: r.get("viability_score", 0))
-                print(
-                    f"No viable strategy found for {symbol}. "
-                    f"Best available: {best['strategy']} (viability_score={best['viability_score']})"
-                )
+                if viable_strategies:
+                    # Sort by viability_score, then by param_consistency
+                    best = max(
+                        viable_strategies,
+                        key=lambda r: (
+                            r.get("viability_score", 0),
+                            r.get("param_consistency", 0),
+                        ),
+                    )
+                    print(
+                        f"Selected strategy for {symbol}: {best['strategy']} "
+                        f"(viability_score={best['viability_score']}, param_consistency={best.get('param_consistency', 0)})"
+                    )
+                else:
+                    # If no viable strategy, pick the one with highest viability_score anyway
+                    best = max(results, key=lambda r: r.get("viability_score", 0))
+                    print(
+                        f"No viable strategy found for {symbol}. "
+                        f"Best available: {best['strategy']} (viability_score={best['viability_score']})"
+                    )
 
-            # Write a summary report for the symbol
-            summary_path = symbol_dir / self.summary_json_filename
-            with open(summary_path, "w") as f:
-                json.dump(best, f, indent=2)
-            print(f"Symbol evaluation report written to {summary_path}")
+                # Write a summary report for the symbol
+                summary_path = symbol_dir / self.summary_json_filename
+                with open(summary_path, "w") as f:
+                    json.dump(best, f, indent=2)
+                print(f"Symbol evaluation report written to {summary_path}")
+        except Exception as e:
+            self.logger.error(f"Error during symbol evaluation: {e}")
+            raise e
+
+    def _validate_input_report(self, report: dict) -> None:
+        """
+        Validate the input report structure.
+        Args:
+            report (dict): The evaluation report to validate.
+        Raises:
+            ValueError: If the report does not contain required fields.
+        """
+        validation_method = BacktestStage.SYMBOL_EVALUATION.input_validation_fn
+        if not callable(validation_method):
+            raise ValueError(f"Validation method {validation_method} is not callable.")
+        return validation_method(report)
 
 
 def mockSymbolEvaluationCoordinator():

@@ -5,7 +5,7 @@ from dependency_injector import containers, providers
 from algo_royale.backtester.data_preparer.asset_matrix_preparer import (
     AssetMatrixPreparer,
 )
-from algo_royale.backtester.data_preparer.async_data_preparer import AsyncDataPreparer
+from algo_royale.backtester.data_preparer.stage_data_preparer import StageDataPreparer
 from algo_royale.backtester.evaluator.backtest.portfolio_backtest_evaluator import (
     PortfolioBacktestEvaluator,
 )
@@ -41,10 +41,10 @@ from algo_royale.backtester.optimizer.signal.signal_strategy_optimizer_factory i
     SignalStrategyOptimizerFactoryImpl,
 )
 from algo_royale.backtester.pipeline.pipeline_coordinator import PipelineCoordinator
-from algo_royale.backtester.stage_coordinator.data_ingest_stage_coordinator import (
+from algo_royale.backtester.stage_coordinator.data_staging.data_ingest_stage_coordinator import (
     DataIngestStageCoordinator,
 )
-from algo_royale.backtester.stage_coordinator.feature_engineering_stage_coordinator import (
+from algo_royale.backtester.stage_coordinator.data_staging.feature_engineering_stage_coordinator import (
     FeatureEngineeringStageCoordinator,
 )
 from algo_royale.backtester.stage_coordinator.optimization.portfolio_optimization_stage_coordinator import (
@@ -59,9 +59,15 @@ from algo_royale.backtester.stage_coordinator.testing.portfolio_testing_stage_co
 from algo_royale.backtester.stage_coordinator.testing.strategy_testing_stage_coordinator import (
     StrategyTestingStageCoordinator,
 )
-from algo_royale.backtester.stage_data.stage_data_loader import StageDataLoader
+from algo_royale.backtester.stage_data.loader.stage_data_loader import StageDataLoader
+from algo_royale.backtester.stage_data.loader.symbol_strategy_data_loader import (
+    SymbolStrategyDataLoader,
+)
 from algo_royale.backtester.stage_data.stage_data_manager import StageDataManager
-from algo_royale.backtester.stage_data.stage_data_writer import StageDataWriter
+from algo_royale.backtester.stage_data.writer.stage_data_writer import StageDataWriter
+from algo_royale.backtester.stage_data.writer.symbol_strategy_data_writer import (
+    SymbolStrategyDataWriter,
+)
 from algo_royale.backtester.strategy_combinator.portfolio.equal_risk_contribution_portfolio_strategy_combinator import (
     EqualRiskContributionPortfolioStrategyCombinator,
 )
@@ -280,8 +286,10 @@ class DIContainer(containers.DeclarativeContainer):
         StageDataManager, data_dir=data_dir, logger=logger_backtest_prod
     )
 
-    async_data_preparer = providers.Singleton(
-        AsyncDataPreparer, logger=logger_backtest_prod
+    stage_data_preparer = providers.Singleton(
+        StageDataPreparer,
+        stage_data_manager=stage_data_manager,
+        logger=logger_backtest_prod,
     )
 
     watchlist_path_string = providers.Object(
@@ -319,12 +327,24 @@ class DIContainer(containers.DeclarativeContainer):
         config=config,
     )
 
+    symbol_strategy_data_loader = providers.Singleton(
+        SymbolStrategyDataLoader,
+        stage_data_manager=stage_data_manager,
+        stage_data_loader=stage_data_loader,
+        logger=logger_backtest_prod,
+    )
+
+    symbol_strategy_data_writer = providers.Singleton(
+        SymbolStrategyDataWriter,
+        stage_data_manager=stage_data_manager,
+        data_writer=stage_data_writer,
+        logger=logger_backtest_prod,
+    )
+
     data_ingest_stage_coordinator = providers.Singleton(
         DataIngestStageCoordinator,
         data_loader=stage_data_loader,
-        data_preparer=async_data_preparer,
-        data_writer=stage_data_writer,
-        stage_data_manager=stage_data_manager,
+        data_writer=symbol_strategy_data_writer,
         logger=logger_backtest_prod,
         quote_service=alpaca_quote_service,
         load_watchlist=load_watchlist_func,
@@ -333,9 +353,9 @@ class DIContainer(containers.DeclarativeContainer):
 
     feature_engineering_stage_coordinator = providers.Singleton(
         FeatureEngineeringStageCoordinator,
-        data_loader=stage_data_loader,
-        data_preparer=async_data_preparer,
-        data_writer=stage_data_writer,
+        data_loader=symbol_strategy_data_loader,
+        data_preparer=stage_data_preparer,
+        data_writer=symbol_strategy_data_writer,
         stage_data_manager=stage_data_manager,
         logger=logger_backtest_prod,
         feature_engineer=feature_engineer,
@@ -387,9 +407,7 @@ class DIContainer(containers.DeclarativeContainer):
 
     strategy_optimization_stage_coordinator = providers.Singleton(
         StrategyOptimizationStageCoordinator,
-        data_loader=stage_data_loader,
-        data_preparer=async_data_preparer,
-        data_writer=stage_data_writer,
+        data_loader=symbol_strategy_data_loader,
         stage_data_manager=stage_data_manager,
         logger=logger_backtest_prod,
         strategy_combinators=signal_strategy_combinators,
@@ -408,9 +426,7 @@ class DIContainer(containers.DeclarativeContainer):
 
     strategy_testing_stage_coordinator = providers.Singleton(
         StrategyTestingStageCoordinator,
-        data_loader=stage_data_loader,
-        data_preparer=async_data_preparer,
-        data_writer=stage_data_writer,
+        data_loader=symbol_strategy_data_loader,
         stage_data_manager=stage_data_manager,
         strategy_executor=strategy_executor,
         strategy_evaluator=strategy_evaluator,
@@ -489,8 +505,6 @@ class DIContainer(containers.DeclarativeContainer):
     portfolio_optimization_stage_coordinator = providers.Singleton(
         PortfolioOptimizationStageCoordinator,
         data_loader=stage_data_loader,
-        data_preparer=async_data_preparer,
-        data_writer=stage_data_writer,
         stage_data_manager=stage_data_manager,
         executor=portfolio_executor,
         evaluator=portfolio_evaluator,
@@ -513,8 +527,6 @@ class DIContainer(containers.DeclarativeContainer):
     portfolio_testing_stage_coordinator = providers.Singleton(
         PortfolioTestingStageCoordinator,
         data_loader=stage_data_loader,
-        data_preparer=async_data_preparer,
-        data_writer=stage_data_writer,
         stage_data_manager=stage_data_manager,
         executor=portfolio_executor,
         evaluator=portfolio_evaluator,

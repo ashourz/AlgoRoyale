@@ -12,6 +12,7 @@ from algo_royale.backtester.stage_data_validation.portfolio_optimization_stage_c
     validate_portfolio_optimization_json_output,
 )
 from algo_royale.backtester.stage_data_validation.portfolio_testing_stage_coordinator_validator import (
+    validate_portfolio_optimization_testing_stage_coordinator_input,
     validate_portfolio_testing_json_output,
 )
 from algo_royale.backtester.stage_data_validation.signal_backtest_evaluator_validator import (
@@ -33,7 +34,6 @@ from algo_royale.backtester.stage_data_validation.signal_summary_validator impor
     signal_summary_validator,
 )
 from algo_royale.backtester.stage_data_validation.validate_asyn_iterator_dict import (
-    validate_portfolio_optimization_testing_stage_coordinator_input,
     validate_signal_strategy_backtest_executor_input,
     validate_signal_strategy_backtest_executor_output,
 )

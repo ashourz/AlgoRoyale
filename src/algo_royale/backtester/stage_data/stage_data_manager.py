@@ -22,24 +22,22 @@ class StageDataManager:
 
     def get_file_path(
         self,
-        stage: BacktestStage,
-        strategy_name: Optional[str],
-        symbol: str,
         filename: str,
         extension: DataExtension,
+        stage: Optional[BacktestStage] = None,
+        symbol: Optional[str] = None,
+        strategy_name: Optional[str] = None,
+        start_date: Optional[datetime] = None,
+        end_date: Optional[datetime] = None,
     ) -> Path:
-        path = (
-            self.base_dir
-            / stage.name
-            / strategy_name
-            / symbol
-            / f"{filename}.{extension.value}.csv"
-            if strategy_name
-            else self.base_dir
-            / stage.name
-            / symbol
-            / f"{filename}.{extension.value}.csv"
+        path = self.get_directory_path(
+            stage=stage,
+            symbol=symbol,
+            strategy_name=strategy_name,
+            start_date=start_date,
+            end_date=end_date,
         )
+        path = path / f"{filename}.{extension.value}.csv"
         self.logger.debug(f"Generated file path: {path}")
         return path
 
@@ -60,38 +58,25 @@ class StageDataManager:
 
     def get_directory_path(
         self,
-        stage: BacktestStage,
-        strategy_name: Optional[str],
-        symbol: Optional[str],
+        base_dir: Optional[Path] = None,
+        stage: Optional[BacktestStage] = None,
+        symbol: Optional[str] = None,
+        strategy_name: Optional[str] = None,
         start_date: Optional[datetime] = None,
         end_date: Optional[datetime] = None,
     ) -> Path:
         """Generate the directory path for a given stage, strategy, and symbol.
-        If strategy_name is None, it will not include it in the path.
-        If symbol is None, it will not include it in the path.
+        If base_dir is not provided, use the instance's base_dir.
+        If stage, symbol, or strategy_name are not provided, they will be omitted from the path.
+        If start_date and end_date are provided, a date window ID will be appended to the path.
+        Directory structure:
+        base_dir/<stage>/<symbol>/<strategy_name>/<date_window_id>/
         """
-        path = self.base_dir / stage.name
-        if symbol:
-            path = path / symbol
-        if strategy_name:
-            path = path / strategy_name
-        if start_date and end_date:
-            date_window_id = self.get_window_id(start_date, end_date)
-            path = path / date_window_id
-
-        self.logger.debug(f"Generated directory path: {path}")
-        return path
-
-    def get_extended_path(
-        self,
-        base_dir: str,
-        strategy_name: Optional[str],
-        symbol: Optional[str],
-        start_date: Optional[datetime] = None,
-        end_date: Optional[datetime] = None,
-    ) -> Path:
-        """Generate the directory path for a given base directory, strategy, and symbol."""
+        if base_dir is None:
+            base_dir = self.base_dir
         path = base_dir
+        if stage:
+            path = path / stage.name
         if symbol:
             path = path / symbol
         if strategy_name:
@@ -126,7 +111,13 @@ class StageDataManager:
         end_date: Optional[datetime] = None,
     ) -> bool:
         done_file = (
-            self.get_directory_path(stage, strategy_name, symbol, start_date, end_date)
+            self.get_directory_path(
+                stage=stage,
+                strategy_name=strategy_name,
+                symbol=symbol,
+                start_date=start_date,
+                end_date=end_date,
+            )
             / f"{stage.name}.{DataExtension.DONE.value}.csv"
         )
         exists = done_file.exists()
@@ -157,7 +148,11 @@ class StageDataManager:
         end_date: Optional[datetime] = None,
     ) -> None:
         stage_path = self.get_directory_path(
-            stage, strategy_name, symbol, start_date, end_date
+            stage=stage,
+            strategy_name=strategy_name,
+            symbol=symbol,
+            start_date=start_date,
+            end_date=end_date,
         )
         stage_path.mkdir(parents=True, exist_ok=True)
         for ext in DataExtension:
@@ -177,7 +172,13 @@ class StageDataManager:
         filename: str,
         extension: DataExtension,
     ) -> bool:
-        path = self.get_file_path(stage, strategy_name, symbol, filename, extension)
+        path = self.get_file_path(
+            stage=stage,
+            strategy_name=strategy_name,
+            symbol=symbol,
+            filename=filename,
+            extension=extension,
+        )
         exists = path.exists()
         self.logger.debug(f"Checked if file exists ({path}): {exists}")
         return exists
@@ -191,7 +192,13 @@ class StageDataManager:
         extension: DataExtension,
         mode: str = "r",
     ) -> Optional[str]:
-        path = self.get_file_path(stage, strategy_name, symbol, filename, extension)
+        path = self.get_file_path(
+            stage=stage,
+            strategy_name=strategy_name,
+            symbol=symbol,
+            filename=filename,
+            extension=extension,
+        )
         if not path.exists():
             self.logger.warning(f"Tried to read non-existent file: {path}")
             return None
@@ -210,7 +217,13 @@ class StageDataManager:
         data: Any,
         mode: str = "w",
     ) -> None:
-        path = self.get_file_path(stage, strategy_name, symbol, filename, extension)
+        path = self.get_file_path(
+            stage=stage,
+            strategy_name=strategy_name,
+            symbol=symbol,
+            filename=filename,
+            extension=extension,
+        )
         if not path.parent.exists():
             path.parent.mkdir(parents=True, exist_ok=True)
             self.logger.info(f"Created directory for writing file: {path.parent}")
@@ -247,7 +260,11 @@ class StageDataManager:
     ) -> None:
         """Write an error message to a file in the specified stage and symbol directory."""
         dir_path = self.get_directory_path(
-            stage, strategy_name, symbol, start_date, end_date
+            stage=stage,
+            strategy_name=strategy_name,
+            symbol=symbol,
+            start_date=start_date,
+            end_date=end_date,
         )
         dir_path.mkdir(parents=True, exist_ok=True)
         error_file = dir_path / f"{filename}.{DataExtension.ERROR.value}.csv"
@@ -267,7 +284,13 @@ class StageDataManager:
         filename: str,
         extension: DataExtension,
     ) -> None:
-        path = self.get_file_path(stage, strategy_name, symbol, filename, extension)
+        path = self.get_file_path(
+            stage=stage,
+            strategy_name=strategy_name,
+            symbol=symbol,
+            filename=filename,
+            extension=extension,
+        )
         if path.exists():
             os.remove(path)
             self.logger.info(f"Deleted file: {path}")
@@ -277,7 +300,9 @@ class StageDataManager:
     def list_files(
         self, stage: BacktestStage, strategy_name: Optional[str], symbol: str
     ) -> list:
-        dir_path = self.get_directory_path(stage, strategy_name, symbol)
+        dir_path = self.get_directory_path(
+            stage=stage, strategy_name=strategy_name, symbol=symbol
+        )
         if not dir_path.exists():
             self.logger.warning(
                 f"Tried to list files in non-existent directory: {dir_path}"
@@ -296,7 +321,11 @@ class StageDataManager:
         end_date: Optional[datetime] = None,
     ) -> None:
         path = self.get_directory_path(
-            stage, strategy_name, symbol, start_date, end_date
+            stage=stage,
+            strategy_name=strategy_name,
+            symbol=symbol,
+            start_date=start_date,
+            end_date=end_date,
         )
         if not path.exists():
             self.logger.warning(f"Tried to clear non-existent directory: {path}")
@@ -340,7 +369,11 @@ class StageDataManager:
     ) -> bool:
         """Check if a directory has files matching a given pattern or any files if no pattern is provided."""
         dir_path = self.get_directory_path(
-            stage, strategy_name, symbol, start_date, end_date
+            stage=stage,
+            strategy_name=strategy_name,
+            symbol=symbol,
+            start_date=start_date,
+            end_date=end_date,
         )
         if not dir_path.exists():
             self.logger.warning(f"Tried to check non-existent directory: {dir_path}")

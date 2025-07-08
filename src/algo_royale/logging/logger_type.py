@@ -10,7 +10,7 @@ class LoggerType(Enum):
     TRADING = ("trading", logging.INFO)
     BACKTESTING = ("backtesting", logging.WARNING)
     WATCHLIST = ("watchlist", logging.INFO)
-    TESTING = ("testing", logging.NOTSET)
+    TESTING = ("testing", logging.DEBUG)
 
     @property
     def log_name(self):

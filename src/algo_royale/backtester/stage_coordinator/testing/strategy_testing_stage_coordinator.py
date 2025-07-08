@@ -1,11 +1,10 @@
 import inspect
 import json
 from logging import Logger
-from typing import AsyncIterator, Callable, Dict, Optional, Sequence
+from typing import Any, AsyncIterator, Callable, Dict, Optional, Sequence
 
 import pandas as pd
 
-from algo_royale.backtester.data_preparer.async_data_preparer import AsyncDataPreparer
 from algo_royale.backtester.enum.backtest_stage import BacktestStage
 from algo_royale.backtester.evaluator.backtest.base_backtest_evaluator import (
     BacktestEvaluator,
@@ -16,9 +15,10 @@ from algo_royale.backtester.executor.strategy_backtest_executor import (
 from algo_royale.backtester.stage_coordinator.testing.base_testing_stage_coordinator import (
     BaseTestingStageCoordinator,
 )
-from algo_royale.backtester.stage_data.stage_data_loader import StageDataLoader
+from algo_royale.backtester.stage_data.loader.symbol_strategy_data_loader import (
+    SymbolStrategyDataLoader,
+)
 from algo_royale.backtester.stage_data.stage_data_manager import StageDataManager
-from algo_royale.backtester.stage_data.stage_data_writer import StageDataWriter
 from algo_royale.backtester.strategy_combinator.signal.base_signal_strategy_combinator import (
     SignalStrategyCombinator,
 )
@@ -28,11 +28,26 @@ from algo_royale.backtester.strategy_factory.signal.strategy_factory import (
 
 
 class StrategyTestingStageCoordinator(BaseTestingStageCoordinator):
+    """Coordinator for the strategy testing stage of the backtest pipeline.
+    This class is responsible for testing strategies using the provided data loader,
+    data manager, and executor. It handles the evaluation of backtest results and manages
+    optimization results for strategies.
+
+    Parameters:
+        data_loader (SymbolStrategyDataLoader): Loader for stage data.
+        stage_data_manager (StageDataManager): Manager for stage data directories.
+        strategy_executor (StrategyBacktestExecutor): Executor for running strategy backtests.
+        strategy_evaluator (BacktestEvaluator): Evaluator for assessing strategy backtest results.
+        strategy_factory (StrategyFactory): Factory for creating strategies.
+        logger (Logger): Logger for logging information and errors.
+        strategy_combinators (Sequence[type[SignalStrategyCombinator]]): List of strategy combinators.
+        optimization_root (str): Root directory for saving optimization results.
+        optimization_json_filename (str): Name of the JSON file to save optimization results.
+    """
+
     def __init__(
         self,
-        data_loader: StageDataLoader,
-        data_preparer: AsyncDataPreparer,
-        data_writer: StageDataWriter,
+        data_loader: SymbolStrategyDataLoader,
         stage_data_manager: StageDataManager,
         strategy_executor: StrategyBacktestExecutor,
         strategy_evaluator: BacktestEvaluator,
@@ -42,23 +57,8 @@ class StrategyTestingStageCoordinator(BaseTestingStageCoordinator):
         optimization_root: str,
         optimization_json_filename: str,
     ):
-        """Coordinator for the strategy testing stage of the backtest pipeline.
-        Params:
-            data_loader: StageDataLoader instance for loading data.
-            data_preparer: AsyncDataPreparer instance for preparing data.
-            data_writer: StageDataWriter instance for writing data.
-            stage_data_manager: StageDataManager instance for managing stage data.
-            strategy_executor: StrategyBacktestExecutor instance for executing backtests.
-            strategy_evaluator: BacktestEvaluator instance for evaluating backtest results.
-            strategy_factory: StrategyFactory instance for creating strategies.
-            logger: Logger instance for logging.
-            strategy_combinators: Sequence of StrategyCombinator classes to use.
-        """
-
         super().__init__(
             data_loader=data_loader,
-            data_preparer=data_preparer,
-            data_writer=data_writer,
             stage_data_manager=stage_data_manager,
             stage=BacktestStage.STRATEGY_TESTING,
             logger=logger,
@@ -70,70 +70,121 @@ class StrategyTestingStageCoordinator(BaseTestingStageCoordinator):
         )
         self.strategy_factory = strategy_factory
 
-    async def process(
+    def _get_train_optimization_results(
         self,
-        prepared_data: Optional[
-            Dict[str, Callable[[], AsyncIterator[pd.DataFrame]]]
-        ] = None,
+        strategy_name: str,
+        symbol: str,
+        start_date: str,
+        end_date: str,
+    ) -> Optional[Dict[str, Dict[str, dict]]]:
+        """Retrieve train optimization results for a given strategy and window ID."""
+        try:
+            self.logger.info(
+                f"Retrieving train optimization results for {strategy_name} during {self.train_window_id}"
+            )
+            train_opt_results = self._get_optimization_results(
+                strategy_name=strategy_name,
+                symbol=symbol,
+                start_date=start_date,
+                end_date=end_date,
+            )
+            if not train_opt_results:
+                self.logger.warning(
+                    f"No train optimization result for {symbol} {strategy_name} {self.train_window_id}"
+                )
+                return None
+            if not self._validate_optimization_results(train_opt_results):
+                self.logger.error(
+                    f"Train optimization results validation failed for {symbol} {strategy_name} {self.train_window_id}"
+                )
+                return None
+            return train_opt_results
+        except Exception as e:
+            self.logger.error(
+                f"Error retrieving train optimization results for {strategy_name} during {self.train_window_id}: {e}"
+            )
+            return None
+
+    def _get_test_optimization_results(
+        self,
+        strategy_name: str,
+        symbol: str,
+        start_date: str,
+        end_date: str,
+    ) -> Optional[Dict[str, Dict[str, dict]]]:
+        """Retrieve test optimization results for a given strategy and window ID."""
+        try:
+            self.logger.info(
+                f"Retrieving test optimization results for {strategy_name} during {self.test_window_id}"
+            )
+            test_opt_results = self._get_optimization_results(
+                strategy_name=strategy_name,
+                symbol=symbol,
+                start_date=start_date,
+                end_date=end_date,
+            )
+            if not test_opt_results:
+                self.logger.warning(
+                    f"No test optimization result for {symbol} {strategy_name} {self.test_window_id}"
+                )
+                return None
+            if not self._validate_test_results(test_opt_results):
+                self.logger.error(
+                    f"Test optimization results validation failed for {symbol} {strategy_name} {self.test_window_id}"
+                )
+                return None
+            return test_opt_results
+        except Exception as e:
+            self.logger.error(
+                f"Error retrieving test optimization results for {strategy_name} during {self.test_window_id}: {e}"
+            )
+            return None
+
+    async def _process_and_write(
+        self,
+        data: Optional[Dict[str, Callable[[], AsyncIterator[pd.DataFrame]]]] = None,
     ) -> Dict[str, Dict[str, Dict[str, float]]]:
         """Run backtests for all strategies in the watchlist using the best parameters from optimization."""
         results = {}
+        self.logger.debug(f"Initialized results dictionary: {results}")
 
-        for symbol, df_iter_factory in prepared_data.items():
-            if symbol not in prepared_data:
-                self.logger.warning(f"No prepared data for symbol: {symbol}")
+        for symbol, df_iter_factory in data.items():
+            self.logger.debug(f"Processing symbol: {symbol}")
+            if symbol not in data:
+                self.logger.warning(f"No data for symbol: {symbol}")
                 continue
 
             dfs = []
             async for df in df_iter_factory():
                 dfs.append(df)
+            self.logger.debug(f"DataFrames for {symbol}: {dfs}")
             if not dfs:
                 self.logger.warning(
                     f"No data for symbol: {symbol} in window {self.train_window_id}"
                 )
                 continue
             test_df = pd.concat(dfs, ignore_index=True)
-
+            self.logger.debug(f"Test DataFrame for {symbol}: {test_df}")
             for strategy_combinator in self.strategy_combinators:
                 strategy_class = strategy_combinator.strategy_class
                 strategy_name = strategy_class.__name__
-                train_opt_results = self._get_optimization_results(
-                    strategy_name=strategy_name,
+                self.logger.debug(f"Processing strategy: {strategy_name}")
+                optimized_params = self._get_train_optimization_results(
                     symbol=symbol,
+                    strategy_name=strategy_name,
                     start_date=self.train_start_date,
                     end_date=self.train_end_date,
                 )
-                if not train_opt_results:
-                    self.logger.warning(
-                        f"No optimization result for {symbol} {strategy_name} {self.train_window_id}"
-                    )
-                    continue
-
-                if (
-                    self.train_window_id not in train_opt_results
-                    or "optimization" not in train_opt_results[self.train_window_id]
-                ):
-                    self.logger.warning(
-                        f"No optimization result for {symbol} {strategy_name} {self.train_window_id}"
-                    )
-                    continue
-
-                best_params = train_opt_results[self.train_window_id]["optimization"][
-                    "best_params"
-                ]
-                # Only keep params accepted by the strategy's __init__
-                valid_params = set(
-                    inspect.signature(strategy_class.__init__).parameters
+                self.logger.debug(
+                    f"Optimized parameters for {strategy_name}: {optimized_params}"
                 )
-                filtered_params = {
-                    k: v
-                    for k, v in best_params.items()
-                    if k in valid_params and k != "self"
-                }
-                self.logger.info(f"Filtered params: {filtered_params}")
-                # Instantiate strategy and run backtest
+                if optimized_params is None:
+                    self.logger.warning(
+                        f"No optimized parameters found for {symbol} {strategy_name} {self.train_window_id}"
+                    )
+                    continue
                 strategy = self.strategy_factory.build_strategy(
-                    strategy_class, filtered_params
+                    strategy_class, optimized_params
                 )
 
                 async def data_factory():
@@ -142,6 +193,7 @@ class StrategyTestingStageCoordinator(BaseTestingStageCoordinator):
                 raw_results = await self.executor.run_backtest(
                     [strategy], {symbol: data_factory}
                 )
+                self.logger.debug(f"Raw results for {symbol}: {raw_results}")
                 dfs = raw_results.get(symbol, [])
                 if not dfs:
                     self.logger.warning(
@@ -149,32 +201,195 @@ class StrategyTestingStageCoordinator(BaseTestingStageCoordinator):
                     )
                     continue
                 full_df = pd.concat(dfs, ignore_index=True)
+                self.logger.debug(f"Full DataFrame for {symbol}: {full_df}")
                 metrics = self.evaluator.evaluate(strategy, full_df)
 
-                test_opt_results = self._get_optimization_results(
+                required_metrics = [
+                    "total_return",
+                    "sharpe_ratio",
+                    "win_rate",
+                    "max_drawdown",
+                ]
+                metrics = {k: metrics.get(k, 0.0) for k in required_metrics}
+                self.logger.debug(f"Metrics for {strategy_name}: {metrics}")
+
+                test_opt_results = self._get_test_optimization_results(
                     strategy_name,
                     symbol,
                     self.test_start_date,
                     self.test_end_date,
                 )
-                # Save test metrics to optimization_result.json under window_id
-                if self.test_window_id not in test_opt_results:
-                    test_opt_results[self.test_window_id] = {}
+                self.logger.debug(
+                    f"Test optimization results for {strategy_name}: {test_opt_results}"
+                )
+                if not test_opt_results:
+                    self.logger.error(
+                        f"Test results validation failed for {symbol} {strategy_name} {self.test_window_id}"
+                    )
+                    continue
+                self.logger.debug(f"Metrics before writing: {metrics}")
+                self.logger.debug(f"Test optimization results: {test_opt_results}")
+                self.logger.debug(f"Results dictionary before writing: {results}")
 
-                test_opt_results[self.test_window_id]["test"] = {"metrics": metrics}
-
-                test_opt_results_path = self._get_optimization_result_path(
-                    strategy_name=strategy_name,
+                updated_results = self._write_test_results(
                     symbol=symbol,
-                    start_date=self.test_start_date,
-                    end_date=self.test_end_date,
+                    strategy_name=strategy_name,
+                    metrics=metrics,
+                    optimization_result=test_opt_results,
+                    results=results,
                 )
 
-                with open(test_opt_results_path, "w") as f:
-                    json.dump(test_opt_results, f, indent=2, default=str)
+                self.logger.debug(
+                    f"Updated results from _write_test_results: {updated_results}"
+                )
+                results.update(updated_results)  # Fix merging logic
+                self.logger.debug(f"Results dictionary after writing: {results}")
 
-                results.setdefault(symbol, {})[strategy_name] = {
-                    self.test_window_id: metrics
-                }
+        self.logger.debug(f"Final results dictionary: {results}")
+        return results
 
+    def _get_optimized_params(
+        self,
+        symbol: str,
+        strategy_name: str,
+        strategy_class: type,
+    ) -> Optional[Dict[str, Any]]:
+        """Retrieve optimized parameters for a given strategy and window ID."""
+        try:
+            self.logger.info(
+                f"Retrieving optimized parameters for {strategy_name} during {self.train_window_id}"
+            )
+            train_opt_results = self._get_train_optimization_results(
+                strategy_name=strategy_name,
+                symbol=symbol,
+                start_date=self.train_start_date,
+                end_date=self.train_end_date,
+            )
+            if not train_opt_results:
+                self.logger.warning(
+                    f"No optimization result for {symbol} {strategy_name} {self.train_window_id}"
+                )
+                return None
+            # validate the optimization results
+            if not self._validate_optimization_results(train_opt_results):
+                self.logger.error(
+                    f"Optimization results validation failed for {symbol} {strategy_name} {self.train_window_id}"
+                )
+                return None
+            if (
+                self.train_window_id not in train_opt_results
+                or "optimization" not in train_opt_results[self.train_window_id]
+            ):
+                self.logger.warning(
+                    f"No optimization result for {symbol} {strategy_name} {self.train_window_id}"
+                )
+                return None
+
+            best_params = train_opt_results[self.train_window_id]["optimization"][
+                "best_params"
+            ]
+            # Only keep params accepted by the strategy's __init__
+            valid_params = set(inspect.signature(strategy_class.__init__).parameters)
+            filtered_params = {
+                k: v
+                for k, v in best_params.items()
+                if k in valid_params and k != "self"
+            }
+            self.logger.info(f"Filtered params: {filtered_params}")
+            return filtered_params
+        except Exception as e:
+            self.logger.error(
+                f"Error retrieving optimized parameters for {strategy_name} during {self.train_window_id}: {e}"
+            )
+            return None
+
+    def _validate_optimization_results(
+        self,
+        results: Dict[str, Dict[str, dict]],
+    ) -> bool:
+        """Validate the optimization results to ensure they contain the expected structure."""
+        validation_method = BacktestStage.STRATEGY_TESTING.value.input_validation_fn
+        if not validation_method:
+            self.logger.warning(
+                "No validation method defined for strategy optimization results. Skipping validation."
+            )
+            return False
+        return validation_method(results)
+
+    def _validate_test_results(
+        self,
+        results: Dict[str, Dict[str, dict]],
+    ) -> bool:
+        """Validate the test results to ensure they contain the expected structure."""
+        validation_method = BacktestStage.STRATEGY_TESTING.value.output_validation_fn
+        if not validation_method:
+            self.logger.warning(
+                "No validation method defined for strategy test results. Skipping validation."
+            )
+            return False
+        return validation_method(results)
+
+    def _write_test_results(
+        self,
+        symbol: str,
+        strategy_name: str,
+        metrics: Dict[str, float],
+        optimization_result: Dict[str, Any],
+        results: Dict[str, Dict[str, dict]],
+    ) -> Dict[str, Dict[str, dict]]:
+        try:
+            self.logger.debug(
+                f"Writing test results for symbol: {symbol}, strategy: {strategy_name}"
+            )
+            self.logger.debug(f"Metrics: {metrics}")
+            self.logger.debug(
+                f"Optimization result before update: {optimization_result}"
+            )
+
+            # Ensure metrics contain required keys with default values
+            required_metrics = [
+                "total_return",
+                "sharpe_ratio",
+                "win_rate",
+                "max_drawdown",
+            ]
+            metrics = {k: metrics.get(k, 0.0) for k in required_metrics}
+
+            # Update the optimization result dictionary
+            optimization_result.setdefault(self.test_window_id, {})
+            optimization_result[self.test_window_id]["test"] = {
+                "metrics": metrics,
+            }
+
+            self.logger.debug(
+                f"Optimization result after update: {optimization_result}"
+            )
+
+            # Update the results dictionary
+            results.setdefault(symbol, {}).setdefault(strategy_name, {}).setdefault(
+                self.test_window_id, {}
+            )
+            results[symbol][strategy_name][self.test_window_id] = {
+                "metrics": metrics,
+            }
+
+            self.logger.debug(f"Results dictionary after update: {results}")
+
+            # Save the updated optimization results to the file
+            test_opt_results_path = self._get_optimization_result_path(
+                strategy_name=strategy_name,
+                symbol=symbol,
+                start_date=self.test_start_date,
+                end_date=self.test_end_date,
+            )
+            self.logger.info(
+                f"Saving test results for {strategy_name} and symbol {symbol} to {test_opt_results_path}"
+            )
+            with open(test_opt_results_path, "w") as f:
+                json.dump(optimization_result, f, indent=2, default=str)
+
+        except Exception as e:
+            self.logger.error(
+                f"Error writing test results for {strategy_name} during {self.test_window_id}: {e}"
+            )
         return results

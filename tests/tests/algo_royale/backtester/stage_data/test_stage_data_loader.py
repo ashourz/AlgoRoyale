@@ -29,7 +29,9 @@ def mock_stage_data_manager():
 
 def test_init_success(mock_config, mock_logger, mock_stage_data_manager):
     """Test successful initialization with a non-empty watchlist."""
-    from algo_royale.backtester.stage_data.stage_data_loader import StageDataLoader
+    from algo_royale.backtester.stage_data.loader.stage_data_loader import (
+        StageDataLoader,
+    )
 
     loader = StageDataLoader(
         logger=mock_logger,
@@ -43,7 +45,9 @@ def test_init_success(mock_config, mock_logger, mock_stage_data_manager):
 
 def test_init_missing_watchlist_path(mock_logger, mock_stage_data_manager):
     """Test initialization fails with missing watchlist path."""
-    from algo_royale.backtester.stage_data.stage_data_loader import StageDataLoader
+    from algo_royale.backtester.stage_data.loader.stage_data_loader import (
+        StageDataLoader,
+    )
 
     with pytest.raises(RuntimeError) as excinfo:
         StageDataLoader(
@@ -57,7 +61,9 @@ def test_init_missing_watchlist_path(mock_logger, mock_stage_data_manager):
 
 def test_init_empty_watchlist(mock_config, mock_logger, mock_stage_data_manager):
     """Test initialization fails with an empty watchlist."""
-    from algo_royale.backtester.stage_data.stage_data_loader import StageDataLoader
+    from algo_royale.backtester.stage_data.loader.stage_data_loader import (
+        StageDataLoader,
+    )
 
     with pytest.raises(RuntimeError) as excinfo:
         StageDataLoader(
@@ -72,7 +78,9 @@ def test_init_empty_watchlist(mock_config, mock_logger, mock_stage_data_manager)
 @pytest.mark.asyncio
 async def test_load_all_stage_data(mock_config, mock_logger, mock_stage_data_manager):
     """Test async loading of all stage data returns correct generators."""
-    from algo_royale.backtester.stage_data.stage_data_loader import StageDataLoader
+    from algo_royale.backtester.stage_data.loader.stage_data_loader import (
+        StageDataLoader,
+    )
 
     loader = StageDataLoader(
         logger=mock_logger,
@@ -95,7 +103,9 @@ async def test_load_all_stage_data(mock_config, mock_logger, mock_stage_data_man
 @pytest.mark.asyncio
 async def test_load_symbol_no_data(mock_config, mock_logger, mock_stage_data_manager):
     """Test async symbol loading raises ValueError if no data exists."""
-    from algo_royale.backtester.stage_data.stage_data_loader import StageDataLoader
+    from algo_royale.backtester.stage_data.loader.stage_data_loader import (
+        StageDataLoader,
+    )
 
     loader = StageDataLoader(
         logger=mock_logger,
@@ -114,7 +124,9 @@ async def test_load_symbol_no_data(mock_config, mock_logger, mock_stage_data_man
 @pytest.mark.asyncio
 async def test_load_symbol_with_data(mock_config, mock_logger, mock_stage_data_manager):
     """Test async symbol loading yields dataframes if data exists."""
-    from algo_royale.backtester.stage_data.stage_data_loader import StageDataLoader
+    from algo_royale.backtester.stage_data.loader.stage_data_loader import (
+        StageDataLoader,
+    )
 
     loader = StageDataLoader(
         logger=mock_logger,

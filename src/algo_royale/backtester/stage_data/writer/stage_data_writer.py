@@ -1,7 +1,7 @@
 from logging import Logger
 from math import ceil
 from pathlib import Path
-from typing import Optional
+from typing import AsyncIterator, Optional
 
 import pandas as pd
 
@@ -32,6 +32,31 @@ class StageDataWriter:
         self.max_rows_per_file = max_rows_per_file
         self.logger = logger
 
+    async def async_write_data_batches(
+        self,
+        stage: BacktestStage,
+        strategy_name: Optional[str],
+        symbol: str,
+        gen: AsyncIterator[pd.DataFrame],
+        start_date: Optional[str] = None,
+        end_date: Optional[str] = None,
+    ) -> list[str]:
+        """
+        Asynchronously write multiple data batches to CSV files.
+        """
+        page_idx = 1
+        async for df in gen:
+            self.save_stage_data(
+                stage=stage,
+                strategy_name=strategy_name,
+                symbol=symbol,
+                results_df=df,
+                page_idx=page_idx,
+                start_date=start_date,
+                end_date=end_date,
+            )
+            page_idx += 1
+
     def save_stage_data(
         self,
         stage: BacktestStage,
@@ -51,7 +76,11 @@ class StageDataWriter:
             raise TypeError(f"Expected DataFrame, got {type(results_df)}")
 
         output_dir = self.stage_data_manager.get_directory_path(
-            stage, strategy_name, symbol, start_date, end_date
+            stage=stage,
+            strategy_name=strategy_name,
+            symbol=symbol,
+            start_date=start_date,
+            end_date=end_date,
         )
         output_dir.mkdir(parents=True, exist_ok=True)
         if strategy_name is not None and "strategy" not in results_df.columns:

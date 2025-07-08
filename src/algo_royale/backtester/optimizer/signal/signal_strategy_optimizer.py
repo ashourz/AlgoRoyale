@@ -147,6 +147,27 @@ class SignalStrategyOptimizerImpl(SignalStrategyOptimizer):
                     f"[{symbol}] Error extracting metric '{self.metric_name}' from backtest result: {e} | Result: {result}"
                 )
                 return float("-inf") if self.direction == "maximize" else float("inf")
+
+            # Validate the result dictionary
+            if not isinstance(result, dict):
+                logger.error(
+                    f"[{symbol}] Backtest result is not a dictionary: {result}"
+                )
+                return float("-inf") if self.direction == "maximize" else float("inf")
+
+            required_metrics = [
+                "total_return",
+                "sharpe_ratio",
+                "win_rate",
+                "max_drawdown",
+            ]
+            missing_metrics = [m for m in required_metrics if m not in result]
+            if missing_metrics:
+                logger.error(
+                    f"[{symbol}] Missing required metrics {missing_metrics} in backtest result: {result}"
+                )
+                return float("-inf") if self.direction == "maximize" else float("inf")
+
             # Store the full result in the trial for later retrieval
             trial.set_user_attr("full_result", result)
             if logger:
@@ -169,9 +190,7 @@ class SignalStrategyOptimizerImpl(SignalStrategyOptimizer):
                 "symbol": symbol,
                 "direction": self.direction,
             },
-            "metrics": study.best_trial.user_attrs.get(
-                "full_result"
-            ),  # <-- add this line
+            "metrics": study.best_trial.user_attrs.get("full_result"),
         }
         self.logger.debug(f"Optimization results: {results}")
         return results

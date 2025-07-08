@@ -6,7 +6,6 @@ import pandas as pd
 
 from algo_royale.backtester.optimizer.portfolio.portfolio_strategy_optimizer import (
     PortfolioStrategyOptimizer,
-    PortfolioStrategyOptimizerImpl,
 )
 from algo_royale.backtester.optimizer.signal.signal_strategy_optimizer import (
     MockSignalStrategyOptimizer,
@@ -67,10 +66,11 @@ class SignalStrategyOptimizerFactoryImpl(SignalStrategyOptimizerFactory):
         :param logger: Logger instance for logging.
         :param metric_name: Name of the metric to optimize.
         :param direction: Direction of optimization (maximize/minimize).
-        :return: MockPortfolioStrategyOptimizerImpl instance.
+        :return: SignalStrategyOptimizerImpl instance.
         """
-        return PortfolioStrategyOptimizerImpl(
+        return SignalStrategyOptimizerImpl(
             strategy_class=strategy_class,
+            condition_types=condition_types,
             backtest_fn=backtest_fn,
             logger=self.logger,
             metric_name=metric_name,

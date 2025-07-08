@@ -53,19 +53,39 @@ class StrategyEvaluationCoordinator:
 
     def run(self):
         self.logger.info("Starting strategy evaluation...")
-        # Loop over each symbol directory
-        for symbol_dir in self.opt_root_path.iterdir():
-            self.logger.info(f"Evaluating symbol directory: {symbol_dir}")
-            if not symbol_dir.is_dir():
-                continue
-            self.logger.info(f"Processing symbol: {symbol_dir.name}")
-            # Loop over each strategy directory within the symbol
-            for strategy_dir in symbol_dir.iterdir():
-                self.logger.debug(f"Checking strategy directory: {strategy_dir}")
-                if not strategy_dir.is_dir():
+        try:
+            # Loop over each symbol directory
+            for symbol_dir in self.opt_root_path.iterdir():
+                try:
+                    self.logger.info(f"Evaluating symbol directory: {symbol_dir}")
+                    if not symbol_dir.is_dir():
+                        continue
+                    self.logger.info(f"Processing symbol: {symbol_dir.name}")
+                    # Loop over each strategy directory within the symbol
+                    for strategy_dir in symbol_dir.iterdir():
+                        try:
+                            self.logger.debug(
+                                f"Checking strategy directory: {strategy_dir}"
+                            )
+                            if not strategy_dir.is_dir():
+                                continue
+                            self.logger.info(
+                                f"Processing strategy: {strategy_dir.name}"
+                            )
+                            self._evaluate_strategy_dir(strategy_dir)
+                        except Exception as e:
+                            self.logger.error(
+                                f"Error processing strategy directory {strategy_dir}: {e}"
+                            )
+                            continue
+                except Exception as e:
+                    self.logger.error(
+                        f"Error processing symbol directory {symbol_dir}: {e}"
+                    )
                     continue
-                self.logger.info(f"  Processing strategy: {strategy_dir.name}")
-                self._evaluate_strategy_dir(strategy_dir)
+        except Exception as e:
+            self.logger.error(f"Error during strategy evaluation: {e}")
+            raise e
 
     def _evaluate_strategy_dir(self, strategy_dir: Path):
         optimization_files = list(strategy_dir.rglob(self.opt_result_json_filename))
@@ -90,9 +110,8 @@ class StrategyEvaluationCoordinator:
             self.logger.debug(f"Found optimization result file: {opt_json_path}")
             try:
                 self.logger.info(f"Evaluating {opt_json_path}...")
-                evaluator = StrategyEvaluator(
-                    opt_json_path, metric_type=self.evaluation_type
-                )
+                evaluator = StrategyEvaluator(metric_type=self.evaluation_type)
+                evaluator.load_data(results_path=opt_json_path)
                 all_metrics.extend(evaluator.metrics)
                 for window, data in evaluator.results.items():
                     best_params = data.get("optimization", {}).get("best_params")
@@ -175,20 +194,6 @@ class StrategyEvaluationCoordinator:
     def _find_optimization_result_files(self) -> List[Path]:
         """Recursively find all optimization_result.json files under the root."""
         return list(self.opt_root_path.rglob(self.opt_result_json_filename))
-
-    def evaluate_results(self, opt_json_path: Path) -> dict:
-        """Evaluate a single optimization result file."""
-        evaluator = StrategyEvaluator(opt_json_path, metric_type=self.evaluation_type)
-        summary = evaluator.summary()
-        viability_score = evaluator.viability_score()
-        is_viable = evaluator.is_viable()
-        report = {
-            "summary": summary,
-            "viability_score": viability_score,
-            "is_viable": is_viable,
-            "metric_type": self.evaluation_type,
-        }
-        return report
 
     def write_aggregated_evaluation_report(self, out_dir: Path, report: dict):
         """Write the aggregated evaluation report to a JSON file at the root."""

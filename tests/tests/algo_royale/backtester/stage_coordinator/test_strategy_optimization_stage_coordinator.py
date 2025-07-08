@@ -11,6 +11,7 @@ from algo_royale.backtester.optimizer.signal.signal_strategy_optimizer_factory i
 from algo_royale.backtester.stage_coordinator.optimization.strategy_optimization_stage_coordinator import (
     StrategyOptimizationStageCoordinator,
 )
+from algo_royale.logging.logger_singleton import mockLogger
 
 
 @pytest.fixture
@@ -35,7 +36,7 @@ def mock_manager():
 
 @pytest.fixture
 def mock_logger():
-    return MagicMock()
+    return mockLogger()
 
 
 @pytest.fixture
@@ -56,14 +57,44 @@ def mock_evaluator():
 
 @pytest.fixture
 def mock_signal_strategy_optimizer_factory():
-    return mockSignalStrategyOptimizerFactory()
+    factory = mockSignalStrategyOptimizerFactory()
+    factory.setCreatedOptimizerResult(
+        {
+            "20240101_20240131": {
+                "optimization": {
+                    "strategy": "DummyStrategy",
+                    "best_value": 0.95,
+                    "best_params": {
+                        "entry_conditions": [{"condition": "entry_condition_1"}],
+                        "exit_conditions": [{"condition": "exit_condition_1"}],
+                        "trend_conditions": [{"condition": "trend_condition_1"}],
+                    },
+                    "meta": {
+                        "run_time_sec": 10.5,
+                        "n_trials": 100,
+                        "symbol": "AAPL",
+                        "direction": "maximize",
+                    },
+                    "metrics": {
+                        "total_return": 0.15,
+                        "sharpe_ratio": 2.0,
+                        "win_rate": 0.6,
+                        "max_drawdown": -0.1,
+                    },
+                },
+                "window": {
+                    "start_date": "2024-01-01",
+                    "end_date": "2024-01-31",
+                },
+            }
+        }
+    )
+    return factory
 
 
 @pytest.mark.asyncio
 async def test_init_success(
     mock_loader,
-    mock_preparer,
-    mock_writer,
     mock_manager,
     mock_logger,
     mock_executor,
@@ -71,7 +102,7 @@ async def test_init_success(
     mock_signal_strategy_optimizer_factory,
 ):
     class DummyStrategy:
-        pass
+        __name__ = "DummyStrategy"
 
     class DummyCombinator:
         strategy_class = DummyStrategy
@@ -83,11 +114,33 @@ async def test_init_success(
     optimizer_factory = mock_signal_strategy_optimizer_factory
     optimizer_factory.setCreatedOptimizerResult(
         {
-            "strategy": "DummyStrategy",
-            "best_params": {"param1": 1, "param2": 2},
-            "best_value": 0.95,
-            "meta": {"symbol": "AAPL", "window_id": "20240101_20240131"},
-            "metrics": {"sharpe": 2.0},
+            "20240101_20240131": {
+                "optimization": {
+                    "strategy": "DummyStrategy",
+                    "best_value": 0.95,
+                    "best_params": {
+                        "entry_conditions": [{"condition": "entry_condition_1"}],
+                        "exit_conditions": [{"condition": "exit_condition_1"}],
+                        "trend_conditions": [{"condition": "trend_condition_1"}],
+                    },
+                    "meta": {
+                        "run_time_sec": 10.5,
+                        "n_trials": 100,
+                        "symbol": "AAPL",
+                        "direction": "maximize",
+                    },
+                    "metrics": {
+                        "total_return": 0.15,
+                        "sharpe_ratio": 2.0,
+                        "win_rate": 0.6,
+                        "max_drawdown": -0.1,
+                    },
+                },
+                "window": {
+                    "start_date": "2024-01-01",
+                    "end_date": "2024-01-31",
+                },
+            }
         }
     )
     # Patch output_stage on BacktestStage.STRATEGY_OPTIMIZATION for test robustness
@@ -96,8 +149,6 @@ async def test_init_success(
     ):
         StrategyOptimizationStageCoordinator(
             data_loader=mock_loader,
-            data_preparer=mock_preparer,
-            data_writer=mock_writer,
             stage_data_manager=mock_manager,
             logger=mock_logger,
             strategy_combinators=[DummyCombinator],
@@ -112,8 +163,6 @@ async def test_init_success(
 @pytest.mark.asyncio
 async def test_process_returns_factories(
     mock_loader,
-    mock_preparer,
-    mock_writer,
     mock_manager,
     mock_logger,
     mock_executor,
@@ -127,7 +176,7 @@ async def test_process_returns_factories(
         pass
 
     class DummyStrategy:
-        pass
+        __name__ = "DummyStrategy"
 
     class DummyCombinator:
         strategy_class = DummyStrategy
@@ -139,11 +188,33 @@ async def test_process_returns_factories(
     optimizer_factory = mock_signal_strategy_optimizer_factory
     optimizer_factory.setCreatedOptimizerResult(
         {
-            "strategy": "DummyStrategy",
-            "best_params": {"param1": 1, "param2": 2},
-            "best_value": 0.95,
-            "meta": {"symbol": "AAPL", "window_id": "20240101_20240131"},
-            "metrics": {"sharpe": 2.0},
+            "20240101_20240131": {
+                "optimization": {
+                    "strategy": "DummyStrategy",
+                    "best_value": 0.95,
+                    "best_params": {
+                        "entry_conditions": [{"condition": "entry_condition_1"}],
+                        "exit_conditions": [{"condition": "exit_condition_1"}],
+                        "trend_conditions": [{"condition": "trend_condition_1"}],
+                    },
+                    "meta": {
+                        "run_time_sec": 10.5,
+                        "n_trials": 100,
+                        "symbol": "AAPL",
+                        "direction": "maximize",
+                    },
+                    "metrics": {
+                        "total_return": 0.15,
+                        "sharpe_ratio": 2.0,
+                        "win_rate": 0.6,
+                        "max_drawdown": -0.1,
+                    },
+                },
+                "window": {
+                    "start_date": "2024-01-01",
+                    "end_date": "2024-01-31",
+                },
+            }
         }
     )
     with patch.object(
@@ -151,8 +222,6 @@ async def test_process_returns_factories(
     ):
         coordinator = StrategyOptimizationStageCoordinator(
             data_loader=mock_loader,
-            data_preparer=mock_preparer,
-            data_writer=mock_writer,
             stage_data_manager=mock_manager,
             logger=mock_logger,
             strategy_combinators=[DummyCombinator],
@@ -185,29 +254,48 @@ async def test_process_returns_factories(
             patch("json.load", return_value={}),
         ):
             mock_optimizer_instance = MagicMock()
-            mock_optimizer_instance.optimize.return_value = {"param": 1, "score": 0.95}
+            mock_optimizer_instance.setOptimizeResults(
+                {
+                    "strategy": "DummyStrategy",
+                    "best_value": 0.95,
+                    "best_params": {
+                        "entry_conditions": [{"condition": "entry_condition_1"}],
+                        "exit_conditions": [{"condition": "exit_condition_1"}],
+                        "trend_conditions": [{"condition": "trend_condition_1"}],
+                    },
+                    "meta": {
+                        "run_time_sec": 10.5,
+                        "n_trials": 100,
+                        "symbol": "AAPL",
+                        "direction": "maximize",
+                    },
+                    "metrics": {
+                        "total_return": 0.15,
+                        "sharpe_ratio": 2.0,
+                        "win_rate": 0.6,
+                        "max_drawdown": -0.1,
+                    },
+                }
+            )
             MockOptimizer.return_value = mock_optimizer_instance
-            result = await coordinator.process(prepared_data)
+            result = await coordinator._process_and_write(prepared_data)
+            mock_logger.debug(f"Test result: {result}")
             assert "AAPL" in result
             assert "DummyStrategy" in result["AAPL"]
             # The result should be a dict with window_id as a key for the DummyStrategy
             assert coordinator.window_id in result["AAPL"]["DummyStrategy"]
             # The value should be the optimization result
-            result = await coordinator.process(prepared_data)
             strategy_result = result["AAPL"]["DummyStrategy"][coordinator.window_id]
-
-            assert strategy_result["strategy"] == "DummyStrategy"
-            assert "best_value" in strategy_result
-            assert "best_params" in strategy_result
-            assert "meta" in strategy_result
-            assert "metrics" in strategy_result
+            assert strategy_result["optimization"]["strategy"] == "DummyStrategy"
+            assert "best_value" in strategy_result["optimization"]
+            assert "best_params" in strategy_result["optimization"]
+            assert "meta" in strategy_result["optimization"]
+            assert "metrics" in strategy_result["optimization"]
 
 
 @pytest.mark.asyncio
 async def test_fetch_symbol_optimization_exception_logs_error(
     mock_loader,
-    mock_preparer,
-    mock_writer,
     mock_manager,
     mock_logger,
     mock_executor,
@@ -215,7 +303,7 @@ async def test_fetch_symbol_optimization_exception_logs_error(
     mock_signal_strategy_optimizer_factory,
 ):
     class DummyStrategy:
-        pass
+        __name__ = "DummyStrategy"
 
     class DummyCombinator:
         strategy_class = DummyStrategy
@@ -227,11 +315,33 @@ async def test_fetch_symbol_optimization_exception_logs_error(
     optimizer_factory = mock_signal_strategy_optimizer_factory
     optimizer_factory.setCreatedOptimizerResult(
         {
-            "strategy": "DummyStrategy",
-            "best_params": {"param1": 1, "param2": 2},
-            "best_value": 0.95,
-            "meta": {"symbol": "AAPL", "window_id": "20240101_20240131"},
-            "metrics": {"sharpe": 2.0},
+            "20240101_20240131": {
+                "optimization": {
+                    "strategy": "DummyStrategy",
+                    "best_value": 0.95,
+                    "best_params": {
+                        "entry_conditions": [{"condition": "entry_condition_1"}],
+                        "exit_conditions": [{"condition": "exit_condition_1"}],
+                        "trend_conditions": [{"condition": "trend_condition_1"}],
+                    },
+                    "meta": {
+                        "run_time_sec": 10.5,
+                        "n_trials": 100,
+                        "symbol": "AAPL",
+                        "direction": "maximize",
+                    },
+                    "metrics": {
+                        "total_return": 0.15,
+                        "sharpe_ratio": 2.0,
+                        "win_rate": 0.6,
+                        "max_drawdown": -0.1,
+                    },
+                },
+                "window": {
+                    "start_date": "2024-01-01",
+                    "end_date": "2024-01-31",
+                },
+            }
         }
     )
     with patch.object(
@@ -239,8 +349,6 @@ async def test_fetch_symbol_optimization_exception_logs_error(
     ):
         coordinator = StrategyOptimizationStageCoordinator(
             data_loader=mock_loader,
-            data_preparer=mock_preparer,
-            data_writer=mock_writer,
             stage_data_manager=mock_manager,
             logger=mock_logger,
             strategy_combinators=[DummyCombinator],
@@ -266,15 +374,13 @@ async def test_fetch_symbol_optimization_exception_logs_error(
 
         optimizer_factory.create = lambda *a, **k: FailingOptimizer()
 
-        result = await coordinator.process(prepared_data)
+        result = await coordinator._process_and_write(prepared_data)
         assert result == {}
 
 
 @pytest.mark.asyncio
 async def test_process_skips_symbol_with_no_data(
     mock_loader,
-    mock_preparer,
-    mock_writer,
     mock_manager,
     mock_logger,
     mock_executor,
@@ -282,7 +388,7 @@ async def test_process_skips_symbol_with_no_data(
     mock_signal_strategy_optimizer_factory,
 ):
     class DummyStrategy:
-        pass
+        __name__ = "DummyStrategy"
 
     class DummyCombinator:
         strategy_class = DummyStrategy
@@ -294,11 +400,33 @@ async def test_process_skips_symbol_with_no_data(
     optimizer_factory = mock_signal_strategy_optimizer_factory
     optimizer_factory.setCreatedOptimizerResult(
         {
-            "strategy": "DummyStrategy",
-            "best_params": {"param1": 1, "param2": 2},
-            "best_value": 0.95,
-            "meta": {"symbol": "AAPL", "window_id": "20240101_20240131"},
-            "metrics": {"sharpe": 2.0},
+            "20240101_20240131": {
+                "optimization": {
+                    "strategy": "DummyStrategy",
+                    "best_value": 0.95,
+                    "best_params": {
+                        "entry_conditions": [{"condition": "entry_condition_1"}],
+                        "exit_conditions": [{"condition": "exit_condition_1"}],
+                        "trend_conditions": [{"condition": "trend_condition_1"}],
+                    },
+                    "meta": {
+                        "run_time_sec": 10.5,
+                        "n_trials": 100,
+                        "symbol": "AAPL",
+                        "direction": "maximize",
+                    },
+                    "metrics": {
+                        "total_return": 0.15,
+                        "sharpe_ratio": 2.0,
+                        "win_rate": 0.6,
+                        "max_drawdown": -0.1,
+                    },
+                },
+                "window": {
+                    "start_date": "2024-01-01",
+                    "end_date": "2024-01-31",
+                },
+            }
         }
     )
     with patch.object(
@@ -306,8 +434,6 @@ async def test_process_skips_symbol_with_no_data(
     ):
         coordinator = StrategyOptimizationStageCoordinator(
             data_loader=mock_loader,
-            data_preparer=mock_preparer,
-            data_writer=mock_writer,
             stage_data_manager=mock_manager,
             logger=mock_logger,
             strategy_combinators=[DummyCombinator],
@@ -341,17 +467,37 @@ async def test_process_skips_symbol_with_no_data(
             patch("json.load", return_value={}),
         ):
             mock_optimizer_instance = MagicMock()
-            mock_optimizer_instance.optimize.return_value = {"param": 1, "score": 0.95}
+            mock_optimizer_instance.setOptimizeResults(
+                {
+                    "strategy": "DummyStrategy",
+                    "best_value": 0.95,
+                    "best_params": {
+                        "entry_conditions": [{"condition": "entry_condition_1"}],
+                        "exit_conditions": [{"condition": "exit_condition_1"}],
+                        "trend_conditions": [{"condition": "trend_condition_1"}],
+                    },
+                    "meta": {
+                        "run_time_sec": 10.5,
+                        "n_trials": 100,
+                        "symbol": "AAPL",
+                        "direction": "maximize",
+                    },
+                    "metrics": {
+                        "total_return": 0.15,
+                        "sharpe_ratio": 2.0,
+                        "win_rate": 0.6,
+                        "max_drawdown": -0.1,
+                    },
+                }
+            )
             MockOptimizer.return_value = mock_optimizer_instance
-            result = await coordinator.process(prepared_data)
+            result = await coordinator._process_and_write(prepared_data)
             assert result == {}
 
 
 @pytest.mark.asyncio
 async def test_process_multiple_strategies(
     mock_loader,
-    mock_preparer,
-    mock_writer,
     mock_manager,
     mock_logger,
     mock_executor,
@@ -381,11 +527,33 @@ async def test_process_multiple_strategies(
     optimizer_factory = mock_signal_strategy_optimizer_factory
     optimizer_factory.setCreatedOptimizerResult(
         {
-            "strategy": "DummyStrategy",
-            "best_params": {"param1": 1, "param2": 2},
-            "best_value": 0.95,
-            "meta": {"symbol": "AAPL", "window_id": "20240101_20240131"},
-            "metrics": {"sharpe": 2.0},
+            "20240101_20240131": {
+                "optimization": {
+                    "strategy": "DummyStrategy",
+                    "best_value": 0.95,
+                    "best_params": {
+                        "entry_conditions": [{"condition": "entry_condition_1"}],
+                        "exit_conditions": [{"condition": "exit_condition_1"}],
+                        "trend_conditions": [{"condition": "trend_condition_1"}],
+                    },
+                    "meta": {
+                        "run_time_sec": 10.5,
+                        "n_trials": 100,
+                        "symbol": "AAPL",
+                        "direction": "maximize",
+                    },
+                    "metrics": {
+                        "total_return": 0.15,
+                        "sharpe_ratio": 2.0,
+                        "win_rate": 0.6,
+                        "max_drawdown": -0.1,
+                    },
+                },
+                "window": {
+                    "start_date": "2024-01-01",
+                    "end_date": "2024-01-31",
+                },
+            }
         }
     )
     with patch.object(
@@ -393,8 +561,6 @@ async def test_process_multiple_strategies(
     ):
         coordinator = StrategyOptimizationStageCoordinator(
             data_loader=mock_loader,
-            data_preparer=mock_preparer,
-            data_writer=mock_writer,
             stage_data_manager=mock_manager,
             logger=mock_logger,
             strategy_combinators=[CombA, CombB],
@@ -427,9 +593,31 @@ async def test_process_multiple_strategies(
             patch("json.load", return_value={}),
         ):
             mock_optimizer_instance = MagicMock()
-            mock_optimizer_instance.optimize.return_value = {"param": 1, "score": 0.95}
+            mock_optimizer_instance.setOptimizeResults(
+                {
+                    "strategy": "DummyStrategy",
+                    "best_value": 0.95,
+                    "best_params": {
+                        "entry_conditions": [{"condition": "entry_condition_1"}],
+                        "exit_conditions": [{"condition": "exit_condition_1"}],
+                        "trend_conditions": [{"condition": "trend_condition_1"}],
+                    },
+                    "meta": {
+                        "run_time_sec": 10.5,
+                        "n_trials": 100,
+                        "symbol": "AAPL",
+                        "direction": "maximize",
+                    },
+                    "metrics": {
+                        "total_return": 0.15,
+                        "sharpe_ratio": 2.0,
+                        "win_rate": 0.6,
+                        "max_drawdown": -0.1,
+                    },
+                }
+            )
             MockOptimizer.return_value = mock_optimizer_instance
-            result = await coordinator.process(prepared_data)
+            result = await coordinator._process_and_write(prepared_data)
             assert "AAPL" in result
             assert "StratA" in result["AAPL"]
             assert "StratB" in result["AAPL"]
@@ -438,8 +626,6 @@ async def test_process_multiple_strategies(
 @pytest.mark.asyncio
 async def test_process_optimizer_exception_logs_error(
     mock_loader,
-    mock_preparer,
-    mock_writer,
     mock_manager,
     mock_logger,
     mock_executor,
@@ -447,7 +633,7 @@ async def test_process_optimizer_exception_logs_error(
     mock_signal_strategy_optimizer_factory,  # <-- add fixture
 ):
     class DummyStrategy:
-        pass
+        __name__ = "DummyStrategy"
 
     class DummyCombinator:
         strategy_class = DummyStrategy
@@ -459,11 +645,33 @@ async def test_process_optimizer_exception_logs_error(
     optimizer_factory = mock_signal_strategy_optimizer_factory
     optimizer_factory.setCreatedOptimizerResult(
         {
-            "strategy": "DummyStrategy",
-            "best_params": {"param1": 1, "param2": 2},
-            "best_value": 0.95,
-            "meta": {"symbol": "AAPL", "window_id": "20240101_20240131"},
-            "metrics": {"sharpe": 2.0},
+            "20240101_20240131": {
+                "optimization": {
+                    "strategy": "DummyStrategy",
+                    "best_value": 0.95,
+                    "best_params": {
+                        "entry_conditions": [{"condition": "entry_condition_1"}],
+                        "exit_conditions": [{"condition": "exit_condition_1"}],
+                        "trend_conditions": [{"condition": "trend_condition_1"}],
+                    },
+                    "meta": {
+                        "run_time_sec": 10.5,
+                        "n_trials": 100,
+                        "symbol": "AAPL",
+                        "direction": "maximize",
+                    },
+                    "metrics": {
+                        "total_return": 0.15,
+                        "sharpe_ratio": 2.0,
+                        "win_rate": 0.6,
+                        "max_drawdown": -0.1,
+                    },
+                },
+                "window": {
+                    "start_date": "2024-01-01",
+                    "end_date": "2024-01-31",
+                },
+            }
         }
     )
     with patch.object(
@@ -471,8 +679,6 @@ async def test_process_optimizer_exception_logs_error(
     ):
         coordinator = StrategyOptimizationStageCoordinator(
             data_loader=mock_loader,
-            data_preparer=mock_preparer,
-            data_writer=mock_writer,
             stage_data_manager=mock_manager,
             logger=mock_logger,
             strategy_combinators=[DummyCombinator],
@@ -505,58 +711,7 @@ async def test_process_optimizer_exception_logs_error(
         ):
             instance = MockOptimizer.return_value
             instance.optimize.side_effect = Exception("Test error")
-            result = await coordinator.process(prepared_data)
+            result = await coordinator._process_and_write(prepared_data)
             assert "AAPL" in result
             assert "DummyStrategy" in result["AAPL"]
             assert coordinator.window_id in result["AAPL"]["DummyStrategy"]
-
-
-@pytest.mark.asyncio
-async def test_write_is_noop(
-    mock_loader,
-    mock_preparer,
-    mock_writer,
-    mock_manager,
-    mock_logger,
-    mock_executor,
-    mock_evaluator,
-    mock_signal_strategy_optimizer_factory,  # <-- add fixture
-):
-    class DummyStrategy:
-        pass
-
-    class DummyCombinator:
-        strategy_class = DummyStrategy
-
-        @staticmethod
-        def get_condition_types():
-            return {"entry": [], "exit": []}
-
-    optimizer_factory = mock_signal_strategy_optimizer_factory
-    optimizer_factory.setCreatedOptimizerResult(
-        {
-            "strategy": "DummyStrategy",
-            "best_params": {"param1": 1, "param2": 2},
-            "best_value": 0.95,
-            "meta": {"symbol": "AAPL", "window_id": "20240101_20240131"},
-            "metrics": {"sharpe": 2.0},
-        }
-    )
-    with patch.object(
-        BacktestStage.STRATEGY_OPTIMIZATION, "output_stage", create=True, new=None
-    ):
-        coordinator = StrategyOptimizationStageCoordinator(
-            data_loader=mock_loader,
-            data_preparer=mock_preparer,
-            data_writer=mock_writer,
-            stage_data_manager=mock_manager,
-            logger=mock_logger,
-            strategy_combinators=[DummyCombinator],
-            strategy_executor=mock_executor,
-            strategy_evaluator=mock_evaluator,
-            optimization_root=".",
-            optimization_json_filename="test.json",
-            signal_strategy_optimizer_factory=optimizer_factory,
-        )
-        result = await coordinator._write(None, None)
-        assert result is None

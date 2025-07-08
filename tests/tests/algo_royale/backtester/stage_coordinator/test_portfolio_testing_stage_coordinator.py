@@ -1,4 +1,5 @@
 import json
+import logging
 import time
 from datetime import datetime
 from unittest.mock import MagicMock
@@ -17,32 +18,35 @@ def mock_loader():
 
 
 @pytest.fixture
-def mock_preparer():
-    return MagicMock()
-
-
-@pytest.fixture
-def mock_writer():
-    return MagicMock()
-
-
-@pytest.fixture
 def mock_manager(tmp_path):
-    m = MagicMock()
-    m.get_directory_path.return_value = tmp_path
-
-    # Always return the same directory for get_extended_path
-    def get_extended_path(base_dir, strategy_name, symbol, start_date, end_date):
-        return tmp_path
-
-    m.get_extended_path.side_effect = get_extended_path
-
-    return m
+    mgr = MagicMock()
+    # Patch get_directory_path to return a real temp directory
+    mgr.get_directory_path.side_effect = (
+        lambda base_dir=None,
+        stage=None,
+        symbol=None,
+        strategy_name=None,
+        start_date=None,
+        end_date=None: tmp_path
+        / f"{stage.name if stage else 'default_stage'}_{strategy_name if strategy_name else 'default_strategy'}_{symbol if symbol else 'default_symbol'}"
+    )
+    return mgr
 
 
 @pytest.fixture
 def mock_logger():
-    return MagicMock()
+    logger = logging.getLogger("test_logger")
+    logger.setLevel(logging.DEBUG)
+    handler = logging.FileHandler(
+        "c:\\Users\\ashou\\AlgoRoyale\\logs\\test\\testing.log"
+    )
+    handler.setLevel(logging.DEBUG)
+    formatter = logging.Formatter(
+        "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+    )
+    handler.setFormatter(formatter)
+    logger.addHandler(handler)
+    return logger
 
 
 @pytest.fixture
@@ -90,8 +94,9 @@ def mock_asset_matrix_preparer():
     mock = MagicMock()
     mock.prepare.return_value = pd.DataFrame(
         {
-            "AAPL": [100, 101, 102],
-            "GOOG": [200, 202, 204],
+            "price": [100, 101, 102],
+            "volume": [1000, 1100, 1200],
+            "returns": [0.01, 0.02, 0.03],
         }
     )
     return mock
@@ -100,8 +105,6 @@ def mock_asset_matrix_preparer():
 @pytest.mark.asyncio
 async def test_portfolio_testing_process(
     mock_loader,
-    mock_preparer,
-    mock_writer,
     mock_manager,
     mock_logger,
     mock_combinator,
@@ -129,8 +132,6 @@ async def test_portfolio_testing_process(
 
     coordinator = PortfolioTestingStageCoordinator(
         data_loader=mock_loader,
-        data_preparer=mock_preparer,
-        data_writer=mock_writer,
         stage_data_manager=mock_manager,
         logger=mock_logger,
         strategy_combinators=[mock_combinator],
@@ -158,10 +159,32 @@ async def test_portfolio_testing_process(
     coordinator.test_window_id = (
         f"{test_start.strftime('%Y%m%d')}_{test_end.strftime('%Y%m%d')}"
     )
-    results = await coordinator.process(prepared_data=prepared_data)
+
+    # Mock _get_optimization_results to return valid data
+    coordinator._get_optimization_results = (
+        lambda strategy_name, symbol, start_date, end_date: {
+            coordinator.train_window_id: {
+                "optimization": {
+                    "best_params": {"a": 1},
+                    "metrics": {"sharpe": 2.0},
+                },
+                "window": {
+                    "start_date": train_start.strftime("%Y-%m-%d"),
+                    "end_date": train_end.strftime("%Y-%m-%d"),
+                },
+            }
+        }
+    )
+
+    results = await coordinator._process_and_write(data=prepared_data)
     print("DEBUG RESULTS:", results)
     mock_evaluator.evaluate.assert_called()
     assert "AAPL" in results
     assert "DummyStrategy" in results["AAPL"]
     assert coordinator.test_window_id in results["AAPL"]["DummyStrategy"]
-    assert results["AAPL"]["DummyStrategy"][coordinator.test_window_id]["sharpe"] == 2.0
+    assert (
+        results["AAPL"]["DummyStrategy"][coordinator.test_window_id]["metrics"][
+            "sharpe"
+        ]
+        == 2.0
+    )

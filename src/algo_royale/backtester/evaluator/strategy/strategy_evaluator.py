@@ -3,6 +3,7 @@ from pathlib import Path
 
 import numpy as np
 
+from algo_royale.backtester.enum.backtest_stage import BacktestStage
 from algo_royale.backtester.evaluator.strategy.strategy_evaluation_type import (
     StrategyEvaluationType,
 )
@@ -15,19 +16,36 @@ class StrategyEvaluator:
     """
 
     def __init__(
-        self,
-        results_path: Path,
-        metric_type: StrategyEvaluationType = StrategyEvaluationType.BOTH,
+        self, metric_type: StrategyEvaluationType = StrategyEvaluationType.BOTH
     ):
         """
         Args:
-            results_path: Path to the JSON file containing optimization results.
             metric_type: Type of metrics to extract (test, optimization, or both).
         """
-        with open(results_path, "r") as f:
-            self.results = json.load(f)
         self.metric_type = metric_type
+        self.results = None
+        self.metrics = None
+
+    def load_data(self, results_path: Path):
+        """
+        Load optimization results from a JSON file.
+        Args:
+            results_path: Path to the JSON file containing optimization results.
+        """
+        with open(results_path, "r") as f:
+            loaded_results = json.load(f)
+        if not self._validate_loaded_results(loaded_results):
+            raise ValueError(
+                f"Loaded results from {results_path} are not valid according to the validation method."
+            )
+        self.results = loaded_results
         self.metrics = self._extract_metrics()
+
+    def _validate_loaded_results(self, results: dict):
+        validation_method = BacktestStage.STRATEGY_EVALUATION.input_validation_fn
+        if not callable(validation_method):
+            raise ValueError(f"Validation method {validation_method} is not callable.")
+        return validation_method(results)
 
     def _extract_metrics(self):
         metrics = []
