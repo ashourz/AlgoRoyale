@@ -2,6 +2,7 @@ import asyncio
 import inspect
 import time
 from abc import ABC, abstractmethod
+from datetime import datetime
 from logging import Logger
 from typing import Any, Callable, Dict, Type
 
@@ -20,6 +21,8 @@ class SignalStrategyOptimizer(ABC):
         self,
         symbol: str,
         df: pd.DataFrame,
+        start_time: datetime,
+        end_time: datetime,
         n_trials: int = 50,
     ) -> Dict[str, Any]:
         """
@@ -62,6 +65,8 @@ class SignalStrategyOptimizerImpl(SignalStrategyOptimizer):
         self,
         symbol: str,
         df: pd.DataFrame,
+        start_time: datetime,
+        end_time: datetime,
         n_trials: int = 1,
     ) -> Dict[str, Any]:
         """
@@ -192,9 +197,9 @@ class SignalStrategyOptimizerImpl(SignalStrategyOptimizer):
             },
             "metrics": study.best_trial.user_attrs.get("full_result"),
             "window": {
-                "start": df.index[0].strftime("%Y-%m-%d"),
-                "end": df.index[-1].strftime("%Y-%m-%d"),
-                "window_id": f"{df.index[0].strftime('%Y%m%d')}_{df.index[-1].strftime('%Y%m%d')}",
+                "start": start_time,
+                "end": end_time,
+                "window_id": f"{start_time.strftime('%Y%m%d')}_{end_time.strftime('%Y%m%d')}",
             },
         }
         self.logger.debug(f"Optimization results: {results}")
@@ -300,6 +305,8 @@ class MockSignalStrategyOptimizer(SignalStrategyOptimizer):
         self,
         symbol: str,
         df: pd.DataFrame,
+        start_time: datetime,
+        end_time: datetime,
         n_trials: int = 1,
     ) -> Dict[str, Any]:
         """

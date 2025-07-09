@@ -116,7 +116,9 @@ class StrategyOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
                             symbol, strat, df_
                         ),
                     )
-                    optimization_result = optimizer.optimize(symbol, train_df)
+                    optimization_result = optimizer.optimize(
+                        symbol, train_df, self.start_date, self.end_date
+                    )
                     # Validate the optimization results
                     if not self._validate_optimization_results(optimization_result):
                         self.logger.error(

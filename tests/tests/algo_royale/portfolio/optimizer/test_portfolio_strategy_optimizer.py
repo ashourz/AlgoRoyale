@@ -48,7 +48,9 @@ async def test_single_objective():
         metric_name=PortfolioMetric.TOTAL_RETURN,
         direction=OptimizationDirection.MAXIMIZE,
     )
-    result = await optimizer.optimize("AAPL", make_df(), n_trials=1)
+    result = await optimizer.optimize(
+        "AAPL", make_df(), n_trials=1, start_time=None, end_time=None
+    )
     assert result["strategy"] == "DummyStrategy"
     assert result["meta"]["multi_objective"] is False
     assert result["best_value"] == 0.5
@@ -68,7 +70,9 @@ async def test_multi_objective():
         metric_name=[PortfolioMetric.TOTAL_RETURN, PortfolioMetric.SHARPE_RATIO],
         direction=[OptimizationDirection.MAXIMIZE, OptimizationDirection.MAXIMIZE],
     )
-    result = await optimizer.optimize("AAPL", make_df(), n_trials=1)
+    result = await optimizer.optimize(
+        "AAPL", make_df(), n_trials=1, start_time=None, end_time=None
+    )
     assert result["meta"]["multi_objective"] is True
     assert isinstance(result["best_value"], list)
     assert len(result["best_value"]) == 1
@@ -91,5 +95,7 @@ async def test_metric_extraction_failure():
         metric_name=PortfolioMetric.TOTAL_RETURN,
         direction=OptimizationDirection.MAXIMIZE,
     )
-    result = await optimizer.optimize("AAPL", make_df(), n_trials=1)
+    result = await optimizer.optimize(
+        "AAPL", make_df(), n_trials=1, start_time=None, end_time=None
+    )
     assert result["best_value"] == float("-inf")

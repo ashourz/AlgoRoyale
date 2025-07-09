@@ -1,5 +1,6 @@
 import time
 from abc import ABC
+from datetime import datetime
 from logging import Logger
 from typing import Any, Callable, Dict, List, Type, Union
 
@@ -22,6 +23,8 @@ class PortfolioStrategyOptimizer(ABC):
         self,
         symbol: str,
         df: pd.DataFrame,
+        start_time: datetime,
+        end_time: datetime,
         n_trials: int = 1,
     ) -> Dict[str, Any]:
         """
@@ -64,6 +67,8 @@ class PortfolioStrategyOptimizerImpl(PortfolioStrategyOptimizer):
         self,
         symbol: str,
         df: pd.DataFrame,
+        start_time: datetime,
+        end_time: datetime,
         n_trials: int = 1,
     ) -> Dict[str, Any]:
         """
@@ -240,6 +245,8 @@ class MockPortfolioStrategyOptimizer(PortfolioStrategyOptimizer):
         self,
         symbol: str,
         df: pd.DataFrame,
+        start_time: datetime,
+        end_time: datetime,
         n_trials: int = 1,
     ) -> Dict[str, Any]:
         """

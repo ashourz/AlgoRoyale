@@ -92,8 +92,6 @@ class PortfolioOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
             self.logger.warning("No valid portfolio data available for optimization.")
             return results
 
-        # TODO: Validate portfolio_matrix structure
-
         self.logger.info(
             f"Starting portfolio optimization for dates {self.start_date} to {self.end_date} with {len(portfolio_matrix)} rows of data."
         )
@@ -152,7 +150,10 @@ class PortfolioOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
                         metric_name=PortfolioMetric.SHARPE_RATIO,
                     )
                     optimization_result = await optimizer.optimize(
-                        self.stage.name, portfolio_matrix
+                        self.stage.name,
+                        portfolio_matrix,
+                        self.start_date,
+                        self.end_date,
                     )
                     self.logger.debug(
                         f"DEBUG: Optimization result for {strategy_name}: {optimization_result}"
