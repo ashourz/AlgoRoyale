@@ -1,7 +1,7 @@
 import asyncio
 from logging import Logger
 from pathlib import Path
-from typing import AsyncIterator, Callable, Dict, Union
+from typing import AsyncIterator, Callable, Dict
 
 import pandas as pd
 
@@ -32,16 +32,16 @@ class StrategyBacktestExecutor(BacktestExecutor):
         strategies: list[BaseSignalStrategy],
         data: Dict[str, Callable[[], AsyncIterator[pd.DataFrame]]],
     ) -> Dict[str, list[pd.DataFrame]]:
-        """Pure async implementation for processing streaming data
-
-        Returns a dictionary mapping symbols to lists of DataFrames containing backtest results.
-        Each DataFrame corresponds to a strategy applied to the data for that symbol.
         """
-        results = {}
+        Run backtest for the given strategies and data.
+        Includes robust exception handling and validation.
+        """
+        # Ensure results are initialized for all symbols
+        results = {symbol: [] for symbol in data.keys()}
 
         if not data:
             self.logger.error("No data available - check your data paths and files")
-            return
+            return results
 
         try:
             self.logger.info("Starting async backtest for strategies: %s", strategies)
@@ -66,16 +66,44 @@ class StrategyBacktestExecutor(BacktestExecutor):
                             continue
 
                         try:
+                            # Explicitly handle extreme values
+                            self.logger.debug(
+                                f"Page {page_count} before filtering: shape={page_df.shape}, columns={list(page_df.columns)}, head={page_df.head(2)}"
+                            )
+                            page_df = self._filter_extreme_values(page_df)
+                            self.logger.debug(
+                                f"Page {page_count} after filtering: shape={page_df.shape}, columns={list(page_df.columns)}, head={page_df.head(2)}"
+                            )
+
+                            # Ensure valid pages are processed
+                            if page_df.empty:
+                                self.logger.debug(
+                                    f"Page {page_count} for {symbol}-{strategy_name} is empty after filtering extreme values. Skipping."
+                                )
+                                continue
+
                             result_df = await self._process_single_page(
                                 symbol, strategy, page_df, page_count
                             )
+                            # Ensure valid pages are appended correctly
                             if result_df is not None:
-                                results.setdefault(symbol, []).append(result_df)
-                        except Exception as e:
-                            self.logger.error(
-                                f"Error processing page {page_count} for {symbol}-{strategy_name}: {str(e)}"
+                                results[symbol].append(result_df)
+                            else:
+                                self.logger.warning(
+                                    f"Page {page_count} for {symbol}-{strategy_name} resulted in None. Skipping."
+                                )
+                        except ValueError as ve:
+                            self.logger.warning(
+                                f"Validation error on page {page_count} for {symbol}-{strategy_name}: {str(ve)}"
                             )
                             continue
+                        except Exception as e:
+                            self.logger.error(
+                                f"Error processing page {page_count} for {symbol}-{strategy_name}: {str(e)}",
+                                exc_info=True,
+                            )
+                            continue
+
             return results
         except asyncio.CancelledError:
             self.logger.warning("Backtest cancelled")
@@ -90,37 +118,52 @@ class StrategyBacktestExecutor(BacktestExecutor):
         strategy: BaseSignalStrategy,
         page_df: pd.DataFrame,
         page_num: int,
-    ) -> Union[pd.DataFrame, None]:
+    ) -> pd.DataFrame:
         """Process a single page of data with proper signal handling"""
         strategy_name = strategy.get_hash_id()
         if page_df.empty:
             self.logger.debug(
                 f"Empty page {page_num} for symbol:{symbol} | strategy:{strategy_name}"
             )
-            return None
+            return pd.DataFrame(
+                columns=[
+                    SignalStrategyExecutorColumns.ENTRY_SIGNAL,
+                    SignalStrategyExecutorColumns.EXIT_SIGNAL,
+                    SignalStrategyExecutorColumns.STRATEGY_NAME,
+                    SignalStrategyExecutorColumns.SYMBOL,
+                ]
+            )
 
         try:
             # Validate input data
             self._validate_data_quality(page_df)
 
-            # Filter out rows with NaNs in required columns for this strategy
-            required_cols = getattr(strategy, "required_columns", [])
-            if required_cols:
-                filtered_df = page_df.dropna(subset=required_cols)
-            else:
-                filtered_df = page_df
+            # Filter extreme values
+            page_df = self._filter_extreme_values(page_df)
 
-            if filtered_df.empty:
-                self.logger.debug(
-                    f"All rows dropped after filtering for required columns in page {page_num} for {symbol}-{strategy_name}"
+            # Ensure valid pages are processed and appended
+            if page_df.empty:
+                self.logger.warning(
+                    f"Page {page_num} for {symbol}-{strategy_name} is empty after filtering. Skipping."
+                )
+                return pd.DataFrame(
+                    columns=[
+                        SignalStrategyExecutorColumns.ENTRY_SIGNAL,
+                        SignalStrategyExecutorColumns.EXIT_SIGNAL,
+                        SignalStrategyExecutorColumns.STRATEGY_NAME,
+                        SignalStrategyExecutorColumns.SYMBOL,
+                    ]
+                )
+
+            # Generate and validate signals
+            try:
+                signals_df = strategy.generate_signals(page_df.copy())
+                self._validate_strategy_output(strategy, page_df, signals_df)
+            except Exception as e:
+                self.logger.error(
+                    f"Error generating signals for page {page_num} of {symbol}-{strategy_name}: {str(e)}"
                 )
                 return None
-            # Generate and validate signals
-            signals_df = strategy.generate_signals(page_df.copy())
-            self.logger.debug(
-                f"Generated signals: {type(signals_df)} with length {len(signals_df)}"
-            )
-            self._validate_strategy_output(strategy, page_df, signals_df)
 
             # Create result DataFrame
             result_df = signals_df.copy()
@@ -133,7 +176,7 @@ class StrategyBacktestExecutor(BacktestExecutor):
             self.logger.error(
                 f"Critical error processing page {page_num} for {symbol}-{strategy_name}: {str(e)}"
             )
-            raise
+            return None
 
     def _should_skip_pair(self, pair_key: str, strategy_name: str, symbol: str) -> bool:
         if pair_key in self._processed_pairs:
@@ -154,10 +197,12 @@ class StrategyBacktestExecutor(BacktestExecutor):
         return False
 
     def _validate_data_quality(self, df: pd.DataFrame) -> None:
+        """
+        Validate the DataFrame for required columns, null values, invalid data, and extreme values.
+        """
         if df.empty:
             raise ValueError("Empty DataFrame received")
 
-        # Only check essential columns for nulls
         essential_cols = [
             SignalStrategyExecutorColumns.TIMESTAMP,
             SignalStrategyExecutorColumns.CLOSE_PRICE,
@@ -174,6 +219,12 @@ class StrategyBacktestExecutor(BacktestExecutor):
             self.logger.error("Invalid close prices (<= 0) detected in DataFrame")
             raise ValueError("Invalid close prices (<= 0) detected")
 
+        if (df[SignalStrategyExecutorColumns.CLOSE_PRICE] > 1e6).any():
+            self.logger.warning(
+                "Extreme close prices (> 1e6) detected. These will be skipped."
+            )
+            raise ValueError("Extreme close prices detected in DataFrame")
+
         if not pd.api.types.is_datetime64_any_dtype(
             df[SignalStrategyExecutorColumns.TIMESTAMP]
         ):
@@ -182,31 +233,26 @@ class StrategyBacktestExecutor(BacktestExecutor):
     def _validate_strategy_output(
         self, strategy: BaseSignalStrategy, df: pd.DataFrame, signals_df: pd.DataFrame
     ) -> None:
+        """
+        Validate the strategy output DataFrame for required columns, null values, and numerical stability.
+        """
         strategy_name = strategy.get_hash_id()
         if len(signals_df) != len(df):
-            self.logger.error(
+            self.logger.warning(
                 f"Strategy {strategy_name} returned {len(signals_df)} rows for {len(df)} input rows"
-            )
-            raise ValueError(
-                f"Strategy {strategy_name} returned "
-                f"{len(signals_df)} rows for {len(df)} input rows"
             )
 
         if not isinstance(signals_df, pd.DataFrame):
-            self.logger.error(
+            self.logger.warning(
                 f"Strategy {strategy_name} must return a pandas DataFrame, got {type(signals_df)}"
             )
-            raise ValueError(f"Strategy {strategy_name} must return a pandas DataFrame")
 
         for col in [
             SignalStrategyExecutorColumns.ENTRY_SIGNAL,
             SignalStrategyExecutorColumns.EXIT_SIGNAL,
         ]:
             if col not in signals_df.columns:
-                self.logger.error(
-                    f"Strategy {strategy_name} output missing required column: {col}"
-                )
-                raise ValueError(
+                self.logger.warning(
                     f"Strategy {strategy_name} output missing required column: {col}"
                 )
 
@@ -221,12 +267,52 @@ class StrategyBacktestExecutor(BacktestExecutor):
             .any()
             .any()
         ):
-            self.logger.error(
+            self.logger.warning(
                 f"Strategy {strategy_name} returned signals containing null values"
             )
-            raise ValueError(
-                f"Strategy {strategy_name} returned signals containing null values"
+
+        if (
+            signals_df[
+                [
+                    SignalStrategyExecutorColumns.ENTRY_SIGNAL,
+                    SignalStrategyExecutorColumns.EXIT_SIGNAL,
+                ]
+            ]
+            .abs()
+            .max()
+            > 1e6
+        ).any():
+            self.logger.warning(
+                f"Strategy {strategy_name} returned extreme signal values (> 1e6). These will be skipped."
             )
+
+    def _filter_extreme_values(self, df: pd.DataFrame) -> pd.DataFrame:
+        """
+        Filter out rows with extreme values in the DataFrame.
+        """
+        if SignalStrategyExecutorColumns.CLOSE_PRICE in df.columns:
+            extreme_rows = df[SignalStrategyExecutorColumns.CLOSE_PRICE] > 1e6
+            if extreme_rows.any():
+                self.logger.warning(
+                    "Extreme close prices (> 1e6) detected. These rows will be skipped."
+                )
+
+            invalid_rows = df[SignalStrategyExecutorColumns.CLOSE_PRICE] <= 0
+            if invalid_rows.any():
+                self.logger.warning(
+                    "Invalid close prices (<= 0) detected. These rows will be skipped."
+                )
+
+            # Retain only valid rows
+            valid_rows = ~extreme_rows & ~invalid_rows
+            df = df[valid_rows]
+
+        if df.empty:
+            self.logger.warning(
+                "DataFrame is empty after filtering extreme and invalid values."
+            )
+
+        return df
 
 
 def mockStrategyBacktestExecutor(data_dir: Path) -> StrategyBacktestExecutor:

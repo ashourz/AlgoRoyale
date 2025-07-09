@@ -112,14 +112,24 @@ class PortfolioBacktestExecutor(BacktestExecutor):
             prices = data.iloc[t].values
             timestamp = data.index[t] if hasattr(data, "index") else t
             # Check for any invalid prices at this step
-            if not np.all(np.isfinite(prices)) or np.any(prices <= 0):
+            if (
+                not np.all(np.isfinite(prices))
+                or np.any(prices <= 0)
+                or np.any(prices > 1e6)
+            ):
+                invalid_assets = [
+                    data.columns[i] if hasattr(data, "columns") else str(i)
+                    for i, price in enumerate(prices)
+                    if not np.isfinite(price) or price <= 0 or price > 1e6
+                ]
                 self.logger.warning(
-                    f"Invalid prices detected at step {t}. Skipping portfolio update."
+                    f"Invalid prices detected at step {t} for assets: {invalid_assets}. Skipping portfolio update."
                 )
                 portfolio_values.append(cash + np.sum(holdings * prices))
                 cash_history.append(cash)
                 holdings_history.append(holdings.copy())
                 continue
+
             total_portfolio_value = cash + np.sum(holdings * prices)
             max_investable = total_portfolio_value * self.leverage
             target_dollars = target_weights * max_investable
@@ -128,65 +138,49 @@ class PortfolioBacktestExecutor(BacktestExecutor):
             self.logger.debug(
                 f"Step {t}: cash={cash}, holdings={holdings}, prices={prices}, target_weights={target_weights}"
             )
+            # Cap extreme quantities and costs
+            max_quantity = 1e9
+            max_cost = 1e12
+
             for i in range(n_assets):
                 asset_name = data.columns[i] if hasattr(data, "columns") else str(i)
                 buy_price = prices[i] * (1 + self.slippage)
                 sell_price = prices[i] * (1 - self.slippage)
-                # Add price checks
-                if np.isnan(buy_price) or buy_price <= 0:
-                    self.logger.warning(
-                        f"Skipping buy for {asset_name} at step {t} due to invalid price: {buy_price}"
-                    )
-                    continue
-                if np.isnan(sell_price) or sell_price <= 0:
-                    self.logger.warning(
-                        f"Skipping sell for {asset_name} at step {t} due to invalid price: {sell_price}"
-                    )
-                    continue
 
-                # Validate extreme prices
                 if buy_price > 1e6 or sell_price > 1e6:
                     self.logger.warning(
                         f"Skipping trade for {asset_name} at step {t} due to extreme price: buy_price={buy_price}, sell_price={sell_price}"
                     )
                     continue
 
-                # Validate extreme quantities
-                if abs(trade_dollars[i]) > 1e9:
-                    self.logger.warning(
-                        f"Skipping trade for {asset_name} at step {t} due to extreme trade value: trade_dollars={trade_dollars[i]}"
-                    )
-                    continue
-
-                # Robustify numerical stability checks
+                trade_dollars[i] = min(trade_dollars[i], max_cost)
                 desired_shares = trade_dollars[i] // (
                     buy_price * (1 + self.transaction_cost)
                 )
-                max_affordable = (
-                    cash + (self.leverage - 1) * total_portfolio_value
-                ) // (buy_price * (1 + self.transaction_cost))
+                desired_shares = min(desired_shares, max_quantity)
+
                 if not np.isfinite(desired_shares) or desired_shares < 0:
                     self.logger.warning(
                         f"Skipping buy for {asset_name} at step {t} due to invalid desired_shares: {desired_shares}"
                     )
-                    desired_shares = 0
+                    continue
 
-                if not np.isfinite(max_affordable) or max_affordable < 0:
-                    self.logger.warning(
-                        f"Skipping buy for {asset_name} at step {t} due to invalid max_affordable: {max_affordable}"
-                    )
-                    max_affordable = 0
-
-                # Ensure shares_to_buy is valid
-                shares_to_buy = min(desired_shares, max_affordable)
+                shares_to_buy = min(desired_shares, max_quantity)
                 shares_to_buy = shares_to_buy // self.min_lot * self.min_lot
                 if not np.isfinite(shares_to_buy) or shares_to_buy < 0:
                     self.logger.warning(
                         f"Skipping buy for {asset_name} at step {t} due to invalid shares_to_buy: {shares_to_buy}"
                     )
-                    shares_to_buy = 0
-                shares_to_buy = int(shares_to_buy)
+                    continue
+
+                # Ensure numerical stability
                 cost = shares_to_buy * buy_price * (1 + self.transaction_cost)
+                if cost > max_cost:
+                    self.logger.warning(
+                        f"Skipping buy for {asset_name} at step {t} due to excessive cost: {cost}"
+                    )
+                    continue
+
                 if (
                     shares_to_buy > 0
                     and cost <= cash + (self.leverage - 1) * total_portfolio_value

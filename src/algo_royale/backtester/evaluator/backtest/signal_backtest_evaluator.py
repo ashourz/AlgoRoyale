@@ -57,7 +57,7 @@ class SignalBacktestEvaluator(BacktestEvaluator):
 
     def _validate_dataframe(self, df: pd.DataFrame) -> None:
         """
-        Validate the DataFrame for required columns, null values, and invalid data.
+        Validate the DataFrame for required columns, null values, invalid data, and extreme values.
         Parameters:
             df: The DataFrame to validate.
         """
@@ -79,8 +79,16 @@ class SignalBacktestEvaluator(BacktestEvaluator):
             self.logger.error("Invalid close prices (<= 0) detected")
             raise ValueError("Invalid close prices (<= 0) detected")
 
+        if (df[SignalStrategyColumns.CLOSE_PRICE] > 1e6).any():
+            self.logger.warning(
+                "Extreme close prices (> 1e6) detected. These will be skipped."
+            )
+
     def _simulate_trades(self, df: pd.DataFrame) -> list[dict]:
-        """Simulate trades based on entry and exit signals in the DataFrame."""
+        """
+        Simulate trades based on entry and exit signals in the DataFrame.
+        Includes validation for numerical stability and extreme values.
+        """
         try:
             entry_col = SignalStrategyColumns.ENTRY_SIGNAL
             exit_col = SignalStrategyColumns.EXIT_SIGNAL
@@ -96,12 +104,30 @@ class SignalBacktestEvaluator(BacktestEvaluator):
                 signal_exit = row[exit_col]
                 price = row[close_col]
 
+                if not np.isfinite(price) or price <= 0 or price > 1e6:
+                    self.logger.warning(
+                        f"Skipping trade simulation at index {i} due to invalid price: {price}"
+                    )
+                    continue
+
                 if signal_entry == SignalType.BUY.value and not in_trade:
                     entry_price = price
                     in_trade = True
 
                 elif signal_exit == SignalType.SELL.value and in_trade:
+                    if entry_price is None or not np.isfinite(entry_price):
+                        self.logger.warning(
+                            f"Skipping trade simulation at index {i} due to invalid entry price: {entry_price}"
+                        )
+                        continue
+
                     pnl = (price - entry_price) / entry_price
+                    if not np.isfinite(pnl):
+                        self.logger.warning(
+                            f"Skipping trade simulation at index {i} due to invalid PnL calculation: {pnl}"
+                        )
+                        continue
+
                     cumulative_return += pnl
                     trades.append(
                         {

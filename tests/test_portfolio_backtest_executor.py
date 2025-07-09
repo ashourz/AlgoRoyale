@@ -135,6 +135,48 @@ class TestPortfolioBacktestExecutor(unittest.TestCase):
         )
         self.assertIn("transactions", results, "Output should contain transactions.")
 
+    def test_extreme_price_and_quantity_validation(self):
+        data = pd.DataFrame(
+            {
+                "asset_1": [1e7, 100],
+                "asset_2": [1e7, -100],
+            }
+        )
+        results = self.executor.run_backtest(self.mock_strategy_extreme_price, data)
+        self.assertEqual(
+            len(results["transactions"]),
+            0,
+            "Transactions should be skipped due to extreme prices and quantities.",
+        )
+
+    def test_logging_for_invalid_assets(self):
+        with self.assertLogs(self.executor.logger, level="WARNING") as log:
+            data = pd.DataFrame(
+                {
+                    "asset_1": [np.nan, 1e7],
+                    "asset_2": [np.inf, 1e7],
+                }
+            )
+            self.executor.run_backtest(self.mock_strategy_numerical_stability, data)
+            self.assertTrue(
+                any("Invalid prices detected" in message for message in log.output),
+                "Warnings for invalid assets should be logged.",
+            )
+
+    def test_numerical_stability_checks(self):
+        data = pd.DataFrame(
+            {
+                "asset_1": [1e7, 1e7],
+                "asset_2": [1e7, 1e7],
+            }
+        )
+        results = self.executor.run_backtest(self.mock_strategy_extreme_quantity, data)
+        self.assertEqual(
+            len(results["transactions"]),
+            0,
+            "Transactions should be skipped due to numerical instability.",
+        )
+
 
 if __name__ == "__main__":
     unittest.main()
