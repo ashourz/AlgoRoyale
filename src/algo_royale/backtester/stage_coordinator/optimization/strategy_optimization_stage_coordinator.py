@@ -23,6 +23,9 @@ from algo_royale.backtester.stage_data.loader.symbol_strategy_data_loader import
     SymbolStrategyDataLoader,
 )
 from algo_royale.backtester.stage_data.stage_data_manager import StageDataManager
+from algo_royale.backtester.stage_data_validation.signal_strategy_optimization_result_validator import (
+    signal_strategy_optimization_validator,
+)
 from algo_royale.backtester.strategy.signal.base_signal_strategy import (
     BaseSignalStrategy,
 )
@@ -119,8 +122,17 @@ class StrategyOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
                     optimization_result = optimizer.optimize(
                         symbol, train_df, self.start_date, self.end_date
                     )
-                    # Validate the optimization results
-                    if not self._validate_optimization_results(optimization_result):
+                    # Fix: Use the correct validator for single result dicts
+                    if (
+                        isinstance(optimization_result, dict)
+                        and "strategy" in optimization_result
+                    ):
+                        valid = signal_strategy_optimization_validator(
+                            optimization_result, self.logger
+                        )
+                    else:
+                        valid = self._validate_optimization_results(optimization_result)
+                    if not valid:
                         self.logger.error(
                             f"[{self.stage}] Optimization results validation failed for {symbol} {strategy_name}"
                         )
@@ -227,8 +239,9 @@ class StrategyOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
                         "metrics": optimization_result.get("metrics", {}),
                     },
                     "window": {
-                        "start_date": str(start_date),
-                        "end_date": str(end_date),
+                        "start_date": start_date.strftime("%Y-%m-%d"),
+                        "end_date": end_date.strftime("%Y-%m-%d"),
+                        "window_id": f"{start_date.strftime('%Y%m%d')}_{end_date.strftime('%Y%m%d')}",
                     },
                 }
             }

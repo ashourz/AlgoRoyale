@@ -21,8 +21,8 @@ class SignalStrategyOptimizer(ABC):
         self,
         symbol: str,
         df: pd.DataFrame,
-        start_time: datetime,
-        end_time: datetime,
+        window_start_time: datetime,
+        window_end_time: datetime,
         n_trials: int = 50,
     ) -> Dict[str, Any]:
         """
@@ -65,8 +65,8 @@ class SignalStrategyOptimizerImpl(SignalStrategyOptimizer):
         self,
         symbol: str,
         df: pd.DataFrame,
-        start_time: datetime,
-        end_time: datetime,
+        window_start_time: datetime,
+        window_end_time: datetime,
         n_trials: int = 1,
     ) -> Dict[str, Any]:
         """
@@ -197,9 +197,9 @@ class SignalStrategyOptimizerImpl(SignalStrategyOptimizer):
             },
             "metrics": study.best_trial.user_attrs.get("full_result"),
             "window": {
-                "start": start_time,
-                "end": end_time,
-                "window_id": f"{start_time.strftime('%Y%m%d')}_{end_time.strftime('%Y%m%d')}",
+                "start_date": window_start_time.strftime("%Y-%m-%d"),
+                "end_date": window_end_time.strftime("%Y-%m-%d"),
+                "window_id": f"{window_start_time.strftime('%Y%m%d')}_{window_end_time.strftime('%Y%m%d')}",
             },
         }
         self.logger.debug(f"Optimization results: {results}")
@@ -305,8 +305,8 @@ class MockSignalStrategyOptimizer(SignalStrategyOptimizer):
         self,
         symbol: str,
         df: pd.DataFrame,
-        start_time: datetime,
-        end_time: datetime,
+        window_start_time: datetime,
+        window_end_time: datetime,
         n_trials: int = 1,
     ) -> Dict[str, Any]:
         """

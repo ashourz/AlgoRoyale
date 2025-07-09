@@ -82,9 +82,6 @@ class BaseTestingStageCoordinator(StageCoordinator):
         self.logger.info(
             f"Running {self.stage} for {test_start_date} to {test_end_date}"
         )
-        return await super().run_test(
-            start_date=test_start_date, end_date=test_end_date
-        )
 
     async def run_test(
         self,

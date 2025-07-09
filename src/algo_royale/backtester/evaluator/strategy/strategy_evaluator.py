@@ -1,4 +1,5 @@
 import json
+from logging import Logger
 from pathlib import Path
 
 import numpy as np
@@ -16,7 +17,9 @@ class StrategyEvaluator:
     """
 
     def __init__(
-        self, metric_type: StrategyEvaluationType = StrategyEvaluationType.BOTH
+        self,
+        logger: Logger,
+        metric_type: StrategyEvaluationType = StrategyEvaluationType.BOTH,
     ):
         """
         Args:

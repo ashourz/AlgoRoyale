@@ -110,7 +110,9 @@ class StrategyEvaluationCoordinator:
             self.logger.debug(f"Found optimization result file: {opt_json_path}")
             try:
                 self.logger.info(f"Evaluating {opt_json_path}...")
-                evaluator = StrategyEvaluator(metric_type=self.evaluation_type)
+                evaluator = StrategyEvaluator(
+                    logger=self.logger, metric_type=self.evaluation_type
+                )
                 evaluator.load_data(results_path=opt_json_path)
                 all_metrics.extend(evaluator.metrics)
                 for window, data in evaluator.results.items():

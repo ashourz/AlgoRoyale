@@ -302,8 +302,9 @@ class PortfolioOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
                 self.window_id: {
                     "optimization": results,
                     "window": {
-                        "start_date": self.start_date,
-                        "end_date": self.end_date,
+                        "start_date": self.start_date.strftime("%Y-%m-%d"),
+                        "end_date": self.end_date.strftime("%Y-%m-%d"),
+                        "window_id": f"{self.start_date.strftime('%Y%m%d')}_{self.end_date.strftime('%Y%m%d')}",
                     },
                 }
             }
@@ -337,8 +338,9 @@ class PortfolioOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
                 results[symbol][strategy_name][self.window_id] = {
                     "optimization": optimization_result,
                     "window": {
-                        "start_date": str(start_date),
-                        "end_date": str(end_date),
+                        "start_date": start_date.strftime("%Y-%m-%d"),
+                        "end_date": end_date.strftime("%Y-%m-%d"),
+                        "window_id": f"{start_date.strftime('%Y%m%d')}_{end_date.strftime('%Y%m%d')}",
                     },
                 }
 

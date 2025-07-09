@@ -23,8 +23,8 @@ class PortfolioStrategyOptimizer(ABC):
         self,
         symbol: str,
         df: pd.DataFrame,
-        start_time: datetime,
-        end_time: datetime,
+        window_start_time: datetime,
+        window_end_time: datetime,
         n_trials: int = 1,
     ) -> Dict[str, Any]:
         """
@@ -67,8 +67,8 @@ class PortfolioStrategyOptimizerImpl(PortfolioStrategyOptimizer):
         self,
         symbol: str,
         df: pd.DataFrame,
-        start_time: datetime,
-        end_time: datetime,
+        window_start_time: datetime,
+        window_end_time: datetime,
         n_trials: int = 1,
     ) -> Dict[str, Any]:
         """
@@ -203,9 +203,9 @@ class PortfolioStrategyOptimizerImpl(PortfolioStrategyOptimizer):
             },
             "metrics": best_metrics,
             "window": {
-                "start": df.index[0].strftime("%Y-%m-%d"),
-                "end": df.index[-1].strftime("%Y-%m-%d"),
-                "window_id": f"{df.index[0].strftime('%Y%m%d')}_{df.index[-1].strftime('%Y%m%d')}",
+                "start_date": window_start_time.strftime("%Y-%m-%d"),
+                "end_date": window_end_time.strftime("%Y-%m-%d"),
+                "window_id": f"{window_start_time.strftime('%Y%m%d')}_{window_end_time.strftime('%Y%m%d')}",
             },
         }
         self.logger.debug(f"Portfolio optimization results: {results}")
@@ -245,8 +245,8 @@ class MockPortfolioStrategyOptimizer(PortfolioStrategyOptimizer):
         self,
         symbol: str,
         df: pd.DataFrame,
-        start_time: datetime,
-        end_time: datetime,
+        window_start_time: datetime,
+        window_end_time: datetime,
         n_trials: int = 1,
     ) -> Dict[str, Any]:
         """
