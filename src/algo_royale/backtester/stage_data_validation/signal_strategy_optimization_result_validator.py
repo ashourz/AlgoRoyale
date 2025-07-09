@@ -82,19 +82,32 @@ def signal_strategy_optimization_result_validator(d: dict, logger: Logger) -> bo
     as found in optimization_result.json (excluding the 'test' key).
     """
     if not isinstance(d, dict):
+        logger
         return False
     for window_key, window_val in d.items():
         if not isinstance(window_val, dict):
+            logger.warning(
+                f"Validation failed: Window value not dict. Key: {window_key}, Value: {window_val}"
+            )
             return False
         # Must have "optimization" and "window" keys
         if "optimization" not in window_val or "window" not in window_val:
+            logger.warning(
+                f"Validation failed: 'optimization' or 'window' missing in window. Key: {window_key}, Value: {window_val}"
+            )
             return False
         # Validate "optimization" section
         if not signal_strategy_optimization_validator(
             window_val["optimization"], logger
         ):
+            logger.warning(
+                f"Validation failed: 'optimization' section invalid. Key: {window_key}, Value: {window_val['optimization']}"
+            )
             return False
         # Validate "window" section
-        if not window_section_validator(window_val["window"]):
+        if not window_section_validator(window_val["window"], logger):
+            logger.warning(
+                f"Validation failed: 'window' section invalid. Key: {window_key}, Value: {window_val['window']}"
+            )
             return False
     return True

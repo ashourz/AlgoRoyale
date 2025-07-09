@@ -110,10 +110,18 @@ class SymbolEvaluationCoordinator:
         Raises:
             ValueError: If the report does not contain required fields.
         """
-        validation_method = BacktestStage.SYMBOL_EVALUATION.input_validation_fn
-        if not callable(validation_method):
-            raise ValueError(f"Validation method {validation_method} is not callable.")
-        return validation_method(report, self.logger)
+        try:
+            validation_method = BacktestStage.SYMBOL_EVALUATION.input_validation_fn
+            if not callable(validation_method):
+                raise ValueError(
+                    f"Validation method {validation_method} is not callable."
+                )
+            return validation_method(report, self.logger)
+        except Exception as e:
+            self.logger.error(
+                f"Error validating input report for symbol evaluation: {e}"
+            )
+            raise e
 
 
 def mockSymbolEvaluationCoordinator():

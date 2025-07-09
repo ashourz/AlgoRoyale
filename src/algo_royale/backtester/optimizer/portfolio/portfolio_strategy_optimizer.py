@@ -197,6 +197,11 @@ class PortfolioStrategyOptimizerImpl(PortfolioStrategyOptimizer):
                 "multi_objective": is_multi,
             },
             "metrics": best_metrics,
+            "window": {
+                "start": df.index[0].strftime("%Y-%m-%d"),
+                "end": df.index[-1].strftime("%Y-%m-%d"),
+                "window_id": f"{df.index[0].strftime('%Y%m%d')}_{df.index[-1].strftime('%Y%m%d')}",
+            },
         }
         self.logger.debug(f"Portfolio optimization results: {results}")
         return results

@@ -42,10 +42,18 @@ class StrategyEvaluator:
         self.metrics = self._extract_metrics()
 
     def _validate_loaded_results(self, results: dict):
-        validation_method = BacktestStage.STRATEGY_EVALUATION.input_validation_fn
-        if not callable(validation_method):
-            raise ValueError(f"Validation method {validation_method} is not callable.")
-        return validation_method(results, self.logger)
+        try:
+            validation_method = BacktestStage.STRATEGY_EVALUATION.input_validation_fn
+            if not callable(validation_method):
+                raise ValueError(
+                    f"Validation method {validation_method} is not callable."
+                )
+            return validation_method(
+                results, None
+            )  # Logger is not used in this context
+        except Exception as e:
+            self.logger.error(f"Error validating loaded results: {e}")
+            return False
 
     def _extract_metrics(self):
         metrics = []

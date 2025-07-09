@@ -282,15 +282,17 @@ class PortfolioTestingStageCoordinator(BaseTestingStageCoordinator):
         results: Dict[str, Dict[str, dict]],
     ) -> bool:
         """Validate the optimization results to ensure they contain the expected structure."""
-        validation_method = BacktestStage.PORTFOLIO_TESTING.value.input_validation_fn
-        if not validation_method:
-            self.logger.warning(
-                "No validation method defined for portfolio optimization results. Skipping validation."
-            )
-            return False
-        self.logger.debug(f"DEBUG: Validation method: {validation_method}")
-        self.logger.debug(f"DEBUG: Results being validated: {results}")
         try:
+            validation_method = (
+                BacktestStage.PORTFOLIO_TESTING.value.input_validation_fn
+            )
+            if not validation_method:
+                self.logger.warning(
+                    "No validation method defined for portfolio optimization results. Skipping validation."
+                )
+                return False
+            self.logger.debug(f"DEBUG: Validation method: {validation_method}")
+            self.logger.debug(f"DEBUG: Results being validated: {results}")
             validation_result = validation_method(results, self.logger)
             self.logger.debug(f"DEBUG: Validation result: {validation_result}")
             return validation_result
@@ -303,13 +305,19 @@ class PortfolioTestingStageCoordinator(BaseTestingStageCoordinator):
         results: Dict[str, Dict[str, dict]],
     ) -> bool:
         """Validate the test results to ensure they contain the expected structure."""
-        validation_method = BacktestStage.STRATEGY_TESTING.value.output_validation_fn
-        if not validation_method:
-            self.logger.warning(
-                "No validation method defined for portfolio test results. Skipping validation."
+        try:
+            validation_method = (
+                BacktestStage.STRATEGY_TESTING.value.output_validation_fn
             )
+            if not validation_method:
+                self.logger.warning(
+                    "No validation method defined for portfolio test results. Skipping validation."
+                )
+                return False
+            return validation_method(results, self.logger)
+        except Exception as e:
+            self.logger.error(f"Error validating test results: {e}")
             return False
-        return validation_method(results, self.logger)
 
     def _write_test_results(
         self,

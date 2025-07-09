@@ -120,7 +120,7 @@ class StrategyOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
                     # Validate the optimization results
                     if not self._validate_optimization_results(optimization_result):
                         self.logger.error(
-                            f"Optimization results validation failed for {symbol} {strategy_name}"
+                            f"[{self.stage}] Optimization results validation failed for {symbol} {strategy_name}"
                         )
                         continue
                     # Write the optimization results to JSON
@@ -180,15 +180,21 @@ class StrategyOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
         self, results: Dict[str, Dict[str, dict]]
     ) -> bool:
         """Validate the optimization results to ensure they contain the expected structure."""
-        validation_method = (
-            BacktestStage.STRATEGY_OPTIMIZATION.value.output_validation_fn
-        )
-        if not validation_method:
-            self.logger.warning(
-                "No validation method defined for strategy optimization results. Skipping validation."
+        try:
+            validation_method = (
+                BacktestStage.STRATEGY_OPTIMIZATION.value.output_validation_fn
+            )
+            if not validation_method:
+                self.logger.warning(
+                    "No validation method defined for strategy optimization results. Skipping validation."
+                )
+                return False
+            return validation_method(results, self.logger)
+        except Exception as e:
+            self.logger.error(
+                f"Error validating optimization results: {e}. Results: {results}"
             )
             return False
-        return validation_method(results, self.logger)
 
     def _write_results(
         self,

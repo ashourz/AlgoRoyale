@@ -286,27 +286,39 @@ class PortfolioBacktestExecutor(BacktestExecutor):
 
     def _validate_input(self, input_data: pd.DataFrame) -> bool:
         """Validate the input data structure of the backtest executor."""
-        validation_method = (
-            BacktestStage.PORTFOLIO_BACKTEST_EXECUTOR.value.input_validation_fn
-        )
-        if not validation_method:
-            self.logger.warning(
-                "No input validation method defined for PortfolioBacktestExecutor."
+        try:
+            validation_method = (
+                BacktestStage.PORTFOLIO_BACKTEST_EXECUTOR.value.input_validation_fn
+            )
+            if not validation_method:
+                self.logger.warning(
+                    "No input validation method defined for PortfolioBacktestExecutor."
+                )
+                return False
+            return validation_method(input_data, self.logger)
+        except Exception as e:
+            self.logger.error(
+                f"Error validating input data for PortfolioBacktestExecutor: {e}"
             )
             return False
-        return validation_method(input_data, self.logger)
 
     def _validate_output(self, output_data: Dict[str, Any]) -> bool:
         """Validate the output data structure of the backtest executor."""
-        validation_method = (
-            BacktestStage.PORTFOLIO_BACKTEST_EXECUTOR.value.output_validation_fn
-        )
-        if not validation_method:
-            self.logger.warning(
-                "No output validation method defined for PortfolioBacktestExecutor."
+        try:
+            validation_method = (
+                BacktestStage.PORTFOLIO_BACKTEST_EXECUTOR.value.output_validation_fn
+            )
+            if not validation_method:
+                self.logger.warning(
+                    "No output validation method defined for PortfolioBacktestExecutor."
+                )
+                return False
+            return validation_method(output_data, self.logger)
+        except Exception as e:
+            self.logger.error(
+                f"Error validating output data for PortfolioBacktestExecutor: {e}"
             )
             return False
-        return validation_method(output_data, self.logger)
 
 
 def mockPortfolioBacktestExecutor(

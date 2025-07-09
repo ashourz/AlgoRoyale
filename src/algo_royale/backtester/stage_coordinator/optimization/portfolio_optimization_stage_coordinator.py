@@ -286,23 +286,32 @@ class PortfolioOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
         results: Dict[str, Any],
     ) -> bool:
         """Validate the optimization results to ensure they contain the expected structure."""
-        validation_method = (
-            BacktestStage.PORTFOLIO_OPTIMIZATION.value.output_validation_fn
-        )
-        if not validation_method:
-            self.logger.warning(
-                "No validation method defined for portfolio optimization results. Skipping validation."
+        try:
+            validation_method = (
+                BacktestStage.PORTFOLIO_OPTIMIZATION.value.output_validation_fn
+            )
+            if not validation_method:
+                self.logger.warning(
+                    "No validation method defined for portfolio optimization results. Skipping validation."
+                )
+                return False
+
+            # Wrap the results in the required structure for validation
+            structured_results = {
+                self.window_id: {
+                    "optimization": results,
+                    "window": {
+                        "start_date": self.start_date,
+                        "end_date": self.end_date,
+                    },
+                }
+            }
+            return validation_method(structured_results, self.logger)
+        except Exception as e:
+            self.logger.error(
+                f"Error validating optimization results: {e}. Results: {results}"
             )
             return False
-
-        # Wrap the results in the required structure for validation
-        structured_results = {
-            self.window_id: {
-                "optimization": results,
-                "window": {"start_date": self.start_date, "end_date": self.end_date},
-            }
-        }
-        return validation_method(structured_results, self.logger)
 
     def _write_results(
         self,

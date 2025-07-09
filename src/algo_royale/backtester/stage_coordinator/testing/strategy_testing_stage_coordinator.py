@@ -273,7 +273,7 @@ class StrategyTestingStageCoordinator(BaseTestingStageCoordinator):
             # validate the optimization results
             if not self._validate_optimization_results(train_opt_results):
                 self.logger.error(
-                    f"Optimization results validation failed for {symbol} {strategy_name} {self.train_window_id}"
+                    f"[{self.stage}] Optimization results validation failed for {symbol} {strategy_name} {self.train_window_id}"
                 )
                 return None
             if (
@@ -308,26 +308,40 @@ class StrategyTestingStageCoordinator(BaseTestingStageCoordinator):
         results: Dict[str, Dict[str, dict]],
     ) -> bool:
         """Validate the optimization results to ensure they contain the expected structure."""
-        validation_method = BacktestStage.STRATEGY_TESTING.value.input_validation_fn
-        if not validation_method:
-            self.logger.warning(
-                "No validation method defined for strategy optimization results. Skipping validation."
+        try:
+            validation_method = BacktestStage.STRATEGY_TESTING.value.input_validation_fn
+            if not validation_method:
+                self.logger.warning(
+                    "No validation method defined for strategy optimization results. Skipping validation."
+                )
+                return False
+            return validation_method(results, self.logger)
+        except Exception as e:
+            self.logger.error(
+                f"Error validating optimization results for {self.train_window_id}: {e}"
             )
             return False
-        return validation_method(results, self.logger)
 
     def _validate_test_results(
         self,
         results: Dict[str, Dict[str, dict]],
     ) -> bool:
         """Validate the test results to ensure they contain the expected structure."""
-        validation_method = BacktestStage.STRATEGY_TESTING.value.output_validation_fn
-        if not validation_method:
-            self.logger.warning(
-                "No validation method defined for strategy test results. Skipping validation."
+        try:
+            validation_method = (
+                BacktestStage.STRATEGY_TESTING.value.output_validation_fn
+            )
+            if not validation_method:
+                self.logger.warning(
+                    "No validation method defined for strategy test results. Skipping validation."
+                )
+                return False
+            return validation_method(results, self.logger)
+        except Exception as e:
+            self.logger.error(
+                f"Error validating test results for {self.test_window_id}: {e}"
             )
             return False
-        return validation_method(results, self.logger)
 
     def _write_test_results(
         self,
