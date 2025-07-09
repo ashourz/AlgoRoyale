@@ -154,7 +154,7 @@ class WalkForwardCoordinator:
             f"Running feature engineering for train window: {train_start.date()} to {train_end.date()}"
         )
         fe_success = await self.feature_engineering_stage_coordinator.run(
-            start_date=train_start, end_date=train_end, load_in_reverse=True
+            start_date=train_start, end_date=train_end
         )
         if not fe_success:
             self.logger.error("Feature engineering stage failed")
@@ -196,7 +196,7 @@ class WalkForwardCoordinator:
             f"Running feature engineering for test window: {test_start.date()} to {test_end.date()}"
         )
         fe_success = await self.feature_engineering_stage_coordinator.run(
-            start_date=test_start, end_date=test_end, load_in_reverse=True
+            start_date=test_start, end_date=test_end
         )
         if not fe_success:
             self.logger.error("Feature engineering stage failed")

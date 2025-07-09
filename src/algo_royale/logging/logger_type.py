@@ -8,8 +8,8 @@ class LoggerType(Enum):
     """
 
     TRADING = ("trading", logging.INFO)
-    BACKTESTING = ("backtesting", logging.WARNING)
-    WATCHLIST = ("watchlist", logging.INFO)
+    BACKTESTING = ("backtesting", logging.DEBUG)
+    WATCHLIST = ("watchlist", logging.DEBUG)
     TESTING = ("testing", logging.DEBUG)
 
     @property

@@ -505,7 +505,7 @@ class DIContainer(containers.DeclarativeContainer):
 
     portfolio_optimization_stage_coordinator = providers.Singleton(
         PortfolioOptimizationStageCoordinator,
-        data_loader=stage_data_loader,
+        data_loader=symbol_strategy_data_loader,
         stage_data_manager=stage_data_manager,
         executor=portfolio_executor,
         evaluator=portfolio_evaluator,
@@ -527,7 +527,7 @@ class DIContainer(containers.DeclarativeContainer):
 
     portfolio_testing_stage_coordinator = providers.Singleton(
         PortfolioTestingStageCoordinator,
-        data_loader=stage_data_loader,
+        data_loader=symbol_strategy_data_loader,
         stage_data_manager=stage_data_manager,
         executor=portfolio_executor,
         evaluator=portfolio_evaluator,
