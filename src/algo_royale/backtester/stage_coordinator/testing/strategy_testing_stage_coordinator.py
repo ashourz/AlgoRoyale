@@ -314,7 +314,7 @@ class StrategyTestingStageCoordinator(BaseTestingStageCoordinator):
                 "No validation method defined for strategy optimization results. Skipping validation."
             )
             return False
-        return validation_method(results)
+        return validation_method(results, self.logger)
 
     def _validate_test_results(
         self,
@@ -327,7 +327,7 @@ class StrategyTestingStageCoordinator(BaseTestingStageCoordinator):
                 "No validation method defined for strategy test results. Skipping validation."
             )
             return False
-        return validation_method(results)
+        return validation_method(results, self.logger)
 
     def _write_test_results(
         self,

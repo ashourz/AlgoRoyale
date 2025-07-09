@@ -188,7 +188,7 @@ class StrategyOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
                 "No validation method defined for strategy optimization results. Skipping validation."
             )
             return False
-        return validation_method(results)
+        return validation_method(results, self.logger)
 
     def _write_results(
         self,

@@ -45,7 +45,7 @@ class StrategyEvaluator:
         validation_method = BacktestStage.STRATEGY_EVALUATION.input_validation_fn
         if not callable(validation_method):
             raise ValueError(f"Validation method {validation_method} is not callable.")
-        return validation_method(results)
+        return validation_method(results, self.logger)
 
     def _extract_metrics(self):
         metrics = []

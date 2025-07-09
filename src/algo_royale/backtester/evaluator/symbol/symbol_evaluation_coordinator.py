@@ -113,7 +113,7 @@ class SymbolEvaluationCoordinator:
         validation_method = BacktestStage.SYMBOL_EVALUATION.input_validation_fn
         if not callable(validation_method):
             raise ValueError(f"Validation method {validation_method} is not callable.")
-        return validation_method(report)
+        return validation_method(report, self.logger)
 
 
 def mockSymbolEvaluationCoordinator():

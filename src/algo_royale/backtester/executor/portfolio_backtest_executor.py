@@ -294,7 +294,7 @@ class PortfolioBacktestExecutor(BacktestExecutor):
                 "No input validation method defined for PortfolioBacktestExecutor."
             )
             return False
-        return validation_method(input_data)
+        return validation_method(input_data, self.logger)
 
     def _validate_output(self, output_data: Dict[str, Any]) -> bool:
         """Validate the output data structure of the backtest executor."""
@@ -306,7 +306,7 @@ class PortfolioBacktestExecutor(BacktestExecutor):
                 "No output validation method defined for PortfolioBacktestExecutor."
             )
             return False
-        return validation_method(output_data)
+        return validation_method(output_data, self.logger)
 
 
 def mockPortfolioBacktestExecutor(

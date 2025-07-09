@@ -291,7 +291,7 @@ class PortfolioTestingStageCoordinator(BaseTestingStageCoordinator):
         self.logger.debug(f"DEBUG: Validation method: {validation_method}")
         self.logger.debug(f"DEBUG: Results being validated: {results}")
         try:
-            validation_result = validation_method(results)
+            validation_result = validation_method(results, self.logger)
             self.logger.debug(f"DEBUG: Validation result: {validation_result}")
             return validation_result
         except Exception as e:
@@ -309,7 +309,7 @@ class PortfolioTestingStageCoordinator(BaseTestingStageCoordinator):
                 "No validation method defined for portfolio test results. Skipping validation."
             )
             return False
-        return validation_method(results)
+        return validation_method(results, self.logger)
 
     def _write_test_results(
         self,

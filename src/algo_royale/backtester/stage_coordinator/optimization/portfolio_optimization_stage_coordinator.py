@@ -302,7 +302,7 @@ class PortfolioOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
                 "window": {"start_date": self.start_date, "end_date": self.end_date},
             }
         }
-        return validation_method(structured_results)
+        return validation_method(structured_results, self.logger)
 
     def _write_results(
         self,

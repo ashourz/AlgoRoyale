@@ -1,14 +1,17 @@
 # Define the validation function outside the Enum
-def signal_backtest_evaluator_validator(d) -> bool:
+from logging import Logger
+
+
+def signal_backtest_evaluator_validator(d: dict, logger: Logger) -> bool:
     """Validate the structure of a backtest stage dictionary for signal backtest evaluation."""
-    return (
-        isinstance(d, dict)
-        and "total_return" in d
-        and "sharpe_ratio" in d
-        and "win_rate" in d
-        and "max_drawdown" in d
-        and isinstance(d["total_return"], float)
-        and isinstance(d["sharpe_ratio"], float)
-        and isinstance(d["win_rate"], float)
-        and isinstance(d["max_drawdown"], float)
-    )
+    if not isinstance(d, dict):
+        logger.warning(f"Validation failed: Not a dict. Value: {d}")
+        return False
+    for k in ["total_return", "sharpe_ratio", "win_rate", "max_drawdown"]:
+        if k not in d:
+            logger.warning(f"Validation failed: '{k}' missing. Value: {d}")
+            return False
+        if not isinstance(d[k], float):
+            logger.warning(f"Validation failed: '{k}' not float. Value: {d[k]}")
+            return False
+    return True

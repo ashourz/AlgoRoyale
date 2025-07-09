@@ -178,6 +178,10 @@ class BaseSignalStrategy(BaseStrategy):
         return signals
 
     def generate_signals(self, df: pd.DataFrame) -> pd.DataFrame:
+        # Ensure all required columns are numeric before any math
+        for col in self.required_columns:
+            if col in df.columns:
+                df[col] = pd.to_numeric(df[col], errors="coerce")
         try:
             required_cols = set(self.required_columns)
             missing = required_cols - set(df.columns)

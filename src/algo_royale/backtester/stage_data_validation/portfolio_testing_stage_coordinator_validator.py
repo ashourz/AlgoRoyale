@@ -1,95 +1,90 @@
-def validate_portfolio_testing_json_output(output: dict) -> bool:
+from logging import Logger
+
+
+def validate_portfolio_testing_json_output(output: dict, logger: Logger) -> bool:
     """
     Validate the structure of a portfolio testing output JSON.
     Expected: {window_id: {"test": {"metrics": dict, "transactions": list}, "window": {"start_date": str, "end_date": str}}}
     """
-    print("DEBUG: Entering validate_portfolio_testing_json_output function.")
-    print("DEBUG: Output data:", output)
-
     if not isinstance(output, dict):
+        logger.warning(f"Validation failed: Not a dict. Value: {output}")
         return False
     for window_id, window_data in output.items():
         if not isinstance(window_id, str) or not isinstance(window_data, dict):
+            logger.warning(
+                f"Validation failed: Window id not str or window data not dict. Id: {window_id}, Data: {window_data}"
+            )
             return False
         # Check for required keys
         if "test" not in window_data or "window" not in window_data:
+            logger.warning(
+                f"Validation failed: 'test' or 'window' missing. Id: {window_id}, Data: {window_data}"
+            )
             return False
         test = window_data["test"]
         win = window_data["window"]
         # Validate test section
         if not isinstance(test, dict):
+            logger.warning(
+                f"Validation failed: 'test' not dict. Id: {window_id}, Value: {test}"
+            )
             return False
         if "metrics" not in test or "transactions" not in test:
+            logger.warning(
+                f"Validation failed: 'metrics' or 'transactions' missing in test. Id: {window_id}, Data: {test}"
+            )
             return False
         if not isinstance(test["metrics"], dict):
+            logger.warning(
+                f"Validation failed: 'metrics' not dict in test. Id: {window_id}, Value: {test['metrics']}"
+            )
             return False
         if not isinstance(test["transactions"], list):
+            logger.warning(
+                f"Validation failed: 'transactions' not list in test. Id: {window_id}, Value: {test['transactions']}"
+            )
             return False
         # Validate window section
         if not isinstance(win, dict):
+            logger.warning(
+                f"Validation failed: 'window' not dict. Id: {window_id}, Value: {win}"
+            )
             return False
         for date_key in ["start_date", "end_date"]:
             if date_key not in win or not isinstance(win[date_key], str):
+                logger.warning(
+                    f"Validation failed: '{date_key}' missing or not str in window. Id: {window_id}, Value: {win}"
+                )
                 return False
     return True
 
 
 def validate_portfolio_optimization_testing_stage_coordinator_input(
-    input_data: dict,
+    input_data: dict, logger: Logger
 ) -> bool:
     """Validate the input structure for portfolio optimization testing stage."""
-    try:
-        print(
-            "DEBUG: Entering validate_portfolio_optimization_testing_stage_coordinator_input function."
+    if not isinstance(input_data, dict):
+        logger.warning(
+            f"Validation failed: input_data is not a dictionary. Value: {input_data}"
         )
-        print("DEBUG: Input data:", input_data)
-        if not isinstance(input_data, dict):
-            print("DEBUG: Validation failed: input_data is not a dictionary.")
-            return False
-        for key, value in input_data.items():
-            print("DEBUG: Key:", key, "Value:", value)
-            if not isinstance(key, str):
-                print("DEBUG: Validation failed: key is not a string.")
-                return False
-            if not isinstance(value, dict):
-                print("DEBUG: Validation failed: value is not a dictionary.")
-                return False
-            if "optimization" not in value:
-                print("DEBUG: Validation failed: 'optimization' key missing in value.")
-                return False
-            if not isinstance(value["optimization"], dict):
-                print("DEBUG: Validation failed: 'optimization' is not a dictionary.")
-                return False
-            optimization = value["optimization"]
-            print("DEBUG: Optimization:", optimization)
-            if not isinstance(optimization.get("best_params"), dict):
-                print("DEBUG: Validation failed: 'best_params' is not a dictionary.")
-                return False
-            print("DEBUG: Best Params Content:", optimization.get("best_params"))
-            if not isinstance(optimization.get("metrics"), dict):
-                print("DEBUG: Validation failed: 'metrics' is not a dictionary.")
-                return False
-            print("DEBUG: Metrics Content:", optimization.get("metrics"))
-            if "window" in value:
-                window = value["window"]
-                print("DEBUG: Validating window:", window)
-                if not isinstance(window, dict):
-                    print("DEBUG: Validation failed: 'window' is not a dictionary.")
-                    return False
-                for date_key in ["start_date", "end_date"]:
-                    if date_key not in window:
-                        print(
-                            f"DEBUG: Validation failed: '{date_key}' key missing in window."
-                        )
-                        return False
-                    if not isinstance(window[date_key], str):
-                        print(
-                            f"DEBUG: Validation failed: '{date_key}' is not a string."
-                        )
-                        return False
-                    print(f"DEBUG: Window {date_key} Content:", window[date_key])
-        print("DEBUG: Input data structure matches expected format.")
-        return True
-    except Exception as e:
-        print(f"ERROR: Exception occurred during validation: {e}")
         return False
+    for key, value in input_data.items():
+        if not isinstance(key, str):
+            logger.warning(f"Validation failed: key is not a string. Key: {key}")
+            return False
+        if not isinstance(value, dict):
+            logger.warning(
+                f"Validation failed: value is not a dictionary. Key: {key}, Value: {value}"
+            )
+            return False
+        if "optimization" not in value:
+            logger.warning(
+                f"Validation failed: 'optimization' key missing in value. Key: {key}, Value: {value}"
+            )
+            return False
+        if not isinstance(value["optimization"], dict):
+            logger.warning(
+                f"Validation failed: 'optimization' is not a dict. Key: {key}, Value: {value['optimization']}"
+            )
+            return False
+    return True

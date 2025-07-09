@@ -43,6 +43,8 @@ class BacktestStageDictValidation(Enum):
     """
     Enum for validating the structure of backtest stage dictionaries.
     Each member corresponds to a specific validation rule for the dictionary.
+    All validation functions must be called with a logger argument, e.g.:
+        BacktestStageDictValidation.SIGNAL_BACKTEST_EVALUATOR.value(data, logger)
     """
 
     # Signal Strategy Backtest Executor
