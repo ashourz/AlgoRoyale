@@ -354,7 +354,6 @@ class DIContainer(containers.DeclarativeContainer):
     feature_engineering_stage_coordinator = providers.Singleton(
         FeatureEngineeringStageCoordinator,
         data_loader=symbol_strategy_data_loader,
-        data_preparer=stage_data_preparer,
         data_writer=symbol_strategy_data_writer,
         stage_data_manager=stage_data_manager,
         logger=logger_backtest_prod,
@@ -445,6 +444,7 @@ class DIContainer(containers.DeclarativeContainer):
 
     strategy_walk_forward_coordinator = providers.Singleton(
         WalkForwardCoordinator,
+        stage_data_loader=stage_data_loader,
         data_ingest_stage_coordinator=data_ingest_stage_coordinator,
         feature_engineering_stage_coordinator=feature_engineering_stage_coordinator,
         optimization_stage_coordinator=strategy_optimization_stage_coordinator,
@@ -547,6 +547,7 @@ class DIContainer(containers.DeclarativeContainer):
 
     portfolio_walk_forward_coordinator = providers.Singleton(
         WalkForwardCoordinator,
+        stage_data_loader=stage_data_loader,
         data_ingest_stage_coordinator=data_ingest_stage_coordinator,
         feature_engineering_stage_coordinator=feature_engineering_stage_coordinator,
         optimization_stage_coordinator=portfolio_optimization_stage_coordinator,
