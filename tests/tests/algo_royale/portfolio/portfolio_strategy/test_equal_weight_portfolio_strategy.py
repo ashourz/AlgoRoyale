@@ -20,7 +20,7 @@ def test_equal_weight_portfolio_strategy_basic():
         index=pd.date_range("2023-01-01", periods=3),
     )
     strategy = EqualWeightPortfolioStrategy()
-    weights = strategy._allocate(signals, returns)
+    weights = strategy.allocate(signals, returns)
     # Check shape
     assert weights.shape == signals.shape
     # Check weights sum to 1

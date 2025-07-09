@@ -19,7 +19,7 @@ def test_equal_risk_contribution_basic():
     )
     signals = returns.copy()
     strategy = EqualRiskContributionPortfolioStrategy(lookback=2)
-    weights = strategy._allocate(signals, returns)
+    weights = strategy.allocate(signals, returns)
     assert weights.shape == returns.shape
     for i, row in weights.iterrows():
         s = row.sum()
@@ -37,7 +37,7 @@ def test_equal_risk_contribution_single_asset():
     )
     signals = returns.copy()
     strategy = EqualRiskContributionPortfolioStrategy(lookback=2)
-    weights = strategy._allocate(signals, returns)
+    weights = strategy.allocate(signals, returns)
     for i, row in weights.iterrows():
         s = row.sum()
         if np.allclose(s, 0, atol=1e-4):
@@ -53,7 +53,7 @@ def test_equal_risk_contribution_all_zero_returns():
     )
     signals = returns.copy()
     strategy = EqualRiskContributionPortfolioStrategy(lookback=2)
-    weights = strategy._allocate(signals, returns)
+    weights = strategy.allocate(signals, returns)
     # Accept either all-zero weights or any valid allocation (sum to 1, all >= 0)
     for i, row in weights.iterrows():
         s = row.sum()

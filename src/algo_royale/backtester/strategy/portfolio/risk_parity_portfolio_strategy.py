@@ -61,7 +61,7 @@ class RiskParityPortfolioStrategy(BasePortfolioStrategy):
             w /= w.sum()
         return w
 
-    def _allocate(self, signals: pd.DataFrame, returns: pd.DataFrame) -> pd.DataFrame:
+    def allocate(self, signals: pd.DataFrame, returns: pd.DataFrame) -> pd.DataFrame:
         """
         Allocate weights so each asset has equal risk contribution.
         Parameters:

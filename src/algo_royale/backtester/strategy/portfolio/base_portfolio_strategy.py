@@ -65,7 +65,7 @@ class BasePortfolioStrategy(BaseStrategy):
         returns = returns.select_dtypes(include=[np.number])
         if returns.empty:
             raise ValueError("No numeric columns found in input DataFrame for returns.")
-        weights = self._allocate(returns, returns)
+        weights = self.allocate(returns, returns)
         # Compute portfolio returns as weighted sum of asset returns
         portfolio_returns = (weights * returns).sum(axis=1)
         result = pd.DataFrame(index=returns.index)
@@ -73,7 +73,7 @@ class BasePortfolioStrategy(BaseStrategy):
         return result
 
     @abstractmethod
-    def _allocate(self, signals: pd.DataFrame, returns: pd.DataFrame) -> pd.DataFrame:
+    def allocate(self, signals: pd.DataFrame, returns: pd.DataFrame) -> pd.DataFrame:
         """
         Given signals and/or returns, produce a DataFrame of portfolio weights over time.
         Args:

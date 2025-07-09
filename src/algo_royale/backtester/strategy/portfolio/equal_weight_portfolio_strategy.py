@@ -53,7 +53,7 @@ class EqualWeightPortfolioStrategy(BasePortfolioStrategy):
     def optuna_suggest(cls, trial: Trial, prefix: str = ""):
         return cls()
 
-    def _allocate(self, signals: pd.DataFrame, returns: pd.DataFrame) -> pd.DataFrame:
+    def allocate(self, signals: pd.DataFrame, returns: pd.DataFrame) -> pd.DataFrame:
         """
         Given signals and/or returns, produce a DataFrame of portfolio weights over time.
         Parameters:

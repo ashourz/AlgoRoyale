@@ -47,7 +47,7 @@ class WinnerTakesAllPortfolioStrategy(BasePortfolioStrategy):
             ),
         )
 
-    def _allocate(self, signals: pd.DataFrame, returns: pd.DataFrame) -> pd.DataFrame:
+    def allocate(self, signals: pd.DataFrame, returns: pd.DataFrame) -> pd.DataFrame:
         data = signals if self.use_signals else returns
         if data.empty or data.shape[1] == 0:
             return pd.DataFrame(index=data.index)
