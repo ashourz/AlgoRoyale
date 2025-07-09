@@ -37,6 +37,10 @@ class MomentumPortfolioStrategy(BasePortfolioStrategy):
         return cls(window=trial.suggest_int(f"{prefix}window", 5, 60))
 
     def allocate(self, signals: pd.DataFrame, returns: pd.DataFrame) -> pd.DataFrame:
+        # --- Ensure all values are numeric before any math ---
+        signals = signals.apply(pd.to_numeric, errors="coerce")
+        returns = returns.apply(pd.to_numeric, errors="coerce")
+
         """
         Allocate weights proportional to positive momentum.
         Parameters:
@@ -51,12 +55,18 @@ class MomentumPortfolioStrategy(BasePortfolioStrategy):
             # Only one asset: allocate 100% to it
             weights = pd.DataFrame(1.0, index=returns.index, columns=returns.columns)
             return weights
-        momentum = (1 + returns).rolling(self.window, min_periods=1).apply(
+        # Drop rows where all returns are NaN to avoid math on all-NaN rows
+        valid_returns = returns.dropna(how="all")
+        if valid_returns.empty:
+            return pd.DataFrame(0.0, index=returns.index, columns=returns.columns)
+        momentum = (1 + valid_returns).rolling(self.window, min_periods=1).apply(
             np.prod, raw=True
         ) - 1
         momentum = momentum.clip(lower=0.0)
         weights = momentum.div(momentum.sum(axis=1), axis=0)
-        weights = weights.replace([np.inf, -np.inf], 0.0).fillna(0.0)
+        weights = weights.replace([np.inf, -np.inf], 0.0)
+        # Reindex to original returns index, fill missing with 0 (inaction)
+        weights = weights.reindex(returns.index).fillna(0.0)
         if not returns.empty:
             latest_prices = returns.iloc[-1].abs()
             weights = self._mask_and_normalize_weights(

@@ -39,6 +39,11 @@ class EqualRiskContributionPortfolioStrategy(BasePortfolioStrategy):
         return cls(lookback=trial.suggest_int(f"{prefix}lookback", 10, 120))
 
     def allocate(self, signals: pd.DataFrame, returns: pd.DataFrame) -> pd.DataFrame:
+        # --- Ensure all values are numeric before any math ---
+        signals = signals.apply(pd.to_numeric, errors="coerce")
+        returns = returns.apply(pd.to_numeric, errors="coerce")
+        # Do not fillna here; let NaN propagate if math cannot be performed
+
         if returns.empty or returns.shape[1] == 0:
             return pd.DataFrame(index=returns.index)
         if returns.shape[1] == 1:

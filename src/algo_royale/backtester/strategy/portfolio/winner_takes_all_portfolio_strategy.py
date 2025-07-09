@@ -48,6 +48,11 @@ class WinnerTakesAllPortfolioStrategy(BasePortfolioStrategy):
         )
 
     def allocate(self, signals: pd.DataFrame, returns: pd.DataFrame) -> pd.DataFrame:
+        # --- Ensure all values are numeric before any math ---
+        signals = signals.apply(pd.to_numeric, errors="coerce")
+        returns = returns.apply(pd.to_numeric, errors="coerce")
+        # Do not fillna here; let NaN propagate if math cannot be performed
+
         data = signals if self.use_signals else returns
         if data.empty or data.shape[1] == 0:
             return pd.DataFrame(index=data.index)

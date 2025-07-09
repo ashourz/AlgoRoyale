@@ -62,6 +62,10 @@ class EqualWeightPortfolioStrategy(BasePortfolioStrategy):
         Returns:
             DataFrame of weights (index: datetime, columns: symbols)
         """
+        # --- Ensure all values are numeric before any math ---
+        signals = signals.apply(pd.to_numeric, errors="coerce").fillna(0.0)
+        returns = returns.apply(pd.to_numeric, errors="coerce").fillna(0.0)
+
         if signals.empty or signals.shape[1] == 0:
             # No assets to allocate
             return pd.DataFrame(index=signals.index)
