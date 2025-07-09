@@ -20,6 +20,7 @@ from algo_royale.backtester.stage_coordinator.testing.base_testing_stage_coordin
     BaseTestingStageCoordinator,
 )
 from algo_royale.backtester.stage_data.loader.stage_data_loader import StageDataLoader
+from algo_royale.backtester.stage_data.stage_data_manager import StageDataManager
 
 if TYPE_CHECKING:
     pass
@@ -28,6 +29,7 @@ if TYPE_CHECKING:
 class WalkForwardCoordinator:
     def __init__(
         self,
+        stage_data_manager: StageDataManager,
         stage_data_loader: StageDataLoader,
         data_ingest_stage_coordinator: DataIngestStageCoordinator,
         feature_engineering_stage_coordinator: FeatureEngineeringStageCoordinator,
@@ -36,6 +38,7 @@ class WalkForwardCoordinator:
         logger: Logger,
     ):
         self.stage_data_loader = stage_data_loader
+        self.stage_data_manager = stage_data_manager
         self.logger = logger
         self.data_ingest_stage_coordinator = data_ingest_stage_coordinator
         self.feature_engineering_stage_coordinator = (
@@ -220,7 +223,7 @@ class WalkForwardCoordinator:
         Returns True if any symbol has a non-empty data file for the given stage and window.
         """
         for symbol in self.stage_data_loader.get_watchlist():
-            data_dir = self.data_ingest_stage_coordinator.stage_data_manager.get_directory_path(
+            data_dir = self.stage_data_manager.get_directory_path(
                 stage=BacktestStage.DATA_INGEST,
                 strategy_name=None,
                 symbol=symbol,

@@ -444,6 +444,7 @@ class DIContainer(containers.DeclarativeContainer):
 
     strategy_walk_forward_coordinator = providers.Singleton(
         WalkForwardCoordinator,
+        stage_data_manager=stage_data_manager,
         stage_data_loader=stage_data_loader,
         data_ingest_stage_coordinator=data_ingest_stage_coordinator,
         feature_engineering_stage_coordinator=feature_engineering_stage_coordinator,
@@ -547,6 +548,7 @@ class DIContainer(containers.DeclarativeContainer):
 
     portfolio_walk_forward_coordinator = providers.Singleton(
         WalkForwardCoordinator,
+        stage_data_manager=stage_data_manager,
         stage_data_loader=stage_data_loader,
         data_ingest_stage_coordinator=data_ingest_stage_coordinator,
         feature_engineering_stage_coordinator=feature_engineering_stage_coordinator,
