@@ -36,8 +36,8 @@ class SymbolStrategyDataWriter:
         symbol_strategy_data_factory: Dict[
             str, Dict[str, Callable[[], AsyncIterator[pd.DataFrame]]]
         ],
-        start_data: datetime,
-        end_data: datetime,
+        start_date: datetime,
+        end_date: datetime,
     ):
         """Write processed data to disk."""
         self.logger.info(f"Writing data for stage: {stage}")
@@ -46,8 +46,8 @@ class SymbolStrategyDataWriter:
                 await self._write_symbol_data(
                     stage=stage,
                     symbol=symbol,
-                    start_data=start_data,
-                    end_data=end_data,
+                    start_date=start_date,
+                    end_date=end_date,
                     strategy_factories=strategy_factories,
                 )
         except Exception as e:
@@ -58,8 +58,8 @@ class SymbolStrategyDataWriter:
         self,
         stage: BacktestStage,
         symbol: str,
-        start_data: datetime,
-        end_data: datetime,
+        start_date: datetime,
+        end_date: datetime,
         strategy_factories: Dict[str, Callable[[], AsyncIterator[pd.DataFrame]]],
     ):
         """Write data for a specific symbol."""
@@ -70,8 +70,8 @@ class SymbolStrategyDataWriter:
                     stage=stage,
                     symbol=symbol,
                     strategy_name=strategy_name,
-                    start_data=start_data,
-                    end_data=end_data,
+                    start_date=start_date,
+                    end_date=end_date,
                     df_iter_factory=df_iter_factory,
                 )
         except Exception as e:
@@ -82,8 +82,8 @@ class SymbolStrategyDataWriter:
         stage: BacktestStage,
         symbol: str,
         strategy_name: str,
-        start_data: datetime,
-        end_data: datetime,
+        start_date: datetime,
+        end_date: datetime,
         df_iter_factory: Callable[[], AsyncIterator[pd.DataFrame]],
     ):
         """Write data for a specific strategy."""
@@ -92,7 +92,7 @@ class SymbolStrategyDataWriter:
                 stage=stage, strategy_name=strategy_name, symbol=symbol
             ):
                 self.logger.info(
-                    f"Skipping {symbol} for stage:{stage} | strategy:{strategy_name} for {start_data} to {end_data} (already marked as done)"
+                    f"Skipping {symbol} for stage:{stage} | strategy:{strategy_name} for {start_date} to {end_date} (already marked as done)"
                 )
                 return
 
@@ -100,8 +100,8 @@ class SymbolStrategyDataWriter:
                 stage=stage,
                 strategy_name=strategy_name,
                 symbol=symbol,
-                start_data=start_data,
-                end_data=end_data,
+                start_date=start_date,
+                end_date=end_date,
             )
             gen = df_iter_factory()
             if not hasattr(gen, "__aiter__"):
@@ -112,68 +112,68 @@ class SymbolStrategyDataWriter:
                 strategy_name=strategy_name,
                 symbol=symbol,
                 gen=gen,
-                start_data=start_data,
-                end_data=end_data,
+                start_date=start_date,
+                end_date=end_date,
             )
             self.stage_data_manager.mark_symbol_stage(
                 stage=stage,
                 strategy_name=strategy_name,
                 symbol=symbol,
                 statusExtension=DataExtension.DONE,
-                start_data=start_data,
-                end_data=end_data,
+                start_date=start_date,
+                end_date=end_date,
             )
         except Exception as e:
             self._handle_strategy_write_error(
                 stage=stage,
                 strategy_name=strategy_name,
                 symbol=symbol,
-                start_data=start_data,
-                end_data=end_data,
+                start_date=start_date,
+                end_date=end_date,
                 e=e,
             )
 
     def _handle_global_write_error(
         self,
         stage: BacktestStage,
-        start_data: datetime,
-        end_data: datetime,
+        start_date: datetime,
+        end_date: datetime,
         e: Exception,
     ):
         """Handle errors during the global write process."""
         self.logger.error(
-            f"stage:{stage} data writing failed: {e} for {start_data} to {end_data}"
+            f"stage:{stage} data writing failed: {e} for {start_date} to {end_date}"
         )
         self.stage_data_manager.write_error_file(
             stage=stage,
             strategy_name=None,
             symbol="",
             filename="write",
-            error_message=f"stage:{stage} data writing failed: {e} for {start_data} to {end_data}",
-            start_data=start_data,
-            end_data=end_data,
+            error_message=f"stage:{stage} data writing failed: {e} for {start_date} to {end_date}",
+            start_date=start_date,
+            end_date=end_date,
         )
 
     def _handle_symbol_write_error(
         self,
         stage: BacktestStage,
         symbol: str,
-        start_data: datetime,
-        end_data: datetime,
+        start_date: datetime,
+        end_date: datetime,
         e: Exception,
     ):
         """Handle errors during the symbol write process."""
         self.logger.error(
-            f"stage:{stage} data writing failed for symbol {symbol} for {start_data} to {end_data}: {e}"
+            f"stage:{stage} data writing failed for symbol {symbol} for {start_date} to {end_date}: {e}"
         )
         self.stage_data_manager.write_error_file(
             stage=stage,
             strategy_name=None,
             symbol=symbol,
             filename="write",
-            error_message=f"stage:{stage} data writing failed for symbol {symbol} for {start_data} to {end_data}: {e}",
-            start_data=start_data,
-            end_data=end_data,
+            error_message=f"stage:{stage} data writing failed for symbol {symbol} for {start_date} to {end_date}: {e}",
+            start_date=start_date,
+            end_date=end_date,
         )
 
     def _handle_strategy_write_error(
@@ -181,20 +181,20 @@ class SymbolStrategyDataWriter:
         stage: BacktestStage,
         strategy_name: str,
         symbol: str,
-        start_data: datetime,
-        end_data: datetime,
+        start_date: datetime,
+        end_date: datetime,
         e: Exception,
     ):
         """Handle errors during the strategy write process."""
         self.logger.error(
-            f"stage:{stage} | strategy:{strategy_name} data writing failed for symbol {symbol} for {start_data} to {end_data}: {e}"
+            f"stage:{stage} | strategy:{strategy_name} data writing failed for symbol {symbol} for {start_date} to {end_date}: {e}"
         )
         self.stage_data_manager.write_error_file(
             stage=stage,
             strategy_name=strategy_name,
             symbol=symbol,
             filename="write",
-            error_message=f"stage:{stage} | strategy:{strategy_name} data writing failed for symbol {symbol} for {start_data} to {end_data}: {e}",
-            start_data=start_data,
-            end_data=end_data,
+            error_message=f"stage:{stage} | strategy:{strategy_name} data writing failed for symbol {symbol} for {start_date} to {end_date}: {e}",
+            start_date=start_date,
+            end_date=end_date,
         )

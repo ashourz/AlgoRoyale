@@ -176,6 +176,6 @@ class FeatureEngineeringStageCoordinator(StageCoordinator):
         return await self.data_writer.write_symbol_strategy_data_factory(
             stage=stage,
             symbol_strategy_data_factory=processed_data,
-            start_data=self.start_date,
-            end_data=self.end_date,
+            start_date=self.start_date,
+            end_date=self.end_date,
         )
