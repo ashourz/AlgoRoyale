@@ -213,7 +213,9 @@ class WalkForwardCoordinator:
             test_end_date=test_end,
         )
         if not testing_results:
-            self.logger.error("Testing stage failed")
+            self.logger.error(
+                f"Testing stage failed for test window: {test_start.date()} to {test_end.date()}: testing_results is empty"
+            )
             return False
 
         return True

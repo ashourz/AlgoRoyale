@@ -28,6 +28,7 @@ class StrategyEvaluator:
         self.metric_type = metric_type
         self.results = None
         self.metrics = None
+        self.logger = logger
 
     def load_data(self, results_path: Path):
         """
@@ -52,7 +53,7 @@ class StrategyEvaluator:
                     f"Validation method {validation_method} is not callable."
                 )
             return validation_method(
-                results, None
+                results, self.logger
             )  # Logger is not used in this context
         except Exception as e:
             self.logger.error(f"Error validating loaded results: {e}")
