@@ -159,15 +159,67 @@ class DIContainer(containers.DeclarativeContainer):
         secrets=secrets,
     )
 
-    logger_backtest_prod = providers.Callable(
-        LoggerSingleton.get_instance,
-        logger_type=LoggerType.BACKTESTING,
-        environment=LoggerEnv.PRODUCTION,
-    )
-
     logger_trading_prod = providers.Callable(
         LoggerSingleton.get_instance,
         logger_type=LoggerType.TRADING,
+        environment=LoggerEnv.PRODUCTION,
+    )
+
+    logger_stage_data_manager_prod = providers.Callable(
+        LoggerSingleton.get_instance,
+        logger_type=LoggerType.STAGE_DATA_MANAGER,
+        environment=LoggerEnv.PRODUCTION,
+    )
+
+    logger_stage_data_preparer_prod = providers.Callable(
+        LoggerSingleton.get_instance,
+        logger_type=LoggerType.STAGE_DATA_PREPARER,
+        environment=LoggerEnv.PRODUCTION,
+    )
+
+    logger_stage_data_writer_prod = providers.Callable(
+        LoggerSingleton.get_instance,
+        logger_type=LoggerType.STAGE_DATA_WRITER,
+        environment=LoggerEnv.PRODUCTION,
+    )
+    logger_stage_data_loader_prod = providers.Callable(
+        LoggerSingleton.get_instance,
+        logger_type=LoggerType.STAGE_DATA_LOADER,
+        environment=LoggerEnv.PRODUCTION,
+    )
+
+    logger_backtest_data_ingest_prod = providers.Callable(
+        LoggerSingleton.get_instance,
+        logger_type=LoggerType.BACKTEST_DATA_INGEST,
+        environment=LoggerEnv.PRODUCTION,
+    )
+
+    logger_backtest_feature_engineering_prod = providers.Callable(
+        LoggerSingleton.get_instance,
+        logger_type=LoggerType.BACKTEST_FEATURE_ENGINEERING,
+        environment=LoggerEnv.PRODUCTION,
+    )
+    logger_backtest_signal_optimization_prod = providers.Callable(
+        LoggerSingleton.get_instance,
+        logger_type=LoggerType.BACKTEST_SIGNAL_OPTIMIZATION,
+        environment=LoggerEnv.PRODUCTION,
+    )
+
+    logger_backtest_signal_testing_prod = providers.Callable(
+        LoggerSingleton.get_instance,
+        logger_type=LoggerType.BACKTEST_SIGNAL_TESTING,
+        environment=LoggerEnv.PRODUCTION,
+    )
+
+    logger_backtest_portfolio_optimization_prod = providers.Callable(
+        LoggerSingleton.get_instance,
+        logger_type=LoggerType.BACKTEST_PORTFOLIO_OPTIMIZATION,
+        environment=LoggerEnv.PRODUCTION,
+    )
+
+    logger_backtest_portfolio_testing_prod = providers.Callable(
+        LoggerSingleton.get_instance,
+        logger_type=LoggerType.BACKTEST_PORTFOLIO_TESTING,
         environment=LoggerEnv.PRODUCTION,
     )
 
@@ -283,13 +335,13 @@ class DIContainer(containers.DeclarativeContainer):
     data_dir = get_data_dir()
     ## Backtester
     stage_data_manager = providers.Singleton(
-        StageDataManager, data_dir=data_dir, logger=logger_backtest_prod
+        StageDataManager, data_dir=data_dir, logger=logger_stage_data_manager_prod
     )
 
     stage_data_preparer = providers.Singleton(
         StageDataPreparer,
         stage_data_manager=stage_data_manager,
-        logger=logger_backtest_prod,
+        logger=logger_stage_data_preparer_prod,
     )
 
     watchlist_path_string = providers.Object(
@@ -300,7 +352,7 @@ class DIContainer(containers.DeclarativeContainer):
 
     stage_data_loader = providers.Singleton(
         StageDataLoader,
-        logger=logger_backtest_prod,
+        logger=logger_stage_data_loader_prod,
         stage_data_manager=stage_data_manager,
         load_watchlist=load_watchlist_func,
         watchlist_path_string=watchlist_path_string,
@@ -308,18 +360,18 @@ class DIContainer(containers.DeclarativeContainer):
 
     stage_data_writer = providers.Singleton(
         StageDataWriter,
-        logger=logger_backtest_prod,
+        logger=logger_stage_data_writer_prod,
         stage_data_manager=stage_data_manager,
     )
 
     feature_engineering_func = providers.Object(
-        partial(feature_engineering, logger=logger_backtest_prod())
+        partial(feature_engineering, logger=logger_backtest_feature_engineering_prod())
     )
 
     feature_engineer = providers.Singleton(
         FeatureEngineer,
         feature_engineering_func=feature_engineering_func,
-        logger=logger_backtest_prod,
+        logger=logger_backtest_feature_engineering_prod,
     )
 
     backtest_dashboard = providers.Singleton(

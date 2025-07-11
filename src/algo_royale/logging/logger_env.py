@@ -2,5 +2,5 @@ from enum import Enum
 
 
 class LoggerEnv(Enum):
-    PRODUCTION = "production"
+    BACKTEST_PROD = "backtest_prod"
     TEST = "test"

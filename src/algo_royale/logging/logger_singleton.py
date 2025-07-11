@@ -28,8 +28,9 @@ class LoggerSingleton:
         """
         key = (logger_type, environment)
         if key not in LoggerSingleton._instances:
-            LoggerSingleton._instances[key] = LoggerSingleton._create_logger(
-                logger_type, environment
+            base_logger = LoggerSingleton._create_logger(logger_type, environment)
+            LoggerSingleton._instances[key] = logging.LoggerAdapter(
+                base_logger, {"classname": logger_type.name}
             )
         return LoggerSingleton._instances[key]
 
@@ -49,12 +50,12 @@ class LoggerSingleton:
             log_dir = os.path.join(BASE_LOG_DIR, environment.value)
             os.makedirs(log_dir, exist_ok=True)
 
-            log_file = os.path.join(log_dir, f"{logger_type.log_name}.log")
+            log_file = os.path.join(log_dir, f"{environment.value}.log")
             file_handler = CustomRotatingFileHandler(
                 log_file, maxBytes=10_000_000, backupCount=5
             )
             formatter = logging.Formatter(
-                "[%(asctime)s] %(name)s %(levelname)s - %(message)s"
+                "[%(asctime)s] %(name)s %(levelname)s - %(classname)s - %(message)s"
             )
             file_handler.setFormatter(formatter)
             logger.addHandler(file_handler)
