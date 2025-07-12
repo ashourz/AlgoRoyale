@@ -24,7 +24,7 @@ class LoggerFactory:
     def get_logger(
         logger_type: LoggerType, environment: LoggerEnv = LoggerEnv.BACKTEST
     ) -> Loggable:  # ✅ Return type is Loggable
-        logger_name = environment.value  # Shared file per env
+        logger_name = f"{logger_type.name}_{environment.value}"
         logger = logging.getLogger(logger_name)
         logger.setLevel(logger_type.log_level)
         logger.propagate = False

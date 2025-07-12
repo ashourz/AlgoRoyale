@@ -1,4 +1,3 @@
-from algo_royale.logging.loggable import Loggable
 ## db\dao\news_sentiment_dao.py
 from datetime import datetime
 from decimal import Decimal as Decimal
@@ -7,6 +6,7 @@ from typing import Tuple
 import psycopg2
 
 from algo_royale.clients.db.dao.base_dao import BaseDAO
+from algo_royale.logging.loggable import Loggable
 
 
 class NewsSentimentDAO(BaseDAO):
@@ -14,7 +14,7 @@ class NewsSentimentDAO(BaseDAO):
         self,
         connection: psycopg2.extensions.connection,
         sql_dir: str,
-        logger: LoggableFactory,
+        logger: Loggable,
     ):
         super().__init__(connection=connection, sql_dir=sql_dir, logger=logger)
 

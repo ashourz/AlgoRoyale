@@ -1,7 +1,7 @@
 from algo_royale.backtester.stage_data_validation.signal_strategy_optimization_result_validator import (
-from algo_royale.logging.loggable import Loggable
     window_section_validator,
 )
+from algo_royale.logging.loggable import Loggable
 
 
 def signal_strategy_full_result_validator(d, logger: Loggable) -> bool:

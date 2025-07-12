@@ -1,4 +1,3 @@
-from algo_royale.logging.loggable import Loggable
 # src/algo_royale/clients/db/dao/trade_dao.py
 from datetime import datetime
 from decimal import Decimal
@@ -7,6 +6,7 @@ from typing import Tuple
 import psycopg2
 
 from algo_royale.clients.db.dao.base_dao import BaseDAO
+from algo_royale.logging.loggable import Loggable
 
 
 class TradeDAO(BaseDAO):
@@ -14,7 +14,7 @@ class TradeDAO(BaseDAO):
         self,
         connection: psycopg2.extensions.connection,
         sql_dir: str,
-        logger: LoggableFactory,
+        logger: Loggable,
     ):
         super().__init__(connection=connection, sql_dir=sql_dir, logger=logger)
 

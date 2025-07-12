@@ -1,7 +1,7 @@
 from algo_royale.backtester.strategy_combinator.signal.base_signal_strategy_combinator import (
-from algo_royale.logging.loggable import Loggable
     SignalStrategyCombinator,
 )
+from algo_royale.logging.loggable import Loggable
 
 
 class DummyCondition:
