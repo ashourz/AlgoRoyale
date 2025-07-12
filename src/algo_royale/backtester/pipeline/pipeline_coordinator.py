@@ -1,5 +1,4 @@
 import asyncio
-from algo_royale.logging.loggable import Loggable
 
 from algo_royale.backtester.evaluator.portfolio.portfolio_evaluation_coordinator import (
     PortfolioEvaluationCoordinator,
@@ -13,6 +12,7 @@ from algo_royale.backtester.evaluator.symbol.symbol_evaluation_coordinator impor
 from algo_royale.backtester.walkforward.walk_forward_coordinator import (
     WalkForwardCoordinator,
 )
+from algo_royale.logging.loggable import Loggable
 
 
 class PipelineCoordinator:
@@ -59,6 +59,7 @@ class PipelineCoordinator:
         self,
     ):
         try:
+            self.logger.info("Running pipeline stages...")
             await self.strategy_walk_forward_coordinator.run_async()
             self.strategy_evaluation_coordinator.run()
             self.symbol_evaluation_coordinator.run()

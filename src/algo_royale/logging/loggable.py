@@ -19,8 +19,12 @@ class Loggable(Protocol):
 class TaggableLogger(Loggable):
     def __init__(self, base_logger: logging.Logger, logger_type: LoggerType):
         self._logger = base_logger
+        self._logger_type = logger_type
         self._log_level = logger_type.log_level
-        self._tag = logger_type.name
+        self._tag = logger_type.name_str
+        # print(
+        #     f"[DEBUG] Initializing TaggableLogger with type: {self._logger_type} tag: {self._tag}"
+        # )
 
     def _should_log(self, level):
         return level >= self._log_level
@@ -29,6 +33,10 @@ class TaggableLogger(Loggable):
         if self._should_log(level):
             tagged_msg = f"{self._tag} - {msg}"
             self._logger.log(level, tagged_msg, *args, **kwargs)
+            # print(
+            #     f"[DEBUG] Created TaggableLogger with type: {self._logger_type} tag: {self._tag}"
+            # )
+            self._logger.log(level, msg, *args, **kwargs)
 
     def debug(self, msg, *args, **kwargs):
         self._log(logging.DEBUG, msg, *args, **kwargs)
