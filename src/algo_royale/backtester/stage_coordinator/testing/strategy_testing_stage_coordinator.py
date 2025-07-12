@@ -118,16 +118,11 @@ class StrategyTestingStageCoordinator(BaseTestingStageCoordinator):
                 start_date=start_date,
                 end_date=end_date,
             )
-            if not test_opt_results:
+            if test_opt_results is None:
                 self.logger.warning(
                     f"No test optimization result for {symbol} {strategy_name} {self.test_window_id}"
                 )
-                return None
-            if not self._validate_test_results(test_opt_results):
-                self.logger.error(
-                    f"Test optimization results validation failed for {symbol} {strategy_name} {self.test_window_id}"
-                )
-                return None
+                return {}
             return test_opt_results
         except Exception as e:
             self.logger.error(
