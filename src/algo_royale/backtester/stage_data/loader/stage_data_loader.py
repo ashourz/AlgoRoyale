@@ -342,7 +342,7 @@ def mockStageDataLoader(
     watchlist_path_string: str,
 ) -> StageDataLoader:
     """Creates a mock StageDataLoader for testing purposes."""
-    from algo_royale.logging.logger_singleton import mockLogger
+    from algo_royale.logging.logger_factory import mockLogger
 
     logger: Logger = mockLogger()
     stage_data_manager = mockStageDataManager(data_dir=data_dir)

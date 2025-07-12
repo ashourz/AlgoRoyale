@@ -12,34 +12,17 @@ BASE_LOG_DIR = os.getenv(
 )  # Use env variable for flexibility
 
 
-class LoggerSingleton:
+class LoggerFactory:
     """
-    Singleton logger that manages one logger per (module, environment).
+    Logger factory that creates a logger per (module, environment) request.
     """
-
-    _instances = {}
 
     @staticmethod
-    def get_instance(
-        logger_type: LoggerType, environment: LoggerEnv = LoggerEnv.PRODUCTION
-    ) -> logging.Logger:
+    def get_logger(
+        logger_type: LoggerType, environment: LoggerEnv = LoggerEnv.BACKTEST
+    ) -> logging.LoggerAdapter:
         """
-        Get or create a logger instance based on the logger type and environment.
-        """
-        key = (logger_type, environment)
-        if key not in LoggerSingleton._instances:
-            base_logger = LoggerSingleton._create_logger(logger_type, environment)
-            LoggerSingleton._instances[key] = logging.LoggerAdapter(
-                base_logger, {"classname": logger_type.name}
-            )
-        return LoggerSingleton._instances[key]
-
-    @staticmethod
-    def _create_logger(
-        logger_type: LoggerType, environment: LoggerEnv
-    ) -> logging.Logger:
-        """
-        Create a new logger instance.
+        Get a logger instance based on the logger type and environment.
         """
         logger_name = f"{logger_type.name}_{environment.value}"
         logger = logging.getLogger(logger_name)
@@ -55,12 +38,12 @@ class LoggerSingleton:
                 log_file, maxBytes=10_000_000, backupCount=5
             )
             formatter = logging.Formatter(
-                "[%(asctime)s] %(name)s %(levelname)s - %(classname)s - %(message)s"
+                "[%(asctime)s] %(name)s %(levelname)s - %(tag)s - %(message)s"
             )
             file_handler.setFormatter(formatter)
             logger.addHandler(file_handler)
 
-        return logger
+        return logging.LoggerAdapter(logger, {"tag": logger_type.name})
 
 
 def mockLogger() -> logging.Logger:
@@ -70,7 +53,7 @@ def mockLogger() -> logging.Logger:
     from algo_royale.logging.logger_env import LoggerEnv
     from algo_royale.logging.logger_type import LoggerType
 
-    logger: logging.Logger = LoggerSingleton.get_instance(
+    logger: logging.Logger = LoggerFactory.get_logger(
         logger_type=LoggerType.TESTING, environment=LoggerEnv.TEST
     )
     return logger

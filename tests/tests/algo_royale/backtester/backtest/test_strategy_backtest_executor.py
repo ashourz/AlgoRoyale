@@ -10,7 +10,7 @@ from algo_royale.backtester.column_names.strategy_columns import (
 from algo_royale.backtester.executor.strategy_backtest_executor import (
     StrategyBacktestExecutor,
 )
-from algo_royale.logging.logger_singleton import mockLogger
+from algo_royale.logging.logger_factory import mockLogger
 
 
 @pytest.fixture

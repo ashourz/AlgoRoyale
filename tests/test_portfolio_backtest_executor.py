@@ -7,7 +7,7 @@ import pandas as pd
 from algo_royale.backtester.executor.portfolio_backtest_executor import (
     PortfolioBacktestExecutor,
 )
-from algo_royale.logging.logger_singleton import mockLogger
+from algo_royale.logging.logger_factory import mockLogger
 
 
 class TestPortfolioBacktestExecutor(unittest.TestCase):

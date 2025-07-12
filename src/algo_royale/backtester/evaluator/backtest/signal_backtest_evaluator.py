@@ -175,7 +175,7 @@ class SignalBacktestEvaluator(BacktestEvaluator):
 
 def mockSignalBacktestEvaluator() -> SignalBacktestEvaluator:
     """Creates a mock SignalBacktestEvaluator for testing purposes."""
-    from algo_royale.logging.logger_singleton import mockLogger
+    from algo_royale.logging.logger_factory import mockLogger
 
     logger: Logger = mockLogger()
     return SignalBacktestEvaluator(logger=logger)

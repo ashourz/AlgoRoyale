@@ -17,7 +17,7 @@ from algo_royale.backtester.stage_data.stage_data_manager import (
 from algo_royale.backtester.strategy.signal.base_signal_strategy import (
     BaseSignalStrategy,
 )
-from algo_royale.logging.logger_singleton import mockLogger
+from algo_royale.logging.logger_factory import mockLogger
 
 
 class StrategyBacktestExecutor(BacktestExecutor):

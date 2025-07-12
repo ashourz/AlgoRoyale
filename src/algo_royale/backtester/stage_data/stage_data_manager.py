@@ -400,7 +400,7 @@ class StageDataManager:
 
 def mockStageDataManager(data_dir: Path) -> StageDataManager:
     """Creates a mock StageDataManager for testing purposes."""
-    from algo_royale.logging.logger_singleton import mockLogger
+    from algo_royale.logging.logger_factory import mockLogger
 
     logger: Logger = mockLogger()
     return StageDataManager(data_dir=data_dir, logger=logger)

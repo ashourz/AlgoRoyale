@@ -12,7 +12,7 @@ from typing import Optional
 
 import pandas as pd
 
-from algo_royale.logging.logger_singleton import mockLogger
+from algo_royale.logging.logger_factory import mockLogger
 
 
 class AssetMatrixPreparer:

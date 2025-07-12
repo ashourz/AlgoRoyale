@@ -19,8 +19,7 @@ from algo_royale.clients.alpaca.exceptions import (
     AlpacaUnprocessableException,
 )
 from algo_royale.logging.logger_env import LoggerEnv
-from algo_royale.logging.logger_singleton import (
-    LoggerSingleton,
+from algo_royale.logging.logger_factory import (
     LoggerType,
 )
 
@@ -48,9 +47,7 @@ class AlpacaBaseClient(ABC):
             "keep_alive_timeout", 20
         )
 
-        self.logger = LoggerSingleton.get_instance(
-            LoggerType.TRADING, LoggerEnv.PRODUCTION
-        )
+        self.logger = LoggerFactory.get_logger(LoggerType.TRADING, LoggerEnv.TRADING)
 
     async def aclose(self):
         """Proper async cleanup"""

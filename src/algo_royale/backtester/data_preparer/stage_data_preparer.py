@@ -5,7 +5,7 @@ import pandas as pd
 
 from algo_royale.backtester.enum.backtest_stage import BacktestStage
 from algo_royale.backtester.stage_data.stage_data_manager import StageDataManager
-from algo_royale.logging.logger_singleton import mockLogger
+from algo_royale.logging.logger_factory import mockLogger
 
 
 class StageDataPreparer:

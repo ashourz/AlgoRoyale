@@ -8,7 +8,7 @@ import numpy as np
 from algo_royale.backtester.evaluator.strategy.strategy_evaluation_type import (
     StrategyEvaluationType,
 )
-from algo_royale.logging.logger_singleton import mockLogger
+from algo_royale.logging.logger_factory import mockLogger
 
 from .strategy_evaluator import StrategyEvaluator
 

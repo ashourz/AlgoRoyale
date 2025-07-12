@@ -2,9 +2,9 @@ import os
 from pathlib import Path
 
 from algo_royale.logging.logger_env import LoggerEnv
-from algo_royale.logging.logger_singleton import LoggerSingleton, LoggerType
+from algo_royale.logging.logger_factory import LoggerType
 
-logger = LoggerSingleton.get_instance(LoggerType.TRADING, LoggerEnv.PROD)
+logger = LoggerFactory.get_logger(LoggerType.TRADING, LoggerEnv.PROD)
 
 
 def find_project_root(starting_directory, target_folder_name="AlgoRoyale"):

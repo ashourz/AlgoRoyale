@@ -6,7 +6,7 @@ from typing import Optional, Tuple
 import psycopg2
 
 from algo_royale.clients.db.dao.base_dao import BaseDAO
-from algo_royale.logging.logger_singleton import LoggerSingleton
+from algo_royale.logging.logger_factory import LoggerFactory
 
 
 class StockDataDAO(BaseDAO):
@@ -14,7 +14,7 @@ class StockDataDAO(BaseDAO):
         self,
         connection: psycopg2.extensions.connection,
         sql_dir: str,
-        logger: LoggerSingleton,
+        logger: LoggerFactory,
     ):
         super().__init__(connection=connection, sql_dir=sql_dir, logger=logger)
 

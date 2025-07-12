@@ -174,7 +174,7 @@ class PortfolioBacktestEvaluator(BacktestEvaluator):
 
 def mockPortfolioBacktestEvaluator() -> PortfolioBacktestEvaluator:
     """Creates a mock PortfolioBacktestEvaluator for testing purposes."""
-    from algo_royale.logging.logger_singleton import mockLogger
+    from algo_royale.logging.logger_factory import mockLogger
 
     logger: Logger = mockLogger()
     return PortfolioBacktestEvaluator(logger=logger)

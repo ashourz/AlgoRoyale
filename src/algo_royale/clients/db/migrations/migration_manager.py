@@ -1,9 +1,9 @@
 from pathlib import Path
 
 from algo_royale.logging.logger_env import LoggerEnv
-from algo_royale.logging.logger_singleton import LoggerSingleton, LoggerType
+from algo_royale.logging.logger_factory import LoggerType
 
-logger = LoggerSingleton.get_instance(LoggerType.TRADING, LoggerEnv.PRODUCTION)  # noqa: F821
+logger = LoggerFactory.get_logger(LoggerType.TRADING, LoggerEnv.TRADING)  # noqa: F821
 
 
 def apply_migrations(conn):

@@ -11,7 +11,7 @@ from algo_royale.backtester.optimizer.signal.signal_strategy_optimizer_factory i
 from algo_royale.backtester.stage_coordinator.optimization.strategy_optimization_stage_coordinator import (
     StrategyOptimizationStageCoordinator,
 )
-from algo_royale.logging.logger_singleton import mockLogger
+from algo_royale.logging.logger_factory import mockLogger
 
 
 @pytest.fixture

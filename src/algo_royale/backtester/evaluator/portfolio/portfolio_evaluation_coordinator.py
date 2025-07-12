@@ -2,7 +2,7 @@ import json
 from logging import Logger
 from pathlib import Path
 
-from algo_royale.logging.logger_singleton import mockLogger
+from algo_royale.logging.logger_factory import mockLogger
 
 
 class PortfolioEvaluationCoordinator:

@@ -6,7 +6,7 @@ import pandas as pd
 from algo_royale.backtester.evaluator.backtest.signal_backtest_evaluator import (
     SignalBacktestEvaluator,
 )
-from algo_royale.logging.logger_singleton import mockLogger
+from algo_royale.logging.logger_factory import mockLogger
 
 
 class TestSignalBacktestEvaluator(unittest.TestCase):

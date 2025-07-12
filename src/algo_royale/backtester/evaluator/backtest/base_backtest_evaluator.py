@@ -24,7 +24,7 @@ class BacktestEvaluator(ABC):
 
 def mockBacktestEvaluator() -> BacktestEvaluator:
     """Creates a mock BacktestEvaluator for testing purposes."""
-    from algo_royale.logging.logger_singleton import mockLogger
+    from algo_royale.logging.logger_factory import mockLogger
 
     logger: Logger = mockLogger()
     return BacktestEvaluator(logger=logger)
