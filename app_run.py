@@ -38,10 +38,9 @@ This will:
 import os
 
 from algo_royale.logging.logger_env import LoggerEnv
-from algo_royale.logging.logger_factory import LoggerType
 from src.app import app
 
-logger = LoggerFactory.get_logger(LoggerType.TRADING, LoggerEnv.PROD)
+logger = LoggerFactory.get_base_logger(LoggerEnv.PROD)
 
 
 def set_environment_variables():

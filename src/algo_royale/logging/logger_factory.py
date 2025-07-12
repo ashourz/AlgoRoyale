@@ -20,30 +20,33 @@ class TaggedLoggerAdapter(logging.LoggerAdapter):
 
 
 class LoggerFactory:
+    _loggers = {}
+
     @staticmethod
-    def get_logger(
-        logger_type: LoggerType, environment: LoggerEnv = LoggerEnv.BACKTEST
-    ) -> Loggable:  # ✅ Return type is Loggable
-        logger_name = f"{logger_type.name}_{environment.value}"
+    def get_base_logger(environment: LoggerEnv = LoggerEnv.BACKTEST) -> logging.Logger:
+        logger_name = environment.value
+        if logger_name in LoggerFactory._loggers:
+            return LoggerFactory._loggers[logger_name]
+
         logger = logging.getLogger(logger_name)
-        logger.setLevel(logger_type.log_level)
+        logger.setLevel(logging.DEBUG)  # Allow all logs, filter in wrapper
         logger.propagate = False
 
-        if not logger.handlers:
-            log_dir = os.path.join(BASE_LOG_DIR, environment.value)
-            os.makedirs(log_dir, exist_ok=True)
+        log_dir = os.path.join(BASE_LOG_DIR, environment.value)
+        os.makedirs(log_dir, exist_ok=True)
 
-            log_file = os.path.join(log_dir, f"{environment.value}.log")
-            file_handler = CustomRotatingFileHandler(
-                log_file, maxBytes=10_000_000, backupCount=5
-            )
-            formatter = logging.Formatter(
-                "[%(asctime)s] %(name)s %(levelname)s - %(tag)s - %(message)s"
-            )
-            file_handler.setFormatter(formatter)
-            logger.addHandler(file_handler)
+        log_file = os.path.join(log_dir, f"{environment.value}.log")
+        file_handler = CustomRotatingFileHandler(
+            log_file, maxBytes=10_000_000, backupCount=5
+        )
+        formatter = logging.Formatter(
+            "[%(asctime)s] %(name)s %(levelname)s - %(message)s"
+        )
+        file_handler.setFormatter(formatter)
+        logger.addHandler(file_handler)
 
-        return TaggedLoggerAdapter(logger, {"tag": logger_type.name})
+        LoggerFactory._loggers[logger_name] = logger
+        return logger
 
 
 def mockLogger() -> logging.Logger:
@@ -51,9 +54,8 @@ def mockLogger() -> logging.Logger:
     Creates a mock logger for testing purposes.
     """
     from algo_royale.logging.logger_env import LoggerEnv
-    from algo_royale.logging.logger_type import LoggerType
 
-    logger: Loggable = LoggerFactory.get_logger(
+    logger: Loggable = LoggerFactory.get_base_logger(
         logger_type=LoggerType.TESTING, environment=LoggerEnv.TEST
     )
     return logger

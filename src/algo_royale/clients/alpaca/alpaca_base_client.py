@@ -48,7 +48,9 @@ class AlpacaBaseClient(ABC):
             "keep_alive_timeout", 20
         )
 
-        self.logger = LoggerFactory.get_logger(LoggerType.TRADING, LoggerEnv.TRADING)
+        self.logger = LoggerFactory.get_base_logger(
+            LoggerType.TRADING, LoggerEnv.TRADING
+        )
 
     async def aclose(self):
         """Proper async cleanup"""

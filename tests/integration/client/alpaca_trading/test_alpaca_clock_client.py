@@ -4,11 +4,11 @@ import pytest
 
 from algo_royale.di.container import di_container
 from algo_royale.logging.logger_env import LoggerEnv
-from algo_royale.logging.logger_factory import LoggerFactory, LoggerType
+from algo_royale.logging.logger_factory import LoggerFactory
 from algo_royale.models.alpaca_trading.alpaca_clock import Clock
 
 # Set up logging (prints to console)
-logger = LoggerFactory.get_logger(LoggerType.TRADING, LoggerEnv.TEST)
+logger = LoggerFactory.get_base_logger(LoggerEnv.TEST)
 
 
 @pytest.fixture

@@ -128,6 +128,7 @@ from algo_royale.clients.db.dao.trade_dao import TradeDAO
 from algo_royale.clients.db.dao.trade_signal_dao import TradeSignalDAO
 from algo_royale.clients.db.database import Database
 from algo_royale.config.config import Config
+from algo_royale.logging.loggable import TaggableLogger
 from algo_royale.logging.logger_env import LoggerEnv
 from algo_royale.logging.logger_factory import (
     LoggerFactory,
@@ -159,146 +160,201 @@ class DIContainer(containers.DeclarativeContainer):
         secrets=secrets,
     )
 
-    logger_trading = providers.Callable(
-        LoggerFactory.get_logger,
+    logger_trading = providers.Factory(
+        TaggableLogger,
+        base_logger=providers.Singleton(
+            LoggerFactory.get_base_logger, environment=LoggerEnv.BACKTEST
+        ),
         logger_type=LoggerType.TRADING,
-        environment=LoggerEnv.TRADING,
     )
 
-    logger_stage_data_manager = providers.Callable(
-        LoggerFactory.get_logger,
+    logger_stage_data_manager = providers.Factory(
+        TaggableLogger,
+        base_logger=providers.Singleton(
+            LoggerFactory.get_base_logger, environment=LoggerEnv.BACKTEST
+        ),
         logger_type=LoggerType.STAGE_DATA_MANAGER,
-        environment=LoggerEnv.BACKTEST,
     )
 
-    logger_stage_data_preparer = providers.Callable(
-        LoggerFactory.get_logger,
+    logger_stage_data_preparer = providers.Factory(
+        TaggableLogger,
+        base_logger=providers.Singleton(
+            LoggerFactory.get_base_logger, environment=LoggerEnv.BACKTEST
+        ),
         logger_type=LoggerType.STAGE_DATA_PREPARER,
         environment=LoggerEnv.BACKTEST,
     )
 
-    logger_stage_data_writer = providers.Callable(
-        LoggerFactory.get_logger,
+    logger_stage_data_writer = providers.Factory(
+        TaggableLogger,
+        base_logger=providers.Singleton(
+            LoggerFactory.get_base_logger, environment=LoggerEnv.BACKTEST
+        ),
         logger_type=LoggerType.STAGE_DATA_WRITER,
-        environment=LoggerEnv.BACKTEST,
     )
-    logger_stage_data_loader = providers.Callable(
-        LoggerFactory.get_logger,
+    logger_stage_data_loader = providers.Factory(
+        TaggableLogger,
+        base_logger=providers.Singleton(
+            LoggerFactory.get_base_logger, environment=LoggerEnv.BACKTEST
+        ),
         logger_type=LoggerType.STAGE_DATA_LOADER,
-        environment=LoggerEnv.BACKTEST,
     )
 
-    logger_symbol_strategy_data_loader = providers.Callable(
-        LoggerFactory.get_logger,
+    logger_symbol_strategy_data_loader = providers.Factory(
+        TaggableLogger,
+        base_logger=providers.Singleton(
+            LoggerFactory.get_base_logger, environment=LoggerEnv.BACKTEST
+        ),
         logger_type=LoggerType.STRATEGY_DATA_LOADER,
-        environment=LoggerEnv.BACKTEST,
     )
-    logger_symbol_strategy_data_writer = providers.Callable(
-        LoggerFactory.get_logger,
+    logger_symbol_strategy_data_writer = providers.Factory(
+        TaggableLogger,
+        base_logger=providers.Singleton(
+            LoggerFactory.get_base_logger, environment=LoggerEnv.BACKTEST
+        ),
         logger_type=LoggerType.STRATEGY_DATA_WRITER,
-        environment=LoggerEnv.BACKTEST,
     )
 
-    logger_strategy_executor = providers.Callable(
-        LoggerFactory.get_logger,
+    logger_strategy_executor = providers.Factory(
+        TaggableLogger,
+        base_logger=providers.Singleton(
+            LoggerFactory.get_base_logger, environment=LoggerEnv.BACKTEST
+        ),
         logger_type=LoggerType.STRATEGY_EXECUTOR,
-        environment=LoggerEnv.BACKTEST,
     )
 
-    logger_strategy_evaluator = providers.Callable(
-        LoggerFactory.get_logger,
+    logger_strategy_evaluator = providers.Factory(
+        TaggableLogger,
+        base_logger=providers.Singleton(
+            LoggerFactory.get_base_logger, environment=LoggerEnv.BACKTEST
+        ),
         logger_type=LoggerType.STRATEGY_EVALUATOR,
-        environment=LoggerEnv.BACKTEST,
     )
-    logger_strategy_factory = providers.Callable(
-        LoggerFactory.get_logger,
+    logger_strategy_factory = providers.Factory(
+        TaggableLogger,
+        base_logger=providers.Singleton(
+            LoggerFactory.get_base_logger, environment=LoggerEnv.BACKTEST
+        ),
         logger_type=LoggerType.STRATEGY_FACTORY,
-        environment=LoggerEnv.BACKTEST,
     )
-    logger_signal_strategy_optimizer = providers.Callable(
-        LoggerFactory.get_logger,
+    logger_signal_strategy_optimizer = providers.Factory(
+        TaggableLogger,
+        base_logger=providers.Singleton(
+            LoggerFactory.get_base_logger, environment=LoggerEnv.BACKTEST
+        ),
         logger_type=LoggerType.SIGNAL_STRATEGY_OPTIMIZER,
-        environment=LoggerEnv.BACKTEST,
     )
-    logger_portfolio_executor = providers.Callable(
-        LoggerFactory.get_logger,
+    logger_portfolio_executor = providers.Factory(
+        TaggableLogger,
+        base_logger=providers.Singleton(
+            LoggerFactory.get_base_logger, environment=LoggerEnv.BACKTEST
+        ),
         logger_type=LoggerType.PORTFOLIO_EXECUTOR,
-        environment=LoggerEnv.BACKTEST,
     )
-    logger_portfolio_evaluator = providers.Callable(
-        LoggerFactory.get_logger,
+    logger_portfolio_evaluator = providers.Factory(
+        TaggableLogger,
+        base_logger=providers.Singleton(
+            LoggerFactory.get_base_logger, environment=LoggerEnv.BACKTEST
+        ),
         logger_type=LoggerType.PORTFOLIO_EVALUATOR,
-        environment=LoggerEnv.BACKTEST,
     )
-    logger_portfolio_asset_matrix_preparer = providers.Callable(
-        LoggerFactory.get_logger,
+    logger_portfolio_asset_matrix_preparer = providers.Factory(
+        TaggableLogger,
+        base_logger=providers.Singleton(
+            LoggerFactory.get_base_logger, environment=LoggerEnv.BACKTEST
+        ),
         logger_type=LoggerType.PORTFOLIO_ASSET_MATRIX_PREPARER,
-        environment=LoggerEnv.BACKTEST,
     )
-    logger_portfolio_strategy_optimizer = providers.Callable(
-        LoggerFactory.get_logger,
+    logger_portfolio_strategy_optimizer = providers.Factory(
+        TaggableLogger,
+        base_logger=providers.Singleton(
+            LoggerFactory.get_base_logger, environment=LoggerEnv.BACKTEST
+        ),
         logger_type=LoggerType.PORTFOLIO_STRATEGY_OPTIMIZER,
-        environment=LoggerEnv.BACKTEST,
     )
-    logger_strategy_evaluation = providers.Callable(
-        LoggerFactory.get_logger,
+    logger_strategy_evaluation = providers.Factory(
+        TaggableLogger,
+        base_logger=providers.Singleton(
+            LoggerFactory.get_base_logger, environment=LoggerEnv.BACKTEST
+        ),
         logger_type=LoggerType.STRATEGY_EVALUATION,
-        environment=LoggerEnv.BACKTEST,
     )
-    logger_symbol_evaluation = providers.Callable(
-        LoggerFactory.get_logger,
+    logger_symbol_evaluation = providers.Factory(
+        TaggableLogger,
+        base_logger=providers.Singleton(
+            LoggerFactory.get_base_logger, environment=LoggerEnv.BACKTEST
+        ),
         logger_type=LoggerType.SYMBOL_EVALUATION,
-        environment=LoggerEnv.BACKTEST,
     )
-    logger_portfolio_evaluation = providers.Callable(
-        LoggerFactory.get_logger,
+    logger_portfolio_evaluation = providers.Factory(
+        TaggableLogger,
+        base_logger=providers.Singleton(
+            LoggerFactory.get_base_logger, environment=LoggerEnv.BACKTEST
+        ),
         logger_type=LoggerType.PORTFOLIO_EVALUATION,
-        environment=LoggerEnv.BACKTEST,
     )
-    logger_backtest_data_ingest = providers.Callable(
-        LoggerFactory.get_logger,
+    logger_backtest_data_ingest = providers.Factory(
+        TaggableLogger,
+        base_logger=providers.Singleton(
+            LoggerFactory.get_base_logger, environment=LoggerEnv.BACKTEST
+        ),
         logger_type=LoggerType.BACKTEST_DATA_INGEST,
-        environment=LoggerEnv.BACKTEST,
     )
-    logger_backtest_feature_engineering = providers.Callable(
-        LoggerFactory.get_logger,
+    logger_backtest_feature_engineering = providers.Factory(
+        TaggableLogger,
+        base_logger=providers.Singleton(
+            LoggerFactory.get_base_logger, environment=LoggerEnv.BACKTEST
+        ),
         logger_type=LoggerType.BACKTEST_FEATURE_ENGINEERING,
-        environment=LoggerEnv.BACKTEST,
     )
-    logger_backtest_signal_optimization = providers.Callable(
-        LoggerFactory.get_logger,
+    logger_backtest_signal_optimization = providers.Factory(
+        TaggableLogger,
+        base_logger=providers.Singleton(
+            LoggerFactory.get_base_logger, environment=LoggerEnv.BACKTEST
+        ),
         logger_type=LoggerType.BACKTEST_SIGNAL_OPTIMIZATION,
-        environment=LoggerEnv.BACKTEST,
     )
-    logger_backtest_signal_testing = providers.Callable(
-        LoggerFactory.get_logger,
+    logger_backtest_signal_testing = providers.Factory(
+        TaggableLogger,
+        base_logger=providers.Singleton(
+            LoggerFactory.get_base_logger, environment=LoggerEnv.BACKTEST
+        ),
         logger_type=LoggerType.BACKTEST_SIGNAL_TESTING,
-        environment=LoggerEnv.BACKTEST,
     )
-    logger_backtest_portfolio_optimization = providers.Callable(
-        LoggerFactory.get_logger,
+    logger_backtest_portfolio_optimization = providers.Factory(
+        TaggableLogger,
+        base_logger=providers.Singleton(
+            LoggerFactory.get_base_logger, environment=LoggerEnv.BACKTEST
+        ),
         logger_type=LoggerType.BACKTEST_PORTFOLIO_OPTIMIZATION,
-        environment=LoggerEnv.BACKTEST,
     )
-    logger_backtest_portfolio_testing = providers.Callable(
-        LoggerFactory.get_logger,
+    logger_backtest_portfolio_testing = providers.Factory(
+        TaggableLogger,
+        base_logger=providers.Singleton(
+            LoggerFactory.get_base_logger, environment=LoggerEnv.BACKTEST
+        ),
         logger_type=LoggerType.BACKTEST_PORTFOLIO_TESTING,
-        environment=LoggerEnv.BACKTEST,
     )
-    logger_strategy_walk_forward = providers.Callable(
-        LoggerFactory.get_logger,
+    logger_strategy_walk_forward = providers.Factory(
+        TaggableLogger,
+        base_logger=providers.Singleton(
+            LoggerFactory.get_base_logger, environment=LoggerEnv.BACKTEST
+        ),
         logger_type=LoggerType.STRATEGY_WALK_FORWARD,
-        environment=LoggerEnv.BACKTEST,
     )
-    logger_portfolio_walk_forward = providers.Callable(
-        LoggerFactory.get_logger,
+    logger_portfolio_walk_forward = providers.Factory(
+        TaggableLogger,
+        base_logger=providers.Singleton(
+            LoggerFactory.get_base_logger, environment=LoggerEnv.BACKTEST
+        ),
         logger_type=LoggerType.PORTFOLIO_WALK_FORWARD,
-        environment=LoggerEnv.BACKTEST,
     )
-    logger_backtest_pipeline = providers.Callable(
-        LoggerFactory.get_logger,
+    logger_backtest_pipeline = providers.Factory(
+        TaggableLogger,
+        base_logger=providers.Singleton(
+            LoggerFactory.get_base_logger, environment=LoggerEnv.BACKTEST
+        ),
         logger_type=LoggerType.BACKTEST_PIPELINE,
-        environment=LoggerEnv.BACKTEST,
     )
     database = providers.Singleton(
         Database, logger=logger_trading, config=config, secrets=secrets

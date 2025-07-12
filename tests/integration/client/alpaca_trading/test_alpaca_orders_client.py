@@ -13,7 +13,7 @@ from algo_royale.clients.alpaca.exceptions import (
 )
 from algo_royale.di.container import DIContainer
 from algo_royale.logging.logger_env import LoggerEnv
-from algo_royale.logging.logger_factory import LoggerFactory, LoggerType
+from algo_royale.logging.logger_factory import LoggerFactory
 from algo_royale.models.alpaca_trading.alpaca_order import (
     DeleteOrdersResponse,
     DeleteOrderStatus,
@@ -29,7 +29,7 @@ from algo_royale.models.alpaca_trading.enums import (
 )
 
 # Set up logging (prints to console)
-logger = LoggerFactory.get_logger(LoggerType.TRADING, LoggerEnv.TEST)
+logger = LoggerFactory.get_base_logger(LoggerEnv.TEST)
 
 
 @pytest.fixture
