@@ -1,7 +1,7 @@
 import json
 from datetime import datetime
 from pathlib import Path
-from typing import Dict, Optional, Sequence
+from typing import Dict, Mapping, Optional, Sequence
 
 from algo_royale.backtester.enum.backtest_stage import BacktestStage
 from algo_royale.backtester.stage_coordinator.stage_coordinator import StageCoordinator
@@ -138,3 +138,16 @@ class BaseOptimizationStageCoordinator(StageCoordinator):
         )
         out_dir.mkdir(parents=True, exist_ok=True)
         return out_dir / self.optimization_json_filename
+
+    def _deep_merge(self, d1, d2):
+        merged = dict(d1)  # Copy of d1
+        for key, value in d2.items():
+            if (
+                key in merged
+                and isinstance(merged[key], Mapping)
+                and isinstance(value, Mapping)
+            ):
+                merged[key] = self._deep_merge(merged[key], value)
+            else:
+                merged[key] = value
+        return merged

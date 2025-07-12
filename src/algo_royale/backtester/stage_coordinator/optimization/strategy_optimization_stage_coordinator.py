@@ -258,7 +258,9 @@ class StrategyOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
                 )
                 existing_optimization_json = {}
 
-            updated_optimization_json = existing_optimization_json | optimization_json
+            updated_optimization_json = self._deep_merge(
+                existing_optimization_json, optimization_json
+            )
             # Save optimization metrics to optimization_result.json under window_id
             out_path = self._get_output_path(
                 strategy_name,

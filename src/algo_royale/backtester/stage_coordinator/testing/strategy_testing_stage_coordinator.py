@@ -359,24 +359,30 @@ class StrategyTestingStageCoordinator(BaseTestingStageCoordinator):
             metrics = {k: metrics.get(k, 0.0) for k in required_metrics}
 
             # Update the optimization result dictionary
-            optimization_result.setdefault(self.test_window_id, {})
-            optimization_result[self.test_window_id]["test"] = {
-                "metrics": metrics,
+            test_optimization_json = {
+                self.test_window_id: {
+                    "test": {
+                        "metrics": metrics,
+                    },
+                    "window": {
+                        "start_date": self.test_start_date.strftime("%Y-%m-%d"),
+                        "end_date": self.test_end_date.strftime("%Y-%m-%d"),
+                        "window_id": self.test_window_id,
+                    },
+                }
             }
 
-            self.logger.debug(
-                f"Optimization result after update: {optimization_result}"
+            updated_optimization_json = self._deep_merge(
+                test_optimization_json, optimization_result
             )
 
-            # Update the results dictionary
-            collective_results.setdefault(symbol, {}).setdefault(
-                strategy_name, {}
-            ).setdefault(self.test_window_id, {})
-            collective_results[symbol][strategy_name][self.test_window_id] = {
-                "metrics": metrics,
-            }
+            self.logger.debug(
+                f"Optimization result after update: {updated_optimization_json}"
+            )
 
-            self.logger.debug(f"Results dictionary after update: {collective_results}")
+            self.logger.debug(
+                f"Results dictionary after update: {updated_optimization_json}"
+            )
 
             # Save the updated optimization results to the file
             test_opt_results_path = self._get_optimization_result_path(
@@ -389,8 +395,15 @@ class StrategyTestingStageCoordinator(BaseTestingStageCoordinator):
                 f"Saving test results for {strategy_name} and symbol {symbol} to {test_opt_results_path}"
             )
             with open(test_opt_results_path, "w") as f:
-                json.dump(optimization_result, f, indent=2, default=str)
+                json.dump(updated_optimization_json, f, indent=2, default=str)
 
+            # Update the results dictionary
+            collective_results.setdefault(symbol, {}).setdefault(
+                strategy_name, {}
+            ).setdefault(self.test_window_id, {})
+            collective_results[symbol][strategy_name][self.test_window_id] = {
+                "metrics": metrics,
+            }
         except Exception as e:
             self.logger.error(
                 f"Error writing test results for {strategy_name} during {self.test_window_id}: {e}"
