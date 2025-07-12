@@ -1,4 +1,10 @@
+from typing import Optional
+
+import pandas as pd
+
 from algo_royale.logging.loggable import Loggable
+from algo_royale.logging.logger_factory import mockLogger
+
 """
 AssetMatrixPreparer: Utility for preparing feature-engineered data in the asset-matrix form
 
@@ -7,12 +13,6 @@ AssetMatrixPreparer: Utility for preparing feature-engineered data in the asset-
     - Single-symbol: returns the DataFrame as-is, with a single column
 - Handles missing data and provides logging for shape/column issues
 """
-
-from typing import Optional
-
-import pandas as pd
-
-from algo_royale.logging.logger_factory import mockLogger
 
 
 class AssetMatrixPreparer:

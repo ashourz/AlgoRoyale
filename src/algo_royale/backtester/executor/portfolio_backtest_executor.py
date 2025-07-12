@@ -1,11 +1,11 @@
 from typing import Any, Dict
-from algo_royale.logging.loggable import Loggable
 
 import numpy as np
 import pandas as pd
 
 from algo_royale.backtester.enum.backtest_stage import BacktestStage
 from algo_royale.backtester.executor.base_backtest_executor import BacktestExecutor
+from algo_royale.logging.loggable import Loggable
 from algo_royale.logging.logger_factory import mockLogger
 
 
@@ -45,7 +45,7 @@ class PortfolioBacktestExecutor(BacktestExecutor):
         data: pd.DataFrame,
     ) -> Dict[str, Any]:
         """
-        Run a backtest for the given strategy and data.
+        Run a backtest for the given strategy and data, with robust validation, error handling, and detailed logging.
         Parameters:
             : strategy: Portfolio strategy instance implementing allocation logic.
             : data: DataFrame containing asset prices or returns/signals.
@@ -67,19 +67,25 @@ class PortfolioBacktestExecutor(BacktestExecutor):
                 "Ensure the data is a non-empty DataFrame of prices."
             )
 
-        weights = strategy.allocate(data, data)
+        try:
+            weights = strategy.allocate(data, data)
+        except Exception as e:
+            self.logger.error(f"Error in strategy.allocate: {e}")
+            raise
+
         self.logger.debug(
             f"Shape of data DataFrame: {data.shape}\n"
-            f"Data Columns: {data.columns.tolist()}\n"
-            f"Shape of weights DataFrame: {weights.shape}\n"
-            f"Weights Columns: {weights.columns.tolist()}\n"
-            f"Strategy weights:\n{weights.head()}\n"
+            f"Data Columns: {getattr(data, 'columns', [])}\n"
+            f"Shape of weights DataFrame: {getattr(weights, 'shape', None)}\n"
+            f"Weights Columns: {getattr(weights, 'columns', [])}\n"
+            f"Strategy weights (head):\n{getattr(weights, 'head', lambda: None)()}\n"
             f"Initial balance: {self.initial_balance}, "
             f"Transaction cost: {self.transaction_cost}, "
             f"Minimum lot size: {self.min_lot}, "
             f"Leverage: {self.leverage}, "
             f"Slippage: {self.slippage}"
         )
+
         # Check that data is a DataFrame of valid prices
         if not isinstance(data, pd.DataFrame) or data.empty:
             self.logger.error(
@@ -92,6 +98,7 @@ class PortfolioBacktestExecutor(BacktestExecutor):
             self.logger.warning(
                 "Input data contains non-positive or NaN prices. These will be skipped in trading logic."
             )
+
         n_steps, n_assets = data.shape
         cash = self.initial_balance
         holdings = np.zeros(n_assets)
@@ -101,12 +108,14 @@ class PortfolioBacktestExecutor(BacktestExecutor):
         transactions = []
         trade_id = 0
         trades_executed = 0
+
         self.logger.debug(f"Data shape: {data.shape}, columns: {list(data.columns)}")
         self.logger.debug(
             f"Weights shape: {weights.shape}, columns: {list(weights.columns)}"
         )
         self.logger.debug(f"Data index: {data.index[:5]} ...")
         self.logger.debug(f"Weights index: {weights.index[:5]} ...")
+
         for t in range(n_steps):
             target_weights = weights.iloc[t].values
             prices = data.iloc[t].values
@@ -205,6 +214,7 @@ class PortfolioBacktestExecutor(BacktestExecutor):
                         f"Buy: {shares_to_buy} of {asset_name} at {buy_price} (cost={cost})"
                     )
                     trade_id += 1
+                    trades_executed += 1
                 elif trade_dollars[i] < 0:  # Sell
                     shares_to_sell = min(-trade_dollars[i] // sell_price, holdings[i])
                     # Robustify: check for NaN/inf before int conversion
@@ -242,14 +252,39 @@ class PortfolioBacktestExecutor(BacktestExecutor):
                             f"Sell: {shares_to_sell} of {asset_name} at {sell_price} (proceeds={proceeds})"
                         )
                         trade_id += 1
+                        trades_executed += 1
             portfolio_value = cash + np.sum(holdings * prices)
             portfolio_values.append(portfolio_value)
             cash_history.append(cash)
             holdings_history.append(holdings.copy())
+
         if trades_executed == 0:
             self.logger.warning(
-                "No trades were executed during the backtest. Check input data and strategy weights."
+                "No trades were executed during the backtest. This may indicate that the strategy weights, price data, or constraints prevented any trades. "
+                f"Input data shape: {data.shape}, Weights shape: {weights.shape}, Initial balance: {self.initial_balance}, Transaction cost: {self.transaction_cost}, Min lot: {self.min_lot}, Leverage: {self.leverage}, Slippage: {self.slippage}"
             )
+            # Optionally, add a flag to results for downstream logic
+
+        # Defensive: ensure portfolio_values is not empty
+        if not portfolio_values:
+            self.logger.error(
+                "No portfolio values were generated during the backtest. Returning empty result structure."
+            )
+            results = {
+                "portfolio_values": [],
+                "cash_history": [],
+                "holdings_history": [],
+                "final_cash": cash,
+                "final_holdings": holdings,
+                "transactions": [],
+                "metrics": {
+                    "total_return": np.nan,
+                    "error": "No portfolio values generated",
+                },
+                "empty_result": True,
+            }
+            return results
+
         self.logger.info(
             f"Portfolio backtest complete. Final value: {portfolio_values[-1]}, Final cash: {cash}"
         )
@@ -261,6 +296,22 @@ class PortfolioBacktestExecutor(BacktestExecutor):
             "final_holdings": holdings,
             "transactions": transactions,
         }
+        self.logger.debug(
+            f"Backtest results keys: {list(results.keys())}, "
+            f"portfolio_values len: {len(portfolio_values)}, "
+            f"transactions len: {len(transactions)}"
+        )
+
+        # Add DataFrame versions for manual review and downstream analysis
+        results["transactions_df"] = (
+            pd.DataFrame(transactions) if transactions else pd.DataFrame()
+        )
+        results["portfolio_values_df"] = (
+            pd.DataFrame({"portfolio_value": portfolio_values})
+            if portfolio_values
+            else pd.DataFrame()
+        )
+
         # Add metrics for diagnostics and downstream use
         try:
             initial_value = self.initial_balance
@@ -271,17 +322,21 @@ class PortfolioBacktestExecutor(BacktestExecutor):
             results["metrics"] = {"total_return": total_return}
         except Exception as e:
             self.logger.error(f"Error computing total_return metric: {e}")
-            results["metrics"] = {}
+            results["metrics"] = {"total_return": np.nan, "error": str(e)}
+
         # Validate output data structure
         if not self._validate_output(results):
             self.logger.error(
                 "Output data validation failed for portfolio backtest. "
                 "Ensure the output contains the expected structure."
             )
-            raise ValueError(
-                "Output data validation failed for portfolio backtest. "
-                "Ensure the output contains the expected structure."
-            )
+            results["metrics"]["error"] = "Output data validation failed"
+            results["invalid_output"] = True
+            # Optionally, raise or just return the flagged result
+            # raise ValueError(
+            #     "Output data validation failed for portfolio backtest. "
+            #     "Ensure the output contains the expected structure."
+            # )
         return results
 
     def _validate_input(self, input_data: pd.DataFrame) -> bool:
