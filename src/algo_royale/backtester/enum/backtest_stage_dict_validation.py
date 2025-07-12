@@ -28,7 +28,7 @@ from algo_royale.backtester.stage_data_validation.signal_strategy_optimization_r
     signal_strategy_optimization_result_validator,
 )
 from algo_royale.backtester.stage_data_validation.signal_strategy_testing_result_validator import (
-    signal_strategy_testing_validator,
+    signal_strategy_testing_result_validator,
 )
 from algo_royale.backtester.stage_data_validation.signal_summary_validator import (
     signal_summary_validator,
@@ -58,7 +58,7 @@ class BacktestStageDictValidation(Enum):
     # Signal Strategy Optimization and Testing
     STRATEGY_OPTIMIZATION_OUTPUT = signal_strategy_optimization_result_validator
     """ Validator for the output of the signal strategy optimization stage."""
-    STRATEGY_TESTING_OUTPUT = signal_strategy_testing_validator
+    STRATEGY_TESTING_OUTPUT = signal_strategy_testing_result_validator
     """ Validator for the output of the signal strategy testing stage."""
     STRATEGY_OPTIMIZATION_TESTING_OUTPUT = signal_strategy_full_result_validator
     """ Validator for the combined output of the signal strategy optimization and testing stages."""

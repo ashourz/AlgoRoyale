@@ -111,6 +111,19 @@ class StrategyOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
                 try:
                     strategy_class = strategy_combinator.strategy_class
                     strategy_name = strategy_class.__name__
+
+                    # Check if optimization has already been done for this strategy
+                    if self._has_optimization_run(
+                        symbol=symbol,
+                        strategy_name=strategy_name,
+                        start_date=self.start_date,
+                        end_date=self.end_date,
+                    ):
+                        self.logger.info(
+                            f"Skipping optimization for {symbol} {strategy_name} in window {self.window_id} as it has already been run."
+                        )
+                        continue
+
                     # Run optimization
                     optimizer = self.signal_strategy_optimizer_factory.create(
                         strategy_class=strategy_class,
@@ -153,6 +166,34 @@ class StrategyOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
                     continue
 
         return results
+
+    def _has_optimization_run(
+        self, symbol: str, strategy_name: str, start_date: datetime, end_date: datetime
+    ) -> bool:
+        """Check if optimization has already been run for the current stage."""
+        # Get existing results for the symbol and strategy
+        try:
+            existing_optimization_json = self.get_existing_optimization_results(
+                strategy_name=strategy_name,
+                symbol=symbol,
+                start_date=start_date,
+                end_date=end_date,
+            )
+            if self.stage.output_validation_fn(existing_optimization_json, self.logger):
+                self.logger.info(
+                    f"Optimization already run for {symbol} {strategy_name} in window {self.window_id}"
+                )
+                return True
+            else:
+                self.logger.info(
+                    f"No existing optimization results for {symbol} {strategy_name} in window {self.window_id}"
+                )
+                return False
+        except Exception as e:
+            self.logger.error(
+                f"Error checking optimization results for {symbol} {strategy_name} in window {self.window_id}: {e}"
+            )
+            return False
 
     def _get_output_path(
         self, strategy_name: str, symbol: str, start_date: datetime, end_date: datetime

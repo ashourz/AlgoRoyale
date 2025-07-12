@@ -1,5 +1,6 @@
 import inspect
 import json
+from datetime import datetime
 from typing import Any, AsyncIterator, Callable, Dict, Optional, Sequence
 
 import pandas as pd
@@ -158,6 +159,18 @@ class StrategyTestingStageCoordinator(BaseTestingStageCoordinator):
             for strategy_combinator in self.strategy_combinators:
                 strategy_class = strategy_combinator.strategy_class
                 strategy_name = strategy_class.__name__
+
+                if self._has_optimization_run(
+                    symbol=symbol,
+                    strategy_name=strategy_name,
+                    start_date=self.train_start_date,
+                    end_date=self.train_end_date,
+                ):
+                    self.logger.warning(
+                        f"Skipping {strategy_name} for {symbol} due to no optimization run."
+                    )
+                    continue
+
                 self.logger.debug(f"Processing strategy: {strategy_name}")
                 optimized_params = self._get_optimized_params(
                     symbol=symbol,
@@ -236,6 +249,34 @@ class StrategyTestingStageCoordinator(BaseTestingStageCoordinator):
 
         self.logger.debug(f"Final results dictionary: {results}")
         return results
+
+    def _has_optimization_run(
+        self, symbol: str, strategy_name: str, start_date: datetime, end_date: datetime
+    ) -> bool:
+        """Check if test has already been run for the current stage."""
+        # Get existing results for the symbol and strategy
+        try:
+            existing_optimization_json = self.get_existing_optimization_results(
+                strategy_name=strategy_name,
+                symbol=symbol,
+                start_date=start_date,
+                end_date=end_date,
+            )
+            if self.stage.output_validation_fn(existing_optimization_json, self.logger):
+                self.logger.info(
+                    f"Test already run for {symbol} {strategy_name} in window {self.window_id}"
+                )
+                return True
+            else:
+                self.logger.info(
+                    f"No existing test results for {symbol} {strategy_name} in window {self.window_id}"
+                )
+                return False
+        except Exception as e:
+            self.logger.error(
+                f"Error checking test run for {symbol} {strategy_name}: {e}"
+            )
+            return False
 
     def _get_optimized_params(
         self,
