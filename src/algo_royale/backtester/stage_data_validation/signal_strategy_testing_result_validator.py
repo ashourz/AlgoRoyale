@@ -1,4 +1,6 @@
 from algo_royale.logging.loggable import Loggable
+
+
 def signal_strategy_testing_validator(d, logger: Loggable) -> bool:
     """Validate the structure of a signal strategy testing dictionary (the 'test' section)."""
     if not isinstance(d, dict):
@@ -9,9 +11,20 @@ def signal_strategy_testing_validator(d, logger: Loggable) -> bool:
         return False
     metrics = d["metrics"]
     for k in ["total_return", "sharpe_ratio", "win_rate", "max_drawdown"]:
-        if k not in metrics or not isinstance(metrics[k], float):
+        if k not in metrics:
             logger.warning(
-                f"Validation failed: '{k}' missing or not float in metrics. Value: {metrics}"
+                f"Validation failed: '{k}' missing in metrics. Value: {metrics}"
+            )
+            return False
+        v = metrics[k]
+        if v is None:
+            logger.warning(
+                f"Validation warning: '{k}' is None in metrics. Value: {metrics}"
+            )
+            continue  # Warn but do not fail
+        if not isinstance(v, (float, int)):
+            logger.warning(
+                f"Validation failed: '{k}' not float or int in metrics. Value: {metrics}"
             )
             return False
     return True
