@@ -20,6 +20,7 @@ from algo_royale.clients.alpaca.exceptions import (
 )
 from algo_royale.logging.logger_env import LoggerEnv
 from algo_royale.logging.logger_factory import (
+    LoggerFactory,
     LoggerType,
 )
 
