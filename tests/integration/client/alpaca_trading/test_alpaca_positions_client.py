@@ -8,7 +8,7 @@ from algo_royale.clients.alpaca.alpaca_trading.alpaca_positions_client import (
 from algo_royale.clients.alpaca.exceptions import AlpacaPositionNotFoundException
 from algo_royale.di.container import DIContainer
 from algo_royale.logging.logger_env import LoggerEnv
-from algo_royale.logging.logger_factory import LoggerType
+from algo_royale.logging.logger_factory import LoggerFactory, LoggerType
 from algo_royale.models.alpaca_trading.alpaca_position import (
     ClosedPosition,
     ClosedPositionList,

@@ -5,7 +5,7 @@ from typing import Any, Dict
 from pydantic import RootModel
 
 from algo_royale.logging.logger_env import LoggerEnv
-from algo_royale.logging.logger_factory import LoggerType
+from algo_royale.logging.logger_factory import LoggerFactory, LoggerType
 
 logger = LoggerFactory.get_logger(LoggerType.TRADING, LoggerEnv.TRADING)
 

@@ -130,6 +130,7 @@ from algo_royale.clients.db.database import Database
 from algo_royale.config.config import Config
 from algo_royale.logging.logger_env import LoggerEnv
 from algo_royale.logging.logger_factory import (
+    LoggerFactory,
     LoggerType,
 )
 from algo_royale.services.db.indicator_service import IndicatorService
