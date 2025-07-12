@@ -159,72 +159,149 @@ class DIContainer(containers.DeclarativeContainer):
         secrets=secrets,
     )
 
-    logger_trading_prod = providers.Callable(
+    logger_trading = providers.Callable(
         LoggerSingleton.get_instance,
         logger_type=LoggerType.TRADING,
-        environment=LoggerEnv.PRODUCTION,
+        environment=LoggerEnv.TRADING,
     )
 
-    logger_stage_data_manager_prod = providers.Callable(
+    logger_stage_data_manager = providers.Callable(
         LoggerSingleton.get_instance,
         logger_type=LoggerType.STAGE_DATA_MANAGER,
-        environment=LoggerEnv.PRODUCTION,
+        environment=LoggerEnv.BACKTEST,
     )
 
-    logger_stage_data_preparer_prod = providers.Callable(
+    logger_stage_data_preparer = providers.Callable(
         LoggerSingleton.get_instance,
         logger_type=LoggerType.STAGE_DATA_PREPARER,
-        environment=LoggerEnv.PRODUCTION,
+        environment=LoggerEnv.BACKTEST,
     )
 
-    logger_stage_data_writer_prod = providers.Callable(
+    logger_stage_data_writer = providers.Callable(
         LoggerSingleton.get_instance,
         logger_type=LoggerType.STAGE_DATA_WRITER,
-        environment=LoggerEnv.PRODUCTION,
+        environment=LoggerEnv.BACKTEST,
     )
-    logger_stage_data_loader_prod = providers.Callable(
+    logger_stage_data_loader = providers.Callable(
         LoggerSingleton.get_instance,
         logger_type=LoggerType.STAGE_DATA_LOADER,
-        environment=LoggerEnv.PRODUCTION,
+        environment=LoggerEnv.BACKTEST,
     )
 
-    logger_backtest_data_ingest_prod = providers.Callable(
+    logger_symbol_strategy_data_loader = providers.Callable(
+        LoggerSingleton.get_instance,
+        logger_type=LoggerType.STRATEGY_DATA_LOADER,
+        environment=LoggerEnv.BACKTEST,
+    )
+    logger_symbol_strategy_data_writer = providers.Callable(
+        LoggerSingleton.get_instance,
+        logger_type=LoggerType.STRATEGY_DATA_WRITER,
+        environment=LoggerEnv.BACKTEST,
+    )
+
+    logger_strategy_executor = providers.Callable(
+        LoggerSingleton.get_instance,
+        logger_type=LoggerType.STRATEGY_EXECUTOR,
+        environment=LoggerEnv.BACKTEST,
+    )
+
+    logger_strategy_evaluator = providers.Callable(
+        LoggerSingleton.get_instance,
+        logger_type=LoggerType.STRATEGY_EVALUATOR,
+        environment=LoggerEnv.BACKTEST,
+    )
+    logger_strategy_factory = providers.Callable(
+        LoggerSingleton.get_instance,
+        logger_type=LoggerType.STRATEGY_FACTORY,
+        environment=LoggerEnv.BACKTEST,
+    )
+    logger_signal_strategy_optimizer = providers.Callable(
+        LoggerSingleton.get_instance,
+        logger_type=LoggerType.SIGNAL_STRATEGY_OPTIMIZER,
+        environment=LoggerEnv.BACKTEST,
+    )
+    logger_portfolio_executor = providers.Callable(
+        LoggerSingleton.get_instance,
+        logger_type=LoggerType.PORTFOLIO_EXECUTOR,
+        environment=LoggerEnv.BACKTEST,
+    )
+    logger_portfolio_evaluator = providers.Callable(
+        LoggerSingleton.get_instance,
+        logger_type=LoggerType.PORTFOLIO_EVALUATOR,
+        environment=LoggerEnv.BACKTEST,
+    )
+    logger_portfolio_asset_matrix_preparer = providers.Callable(
+        LoggerSingleton.get_instance,
+        logger_type=LoggerType.PORTFOLIO_ASSET_MATRIX_PREPARER,
+        environment=LoggerEnv.BACKTEST,
+    )
+    logger_portfolio_strategy_optimizer = providers.Callable(
+        LoggerSingleton.get_instance,
+        logger_type=LoggerType.PORTFOLIO_STRATEGY_OPTIMIZER,
+        environment=LoggerEnv.BACKTEST,
+    )
+    logger_strategy_evaluation = providers.Callable(
+        LoggerSingleton.get_instance,
+        logger_type=LoggerType.STRATEGY_EVALUATION,
+        environment=LoggerEnv.BACKTEST,
+    )
+    logger_symbol_evaluation = providers.Callable(
+        LoggerSingleton.get_instance,
+        logger_type=LoggerType.SYMBOL_EVALUATION,
+        environment=LoggerEnv.BACKTEST,
+    )
+    logger_portfolio_evaluation = providers.Callable(
+        LoggerSingleton.get_instance,
+        logger_type=LoggerType.PORTFOLIO_EVALUATION,
+        environment=LoggerEnv.BACKTEST,
+    )
+    logger_backtest_data_ingest = providers.Callable(
         LoggerSingleton.get_instance,
         logger_type=LoggerType.BACKTEST_DATA_INGEST,
-        environment=LoggerEnv.PRODUCTION,
+        environment=LoggerEnv.BACKTEST,
     )
-
-    logger_backtest_feature_engineering_prod = providers.Callable(
+    logger_backtest_feature_engineering = providers.Callable(
         LoggerSingleton.get_instance,
         logger_type=LoggerType.BACKTEST_FEATURE_ENGINEERING,
-        environment=LoggerEnv.PRODUCTION,
+        environment=LoggerEnv.BACKTEST,
     )
-    logger_backtest_signal_optimization_prod = providers.Callable(
+    logger_backtest_signal_optimization = providers.Callable(
         LoggerSingleton.get_instance,
         logger_type=LoggerType.BACKTEST_SIGNAL_OPTIMIZATION,
-        environment=LoggerEnv.PRODUCTION,
+        environment=LoggerEnv.BACKTEST,
     )
-
-    logger_backtest_signal_testing_prod = providers.Callable(
+    logger_backtest_signal_testing = providers.Callable(
         LoggerSingleton.get_instance,
         logger_type=LoggerType.BACKTEST_SIGNAL_TESTING,
-        environment=LoggerEnv.PRODUCTION,
+        environment=LoggerEnv.BACKTEST,
     )
-
-    logger_backtest_portfolio_optimization_prod = providers.Callable(
+    logger_backtest_portfolio_optimization = providers.Callable(
         LoggerSingleton.get_instance,
         logger_type=LoggerType.BACKTEST_PORTFOLIO_OPTIMIZATION,
-        environment=LoggerEnv.PRODUCTION,
+        environment=LoggerEnv.BACKTEST,
     )
-
-    logger_backtest_portfolio_testing_prod = providers.Callable(
+    logger_backtest_portfolio_testing = providers.Callable(
         LoggerSingleton.get_instance,
         logger_type=LoggerType.BACKTEST_PORTFOLIO_TESTING,
-        environment=LoggerEnv.PRODUCTION,
+        environment=LoggerEnv.BACKTEST,
     )
-
+    logger_strategy_walk_forward = providers.Callable(
+        LoggerSingleton.get_instance,
+        logger_type=LoggerType.STRATEGY_WALK_FORWARD,
+        environment=LoggerEnv.BACKTEST,
+    )
+    logger_portfolio_walk_forward = providers.Callable(
+        LoggerSingleton.get_instance,
+        logger_type=LoggerType.PORTFOLIO_WALK_FORWARD,
+        environment=LoggerEnv.BACKTEST,
+    )
+    logger_backtest_pipeline = providers.Callable(
+        LoggerSingleton.get_instance,
+        logger_type=LoggerType.BACKTEST_PIPELINE,
+        environment=LoggerEnv.BACKTEST,
+    )
     database = providers.Singleton(
-        Database, logger=logger_trading_prod, config=config, secrets=secrets
+        Database, logger=logger_trading, config=config, secrets=secrets
     )
 
     db_connection = providers.Callable(lambda db: db.connection_context(), db=database)
@@ -233,35 +310,35 @@ class DIContainer(containers.DeclarativeContainer):
         IndicatorDAO,
         connection=db_connection,
         sql_dir=dao_sql_dir,
-        logger=logger_trading_prod,
+        logger=logger_trading,
     )
 
     news_sentiment_dao = providers.Singleton(
         NewsSentimentDAO,
         connection=db_connection,
         sql_dir=dao_sql_dir,
-        logger=logger_trading_prod,
+        logger=logger_trading,
     )
 
     stock_data_dao = providers.Singleton(
         StockDataDAO,
         connection=db_connection,
         sql_dir=dao_sql_dir,
-        logger=logger_trading_prod,
+        logger=logger_trading,
     )
 
     trade_dao = providers.Singleton(
         TradeDAO,
         connection=db_connection,
         sql_dir=dao_sql_dir,
-        logger=logger_trading_prod,
+        logger=logger_trading,
     )
 
     trade_signal_dao = providers.Singleton(
         TradeSignalDAO,
         connection=db_connection,
         sql_dir=dao_sql_dir,
-        logger=logger_trading_prod,
+        logger=logger_trading,
     )
 
     indicator_service = providers.Singleton(IndicatorService, dao=indicator_dao)
@@ -335,13 +412,13 @@ class DIContainer(containers.DeclarativeContainer):
     data_dir = get_data_dir()
     ## Backtester
     stage_data_manager = providers.Singleton(
-        StageDataManager, data_dir=data_dir, logger=logger_stage_data_manager_prod
+        StageDataManager, data_dir=data_dir, logger=logger_stage_data_manager
     )
 
     stage_data_preparer = providers.Singleton(
         StageDataPreparer,
         stage_data_manager=stage_data_manager,
-        logger=logger_stage_data_preparer_prod,
+        logger=logger_stage_data_preparer,
     )
 
     watchlist_path_string = providers.Object(
@@ -352,7 +429,7 @@ class DIContainer(containers.DeclarativeContainer):
 
     stage_data_loader = providers.Singleton(
         StageDataLoader,
-        logger=logger_stage_data_loader_prod,
+        logger=logger_stage_data_loader,
         stage_data_manager=stage_data_manager,
         load_watchlist=load_watchlist_func,
         watchlist_path_string=watchlist_path_string,
@@ -360,18 +437,18 @@ class DIContainer(containers.DeclarativeContainer):
 
     stage_data_writer = providers.Singleton(
         StageDataWriter,
-        logger=logger_stage_data_writer_prod,
+        logger=logger_stage_data_writer,
         stage_data_manager=stage_data_manager,
     )
 
     feature_engineering_func = providers.Object(
-        partial(feature_engineering, logger=logger_backtest_feature_engineering_prod())
+        partial(feature_engineering, logger=logger_backtest_feature_engineering())
     )
 
     feature_engineer = providers.Singleton(
         FeatureEngineer,
         feature_engineering_func=feature_engineering_func,
-        logger=logger_backtest_feature_engineering_prod,
+        logger=logger_backtest_feature_engineering,
     )
 
     backtest_dashboard = providers.Singleton(
@@ -383,21 +460,21 @@ class DIContainer(containers.DeclarativeContainer):
         SymbolStrategyDataLoader,
         stage_data_manager=stage_data_manager,
         stage_data_loader=stage_data_loader,
-        logger=logger_backtest_prod,
+        logger=logger_symbol_strategy_data_loader,
     )
 
     symbol_strategy_data_writer = providers.Singleton(
         SymbolStrategyDataWriter,
         stage_data_manager=stage_data_manager,
         data_writer=stage_data_writer,
-        logger=logger_backtest_prod,
+        logger=logger_symbol_strategy_data_writer,
     )
 
     data_ingest_stage_coordinator = providers.Singleton(
         DataIngestStageCoordinator,
         data_loader=stage_data_loader,
         data_writer=symbol_strategy_data_writer,
-        logger=logger_backtest_prod,
+        logger=logger_backtest_data_ingest,
         quote_service=alpaca_quote_service,
         load_watchlist=load_watchlist_func,
         watchlist_path_string=watchlist_path_string,
@@ -408,7 +485,7 @@ class DIContainer(containers.DeclarativeContainer):
         data_loader=symbol_strategy_data_loader,
         data_writer=symbol_strategy_data_writer,
         stage_data_manager=stage_data_manager,
-        logger=logger_backtest_prod,
+        logger=logger_backtest_feature_engineering,
         feature_engineer=feature_engineer,
     )
 
@@ -416,11 +493,11 @@ class DIContainer(containers.DeclarativeContainer):
     strategy_executor = providers.Singleton(
         StrategyBacktestExecutor,
         stage_data_manager=stage_data_manager,
-        logger=logger_backtest_prod,
+        logger=logger_strategy_executor,
     )
     strategy_evaluator = providers.Singleton(
         SignalBacktestEvaluator,
-        logger=logger_backtest_prod,
+        logger=logger_strategy_evaluator,
     )
 
     signal_strategy_combinators = [
@@ -448,19 +525,19 @@ class DIContainer(containers.DeclarativeContainer):
             config().get("backtester.signal.paths", "signal_strategy_map_path")
         ),
         strategy_combinators=signal_strategy_combinators,
-        logger=logger_backtest_prod,
+        logger=logger_strategy_factory,
     )
 
     signal_strategy_optimizer_factory = providers.Singleton(
         SignalStrategyOptimizerFactoryImpl,
-        logger=logger_backtest_prod,
+        logger=logger_signal_strategy_optimizer,
     )
 
     strategy_optimization_stage_coordinator = providers.Singleton(
         StrategyOptimizationStageCoordinator,
         data_loader=symbol_strategy_data_loader,
         stage_data_manager=stage_data_manager,
-        logger=logger_backtest_prod,
+        logger=logger_backtest_signal_optimization,
         strategy_combinators=signal_strategy_combinators,
         strategy_executor=strategy_executor,
         strategy_evaluator=strategy_evaluator,
@@ -482,7 +559,7 @@ class DIContainer(containers.DeclarativeContainer):
         strategy_executor=strategy_executor,
         strategy_evaluator=strategy_evaluator,
         strategy_factory=strategy_factory,
-        logger=logger_backtest_prod,
+        logger=logger_backtest_signal_testing,
         strategy_combinators=signal_strategy_combinators,
         optimization_root=providers.Object(
             config().get("backtester.signal.paths", "signal_optimization_root_path")
@@ -502,7 +579,7 @@ class DIContainer(containers.DeclarativeContainer):
         feature_engineering_stage_coordinator=feature_engineering_stage_coordinator,
         optimization_stage_coordinator=strategy_optimization_stage_coordinator,
         testing_stage_coordinator=strategy_testing_stage_coordinator,
-        logger=logger_backtest_prod,
+        logger=logger_strategy_walk_forward,
     )
 
     portfolio_executor = providers.Singleton(
@@ -524,12 +601,12 @@ class DIContainer(containers.DeclarativeContainer):
         slippage=providers.Object(
             config().get_float("backtester.portfolio", "slippage", 0.0)
         ),
-        logger=logger_backtest_prod,
+        logger=logger_portfolio_executor,
     )
 
     portfolio_evaluator = providers.Singleton(
         PortfolioBacktestEvaluator,
-        logger=logger_backtest_prod,
+        logger=logger_portfolio_evaluator,
     )
 
     portfolio_strategy_combinators = [
@@ -547,12 +624,12 @@ class DIContainer(containers.DeclarativeContainer):
 
     portfolio_asset_matrix_preparer = providers.Singleton(
         AssetMatrixPreparer,
-        logger=logger_backtest_prod,
+        logger=logger_portfolio_asset_matrix_preparer,
     )
 
     portfolio_strategy_optimizer_factory = providers.Singleton(
         PortfolioStrategyOptimizerFactoryImpl,
-        logger=logger_backtest_prod,
+        logger=logger_portfolio_strategy_optimizer,
     )
 
     portfolio_optimization_stage_coordinator = providers.Singleton(
@@ -561,7 +638,7 @@ class DIContainer(containers.DeclarativeContainer):
         stage_data_manager=stage_data_manager,
         executor=portfolio_executor,
         evaluator=portfolio_evaluator,
-        logger=logger_backtest_prod,
+        logger=logger_backtest_portfolio_optimization,
         strategy_combinators=portfolio_strategy_combinators,
         optimization_root=providers.Object(
             config().get(
@@ -583,7 +660,7 @@ class DIContainer(containers.DeclarativeContainer):
         stage_data_manager=stage_data_manager,
         executor=portfolio_executor,
         evaluator=portfolio_evaluator,
-        logger=logger_backtest_prod,
+        logger=logger_backtest_portfolio_testing,
         strategy_combinators=portfolio_strategy_combinators,
         optimization_root=providers.Object(
             config().get(
@@ -606,12 +683,12 @@ class DIContainer(containers.DeclarativeContainer):
         feature_engineering_stage_coordinator=feature_engineering_stage_coordinator,
         optimization_stage_coordinator=portfolio_optimization_stage_coordinator,
         testing_stage_coordinator=portfolio_testing_stage_coordinator,
-        logger=logger_backtest_prod,
+        logger=logger_portfolio_walk_forward,
     )
 
     strategy_evaluation_coordinator = providers.Singleton(
         StrategyEvaluationCoordinator,
-        logger=logger_backtest_prod,
+        logger=logger_strategy_evaluation,
         optimization_root=providers.Object(
             config().get("backtester.signal.paths", "signal_optimization_root_path")
         ),
@@ -646,12 +723,12 @@ class DIContainer(containers.DeclarativeContainer):
                 "backtester.signal", "signal_evaluation_viability_threshold", 0.5
             )
         ),
-        logger=logger_backtest_prod,
+        logger=logger_symbol_evaluation,
     )
 
     portfolio_evaluation_coordinator = providers.Singleton(
         PortfolioEvaluationCoordinator,
-        logger=logger_backtest_prod,
+        logger=logger_portfolio_evaluation,
         optimization_root=providers.Object(
             config().get(
                 "backtester.portfolio.paths", "portfolio_optimization_root_path"
@@ -687,7 +764,7 @@ class DIContainer(containers.DeclarativeContainer):
         strategy_evaluation_coordinator=strategy_evaluation_coordinator,
         symbol_evaluation_coordinator=symbol_evaluation_coordinator,
         portfolio_evaluation_coordinator=portfolio_evaluation_coordinator,
-        logger=logger_backtest_prod,
+        logger=logger_backtest_pipeline,
     )
 
 

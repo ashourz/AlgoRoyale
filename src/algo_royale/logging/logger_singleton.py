@@ -41,7 +41,7 @@ class LoggerSingleton:
         """
         Create a new logger instance.
         """
-        logger_name = f"{logger_type.log_name}_{environment.value}"
+        logger_name = f"{logger_type.name}_{environment.value}"
         logger = logging.getLogger(logger_name)
         logger.setLevel(logger_type.log_level)
         logger.propagate = False
