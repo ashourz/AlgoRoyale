@@ -254,7 +254,7 @@ class StrategyOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
             )
             if existing_optimization_json is None:
                 self.logger.warning(
-                    f"No existing optimization results for {symbol} {strategy_name} {self.train_window_id}"
+                    f"No existing optimization results for {symbol} {strategy_name} {self.window_id}"
                 )
                 existing_optimization_json = {}
 
@@ -287,7 +287,7 @@ class StrategyOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
         """Retrieve existing optimization results for a given strategy and symbol."""
         try:
             self.logger.info(
-                f"Retrieving optimization results for {strategy_name} during {self.train_window_id}"
+                f"Retrieving optimization results for {strategy_name} during {self.window_id}"
             )
             train_opt_results = self._get_optimization_results(
                 strategy_name=strategy_name,
@@ -297,12 +297,12 @@ class StrategyOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
             )
             if not train_opt_results:
                 self.logger.warning(
-                    f"No optimization result for {symbol} {strategy_name} {self.train_window_id}"
+                    f"No optimization result for {symbol} {strategy_name} {self.window_id}"
                 )
                 return {}
             return train_opt_results
         except Exception as e:
             self.logger.error(
-                f"Error retrieving optimization results for {strategy_name} during {self.train_window_id}: {e}"
+                f"Error retrieving optimization results for {strategy_name} during {self.window_id}: {e}"
             )
             return None
