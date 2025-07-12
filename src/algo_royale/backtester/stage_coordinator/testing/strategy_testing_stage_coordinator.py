@@ -164,11 +164,8 @@ class StrategyTestingStageCoordinator(BaseTestingStageCoordinator):
                 strategy_class = strategy_combinator.strategy_class
                 strategy_name = strategy_class.__name__
                 self.logger.debug(f"Processing strategy: {strategy_name}")
-                optimized_params = self._get_train_optimization_results(
-                    symbol=symbol,
-                    strategy_name=strategy_name,
-                    start_date=self.train_start_date,
-                    end_date=self.train_end_date,
+                optimized_params = self._get_optimized_params(
+                    symbol=symbol, strategy_name=strategy_name
                 )
                 self.logger.debug(
                     f"Optimized parameters for {strategy_name}: {optimized_params}"
