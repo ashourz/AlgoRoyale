@@ -49,13 +49,13 @@ class WalkForwardCoordinator:
 
     async def run_async(self):
         try:
-            self.logger.info("Starting Backtest Pipeline...")
+            self.logger.info("Starting Walk-forward Pipeline...")
             # Run the pipeline stages in sequence
             await self.run_walk_forward()
-            self.logger.info("Backtest Pipeline completed successfully.")
+            self.logger.info("Walk-forward completed successfully.")
             return True
         except Exception as e:
-            self.logger.error(f"Backtest failed: {e}")
+            self.logger.error(f"Walk-forward failed: {e}")
             return False
 
     def walk_forward_windows(
