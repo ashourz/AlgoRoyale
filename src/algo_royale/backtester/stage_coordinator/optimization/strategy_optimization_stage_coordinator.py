@@ -2,7 +2,6 @@ import json
 from datetime import datetime
 from pathlib import Path
 from typing import Any, AsyncIterator, Callable, Dict, Optional, Sequence
-from algo_royale.logging.loggable import Loggable
 
 import pandas as pd
 
@@ -32,6 +31,7 @@ from algo_royale.backtester.strategy.signal.base_signal_strategy import (
 from algo_royale.backtester.strategy_combinator.signal.base_signal_strategy_combinator import (
     SignalStrategyCombinator,
 )
+from algo_royale.logging.loggable import Loggable
 
 
 class StrategyOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
@@ -144,7 +144,7 @@ class StrategyOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
                         end_date=self.end_date,
                         strategy_name=strategy_name,
                         optimization_result=optimization_result,
-                        results=results,
+                        collective_results=results,
                     )
                 except Exception as e:
                     self.logger.error(
@@ -217,11 +217,10 @@ class StrategyOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
         end_date: datetime,
         strategy_name: str,
         optimization_result: Dict[str, Any],
-        results: Dict[str, Dict[str, dict]],
+        collective_results: Dict[str, Dict[str, dict]],
     ) -> Dict[str, Dict[str, dict]]:
         try:
-            # Update the results dictionary to match the validator's requirements
-            results.setdefault(symbol, {})[strategy_name] = {
+            optimization_json = {
                 self.window_id: {
                     "optimization": {
                         "strategy": strategy_name,
@@ -246,6 +245,20 @@ class StrategyOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
                 }
             }
 
+            # Get existing results for the symbol and strategy
+            existing_optimization_json = self.get_existing_optimization_results(
+                strategy_name=strategy_name,
+                symbol=symbol,
+                start_date=start_date,
+                end_date=end_date,
+            )
+            if existing_optimization_json is None:
+                self.logger.warning(
+                    f"No existing optimization results for {symbol} {strategy_name} {self.train_window_id}"
+                )
+                existing_optimization_json = {}
+
+            updated_optimization_json = existing_optimization_json | optimization_json
             # Save optimization metrics to optimization_result.json under window_id
             out_path = self._get_output_path(
                 strategy_name,
@@ -254,14 +267,42 @@ class StrategyOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
                 end_date,
             )
             self.logger.info(
-                f"Saving optimization results for {symbol} {strategy_name} to {out_path}"
+                f"Saving optimization results for {symbol} {strategy_name} to {out_path} results: {updated_optimization_json}"
             )
             # Write the updated results to the file
             with open(out_path, "w") as f:
-                json.dump(results[symbol][strategy_name], f, indent=2, default=str)
+                json.dump(updated_optimization_json, f, indent=2, default=str)
 
+            # Update the results dictionary to match the validator's requirements
+            collective_results.setdefault(symbol, {})[strategy_name] = optimization_json
         except Exception as e:
             self.logger.error(
                 f"Error writing results for {symbol} {strategy_name}: {e}"
             )
-        return results
+        return collective_results
+
+    def get_existing_optimization_results(
+        self, strategy_name: str, symbol: str, start_date: datetime, end_date: datetime
+    ) -> Dict[str, dict]:
+        """Retrieve existing optimization results for a given strategy and symbol."""
+        try:
+            self.logger.info(
+                f"Retrieving optimization results for {strategy_name} during {self.train_window_id}"
+            )
+            train_opt_results = self._get_optimization_results(
+                strategy_name=strategy_name,
+                symbol=symbol,
+                start_date=start_date,
+                end_date=end_date,
+            )
+            if not train_opt_results:
+                self.logger.warning(
+                    f"No optimization result for {symbol} {strategy_name} {self.train_window_id}"
+                )
+                return {}
+            return train_opt_results
+        except Exception as e:
+            self.logger.error(
+                f"Error retrieving optimization results for {strategy_name} during {self.train_window_id}: {e}"
+            )
+            return None

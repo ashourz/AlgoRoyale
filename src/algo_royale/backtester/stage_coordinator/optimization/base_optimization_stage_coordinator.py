@@ -1,6 +1,7 @@
+import json
 from datetime import datetime
-from typing import Sequence
-from algo_royale.logging.loggable import Loggable
+from pathlib import Path
+from typing import Dict, Optional, Sequence
 
 from algo_royale.backtester.enum.backtest_stage import BacktestStage
 from algo_royale.backtester.stage_coordinator.stage_coordinator import StageCoordinator
@@ -11,6 +12,7 @@ from algo_royale.backtester.stage_data.stage_data_manager import StageDataManage
 from algo_royale.backtester.strategy_combinator.base_strategy_combinator import (
     BaseStrategyCombinator,
 )
+from algo_royale.logging.loggable import Loggable
 
 
 class BaseOptimizationStageCoordinator(StageCoordinator):
@@ -87,3 +89,52 @@ class BaseOptimizationStageCoordinator(StageCoordinator):
 
         self.logger.info(f"stage:{self.stage} completed and files saved.")
         return True
+
+    def _get_optimization_results(
+        self, strategy_name: str, symbol: str, start_date: datetime, end_date: datetime
+    ) -> Dict[str, dict]:
+        """Get optimization results for a given strategy and symbol."""
+        json_path = self._get_optimization_result_path(
+            strategy_name=strategy_name,
+            symbol=symbol,
+            start_date=start_date,
+            end_date=end_date,
+        )
+        self.logger.debug(
+            f"Loading optimization results from {json_path} for Symbol:{symbol} | Strategy:{strategy_name}"
+        )
+        if not json_path.exists() or json_path.stat().st_size == 0:
+            self.logger.warning(
+                f"No optimization result for Symbol:{symbol} | Strategy:{strategy_name} start_date={start_date}, end_date={end_date} (optimization result file does not exist or is empty)"
+            )
+            json_path.parent.mkdir(parents=True, exist_ok=True)
+            with open(json_path, "w") as f:
+                json.dump({}, f)
+            return {}
+        with open(json_path, "r") as f:
+            try:
+                opt_results = json.load(f)
+            except json.JSONDecodeError:
+                self.logger.warning(
+                    f"Optimization result file {json_path} is not valid JSON. Returning empty dict."
+                )
+                return {}
+        return opt_results
+
+    def _get_optimization_result_path(
+        self,
+        strategy_name: str,
+        symbol: Optional[str],
+        start_date: datetime,
+        end_date: datetime,
+    ) -> Path:
+        """Get the path to the optimization result JSON file for a given strategy and symbol."""
+        out_dir = self.stage_data_manager.get_directory_path(
+            base_dir=self.optimization_root,
+            strategy_name=strategy_name,
+            symbol=symbol,
+            start_date=start_date,
+            end_date=end_date,
+        )
+        out_dir.mkdir(parents=True, exist_ok=True)
+        return out_dir / self.optimization_json_filename

@@ -1,7 +1,6 @@
 import inspect
 import json
 from typing import Any, AsyncIterator, Callable, Dict, Optional, Sequence
-from algo_royale.logging.loggable import Loggable
 
 import pandas as pd
 
@@ -25,6 +24,7 @@ from algo_royale.backtester.strategy_combinator.signal.base_signal_strategy_comb
 from algo_royale.backtester.strategy_factory.signal.strategy_factory import (
     StrategyFactory,
 )
+from algo_royale.logging.loggable import Loggable
 
 
 class StrategyTestingStageCoordinator(BaseTestingStageCoordinator):
@@ -92,12 +92,7 @@ class StrategyTestingStageCoordinator(BaseTestingStageCoordinator):
                 self.logger.warning(
                     f"No train optimization result for {symbol} {strategy_name} {self.train_window_id}"
                 )
-                return None
-            if not self._validate_optimization_results(train_opt_results):
-                self.logger.error(
-                    f"Train optimization results validation failed for {symbol} {strategy_name} {self.train_window_id}"
-                )
-                return None
+                return {}
             return train_opt_results
         except Exception as e:
             self.logger.error(
@@ -236,7 +231,7 @@ class StrategyTestingStageCoordinator(BaseTestingStageCoordinator):
                     strategy_name=strategy_name,
                     metrics=metrics,
                     optimization_result=test_opt_results,
-                    results=results,
+                    collective_results=results,
                 )
 
                 self.logger.debug(
@@ -349,7 +344,7 @@ class StrategyTestingStageCoordinator(BaseTestingStageCoordinator):
         strategy_name: str,
         metrics: Dict[str, float],
         optimization_result: Dict[str, Any],
-        results: Dict[str, Dict[str, dict]],
+        collective_results: Dict[str, Dict[str, dict]],
     ) -> Dict[str, Dict[str, dict]]:
         try:
             self.logger.debug(
@@ -380,14 +375,14 @@ class StrategyTestingStageCoordinator(BaseTestingStageCoordinator):
             )
 
             # Update the results dictionary
-            results.setdefault(symbol, {}).setdefault(strategy_name, {}).setdefault(
-                self.test_window_id, {}
-            )
-            results[symbol][strategy_name][self.test_window_id] = {
+            collective_results.setdefault(symbol, {}).setdefault(
+                strategy_name, {}
+            ).setdefault(self.test_window_id, {})
+            collective_results[symbol][strategy_name][self.test_window_id] = {
                 "metrics": metrics,
             }
 
-            self.logger.debug(f"Results dictionary after update: {results}")
+            self.logger.debug(f"Results dictionary after update: {collective_results}")
 
             # Save the updated optimization results to the file
             test_opt_results_path = self._get_optimization_result_path(
@@ -406,4 +401,4 @@ class StrategyTestingStageCoordinator(BaseTestingStageCoordinator):
             self.logger.error(
                 f"Error writing test results for {strategy_name} during {self.test_window_id}: {e}"
             )
-        return results
+        return collective_results
