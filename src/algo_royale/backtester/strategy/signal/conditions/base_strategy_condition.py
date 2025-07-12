@@ -1,5 +1,5 @@
 import itertools
-from logging import Logger
+from algo_royale.logging.loggable import Loggable
 
 import pandas as pd
 from optuna import Trial
@@ -55,7 +55,7 @@ class StrategyCondition:
         return {}
 
     @classmethod
-    def all_possible_conditions(cls, logger: Logger):
+    def all_possible_conditions(cls, logger: Loggable):
         """
         Returns all possible instances of this condition class with different parameter combinations.
         If no parameters are defined, returns a single instance of the class.

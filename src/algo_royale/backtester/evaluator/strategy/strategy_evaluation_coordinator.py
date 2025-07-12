@@ -1,7 +1,7 @@
 import json
-from logging import Logger
 from pathlib import Path
 from typing import List
+from algo_royale.logging.loggable import Loggable
 
 import numpy as np
 
@@ -28,7 +28,7 @@ class StrategyEvaluationCoordinator:
 
     def __init__(
         self,
-        logger: Logger,
+        logger: Loggable,
         optimization_root: str,
         evaluation_type: StrategyEvaluationType,
         optimization_json_filename: str,

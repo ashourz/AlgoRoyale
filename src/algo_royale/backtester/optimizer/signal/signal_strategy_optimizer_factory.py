@@ -1,6 +1,6 @@
 from abc import ABC
-from logging import Logger
 from typing import Any, Callable, Dict, Type
+from algo_royale.logging.loggable import Loggable
 
 import pandas as pd
 
@@ -44,10 +44,10 @@ class SignalStrategyOptimizerFactoryImpl(SignalStrategyOptimizerFactory):
     This is used to create mock optimizers for testing purposes.
     """
 
-    def __init__(self, logger: Logger):
+    def __init__(self, logger: Loggable):
         """
         Initialize the factory with a logger.
-        :param logger: Logger instance for logging.
+        :param logger: Loggable instance for logging.
         """
         self.logger = logger
 
@@ -63,7 +63,7 @@ class SignalStrategyOptimizerFactoryImpl(SignalStrategyOptimizerFactory):
         Create a mock optimizer instance.
         :param strategy_class: The strategy class to optimize.
         :param backtest_fn: Function to backtest the strategy.
-        :param logger: Logger instance for logging.
+        :param logger: Loggable instance for logging.
         :param metric_name: Name of the metric to optimize.
         :param direction: Direction of optimization (maximize/minimize).
         :return: SignalStrategyOptimizerImpl instance.

@@ -1,13 +1,12 @@
-from logging import Logger
-
 from algo_royale.backtester.strategy_combinator.signal.base_signal_strategy_combinator import (
+from algo_royale.logging.loggable import Loggable
     SignalStrategyCombinator,
 )
 
 
 class DummyCondition:
     @staticmethod
-    def all_possible_conditions(logger: Logger):
+    def all_possible_conditions(logger: Loggable):
         # Return two dummy conditions
         return ["cond1", "cond2"]
 

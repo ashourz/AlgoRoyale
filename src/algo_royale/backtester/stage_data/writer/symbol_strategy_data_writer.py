@@ -1,6 +1,6 @@
 from datetime import datetime
-from logging import Logger
 from typing import AsyncIterator, Callable, Dict
+from algo_royale.logging.loggable import Loggable
 
 import pandas as pd
 
@@ -17,14 +17,14 @@ class SymbolStrategyDataWriter:
     Parameters:
         stage_data_manager: StageDataManager instance for managing stage data.
         data_writer: StageDataWriter instance for writing data to disk.
-        logger: Logger instance for logging information and errors.
+        logger: Loggable instance for logging information and errors.
     """
 
     def __init__(
         self,
         stage_data_manager: StageDataManager,
         data_writer: StageDataWriter,
-        logger: Logger,
+        logger: Loggable,
     ):
         self.stage_data_manager = stage_data_manager
         self.data_writer = data_writer

@@ -1,6 +1,6 @@
 import json
-from logging import Logger
 from pathlib import Path
+from algo_royale.logging.loggable import Loggable
 
 import numpy as np
 
@@ -18,7 +18,7 @@ class StrategyEvaluator:
 
     def __init__(
         self,
-        logger: Logger,
+        logger: Loggable,
         metric_type: StrategyEvaluationType = StrategyEvaluationType.BOTH,
     ):
         """

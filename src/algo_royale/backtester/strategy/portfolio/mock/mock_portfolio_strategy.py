@@ -1,6 +1,5 @@
-from logging import Logger
-
 import pandas as pd
+from algo_royale.logging.loggable import Loggable
 
 from algo_royale.backtester.strategy.signal.base_signal_strategy import (
     BaseSignalStrategy,
@@ -48,7 +47,7 @@ class MockPortfolioStrategy(BaseSignalStrategy):
         """
         self.signal_value = signal_value
 
-    def generate_signals(self, logger: Logger, df: pd.DataFrame) -> pd.DataFrame:
+    def generate_signals(self, logger: Loggable, df: pd.DataFrame) -> pd.DataFrame:
         """
         Generate a fixed signal.
 

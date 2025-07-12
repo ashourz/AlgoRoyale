@@ -1,6 +1,6 @@
 import json
-from logging import Logger
 from pathlib import Path
+from algo_royale.logging.loggable import Loggable
 
 from algo_royale.backtester.enum.backtest_stage import BacktestStage
 from algo_royale.logging.logger_factory import mockLogger
@@ -22,7 +22,7 @@ class SymbolEvaluationCoordinator:
         optimization_root: str,
         evaluation_json_filename: str,
         summary_json_filename: str,
-        logger: Logger,
+        logger: Loggable,
         viability_threshold: float = 0.75,
     ):
         self.optimization_root = Path(optimization_root)

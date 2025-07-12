@@ -1,8 +1,8 @@
 import time
 from abc import ABC
 from datetime import datetime
-from logging import Logger
 from typing import Any, Callable, Dict, List, Type, Union
+from algo_royale.logging.loggable import Loggable
 
 import optuna
 import pandas as pd
@@ -42,7 +42,7 @@ class PortfolioStrategyOptimizerImpl(PortfolioStrategyOptimizer):
         self,
         strategy_class: Type,
         backtest_fn: Callable[[Any, pd.DataFrame], Any],
-        logger: Logger,
+        logger: Loggable,
         metric_name: Union[
             PortfolioMetric, List[PortfolioMetric]
         ] = PortfolioMetric.TOTAL_RETURN,
@@ -53,7 +53,7 @@ class PortfolioStrategyOptimizerImpl(PortfolioStrategyOptimizer):
         """
         :param strategy_class: The portfolio strategy class to instantiate.
         :param backtest_fn: Callable that runs a strategy and returns a result with metrics.
-        :param logger: Logger for debugging.
+        :param logger: Loggable for debugging.
         :param metric_name: Enum or list of enums for metrics to optimize.
         :param direction: Enum or list of enums for direction(s) ('maximize'/'minimize').
         """

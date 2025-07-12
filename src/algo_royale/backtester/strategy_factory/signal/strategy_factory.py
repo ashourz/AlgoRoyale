@@ -1,7 +1,7 @@
 import json
 import threading
-from logging import Logger
 from typing import Callable, Optional, Sequence
+from algo_royale.logging.loggable import Loggable
 
 from algo_royale.backtester.maps.condition_class_map import CONDITION_CLASS_MAP
 from algo_royale.backtester.maps.stateful_logic_map import STATEFUL_LOGIC_CLASS_MAP
@@ -31,7 +31,7 @@ class StrategyFactory:
         self,
         strategy_map_path: str,
         strategy_combinators: Sequence[type[SignalStrategyCombinator]],
-        logger: Logger,
+        logger: Loggable,
     ):
         self.strategy_combinators = strategy_combinators
         self._all_strategy_combinations: Optional[list[BaseSignalStrategy]] = None

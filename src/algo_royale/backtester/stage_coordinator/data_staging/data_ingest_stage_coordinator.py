@@ -1,6 +1,6 @@
 from datetime import datetime
-from logging import Logger
 from typing import AsyncIterator, Callable, Dict, Optional
+from algo_royale.logging.loggable import Loggable
 
 import pandas as pd
 from alpaca.common.enums import SupportedCurrencies
@@ -22,7 +22,7 @@ class DataIngestStageCoordinator(StageCoordinator):
     Parameters:
         data_loader: Data loader for the stage.
         data_writer: Data writer for the stage.
-        logger: Logger instance.
+        logger: Loggable instance.
         quote_service: AlpacaQuoteService instance for fetching market data.
         load_watchlist: Callable to load the watchlist from a file or other source.
         watchlist_path_string: Path to the watchlist file.
@@ -32,7 +32,7 @@ class DataIngestStageCoordinator(StageCoordinator):
         self,
         data_loader: StageDataLoader,
         data_writer: SymbolStrategyDataWriter,
-        logger: Logger,
+        logger: Loggable,
         quote_service: AlpacaQuoteService,
         load_watchlist: Callable[[str], list[str]],
         watchlist_path_string: str,

@@ -53,7 +53,7 @@ def mockLogger() -> logging.Logger:
     from algo_royale.logging.logger_env import LoggerEnv
     from algo_royale.logging.logger_type import LoggerType
 
-    logger: logging.Logger = LoggerFactory.get_logger(
+    logger: Loggable = LoggerFactory.get_logger(
         logger_type=LoggerType.TESTING, environment=LoggerEnv.TEST
     )
     return logger

@@ -1,7 +1,7 @@
 import inspect
 import json
-from logging import Logger
 from typing import Any, AsyncIterator, Callable, Dict, Optional, Sequence
+from algo_royale.logging.loggable import Loggable
 
 import pandas as pd
 
@@ -52,7 +52,7 @@ class StrategyTestingStageCoordinator(BaseTestingStageCoordinator):
         strategy_executor: StrategyBacktestExecutor,
         strategy_evaluator: BacktestEvaluator,
         strategy_factory: StrategyFactory,
-        logger: Logger,
+        logger: Loggable,
         strategy_combinators: Sequence[type[SignalStrategyCombinator]],
         optimization_root: str,
         optimization_json_filename: str,

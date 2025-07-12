@@ -1,7 +1,7 @@
 import json
 import threading
-from logging import Logger
 from typing import Callable, Optional, Sequence
+from algo_royale.logging.loggable import Loggable
 
 from src.algo_royale.backtester.strategy.portfolio.base_portfolio_strategy import (
     BasePortfolioStrategy,
@@ -17,7 +17,7 @@ class PortfolioStrategyFactory:
         self,
         strategy_map_path: str,
         strategy_combinators: Sequence[type[PortfolioStrategyCombinator]],
-        logger: Logger,
+        logger: Loggable,
     ):
         self.strategy_combinators = strategy_combinators
         self._all_strategy_combinations: Optional[list[BasePortfolioStrategy]] = None

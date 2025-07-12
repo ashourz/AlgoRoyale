@@ -1,8 +1,8 @@
 import json
 from datetime import datetime
-from logging import Logger
 from pathlib import Path
 from typing import Any, AsyncIterator, Callable, Dict, Optional, Sequence
+from algo_royale.logging.loggable import Loggable
 
 import pandas as pd
 
@@ -43,7 +43,7 @@ class StrategyOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
 
     Parameters:
         data_loader: SymbolStrategyDataLoader instance for loading data.
-        logger: Logger instance for logging information and errors.
+        logger: Loggable instance for logging information and errors.
         stage_data_manager: StageDataManager instance for managing stage data.
         strategy_executor: StrategyBacktestExecutor instance for executing backtests.
         strategy_evaluator: BacktestEvaluator instance for evaluating backtest results.
@@ -56,7 +56,7 @@ class StrategyOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
     def __init__(
         self,
         data_loader: SymbolStrategyDataLoader,
-        logger: Logger,
+        logger: Loggable,
         stage_data_manager: StageDataManager,
         strategy_executor: StrategyBacktestExecutor,
         strategy_evaluator: BacktestEvaluator,

@@ -1,6 +1,6 @@
 from datetime import datetime
-from logging import Logger
 from typing import Sequence
+from algo_royale.logging.loggable import Loggable
 
 from algo_royale.backtester.enum.backtest_stage import BacktestStage
 from algo_royale.backtester.stage_coordinator.stage_coordinator import StageCoordinator
@@ -22,7 +22,7 @@ class BaseOptimizationStageCoordinator(StageCoordinator):
         data_loader: Data loader for the stage.
         stage_data_manager: StageDataManager for managing stage data.
         strategy_combinators: List of strategy combinator classes to use.
-        logger: Logger instance.
+        logger: Loggable instance.
     """
 
     def __init__(
@@ -31,7 +31,7 @@ class BaseOptimizationStageCoordinator(StageCoordinator):
         data_loader: SymbolStrategyDataLoader,
         stage_data_manager: StageDataManager,
         strategy_combinators: Sequence[type[BaseStrategyCombinator]],
-        logger: Logger,
+        logger: Loggable,
     ):
         """Coordinator for the backtest stage."""
         super().__init__()

@@ -1,5 +1,5 @@
 import asyncio
-from logging import Logger
+from algo_royale.logging.loggable import Loggable
 
 import pandas as pd
 
@@ -10,7 +10,7 @@ from algo_royale.backtester.column_names.strategy_columns import (
 
 
 def validate_async_iterator_dict(
-    data: dict, required_columns: list[str], logger: Logger
+    data: dict, required_columns: list[str], logger: Loggable
 ) -> bool:
     """
     Validate that the input is a dictionary where each value is a callable that returns an async iterator
@@ -58,7 +58,7 @@ def validate_async_iterator_dict(
 
 
 def validate_iterator_dict(
-    output: dict[str, pd.DataFrame], required_columns: list[str], logger: Logger
+    output: dict[str, pd.DataFrame], required_columns: list[str], logger: Loggable
 ) -> bool:
     """
     Validate the output of SignalStrategyBacktestExecutor.
@@ -92,7 +92,7 @@ def validate_iterator_dict(
 
 
 def validate_signal_strategy_backtest_executor_input(
-    data: dict[str, callable], logger: Logger
+    data: dict[str, callable], logger: Loggable
 ) -> bool:
     """
     Validate input for SignalStrategyBacktestExecutor.
@@ -104,7 +104,7 @@ def validate_signal_strategy_backtest_executor_input(
 
 
 def validate_signal_strategy_backtest_executor_output(
-    output: dict[str, pd.DataFrame], logger: Logger
+    output: dict[str, pd.DataFrame], logger: Loggable
 ) -> bool:
     """
     Validate the output of SignalStrategyBacktestExecutor.

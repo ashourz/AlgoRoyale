@@ -1,7 +1,7 @@
+from algo_royale.logging.loggable import Loggable
 ## db\dao\indicators_dao.py
 from datetime import datetime
 from decimal import Decimal
-from logging import Logger
 from typing import Tuple
 
 import psycopg2
@@ -11,7 +11,7 @@ from algo_royale.clients.db.dao.base_dao import BaseDAO
 
 class IndicatorDAO(BaseDAO):
     def __init__(
-        self, connection: psycopg2.extensions.connection, sql_dir: str, logger: Logger
+        self, connection: psycopg2.extensions.connection, sql_dir: str, logger: Loggable
     ):
         super().__init__(connection=connection, sql_dir=sql_dir, logger=logger)
 

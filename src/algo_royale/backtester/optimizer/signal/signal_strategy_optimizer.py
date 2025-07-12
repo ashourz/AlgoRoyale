@@ -3,8 +3,8 @@ import inspect
 import time
 from abc import ABC, abstractmethod
 from datetime import datetime
-from logging import Logger
 from typing import Any, Callable, Dict, Type
+from algo_royale.logging.loggable import Loggable
 
 import optuna
 import pandas as pd
@@ -41,7 +41,7 @@ class SignalStrategyOptimizerImpl(SignalStrategyOptimizer):
         strategy_class: Type,
         condition_types: Dict[str, list],
         backtest_fn: Callable[[Any, pd.DataFrame], Any],
-        logger: Logger,
+        logger: Loggable,
         metric_name: str = "total_return",
         direction: str = "maximize",
     ):

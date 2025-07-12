@@ -1,9 +1,9 @@
-from logging import Logger
 from typing import Any, Dict
+from algo_royale.logging.loggable import Loggable
 
 
 def validate_portfolio_evaluation_input_json(
-    output: Dict[str, Any], logger: Logger
+    output: Dict[str, Any], logger: Loggable
 ) -> bool:
     """
     Validate that the input JSON for PortfolioEvaluationCoordinator contains both
@@ -110,7 +110,7 @@ def validate_portfolio_evaluation_input_json(
     return True
 
 
-def validate_portfolio_evaluation_output_json(output: dict, logger: Logger) -> bool:
+def validate_portfolio_evaluation_output_json(output: dict, logger: Loggable) -> bool:
     """
     Validate the structure of the output JSON produced by PortfolioEvaluationCoordinator.
     Expected: {symbol: { ...summary fields... }}

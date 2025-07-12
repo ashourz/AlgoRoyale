@@ -1,5 +1,5 @@
-import logging
 from typing import AsyncIterator, Callable, Dict, Optional
+from algo_royale.logging.loggable import Loggable
 
 import pandas as pd
 
@@ -15,14 +15,14 @@ class StageDataPreparer:
 
     Parameters:
         stage_data_manager: StageDataManager instance for managing stage data.
-        logger: Logger instance for logging information and errors.
+        logger: Loggable instance for logging information and errors.
     """
 
-    def __init__(self, stage_data_manager: StageDataManager, logger: logging.Logger):
+    def __init__(self, stage_data_manager: StageDataManager, logger: Loggable):
         """
         Initialize the StageDataPreparer with a logger.
         """
-        self.logger: logging.Logger = logger
+        self.logger: Loggable = logger
         self.stage_data_manager: StageDataManager = stage_data_manager
 
     async def normalize_stream(self, stage, iterator_factory):
@@ -88,5 +88,5 @@ class StageDataPreparer:
 def mockStageDataPreparer() -> StageDataPreparer:
     """Creates a mock StageDataPreparer for testing purposes."""
 
-    logger: logging.Logger = mockLogger()
+    logger: Loggable = mockLogger()
     return StageDataPreparer(logger=logger)

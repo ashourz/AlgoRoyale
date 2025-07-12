@@ -1,9 +1,9 @@
 import os
 import shutil
 from datetime import datetime
-from logging import Logger
 from pathlib import Path
 from typing import Any, Optional
+from algo_royale.logging.loggable import Loggable
 
 from algo_royale.backtester.enum.backtest_stage import BacktestStage
 from algo_royale.backtester.enum.data_extension import DataExtension
@@ -16,7 +16,7 @@ class StageDataManager:
     It also provides methods to list files in a directory and clear directories.
     """
 
-    def __init__(self, data_dir: Path, logger: Logger):
+    def __init__(self, data_dir: Path, logger: Loggable):
         self.base_dir = data_dir
         self.logger = logger
 
@@ -402,5 +402,5 @@ def mockStageDataManager(data_dir: Path) -> StageDataManager:
     """Creates a mock StageDataManager for testing purposes."""
     from algo_royale.logging.logger_factory import mockLogger
 
-    logger: Logger = mockLogger()
+    logger: Loggable = mockLogger()
     return StageDataManager(data_dir=data_dir, logger=logger)

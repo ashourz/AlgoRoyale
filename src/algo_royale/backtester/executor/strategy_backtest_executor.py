@@ -1,7 +1,7 @@
 import asyncio
-from logging import Logger
 from pathlib import Path
 from typing import AsyncIterator, Callable, Dict
+from algo_royale.logging.loggable import Loggable
 
 import pandas as pd
 
@@ -21,7 +21,7 @@ from algo_royale.logging.logger_factory import mockLogger
 
 
 class StrategyBacktestExecutor(BacktestExecutor):
-    def __init__(self, stage_data_manager: StageDataManager, logger: Logger):
+    def __init__(self, stage_data_manager: StageDataManager, logger: Loggable):
         self.logger = logger
         self.stage_data_manager = stage_data_manager
         self.stage = BacktestStage.SIGNAL_BACKTEST_EXECUTOR

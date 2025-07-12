@@ -1,7 +1,7 @@
 import inspect
 import itertools
-from logging import Logger
 from typing import Callable, Generator
+from algo_royale.logging.loggable import Loggable
 
 from algo_royale.backtester.strategy.signal.base_signal_strategy import (
     BaseSignalStrategy,
@@ -33,7 +33,7 @@ class SignalStrategyCombinator(BaseStrategyCombinator):
     ##TODO: METRICS SHOULD BE DERIVED FROM CONFIG
     @classmethod
     def all_strategy_combinations(
-        cls, logger: Logger, max_filter=1, max_entry=1, max_trend=1, max_exit=1
+        cls, logger: Loggable, max_filter=1, max_entry=1, max_trend=1, max_exit=1
     ) -> Generator[Callable[[], BaseSignalStrategy], None, None]:
         """
         Generate all possible strategy combinations based on the defined condition types.

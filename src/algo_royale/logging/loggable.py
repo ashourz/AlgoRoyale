@@ -1,3 +1,4 @@
+from algo_royale.logging.loggable import Loggable
 # algo_royale/logging/loggable.py
 
 from typing import Protocol, runtime_checkable

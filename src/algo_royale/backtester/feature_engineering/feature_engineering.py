@@ -1,14 +1,13 @@
-from logging import Logger
-
 import numpy as np
 import pandas as pd
+from algo_royale.logging.loggable import Loggable
 
 from algo_royale.backtester.column_names.feature_engineering_columns import (
     FeatureEngineeringColumns,
 )
 
 
-def feature_engineering(df: pd.DataFrame, logger: Logger) -> pd.DataFrame:
+def feature_engineering(df: pd.DataFrame, logger: Loggable) -> pd.DataFrame:
     try:
         logger.info(f"Input DataFrame shape: {df.shape}, columns: {list(df.columns)}")
 

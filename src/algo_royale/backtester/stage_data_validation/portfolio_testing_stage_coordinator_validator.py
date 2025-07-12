@@ -1,7 +1,5 @@
-from logging import Logger
-
-
-def validate_portfolio_testing_json_output(output: dict, logger: Logger) -> bool:
+from algo_royale.logging.loggable import Loggable
+def validate_portfolio_testing_json_output(output: dict, logger: Loggable) -> bool:
     """
     Validate the structure of a portfolio testing output JSON.
     Expected: {window_id: {"test": {"metrics": dict, "transactions": list}, "window": {"start_date": str, "end_date": str}}}
@@ -60,7 +58,7 @@ def validate_portfolio_testing_json_output(output: dict, logger: Logger) -> bool
 
 
 def validate_portfolio_optimization_testing_stage_coordinator_input(
-    input_data: dict, logger: Logger
+    input_data: dict, logger: Loggable
 ) -> bool:
     """Validate the input structure for portfolio optimization testing stage."""
     if not isinstance(input_data, dict):

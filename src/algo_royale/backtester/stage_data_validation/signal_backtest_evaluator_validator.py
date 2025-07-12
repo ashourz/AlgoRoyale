@@ -1,8 +1,8 @@
+from algo_royale.logging.loggable import Loggable
 # Define the validation function outside the Enum
-from logging import Logger
 
 
-def signal_backtest_evaluator_validator(d: dict, logger: Logger) -> bool:
+def signal_backtest_evaluator_validator(d: dict, logger: Loggable) -> bool:
     """Validate the structure of a backtest stage dictionary for signal backtest evaluation."""
     if not isinstance(d, dict):
         logger.warning(f"Validation failed: Not a dict. Value: {d}")

@@ -1,3 +1,4 @@
+from algo_royale.logging.loggable import Loggable
 """
 AssetMatrixPreparer: Utility for preparing feature-engineered data in the asset-matrix form
 
@@ -7,7 +8,6 @@ AssetMatrixPreparer: Utility for preparing feature-engineered data in the asset-
 - Handles missing data and provides logging for shape/column issues
 """
 
-import logging
 from typing import Optional
 
 import pandas as pd
@@ -16,7 +16,7 @@ from algo_royale.logging.logger_factory import mockLogger
 
 
 class AssetMatrixPreparer:
-    def __init__(self, logger: logging.Logger):
+    def __init__(self, logger: Loggable):
         self.logger = logger
 
     def prepare(
@@ -68,5 +68,5 @@ class AssetMatrixPreparer:
 def mockAssetMatrixPreparer() -> AssetMatrixPreparer:
     """Creates a mock AssetMatrixPreparer for testing purposes."""
 
-    logger: logging.Logger = mockLogger()
+    logger: Loggable = mockLogger()
     return AssetMatrixPreparer(logger=logger)

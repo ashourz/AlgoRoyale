@@ -1,7 +1,6 @@
-from logging import Logger
-
 import numpy as np
 import pandas as pd
+from algo_royale.logging.loggable import Loggable
 
 from algo_royale.backtester.column_names.strategy_columns import SignalStrategyColumns
 from algo_royale.backtester.enum.signal_type import SignalType
@@ -11,7 +10,7 @@ from algo_royale.backtester.evaluator.backtest.base_backtest_evaluator import (
 
 
 class SignalBacktestEvaluator(BacktestEvaluator):
-    def __init__(self, logger: Logger):
+    def __init__(self, logger: Loggable):
         super().__init__(logger)
 
     def _evaluate_signals(self, signals_df: pd.DataFrame) -> dict:
@@ -177,5 +176,5 @@ def mockSignalBacktestEvaluator() -> SignalBacktestEvaluator:
     """Creates a mock SignalBacktestEvaluator for testing purposes."""
     from algo_royale.logging.logger_factory import mockLogger
 
-    logger: Logger = mockLogger()
+    logger: Loggable = mockLogger()
     return SignalBacktestEvaluator(logger=logger)

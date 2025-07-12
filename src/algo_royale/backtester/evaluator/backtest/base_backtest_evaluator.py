@@ -1,12 +1,12 @@
 from abc import ABC, abstractmethod
-from logging import Logger
 from typing import Dict
+from algo_royale.logging.loggable import Loggable
 
 import pandas as pd
 
 
 class BacktestEvaluator(ABC):
-    def __init__(self, logger: Logger):
+    def __init__(self, logger: Loggable):
         self.logger = logger
 
     def evaluate(self, strategy, df: pd.DataFrame) -> Dict[str, float]:
@@ -26,5 +26,5 @@ def mockBacktestEvaluator() -> BacktestEvaluator:
     """Creates a mock BacktestEvaluator for testing purposes."""
     from algo_royale.logging.logger_factory import mockLogger
 
-    logger: Logger = mockLogger()
+    logger: Loggable = mockLogger()
     return BacktestEvaluator(logger=logger)

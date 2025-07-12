@@ -1,7 +1,5 @@
-from logging import Logger
-
-
-def signal_strategy_optimization_validator(d, logger: Logger) -> bool:
+from algo_royale.logging.loggable import Loggable
+def signal_strategy_optimization_validator(d, logger: Loggable) -> bool:
     """Validate the structure of a signal strategy optimization dictionary."""
     if not isinstance(d, dict):
         logger.warning(f"Validation failed: Not a dict. Value: {d}")
@@ -58,7 +56,7 @@ def signal_strategy_optimization_validator(d, logger: Logger) -> bool:
     return True
 
 
-def window_section_validator(win, logger: Logger) -> bool:
+def window_section_validator(win, logger: Loggable) -> bool:
     """Validate the window section of the optimization result."""
     if not isinstance(win, dict):
         logger.warning(f"Validation failed: Window section not dict. Value: {win}")
@@ -76,7 +74,7 @@ def window_section_validator(win, logger: Logger) -> bool:
     return True
 
 
-def signal_strategy_optimization_result_validator(d: dict, logger: Logger) -> bool:
+def signal_strategy_optimization_result_validator(d: dict, logger: Loggable) -> bool:
     """
     Validate the structure of a signal strategy optimization result dictionary,
     as found in optimization_result.json (excluding the 'test' key).

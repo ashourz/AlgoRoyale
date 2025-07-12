@@ -1,5 +1,5 @@
 import asyncio
-from logging import Logger
+from algo_royale.logging.loggable import Loggable
 
 from algo_royale.backtester.evaluator.portfolio.portfolio_evaluation_coordinator import (
     PortfolioEvaluationCoordinator,
@@ -35,7 +35,7 @@ class PipelineCoordinator:
         strategy_evaluation_coordinator: StrategyEvaluationCoordinator,
         symbol_evaluation_coordinator: SymbolEvaluationCoordinator,
         portfolio_evaluation_coordinator: PortfolioEvaluationCoordinator,
-        logger: Logger,
+        logger: Loggable,
     ):
         self.logger = logger
         self.strategy_walk_forward_coordinator = strategy_walk_forward_coordinator

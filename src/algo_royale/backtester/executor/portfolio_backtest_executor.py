@@ -1,5 +1,5 @@
-from logging import Logger
 from typing import Any, Dict
+from algo_royale.logging.loggable import Loggable
 
 import numpy as np
 import pandas as pd
@@ -25,7 +25,7 @@ class PortfolioBacktestExecutor(BacktestExecutor):
 
     def __init__(
         self,
-        logger: Logger,
+        logger: Loggable,
         initial_balance: float = 1_000_000.0,
         transaction_cost: float = 0.0,
         min_lot: int = 1,

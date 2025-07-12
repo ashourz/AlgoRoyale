@@ -1,6 +1,6 @@
 import json
-from logging import Logger
 from pathlib import Path
+from algo_royale.logging.loggable import Loggable
 
 from algo_royale.logging.logger_factory import mockLogger
 
@@ -22,7 +22,7 @@ class PortfolioEvaluationCoordinator:
 
     def __init__(
         self,
-        logger: Logger,
+        logger: Loggable,
         optimization_root: str,
         strategy_window_evaluation_json_filename: str,
         strategy_summary_json_filename: str,

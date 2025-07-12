@@ -1,5 +1,5 @@
-from logging import Logger
 from typing import Any, Dict
+from algo_royale.logging.loggable import Loggable
 
 import numpy as np
 import pandas as pd
@@ -14,7 +14,7 @@ class PortfolioBacktestEvaluator(BacktestEvaluator):
     Evaluates portfolio backtest results and computes performance metrics.
     """
 
-    def __init__(self, logger: Logger):
+    def __init__(self, logger: Loggable):
         super().__init__(logger)
 
     def _evaluate_signals(self, signals_df: pd.DataFrame) -> Dict[str, Any]:
@@ -176,5 +176,5 @@ def mockPortfolioBacktestEvaluator() -> PortfolioBacktestEvaluator:
     """Creates a mock PortfolioBacktestEvaluator for testing purposes."""
     from algo_royale.logging.logger_factory import mockLogger
 
-    logger: Logger = mockLogger()
+    logger: Loggable = mockLogger()
     return PortfolioBacktestEvaluator(logger=logger)

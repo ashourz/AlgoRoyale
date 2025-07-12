@@ -1,7 +1,7 @@
 import inspect
 import json
-from logging import Logger
 from typing import Any, AsyncIterator, Callable, Dict, Optional, Sequence
+from algo_royale.logging.loggable import Loggable
 
 import pandas as pd
 
@@ -48,7 +48,7 @@ class PortfolioTestingStageCoordinator(BaseTestingStageCoordinator):
         self,
         data_loader: SymbolStrategyDataLoader,
         stage_data_manager: StageDataManager,
-        logger: Logger,
+        logger: Loggable,
         strategy_combinators: Sequence[type[PortfolioStrategyCombinator]],
         executor: PortfolioBacktestExecutor,
         evaluator: PortfolioBacktestEvaluator,

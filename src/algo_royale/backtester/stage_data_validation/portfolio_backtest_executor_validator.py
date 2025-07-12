@@ -1,10 +1,9 @@
-from logging import Logger
-
 import numpy as np
 import pandas as pd
+from algo_royale.logging.loggable import Loggable
 
 
-def validate_portfolio_backtest_executor_output(output: dict, logger: Logger) -> bool:
+def validate_portfolio_backtest_executor_output(output: dict, logger: Loggable) -> bool:
     """
     Validate the output structure of PortfolioBacktestExecutor.
     Returns True if valid, False otherwise.
@@ -64,7 +63,7 @@ def validate_portfolio_backtest_executor_output(output: dict, logger: Logger) ->
 
 
 def validate_portfolio_backtest_executor_input(
-    data: pd.DataFrame, logger: Logger
+    data: pd.DataFrame, logger: Loggable
 ) -> bool:
     """
     Validate the input matrix for PortfolioBacktestExecutor.

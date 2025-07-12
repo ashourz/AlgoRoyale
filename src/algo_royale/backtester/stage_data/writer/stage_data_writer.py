@@ -1,7 +1,7 @@
-from logging import Logger
 from math import ceil
 from pathlib import Path
 from typing import AsyncIterator, Optional
+from algo_royale.logging.loggable import Loggable
 
 import pandas as pd
 
@@ -21,7 +21,7 @@ class StageDataWriter:
 
     def __init__(
         self,
-        logger: Logger,
+        logger: Loggable,
         stage_data_manager: StageDataManager,
         max_rows_per_file: int = 1_000_000,
     ):

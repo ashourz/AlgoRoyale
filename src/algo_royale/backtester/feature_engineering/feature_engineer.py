@@ -1,5 +1,5 @@
-from logging import Logger
 from typing import AsyncGenerator, AsyncIterator, Callable
+from algo_royale.logging.loggable import Loggable
 
 import pandas as pd
 
@@ -11,7 +11,7 @@ class FeatureEngineer:
     def __init__(
         self,
         feature_engineering_func: Callable[[pd.DataFrame], pd.DataFrame],
-        logger: Logger,
+        logger: Loggable,
         max_lookback=200,  # Default to 200, can be adjusted based on your needs
         # This should match the max window/lag you use in your feature engineering function
     ):

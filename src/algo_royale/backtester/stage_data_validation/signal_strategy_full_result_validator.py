@@ -1,11 +1,10 @@
-from logging import Logger
-
 from algo_royale.backtester.stage_data_validation.signal_strategy_optimization_result_validator import (
+from algo_royale.logging.loggable import Loggable
     window_section_validator,
 )
 
 
-def signal_strategy_full_result_validator(d, logger: Logger) -> bool:
+def signal_strategy_full_result_validator(d, logger: Loggable) -> bool:
     """
     Validate the structure of the full signal strategy result dictionary,
     as found in optimization_result.json (including 'test', 'optimization', and 'window' keys).

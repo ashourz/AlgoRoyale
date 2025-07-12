@@ -1,3 +1,4 @@
+from algo_royale.logging.loggable import Loggable
 ## db\dao\stock_data_dao.py
 from datetime import datetime
 from decimal import Decimal as Decimal
@@ -6,7 +7,6 @@ from typing import Optional, Tuple
 import psycopg2
 
 from algo_royale.clients.db.dao.base_dao import BaseDAO
-from algo_royale.logging.logger_factory import LoggerFactory
 
 
 class StockDataDAO(BaseDAO):
@@ -14,7 +14,7 @@ class StockDataDAO(BaseDAO):
         self,
         connection: psycopg2.extensions.connection,
         sql_dir: str,
-        logger: LoggerFactory,
+        logger: LoggableFactory,
     ):
         super().__init__(connection=connection, sql_dir=sql_dir, logger=logger)
 

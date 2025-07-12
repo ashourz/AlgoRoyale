@@ -1,9 +1,9 @@
 import asyncio
 import re
 from datetime import datetime
-from logging import Logger
 from pathlib import Path
 from typing import AsyncIterator, Callable, Dict, Optional
+from algo_royale.logging.loggable import Loggable
 
 import pandas as pd
 
@@ -18,7 +18,7 @@ from algo_royale.backtester.stage_data.stage_data_manager import (
 class StageDataLoader:
     def __init__(
         self,
-        logger: Logger,
+        logger: Loggable,
         stage_data_manager: StageDataManager,
         load_watchlist: Callable[[str], list[str]],
         watchlist_path_string: str,
@@ -344,7 +344,7 @@ def mockStageDataLoader(
     """Creates a mock StageDataLoader for testing purposes."""
     from algo_royale.logging.logger_factory import mockLogger
 
-    logger: Logger = mockLogger()
+    logger: Loggable = mockLogger()
     stage_data_manager = mockStageDataManager(data_dir=data_dir)
     return StageDataLoader(
         logger=logger,

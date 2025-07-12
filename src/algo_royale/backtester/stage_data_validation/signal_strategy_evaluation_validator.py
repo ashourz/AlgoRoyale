@@ -1,7 +1,5 @@
-from logging import Logger
-
-
-def summary_metric_validator(metric, logger: Logger) -> bool:
+from algo_royale.logging.loggable import Loggable
+def summary_metric_validator(metric, logger: Loggable) -> bool:
     """Validate a summary metric dict with mean, std, min, max (all floats)."""
     if not isinstance(metric, dict):
         logger.warning(f"Validation failed: Metric not dict. Value: {metric}")
@@ -15,7 +13,7 @@ def summary_metric_validator(metric, logger: Logger) -> bool:
     return True
 
 
-def most_common_best_params_validator(params, logger: Logger) -> bool:
+def most_common_best_params_validator(params, logger: Loggable) -> bool:
     """Validate the most_common_best_params or window_params entry."""
     if not isinstance(params, dict):
         logger.warning(f"Validation failed: Params not dict. Value: {params}")
@@ -35,7 +33,7 @@ def most_common_best_params_validator(params, logger: Logger) -> bool:
     return True
 
 
-def window_params_validator(window_params, logger: Logger) -> bool:
+def window_params_validator(window_params, logger: Loggable) -> bool:
     """Validate the window_params list."""
     if not isinstance(window_params, list):
         logger.warning(
@@ -51,7 +49,7 @@ def window_params_validator(window_params, logger: Logger) -> bool:
     return True
 
 
-def signal_evaluation_result_validator(d, logger: Logger) -> bool:
+def signal_evaluation_result_validator(d, logger: Loggable) -> bool:
     """Validate the structure of evaluation_result.json."""
     if not isinstance(d, dict):
         logger.warning(f"Validation failed: Not a dict. Value: {d}")

@@ -1,6 +1,6 @@
 from datetime import datetime
-from logging import Logger
 from typing import AsyncIterator, Callable, Dict, Optional
+from algo_royale.logging.loggable import Loggable
 
 import pandas as pd
 
@@ -28,7 +28,7 @@ class FeatureEngineeringStageCoordinator(StageCoordinator):
         data_preparer: StageDataPreparer instance for preparing data.
         data_writer: SymbolStrategyDataWriter instance for writing data.
         stage_data_manager: StageDataManager instance for managing stage data.
-        logger: Logger instance for logging information and errors.
+        logger: Loggable instance for logging information and errors.
         feature_engineer: FeatureEngineer instance for engineering features.
     """
 
@@ -37,7 +37,7 @@ class FeatureEngineeringStageCoordinator(StageCoordinator):
         data_loader: SymbolStrategyDataLoader,
         data_writer: SymbolStrategyDataWriter,
         stage_data_manager: StageDataManager,
-        logger: Logger,
+        logger: Loggable,
         feature_engineer: FeatureEngineer,
     ):
         self.stage = BacktestStage.FEATURE_ENGINEERING

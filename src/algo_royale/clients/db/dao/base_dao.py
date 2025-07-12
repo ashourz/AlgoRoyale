@@ -1,26 +1,26 @@
+from algo_royale.logging.loggable import Loggable
 ## db\dao\base_dao.py
-from logging import Logger
 import os
+
 import psycopg2
 
 
 class BaseDAO:
-    def __init__(self, 
-                 connection: psycopg2.extensions.connection, 
-                 sql_dir: str,
-                 logger: Logger):
+    def __init__(
+        self, connection: psycopg2.extensions.connection, sql_dir: str, logger: Loggable
+    ):
         self.conn = connection
         self.sql_dir = sql_dir
         self.logger = logger
 
     def _load_sql(self, sql_file: str):
         sql_path = os.path.join(self.sql_dir, sql_file)
-        with open(sql_path, 'r') as f:
+        with open(sql_path, "r") as f:
             return f.read()
 
     def fetch(self, sql_file: str, params=None, log_name="fetch"):
         try:
-            query = self._load_sql(sql_file = sql_file)
+            query = self._load_sql(sql_file=sql_file)
             with self.conn.cursor() as cur:
                 cur.execute(query, params)
                 return cur.fetchall()
@@ -31,7 +31,7 @@ class BaseDAO:
 
     def fetchone(self, sql_file: str, params=None, log_name="fetchone"):
         try:
-            query = self._load_sql(sql_file = sql_file)
+            query = self._load_sql(sql_file=sql_file)
             with self.conn.cursor() as cur:
                 cur.execute(query, params)
                 return cur.fetchone()
@@ -42,7 +42,7 @@ class BaseDAO:
 
     def insert(self, sql_file: str, params=None, log_name="insert"):
         try:
-            query = self._load_sql(sql_file = sql_file)
+            query = self._load_sql(sql_file=sql_file)
             with self.conn.cursor() as cur:
                 cur.execute(query, params)
             self.conn.commit()
@@ -53,7 +53,7 @@ class BaseDAO:
 
     def update(self, sql_file: str, params=None, log_name="update"):
         try:
-            query = self._load_sql(sql_file = sql_file)
+            query = self._load_sql(sql_file=sql_file)
             with self.conn.cursor() as cur:
                 cur.execute(query, params)
             self.conn.commit()
@@ -64,7 +64,7 @@ class BaseDAO:
 
     def delete(self, sql_file: str, params=None, log_name="delete"):
         try:
-            query = self._load_sql(sql_file = sql_file)
+            query = self._load_sql(sql_file=sql_file)
             with self.conn.cursor() as cur:
                 cur.execute(query, params)
             self.conn.commit()

@@ -1,8 +1,8 @@
 import asyncio
 import os
 from datetime import datetime
-from logging import Logger
 from typing import TYPE_CHECKING
+from algo_royale.logging.loggable import Loggable
 
 from matplotlib.dates import relativedelta
 
@@ -35,7 +35,7 @@ class WalkForwardCoordinator:
         feature_engineering_stage_coordinator: FeatureEngineeringStageCoordinator,
         optimization_stage_coordinator: BaseOptimizationStageCoordinator,
         testing_stage_coordinator: BaseTestingStageCoordinator,
-        logger: Logger,
+        logger: Loggable,
     ):
         self.stage_data_loader = stage_data_loader
         self.stage_data_manager = stage_data_manager

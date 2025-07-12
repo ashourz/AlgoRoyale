@@ -1,8 +1,8 @@
 import json
 from datetime import datetime
-from logging import Logger
 from pathlib import Path
 from typing import Dict, Optional, Sequence
+from algo_royale.logging.loggable import Loggable
 
 from algo_royale.backtester.enum.backtest_stage import BacktestStage
 from algo_royale.backtester.evaluator.backtest.base_backtest_evaluator import (
@@ -43,7 +43,7 @@ class BaseTestingStageCoordinator(StageCoordinator):
         data_loader: SymbolStrategyDataLoader,
         stage_data_manager: StageDataManager,
         stage: BacktestStage,
-        logger: Logger,
+        logger: Loggable,
         executor: BacktestExecutor,
         evaluator: BacktestEvaluator,
         strategy_combinators: Sequence[type[SignalStrategyCombinator]],

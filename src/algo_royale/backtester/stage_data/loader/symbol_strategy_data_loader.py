@@ -1,6 +1,6 @@
 from datetime import datetime
-from logging import Logger
 from typing import AsyncIterator, Callable, Dict, Optional
+from algo_royale.logging.loggable import Loggable
 
 import pandas as pd
 
@@ -17,14 +17,14 @@ class SymbolStrategyDataLoader:
     Parameters:
         stage_data_manager: StageDataManager instance for managing stage data.
         stage_data_loader: StageDataLoader instance for loading data.
-        logger: Logger instance for logging information and errors.
+        logger: Loggable instance for logging information and errors.
     """
 
     def __init__(
         self,
         stage_data_manager: StageDataManager,
         stage_data_loader: StageDataLoader,
-        logger: Logger,
+        logger: Loggable,
     ):
         self.stage_data_loader = stage_data_loader
         self.stage_data_manager = stage_data_manager

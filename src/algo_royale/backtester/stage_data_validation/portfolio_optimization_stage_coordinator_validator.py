@@ -1,7 +1,5 @@
-from logging import Logger
-
-
-def validate_portfolio_optimization_json_output(output: dict, logger: Logger) -> bool:
+from algo_royale.logging.loggable import Loggable
+def validate_portfolio_optimization_json_output(output: dict, logger: Loggable) -> bool:
     """
     Validate the structure of a portfolio optimization output JSON.
     """

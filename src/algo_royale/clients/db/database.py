@@ -1,7 +1,7 @@
 import time
 from contextlib import contextmanager
-from logging import Logger
 from typing import Generator
+from algo_royale.logging.loggable import Loggable
 
 import psycopg2
 from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
@@ -10,7 +10,7 @@ from algo_royale.config.config import Config
 
 
 class Database:
-    def __init__(self, logger: Logger, config: Config, secrets: Config):
+    def __init__(self, logger: Loggable, config: Config, secrets: Config):
         self.logger = logger
         self.db_params = config.get_section("db.connection")
         self.db_secrets = secrets.get_section("db.connection")
