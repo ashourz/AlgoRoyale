@@ -216,7 +216,7 @@ class StrategyTestingStageCoordinator(BaseTestingStageCoordinator):
                 self.logger.debug(
                     f"Test optimization results for {strategy_name}: {test_opt_results}"
                 )
-                if not test_opt_results:
+                if test_opt_results is None:
                     self.logger.error(
                         f"Test results validation failed for {symbol} {strategy_name} {self.test_window_id}"
                     )
