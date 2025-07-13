@@ -160,15 +160,26 @@ class StrategyTestingStageCoordinator(BaseTestingStageCoordinator):
                 strategy_class = strategy_combinator.strategy_class
                 strategy_name = strategy_class.__name__
 
-                if self._has_optimization_run(
-                    symbol=symbol,
+                # Check if optimization has already been done for this strategy
+                existing_optimization_json = self.get_existing_optimization_results(
                     strategy_name=strategy_name,
+                    symbol=symbol,
                     start_date=self.train_start_date,
                     end_date=self.train_end_date,
+                )
+                self.logger.debug(
+                    f"Checking existing optimization results for {symbol} {strategy_name} in window {self.train_window_id} | existing_optimization_json: {existing_optimization_json} "
+                )
+
+                # If the optimization has already been run, skip it
+                # Use the stage's output validation function to check if results are valid
+                if self.stage.output_validation_fn(
+                    existing_optimization_json, self.logger
                 ):
-                    self.logger.warning(
-                        f"Skipping {strategy_name} for {symbol} due to no optimization run."
+                    self.logger.info(
+                        f"Optimization already run for {symbol} {strategy_name} in window {self.train_window_id}"
                     )
+                    results = results | existing_optimization_json
                     continue
 
                 self.logger.debug(f"Processing strategy: {strategy_name}")
@@ -256,7 +267,7 @@ class StrategyTestingStageCoordinator(BaseTestingStageCoordinator):
         """Retrieve existing optimization results for a given strategy and symbol."""
         try:
             self.logger.info(
-                f"Retrieving optimization results for {strategy_name} during {self.window_id}"
+                f"Retrieving optimization results for {strategy_name} during start date {start_date} and end date {end_date}"
             )
             train_opt_results = self._get_optimization_results(
                 strategy_name=strategy_name,
@@ -266,13 +277,13 @@ class StrategyTestingStageCoordinator(BaseTestingStageCoordinator):
             )
             if train_opt_results is None:
                 self.logger.warning(
-                    f"No optimization result for {symbol} {strategy_name} {self.window_id}"
+                    f"No optimization result for {symbol} {strategy_name} during start date {start_date} and end date {end_date}"
                 )
                 return {}
             return train_opt_results
         except Exception as e:
             self.logger.error(
-                f"Error retrieving optimization results for {strategy_name} during {self.window_id}: {e}"
+                f"Error retrieving optimization results for {strategy_name} during start date {start_date} and end date {end_date}: {e}"
             )
             return None
 

@@ -131,7 +131,7 @@ class StrategyOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
                         self.logger.info(
                             f"Optimization already run for {symbol} {strategy_name} in window {self.window_id}"
                         )
-                        results = existing_optimization_json
+                        results = results | existing_optimization_json
                         continue
 
                     # Run optimization
