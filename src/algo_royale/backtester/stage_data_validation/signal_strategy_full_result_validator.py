@@ -35,9 +35,7 @@ def signal_strategy_full_result_validator(d, logger: Loggable) -> bool:
         # Fill missing 'test' or 'optimization' with empty dicts for validation
         for k in ["test", "optimization"]:
             if k not in window_val:
-                logger.info(
-                    f"Section '{k}' missing in window '{window_key}', filling with empty dict for validation."
-                )
+                logger.info(f"Section '{k}' missing in window '{window_key}'")
                 # This can be an issue but it should not fail validation
         # Validate "window" section
         if not window_section_validator(window_val["window"], logger):

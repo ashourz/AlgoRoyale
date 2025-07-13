@@ -2,7 +2,6 @@ import asyncio
 import os
 from datetime import datetime
 from typing import TYPE_CHECKING
-from algo_royale.logging.loggable import Loggable
 
 from matplotlib.dates import relativedelta
 
@@ -21,6 +20,7 @@ from algo_royale.backtester.stage_coordinator.testing.base_testing_stage_coordin
 )
 from algo_royale.backtester.stage_data.loader.stage_data_loader import StageDataLoader
 from algo_royale.backtester.stage_data.stage_data_manager import StageDataManager
+from algo_royale.logging.loggable import Loggable
 
 if TYPE_CHECKING:
     pass
@@ -94,37 +94,43 @@ class WalkForwardCoordinator:
             for window in self.walk_forward_windows(
                 end_date=end_date, n_trials=n_trials, window_size=window_size
             ):
-                train_start = window["train_start"]
-                train_end = window["train_end"]
-                test_start = window["test_start"]
-                test_end = window["test_end"]
+                try:
+                    train_start = window["train_start"]
+                    train_end = window["train_end"]
+                    test_start = window["test_start"]
+                    test_end = window["test_end"]
 
-                # Optionally: log or print the window
-                self.logger.info(
-                    f"Train {train_start.date()} to {train_end.date()}, "
-                    f"Test {test_start.date()} to {test_end.date()}"
-                )
-                # Run the pipeline for this window
-                window_result = await self.run_window(
-                    train_start=train_start,
-                    train_end=train_end,
-                    test_start=test_start,
-                    test_end=test_end,
-                )
-                if not window_result:
-                    self.logger.error(
-                        f"Walk-forward failed: "
+                    # Optionally: log or print the window
+                    self.logger.info(
                         f"Train {train_start.date()} to {train_end.date()}, "
                         f"Test {test_start.date()} to {test_end.date()}"
                     )
-                    continue  # Skip to the next window
-                self.logger.info("Walk-forward completed successfully")
+                    # Run the pipeline for this window
+                    window_result = await self._run_window(
+                        train_start=train_start,
+                        train_end=train_end,
+                        test_start=test_start,
+                        test_end=test_end,
+                    )
+                    if not window_result:
+                        self.logger.error(
+                            f"Walk-forward failed: "
+                            f"Train {train_start.date()} to {train_end.date()}, "
+                            f"Test {test_start.date()} to {test_end.date()}"
+                        )
+                        continue  # Skip to the next window
+                    self.logger.info("Walk-forward completed successfully")
+                except Exception as e:
+                    self.logger.error(
+                        f"Walk-forward failed for window {train_start.date()} to {train_end.date()}: {e}"
+                    )
+                    continue
             return True
         except Exception as e:
             self.logger.error(f"Walk-forward failed: {e}")
             return False
 
-    async def run_window(self, train_start, train_end, test_start, test_end):
+    async def _run_window(self, train_start, train_end, test_start, test_end):
         """Run the pipeline for a single walk-forward window."""
         self.logger.info(
             f"Walk-forward: Train: {train_start.date()} to {train_end.date()} | Test: {test_start.date()} to {test_end.date()}"

@@ -1,4 +1,6 @@
 from algo_royale.logging.loggable import Loggable
+
+
 def validate_portfolio_optimization_json_output(output: dict, logger: Loggable) -> bool:
     """
     Validate the structure of a portfolio optimization output JSON.
@@ -58,7 +60,7 @@ def validate_portfolio_optimization_json_output(output: dict, logger: Loggable) 
         for meta_key in [
             "run_time_sec",
             "n_trials",
-            "symbol",
+            "symbols",
             "direction",
             "multi_objective",
         ]:
