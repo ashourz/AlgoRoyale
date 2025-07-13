@@ -1,4 +1,6 @@
 from algo_royale.logging.loggable import Loggable
+
+
 def signal_strategy_optimization_validator(d, logger: Loggable) -> bool:
     """Validate the structure of a signal strategy optimization dictionary."""
     if not isinstance(d, dict):
@@ -79,9 +81,15 @@ def signal_strategy_optimization_result_validator(d: dict, logger: Loggable) -> 
     Validate the structure of a signal strategy optimization result dictionary,
     as found in optimization_result.json (excluding the 'test' key).
     """
+    logger.info(f"Validating signal strategy optimization result structure. dict: {d}")
     if not isinstance(d, dict):
-        logger
+        logger.warning(f"Validation failed: Root element not dict. Value: {d}")
         return False
+
+    if not d:  # Check for empty dict
+        logger.warning("Validation failed: Optimization result dict is empty.")
+        return False
+
     for window_key, window_val in d.items():
         if not isinstance(window_val, dict):
             logger.warning(

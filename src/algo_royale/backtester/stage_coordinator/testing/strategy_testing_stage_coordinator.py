@@ -250,6 +250,32 @@ class StrategyTestingStageCoordinator(BaseTestingStageCoordinator):
         self.logger.debug(f"Final results dictionary: {results}")
         return results
 
+    def get_existing_optimization_results(
+        self, strategy_name: str, symbol: str, start_date: datetime, end_date: datetime
+    ) -> Dict[str, dict]:
+        """Retrieve existing optimization results for a given strategy and symbol."""
+        try:
+            self.logger.info(
+                f"Retrieving optimization results for {strategy_name} during {self.window_id}"
+            )
+            train_opt_results = self._get_optimization_results(
+                strategy_name=strategy_name,
+                symbol=symbol,
+                start_date=start_date,
+                end_date=end_date,
+            )
+            if train_opt_results is None:
+                self.logger.warning(
+                    f"No optimization result for {symbol} {strategy_name} {self.window_id}"
+                )
+                return {}
+            return train_opt_results
+        except Exception as e:
+            self.logger.error(
+                f"Error retrieving optimization results for {strategy_name} during {self.window_id}: {e}"
+            )
+            return None
+
     def _has_optimization_run(
         self, symbol: str, strategy_name: str, start_date: datetime, end_date: datetime
     ) -> bool:

@@ -56,6 +56,11 @@ def signal_strategy_testing_result_validator(d, logger: Loggable) -> bool:
     if not isinstance(d, dict):
         logger.warning(f"Validation failed: Not a dict. Value: {d}")
         return False
+
+    if not d:  # Check for empty dict
+        logger.warning("Validation failed: Testing result dict is empty.")
+        return False
+
     for window_key, window_val in d.items():
         if not isinstance(window_val, dict):
             logger.warning(
