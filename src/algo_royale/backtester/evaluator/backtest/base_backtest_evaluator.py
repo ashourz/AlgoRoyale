@@ -12,6 +12,16 @@ class BacktestEvaluator(ABC):
 
     def evaluate(self, strategy, df: pd.DataFrame) -> Dict[str, float]:
         try:
+            if not isinstance(df, pd.DataFrame):
+                self.logger.error(
+                    f"Invalid DataFrame provided for evaluation: {df}. Must be a pandas DataFrame."
+                )
+                return {}
+            if df is None or not isinstance(df, pd.DataFrame) or df.empty:
+                self.logger.error(
+                    "DataFrame is None, not a DataFrame, or empty. Cannot evaluate strategy."
+                )
+                return {}
             if not df.empty and isinstance(df, pd.DataFrame):
                 signals_df = strategy.generate_signals(df.copy())
                 return self._evaluate_signals(signals_df)

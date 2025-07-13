@@ -112,6 +112,10 @@ class PortfolioStrategyOptimizerImpl(PortfolioStrategyOptimizer):
                 f"[{symbols}] PortfolioStrategy: {self.strategy_class.__name__} | Params: {params}"
             )
             result = self.backtest_fn(strategy, df)
+            if not result:
+                logger.error(
+                    f"[{symbols}] Backtest returned empty result for params: {params}"
+                )
             logger.debug(
                 f"[{symbols}] PortfolioStrategy params: {params} | Backtest result: {result}"
             )
