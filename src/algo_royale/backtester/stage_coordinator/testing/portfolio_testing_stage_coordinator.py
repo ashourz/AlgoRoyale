@@ -126,7 +126,7 @@ class PortfolioTestingStageCoordinator(BaseTestingStageCoordinator):
                     f"Backtest completed for {strategy_name} with {len(backtest_results.get('portfolio_returns', []))} returns."
                 )
                 # Evaluate metrics (now includes all new metrics)
-                metrics = self.evaluator.evaluate(strategy, backtest_results)
+                metrics = self.evaluator.evaluate_from_dict(backtest_results)
                 test_opt_results = self._get_optimization_results(
                     strategy_name=strategy_name,
                     symbol=None,

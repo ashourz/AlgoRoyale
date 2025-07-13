@@ -33,6 +33,15 @@ class BacktestEvaluator(ABC):
             self.logger.error(f"Evaluation failed: {e}")
             raise
 
+    def evaluate_from_dict(self, result: dict) -> dict:
+        """
+        Evaluate from a backtest result dictionary (default: not implemented).
+        Subclasses should override if they support dict input.
+        """
+        raise NotImplementedError(
+            "evaluate_from_dict is not implemented for this evaluator."
+        )
+
     @abstractmethod
     def _evaluate_signals(self, signals_df: pd.DataFrame) -> dict:
         pass

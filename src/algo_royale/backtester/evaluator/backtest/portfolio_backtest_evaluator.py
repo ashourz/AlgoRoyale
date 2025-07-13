@@ -1,5 +1,4 @@
 from typing import Any, Dict
-from algo_royale.logging.loggable import Loggable
 
 import numpy as np
 import pandas as pd
@@ -7,6 +6,7 @@ import pandas as pd
 from algo_royale.backtester.evaluator.backtest.base_backtest_evaluator import (
     BacktestEvaluator,
 )
+from algo_royale.logging.loggable import Loggable
 
 
 class PortfolioBacktestEvaluator(BacktestEvaluator):
@@ -129,6 +129,25 @@ class PortfolioBacktestEvaluator(BacktestEvaluator):
             raise ValueError(
                 f"Evaluation failed: {e}. Please check the input DataFrame and ensure it contains valid data."
             )
+
+    def evaluate_from_dict(self, result: dict) -> dict:
+        """
+        Evaluate portfolio backtest results from a result dictionary.
+        """
+        # Try to build a DataFrame with portfolio_values or portfolio_returns
+        if "portfolio_values" in result:
+            df = pd.DataFrame({"portfolio_values": result["portfolio_values"]})
+        elif "portfolio_returns" in result:
+            df = pd.DataFrame({"portfolio_returns": result["portfolio_returns"]})
+        else:
+            self.logger.error(
+                "No portfolio_values or portfolio_returns in result dict."
+            )
+            return {}
+        # Optionally add trades if present
+        if "transactions" in result:
+            df["trades"] = [result["transactions"]]
+        return self._evaluate_signals(df)
 
     def _validate_dataframe(self, df: pd.DataFrame) -> None:
         """
