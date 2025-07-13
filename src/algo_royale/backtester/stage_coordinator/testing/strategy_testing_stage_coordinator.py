@@ -290,12 +290,12 @@ class StrategyTestingStageCoordinator(BaseTestingStageCoordinator):
             )
             if self.stage.output_validation_fn(existing_optimization_json, self.logger):
                 self.logger.info(
-                    f"Test already run for {symbol} {strategy_name} in window {self.window_id}"
+                    f"Test already run for {symbol} {strategy_name} in start date {start_date} and end date {end_date}"
                 )
                 return True
             else:
                 self.logger.info(
-                    f"No existing test results for {symbol} {strategy_name} in window {self.window_id}"
+                    f"No existing test results for {symbol} {strategy_name} in start date {start_date} and end date {end_date}"
                 )
                 return False
         except Exception as e:
