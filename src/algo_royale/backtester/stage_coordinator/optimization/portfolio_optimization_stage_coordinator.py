@@ -2,7 +2,6 @@ import json
 from datetime import datetime
 from pathlib import Path
 from typing import Any, AsyncIterator, Callable, Dict, Optional, Sequence
-from algo_royale.logging.loggable import Loggable
 
 import pandas as pd
 
@@ -30,6 +29,7 @@ from algo_royale.backtester.stage_data.stage_data_manager import StageDataManage
 from algo_royale.backtester.strategy_combinator.portfolio.base_portfolio_strategy_combinator import (
     PortfolioStrategyCombinator,
 )
+from algo_royale.logging.loggable import Loggable
 
 
 class PortfolioOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
@@ -141,6 +141,7 @@ class PortfolioOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
                         if hasattr(strategy_class, "__name__")
                         else str(strategy_class)
                     )
+                    symbols = list(data.keys())
                     self.logger.debug(f"DEBUG: Optimizing strategy: {strategy_name}")
                     optimizer = self.portfolio_strategy_optimizer_factory.create(
                         strategy_class=strategy_class,
@@ -150,10 +151,10 @@ class PortfolioOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
                         metric_name=PortfolioMetric.SHARPE_RATIO,
                     )
                     optimization_result = await optimizer.optimize(
-                        self.stage.name,
-                        portfolio_matrix,
-                        self.start_date,
-                        self.end_date,
+                        symbols=symbols,
+                        df=portfolio_matrix,
+                        window_start_time=self.start_date,
+                        window_end_time=self.end_date,
                     )
                     self.logger.debug(
                         f"DEBUG: Optimization result for {strategy_name}: {optimization_result}"
@@ -335,7 +336,7 @@ class PortfolioOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
                 results.setdefault(symbol, {}).setdefault(strategy_name, {}).setdefault(
                     self.window_id, {}
                 )
-                results[symbol][strategy_name][self.window_id] = {
+                results[self.window_id] = {
                     "optimization": optimization_result,
                     "window": {
                         "start_date": start_date.strftime("%Y-%m-%d"),
