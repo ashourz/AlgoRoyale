@@ -273,7 +273,7 @@ class PortfolioOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
                 f"Backtest results for strategy {strategy.get_id()}: {backtest_results}"
             )
             print(f"DEBUG: run_backtest returned: {backtest_results}")
-            metrics = self.evaluator.evaluate(strategy, backtest_results)
+            metrics = self.evaluator.evaluate_from_dict(backtest_results)
             self.logger.debug(
                 f"Backtest completed for strategy {strategy.get_id()} with metrics: {metrics}"
             )
