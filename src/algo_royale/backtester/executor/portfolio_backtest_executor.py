@@ -288,6 +288,14 @@ class PortfolioBacktestExecutor(BacktestExecutor):
         self.logger.info(
             f"Portfolio backtest complete. Final value: {portfolio_values[-1]}, Final cash: {cash}"
         )
+        # Log portfolio_values for diagnostics
+        try:
+            pv_arr = np.array(portfolio_values)
+            self.logger.debug(f"portfolio_values (head): {pv_arr[:10]}")
+            self.logger.debug(f"portfolio_values (tail): {pv_arr[-10:]}")
+            self.logger.debug(f"portfolio_values NaN count: {np.isnan(pv_arr).sum()}")
+        except Exception as e:
+            self.logger.error(f"Error logging portfolio_values diagnostics: {e}")
         results = {
             "portfolio_values": portfolio_values,
             "cash_history": cash_history,

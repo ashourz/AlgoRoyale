@@ -216,6 +216,16 @@ class PortfolioOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
                     self.logger.debug(f"DEBUG: DataFrame for {symbol}: {df}")
                     self.logger.debug(f"DEBUG: DataFrame columns: {df.columns}")
                     self.logger.debug(f"DEBUG: DataFrame shape: {df.shape}")
+                    # Diagnostics for NaNs and value range
+                    self.logger.debug(f"DEBUG: {symbol} head:\n{df.head()}")
+                    self.logger.debug(f"DEBUG: {symbol} tail:\n{df.tail()}")
+                    self.logger.debug(f"DEBUG: {symbol} NaN count:\n{df.isna().sum()}")
+                    self.logger.debug(
+                        f"DEBUG: {symbol} min:\n{df.min(numeric_only=True)}"
+                    )
+                    self.logger.debug(
+                        f"DEBUG: {symbol} max:\n{df.max(numeric_only=True)}"
+                    )
                     df["symbol"] = symbol  # Optionally tag symbol
                     all_dfs.append(df)
 
@@ -224,7 +234,21 @@ class PortfolioOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
                 return None
 
             portfolio_df = pd.concat(all_dfs, ignore_index=True)
-            self.logger.debug(f"DEBUG: Combined portfolio DataFrame: {portfolio_df}")
+            self.logger.debug(
+                f"DEBUG: Combined portfolio DataFrame head:\n{portfolio_df.head()}"
+            )
+            self.logger.debug(
+                f"DEBUG: Combined portfolio DataFrame tail:\n{portfolio_df.tail()}"
+            )
+            self.logger.debug(
+                f"DEBUG: Combined portfolio DataFrame NaN count:\n{portfolio_df.isna().sum()}"
+            )
+            self.logger.debug(
+                f"DEBUG: Combined portfolio DataFrame min:\n{portfolio_df.min(numeric_only=True)}"
+            )
+            self.logger.debug(
+                f"DEBUG: Combined portfolio DataFrame max:\n{portfolio_df.max(numeric_only=True)}"
+            )
             self.logger.debug(
                 f"DEBUG: Combined portfolio DataFrame columns: {portfolio_df.columns}"
             )
@@ -241,6 +265,21 @@ class PortfolioOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
                     f"DEBUG: Combined portfolio DataFrame shape: {portfolio_df.shape}"
                 )
                 portfolio_matrix = self.asset_matrix_preparer.prepare(portfolio_df)
+                self.logger.debug(
+                    f"DEBUG: Asset-matrix DataFrame head:\n{portfolio_matrix.head()}"
+                )
+                self.logger.debug(
+                    f"DEBUG: Asset-matrix DataFrame tail:\n{portfolio_matrix.tail()}"
+                )
+                self.logger.debug(
+                    f"DEBUG: Asset-matrix DataFrame NaN count:\n{portfolio_matrix.isna().sum()}"
+                )
+                self.logger.debug(
+                    f"DEBUG: Asset-matrix DataFrame min:\n{portfolio_matrix.min(numeric_only=True)}"
+                )
+                self.logger.debug(
+                    f"DEBUG: Asset-matrix DataFrame max:\n{portfolio_matrix.max(numeric_only=True)}"
+                )
                 print(f"DEBUG: Asset-matrix DataFrame shape: {portfolio_matrix.shape}")
                 return portfolio_matrix
             except Exception as e:
