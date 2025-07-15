@@ -170,7 +170,7 @@ class PortfolioBacktestExecutor(BacktestExecutor):
 
                 if not np.isfinite(desired_shares) or desired_shares < 0:
                     self.logger.warning(
-                        f"Skipping buy for {asset_name} at step {t} due to invalid desired_shares: {desired_shares}"
+                        f"Skipping buy for {asset_name} at step {t} due to invalid desired_shares: {desired_shares}. trade_dollars[i]: {trade_dollars[i]}, buy_price: {buy_price}, transaction_cost: {self.transaction_cost}"
                     )
                     continue
 
@@ -178,7 +178,7 @@ class PortfolioBacktestExecutor(BacktestExecutor):
                 shares_to_buy = shares_to_buy // self.min_lot * self.min_lot
                 if not np.isfinite(shares_to_buy) or shares_to_buy < 0:
                     self.logger.warning(
-                        f"Skipping buy for {asset_name} at step {t} due to invalid shares_to_buy: {shares_to_buy}"
+                        f"Skipping buy for {asset_name} at step {t} due to invalid shares_to_buy: {shares_to_buy}. desired_shares: {desired_shares}, max_quantity: {max_quantity}, min_lot: {self.min_lot}"
                     )
                     continue
 
