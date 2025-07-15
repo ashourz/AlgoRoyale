@@ -112,26 +112,27 @@ class StrategyOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
                     strategy_class = strategy_combinator.strategy_class
                     strategy_name = strategy_class.__name__
 
-                    # Check if optimization has already been done for this strategy
-                    existing_optimization_json = self.get_existing_optimization_results(
-                        strategy_name=strategy_name,
+                    if self._has_optimization_run(
                         symbol=symbol,
+                        strategy_name=strategy_name,
                         start_date=self.start_date,
                         end_date=self.end_date,
-                    )
-                    self.logger.debug(
-                        f"Checking existing optimization results for {symbol} {strategy_name} in window {self.window_id} | existing_optimization_json: {existing_optimization_json} "
-                    )
-
-                    # If the optimization has already been run, skip it
-                    # Use the stage's output validation function to check if results are valid
-                    if self.stage.output_validation_fn(
-                        existing_optimization_json, self.logger
                     ):
                         self.logger.info(
-                            f"Optimization already run for {symbol} {strategy_name} in window {self.window_id}"
+                            f"Skipping optimization for {symbol} {strategy_name} as it has already been run."
                         )
-                        results = results | existing_optimization_json
+                        skip_result_json = {
+                            strategy_name: {
+                                "optimization": {
+                                    "symbol": symbol,
+                                    "strategy": strategy_name,
+                                    "window_id": self.window_id,
+                                    "status": "skipped",
+                                    "reason": "Already run",
+                                }
+                            }
+                        }
+                        results = results | skip_result_json
                         continue
 
                     # Run optimization
@@ -177,32 +178,61 @@ class StrategyOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
 
         return results
 
-    # TODO NO LONGER NEEDED
     def _has_optimization_run(
         self, symbol: str, strategy_name: str, start_date: datetime, end_date: datetime
     ) -> bool:
-        """Check if optimization has already been run for the current stage."""
-        # Get existing results for the symbol and strategy
+        """Check if optimization has already been run for the current stage, for the specific symbol, strategy, and window."""
         try:
             existing_optimization_json = self.get_existing_optimization_results(
                 strategy_name=strategy_name,
                 symbol=symbol,
-                start_date=start_date,
-                end_date=end_date,
+                start_date=self.start_date,
+                end_date=self.end_date,
             )
             self.logger.debug(
                 f"Checking existing optimization results for {symbol} {strategy_name} in window {self.window_id} | existing_optimization_json: {existing_optimization_json} "
             )
-            if self.stage.output_validation_fn(existing_optimization_json, self.logger):
+
+            # Check for the specific window_id in the JSON
+            window_data = existing_optimization_json.get(self.window_id)
+            if not window_data:
                 self.logger.info(
-                    f"Optimization already run for {symbol} {strategy_name} in window {self.window_id}"
-                )
-                return True
-            else:
-                self.logger.info(
-                    f"No existing optimization results for {symbol} {strategy_name} in window {self.window_id}"
+                    f"No optimization data for window {self.window_id} for {symbol} {strategy_name}"
                 )
                 return False
+
+            # Check for the presence of 'optimization' key and correct strategy name
+            optimization = window_data.get("optimization")
+            if not optimization:
+                self.logger.info(
+                    f"No optimization section for window {self.window_id} for {symbol} {strategy_name}"
+                )
+                return False
+            if optimization.get("strategy") != strategy_name:
+                self.logger.info(
+                    f"Optimization strategy mismatch for window {self.window_id}: expected {strategy_name}, found {optimization.get('strategy')}"
+                )
+                return False
+
+            # Optionally, check for symbol match in meta
+            meta = optimization.get("meta", {})
+            if meta.get("symbol") and meta.get("symbol") != symbol:
+                self.logger.info(
+                    f"Optimization symbol mismatch for window {self.window_id}: expected {symbol}, found {meta.get('symbol')}"
+                )
+                return False
+            # Validate the structure of the optimization data
+            if not self.stage.output_validation_fn(
+                existing_optimization_json, self.logger
+            ):
+                self.logger.error(
+                    f"Optimization data validation failed for {symbol} {strategy_name} in window {self.window_id}"
+                )
+                return False
+            self.logger.info(
+                f"Optimization already run for {symbol} {strategy_name} in window {self.window_id}"
+            )
+            return True
         except Exception as e:
             self.logger.error(
                 f"Error checking optimization results for {symbol} {strategy_name} in window {self.window_id}: {e}"
