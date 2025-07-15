@@ -255,6 +255,19 @@ class PortfolioBacktestExecutor(BacktestExecutor):
                         trades_executed += 1
             portfolio_value = cash + np.sum(holdings * prices)
             portfolio_values.append(portfolio_value)
+            self.logger.debug(
+                f"Step {t}: portfolio_value={portfolio_value}, cash={cash}, holdings={holdings}, prices={prices}"
+            )
+            if not np.isfinite(portfolio_value):
+                self.logger.warning(
+                    f"Step {t}: NaN or inf in portfolio_value! cash={cash}, holdings={holdings}, prices={prices}"
+                )
+            if not np.all(np.isfinite(prices)):
+                self.logger.warning(f"Step {t}: Non-finite prices detected: {prices}")
+            if not np.all(np.isfinite(holdings)):
+                self.logger.warning(
+                    f"Step {t}: Non-finite holdings detected: {holdings}"
+                )
             cash_history.append(cash)
             holdings_history.append(holdings.copy())
 

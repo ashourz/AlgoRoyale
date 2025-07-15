@@ -151,9 +151,19 @@ class PortfolioBacktestEvaluator(BacktestEvaluator):
         """
         Evaluate portfolio backtest results from a result dictionary.
         """
-        # Try to build a DataFrame with portfolio_values or portfolio_returns
-        if "portfolio_values" in result:
+        # Build DataFrame for evaluation
+        if "portfolio_values" in result and "portfolio_returns" in result:
+            df = pd.DataFrame(
+                {
+                    "portfolio_values": result["portfolio_values"],
+                    "portfolio_returns": result["portfolio_returns"],
+                }
+            )
+        elif "portfolio_values" in result:
             df = pd.DataFrame({"portfolio_values": result["portfolio_values"]})
+            df["portfolio_returns"] = (
+                pd.Series(result["portfolio_values"]).pct_change().fillna(0)
+            )
         elif "portfolio_returns" in result:
             df = pd.DataFrame({"portfolio_returns": result["portfolio_returns"]})
         else:
@@ -179,9 +189,6 @@ class PortfolioBacktestEvaluator(BacktestEvaluator):
             if df[col].isnull().any():
                 self.logger.error(f"Null values found in essential column: {col}")
                 raise ValueError(f"Null values found in essential column: {col}")
-            if (df[col] <= 0).any():
-                self.logger.error(f"Invalid values found in essential column: {col}")
-                raise ValueError(f"Invalid values found in essential column: {col}")
 
     @staticmethod
     def max_drawdown(returns: pd.Series) -> float:

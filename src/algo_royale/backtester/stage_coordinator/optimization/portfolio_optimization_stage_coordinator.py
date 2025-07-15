@@ -5,6 +5,9 @@ from typing import Any, AsyncIterator, Callable, Dict, Optional, Sequence
 
 import pandas as pd
 
+from algo_royale.backtester.column_names.feature_engineering_columns import (
+    FeatureEngineeringColumns,
+)
 from algo_royale.backtester.data_preparer.asset_matrix_preparer import (
     AssetMatrixPreparer,
 )
@@ -256,15 +259,45 @@ class PortfolioOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
                 f"DEBUG: Combined portfolio DataFrame shape: {portfolio_df.shape}"
             )
 
+            # Filter for true price columns only
+            PRICE_COLUMN_NAMES = [
+                FeatureEngineeringColumns.CLOSE_PRICE,
+                FeatureEngineeringColumns.OPEN_PRICE,
+                FeatureEngineeringColumns.HIGH_PRICE,
+                FeatureEngineeringColumns.LOW_PRICE,
+            ]
+            price_columns = [
+                col for col in portfolio_df.columns if col in PRICE_COLUMN_NAMES
+            ]
+            if not price_columns:
+                self.logger.error(
+                    f"No price columns found in combined portfolio DataFrame. Columns: {list(portfolio_df.columns)}"
+                )
+                return None
+            # Always include 'symbol' and 'timestamp' columns if present
+            extra_cols = []
+            if FeatureEngineeringColumns.SYMBOL in portfolio_df.columns:
+                extra_cols.append(FeatureEngineeringColumns.SYMBOL)
+            if FeatureEngineeringColumns.TIMESTAMP in portfolio_df.columns:
+                extra_cols.append(FeatureEngineeringColumns.TIMESTAMP)
+            portfolio_df = portfolio_df[price_columns + extra_cols]
+            self.logger.debug(
+                f"Filtered price columns for portfolio matrix: {price_columns}"
+            )
+
             try:
-                print(f"DEBUG: Combined portfolio DataFrame: {portfolio_df}")
+                print(f"DEBUG: Filtered portfolio DataFrame: {portfolio_df}")
                 print(
-                    f"DEBUG: Combined portfolio DataFrame columns: {portfolio_df.columns}"
+                    f"DEBUG: Filtered portfolio DataFrame columns: {portfolio_df.columns}"
                 )
                 print(
-                    f"DEBUG: Combined portfolio DataFrame shape: {portfolio_df.shape}"
+                    f"DEBUG: Filtered portfolio DataFrame shape: {portfolio_df.shape}"
                 )
-                portfolio_matrix = self.asset_matrix_preparer.prepare(portfolio_df)
+                portfolio_matrix = self.asset_matrix_preparer.prepare(
+                    df=portfolio_df,
+                    symbol_col=FeatureEngineeringColumns.SYMBOL,
+                    timestamp_col=FeatureEngineeringColumns.TIMESTAMP,
+                )
                 self.logger.debug(
                     f"DEBUG: Asset-matrix DataFrame head:\n{portfolio_matrix.head()}"
                 )
