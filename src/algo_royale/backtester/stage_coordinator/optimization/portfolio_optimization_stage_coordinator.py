@@ -1,5 +1,5 @@
 import json
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, AsyncIterator, Callable, Dict, Optional, Sequence
 
@@ -408,6 +408,7 @@ class PortfolioOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
         to the optimization_result.json file under the specified window_id.
         It ensures that the results are stored in a structured format, keyed by symbol and strategy name
         """
+
         try:
             # Update the results dictionary with the optimization results
             for symbol in symbols:
@@ -423,18 +424,34 @@ class PortfolioOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
                     },
                 }
 
-            # Save optimization metrics to optimization_result.json under window_id
+            # Prepare summary object
+            summary = {
+                "status": "completed",
+                "timestamp": datetime.now(timezone.utc)
+                .replace(microsecond=0)
+                .isoformat()
+                .replace("+00:00", "Z"),
+                "parameters": {
+                    "symbols": symbols,
+                    "window": f"{start_date.strftime('%Y-%m-%d')} to {end_date.strftime('%Y-%m-%d')}",
+                },
+                "results": results if results else {},
+                "message": "Optimization completed"
+                if results
+                else "No valid optimization results",
+            }
+
+            # Save summary to optimization_result.json under window_id
             out_path = self._get_output_path(
                 strategy_name,
                 start_date,
                 end_date,
             )
             self.logger.info(
-                f"Saving portfolio optimization results for PORTFOLIO {strategy_name} to {out_path}"
+                f"Saving portfolio optimization summary for PORTFOLIO {strategy_name} to {out_path}"
             )
-            # Write the updated results back to the file
             with open(out_path, "w") as f:
-                json.dump(results, f, indent=2, default=str)
+                json.dump(summary, f, indent=2, default=str)
 
         except Exception as e:
             self.logger.error(
