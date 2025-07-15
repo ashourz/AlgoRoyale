@@ -1,5 +1,4 @@
 import asyncio
-from algo_royale.logging.loggable import Loggable
 
 import pandas as pd
 
@@ -7,6 +6,7 @@ from algo_royale.backtester.column_names.strategy_columns import (
     SignalStrategyColumns,
     SignalStrategyExecutorColumns,
 )
+from algo_royale.logging.loggable import Loggable
 
 
 def validate_async_iterator_dict(
@@ -18,6 +18,11 @@ def validate_async_iterator_dict(
     if not isinstance(data, dict):
         logger.warning(f"Validation failed: Not a dict. Value: {data}")
         return False
+
+    if not data:  # Check for empty dict
+        logger.warning("Validation failed: Input dict is empty.")
+        return False
+
     for symbol, factory in data.items():
         if not isinstance(symbol, str):
             logger.warning(f"Validation failed: Symbol not str. Value: {symbol}")
@@ -67,6 +72,11 @@ def validate_iterator_dict(
     if not isinstance(output, dict):
         logger.warning(f"Validation failed: Not a dict. Value: {output}")
         return False
+
+    if not output:  # Check for empty dict
+        logger.warning("Validation failed: Output dict is empty.")
+        return False
+
     for symbol, df_list in output.items():
         if not isinstance(symbol, str):
             logger.warning(f"Validation failed: Symbol not str. Value: {symbol}")

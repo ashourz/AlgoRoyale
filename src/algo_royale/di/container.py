@@ -71,6 +71,33 @@ from algo_royale.backtester.stage_data.writer.symbol_strategy_data_writer import
 from algo_royale.backtester.strategy_combinator.portfolio.equal_risk_contribution_portfolio_strategy_combinator import (
     EqualRiskContributionPortfolioStrategyCombinator,
 )
+from algo_royale.backtester.strategy_combinator.portfolio.equal_weight_portfolio_strategy_combinator import (
+    EqualWeightPortfolioStrategyCombinator,
+)
+from algo_royale.backtester.strategy_combinator.portfolio.inverse_volatility_portfolio_strategy_combinator import (
+    InverseVolatilityPortfolioStrategyCombinator,
+)
+from algo_royale.backtester.strategy_combinator.portfolio.max_sharpe_portfolio_strategy_combinator import (
+    MaxSharpePortfolioStrategyCombinator,
+)
+from algo_royale.backtester.strategy_combinator.portfolio.mean_variance_portfolio_strategy_combinator import (
+    MeanVariancePortfolioStrategyCombinator,
+)
+from algo_royale.backtester.strategy_combinator.portfolio.minimum_variance_portfolio_strategy_combinator import (
+    MinimumVariancePortfolioStrategyCombinator,
+)
+from algo_royale.backtester.strategy_combinator.portfolio.momentum_portfolio_strategy_combinator import (
+    MomentumPortfolioStrategyCombinator,
+)
+from algo_royale.backtester.strategy_combinator.portfolio.risk_parity_portfolio_strategy_combinator import (
+    RiskParityPortfolioStrategyCombinator,
+)
+from algo_royale.backtester.strategy_combinator.portfolio.volatility_weighted_portfolio_strategy_combinator import (
+    VolatilityWeightedPortfolioStrategyCombinator,
+)
+from algo_royale.backtester.strategy_combinator.portfolio.winner_takes_all_portfolio_strategy_combinator import (
+    WinnerTakesAllPortfolioStrategyCombinator,
+)
 from algo_royale.backtester.strategy_combinator.signal.bollinger_bands_strategy_combinator import (
     BollingerBandsStrategyCombinator,
 )
@@ -616,15 +643,15 @@ class DIContainer(containers.DeclarativeContainer):
 
     portfolio_strategy_combinators = [
         EqualRiskContributionPortfolioStrategyCombinator,
-        # EqualWeightPortfolioStrategyCombinator,
-        # InverseVolatilityPortfolioStrategyCombinator,
-        # MaxSharpePortfolioStrategyCombinator,
-        # MeanVariancePortfolioStrategyCombinator,
-        # MinimumVariancePortfolioStrategyCombinator,
-        # MomentumPortfolioStrategyCombinator,
-        # RiskParityPortfolioStrategyCombinator,
-        # VolatilityWeightedPortfolioStrategyCombinator,
-        # WinnerTakesAllPortfolioStrategyCombinator,
+        EqualWeightPortfolioStrategyCombinator,
+        InverseVolatilityPortfolioStrategyCombinator,
+        MaxSharpePortfolioStrategyCombinator,
+        MeanVariancePortfolioStrategyCombinator,
+        MinimumVariancePortfolioStrategyCombinator,
+        MomentumPortfolioStrategyCombinator,
+        RiskParityPortfolioStrategyCombinator,
+        VolatilityWeightedPortfolioStrategyCombinator,
+        WinnerTakesAllPortfolioStrategyCombinator,
     ]
 
     portfolio_asset_matrix_preparer = providers.Singleton(

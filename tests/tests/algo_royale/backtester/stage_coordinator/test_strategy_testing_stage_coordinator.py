@@ -425,7 +425,7 @@ async def test_write_is_noop(
             strategy_name="StrategyA",
             metrics={"sharpe_ratio": 2.0},
             optimization_result={},
-            results={},
+            collective_results={},
         )
         assert "AAPL" in result
         assert "StrategyA" in result["AAPL"]

@@ -1,7 +1,6 @@
 import inspect
 import json
 from typing import Any, AsyncIterator, Callable, Dict, Optional, Sequence
-from algo_royale.logging.loggable import Loggable
 
 import pandas as pd
 
@@ -25,6 +24,7 @@ from algo_royale.backtester.stage_data.stage_data_manager import StageDataManage
 from algo_royale.backtester.strategy_combinator.portfolio.base_portfolio_strategy_combinator import (
     PortfolioStrategyCombinator,
 )
+from algo_royale.logging.loggable import Loggable
 
 
 class PortfolioTestingStageCoordinator(BaseTestingStageCoordinator):
@@ -126,7 +126,7 @@ class PortfolioTestingStageCoordinator(BaseTestingStageCoordinator):
                     f"Backtest completed for {strategy_name} with {len(backtest_results.get('portfolio_returns', []))} returns."
                 )
                 # Evaluate metrics (now includes all new metrics)
-                metrics = self.evaluator.evaluate(strategy, backtest_results)
+                metrics = self.evaluator.evaluate_from_dict(backtest_results)
                 test_opt_results = self._get_optimization_results(
                     strategy_name=strategy_name,
                     symbol=None,
@@ -237,17 +237,6 @@ class PortfolioTestingStageCoordinator(BaseTestingStageCoordinator):
                     f"Validation failed for optimization results of {strategy_name} during {self.train_window_id}. Skipping."
                 )
                 return None
-            if (
-                self.train_window_id not in train_opt_results
-                or "optimization" not in train_opt_results[self.train_window_id]
-            ):
-                print(
-                    f"No optimization results found for PORTFOLIO {strategy_name} {self.train_window_id}"
-                )
-                self.logger.warning(
-                    f"No optimization result for PORTFOLIO {strategy_name} {self.train_window_id}"
-                )
-                return None
 
             best_params = train_opt_results[self.train_window_id]["optimization"][
                 "best_params"
@@ -329,36 +318,60 @@ class PortfolioTestingStageCoordinator(BaseTestingStageCoordinator):
         results: Dict[str, Dict[str, Dict[str, float]]],
     ) -> Dict[str, Dict[str, Dict[str, float]]]:
         try:
-            # Update the optimization result dictionary
-            optimization_result.setdefault(self.test_window_id, {})
-            optimization_result[self.test_window_id]["test"] = {
+            # Ensure results is a dict
+            if not results or not isinstance(results, dict):
+                results = {}
+
+            # Ensure optimization_result is a dict and has the correct window structure
+            if not optimization_result or not isinstance(optimization_result, dict):
+                optimization_result = {}
+            if self.test_window_id not in optimization_result or not isinstance(
+                optimization_result[self.test_window_id], dict
+            ):
+                optimization_result[self.test_window_id] = {}
+
+            # Ensure the optimization section exists for params extraction
+            best_params = (
+                optimization_result[self.test_window_id]
+                .get("optimization", {})
+                .get("best_params", {})
+            )
+
+            # Build the test structure for this window
+            test_dict = {
+                "strategy": strategy_name,
+                "params": best_params,
+                "meta": {
+                    "symbols": symbols,
+                    "window_id": self.test_window_id,
+                    "transactions": backtest_results.get("transactions", []),
+                },
                 "metrics": metrics,
-                "transactions": backtest_results.get("transactions", []),
+                "window": {
+                    "start_date": self.test_start_date,
+                    "end_date": self.test_end_date,
+                    "window_id": self.test_window_id,
+                },
             }
 
-            # Update the results dictionary
-            for symbol in symbols:
-                results.setdefault(symbol, {}).setdefault(strategy_name, {}).setdefault(
-                    self.test_window_id, {}
-                )
-                results[symbol][strategy_name][self.test_window_id] = {
-                    "metrics": metrics,
-                    "transactions": backtest_results.get("transactions", []),
-                }
+            # Update the optimization result dictionary with test results
+            optimization_result[self.test_window_id]["test"] = test_dict
+
+            # Optionally, also update results dict for in-memory use
+            results[self.test_window_id] = {"test": test_dict}
 
             # Save the updated optimization results to the file
-            for symbol in symbols:
-                out_path = self._get_optimization_result_path(
-                    strategy_name=strategy_name,
-                    start_date=self.test_start_date,
-                    end_date=self.test_end_date,
-                    symbol=symbol,
-                )
-                self.logger.info(
-                    f"Saving test results for {strategy_name} and symbol {symbol} to {out_path}"
-                )
-                with open(out_path, "w") as f:
-                    json.dump(optimization_result, f, indent=2, default=str)
+            out_path = self._get_optimization_result_path(
+                strategy_name=strategy_name,
+                start_date=self.test_start_date,
+                end_date=self.test_end_date,
+                symbol=None,
+            )
+            self.logger.info(
+                f"Saving test results for {strategy_name} and symbols {symbols} to {out_path}"
+            )
+            with open(out_path, "w") as f:
+                json.dump(optimization_result, f, indent=2, default=str)
 
         except Exception as e:
             self.logger.error(

@@ -2,7 +2,6 @@ import time
 from abc import ABC
 from datetime import datetime
 from typing import Any, Callable, Dict, List, Type, Union
-from algo_royale.logging.loggable import Loggable
 
 import optuna
 import pandas as pd
@@ -11,6 +10,7 @@ from algo_royale.backtester.optimizer.portfolio.optimization_direction import (
     OptimizationDirection,
 )
 from algo_royale.backtester.optimizer.portfolio.portfolio_metric import PortfolioMetric
+from algo_royale.logging.loggable import Loggable
 
 
 class PortfolioStrategyOptimizer(ABC):
@@ -21,7 +21,7 @@ class PortfolioStrategyOptimizer(ABC):
 
     async def optimize(
         self,
-        symbol: str,
+        symbols: str,
         df: pd.DataFrame,
         window_start_time: datetime,
         window_end_time: datetime,
@@ -65,7 +65,7 @@ class PortfolioStrategyOptimizerImpl(PortfolioStrategyOptimizer):
 
     async def optimize(
         self,
-        symbol: str,
+        symbols: str,
         df: pd.DataFrame,
         window_start_time: datetime,
         window_end_time: datetime,
@@ -89,31 +89,35 @@ class PortfolioStrategyOptimizerImpl(PortfolioStrategyOptimizer):
                 else [self.direction.value] * len(metric_enums)
             )
             self.logger.info(
-                f"Starting multi-objective portfolio optimization for {symbol} with {self.strategy_class.__name__}"
+                f"Starting multi-objective portfolio optimization for {symbols} with {self.strategy_class.__name__}"
             )
             study = optuna.create_study(directions=directions)
         else:
             metric_enum = self.metric_name
             metric_name = metric_enum.value
             self.logger.info(
-                f"Starting portfolio optimization for {symbol} with {self.strategy_class.__name__}"
+                f"Starting portfolio optimization for {symbols} with {self.strategy_class.__name__}"
             )
             study = optuna.create_study(direction=self.direction.value)
         self.logger.debug(f"DataFrame lines: {len(df)}")
         start_time = time.time()
 
         def objective(trial, logger=self.logger):
-            params = self.strategy_class.optuna_suggest(trial, prefix=f"{symbol}_")
+            params = self.strategy_class.optuna_suggest(trial, prefix=f"{symbols}_")
             if isinstance(params, dict):
                 strategy = self.strategy_class(**params)
             else:
                 strategy = params
             logger.debug(
-                f"[{symbol}] PortfolioStrategy: {self.strategy_class.__name__} | Params: {params}"
+                f"[{symbols}] PortfolioStrategy: {self.strategy_class.__name__} | Params: {params}"
             )
             result = self.backtest_fn(strategy, df)
+            if not result:
+                logger.error(
+                    f"[{symbols}] Backtest returned empty result for params: {params}"
+                )
             logger.debug(
-                f"[{symbol}] PortfolioStrategy params: {params} | Backtest result: {result}"
+                f"[{symbols}] PortfolioStrategy params: {params} | Backtest result: {result}"
             )
             # Always extract metrics from result['metrics'] if present
             metrics_dict = result.get("metrics", result)
@@ -131,7 +135,7 @@ class PortfolioStrategyOptimizerImpl(PortfolioStrategyOptimizer):
                     score = metrics_dict[metric_name]
             except Exception as e:
                 logger.error(
-                    f"[{symbol}] Error extracting metric(s) '{self.metric_name}' from backtest result: {e} | Result: {result}"
+                    f"[{symbols}] Error extracting metric(s) '{self.metric_name}' from backtest result: {e} | Result: {result}"
                 )
                 if is_multi:
                     fail_val = (
@@ -158,17 +162,20 @@ class PortfolioStrategyOptimizerImpl(PortfolioStrategyOptimizer):
             trial.set_user_attr(
                 "full_result", metrics_dict if isinstance(metrics_dict, dict) else {}
             )
-            logger.debug(f"[{symbol}] Trial result: {score}")
+            logger.debug(f"[{symbols}] Trial result: {score}")
             return score
 
         study.optimize(objective, n_trials=n_trials)
 
         duration = round(time.time() - start_time, 2)
         self.logger.info(
-            f"Portfolio optimization completed for {symbol} in {duration} seconds over {n_trials} trials"
+            f"Portfolio optimization completed for {symbols} in {duration} seconds over {n_trials} trials"
         )
         if is_multi:
             best_trials = study.best_trials
+            self.logger.debug(
+                f"Best trial numbers: {[t.number for t in best_trials]}, values: {[t.values for t in best_trials]}, params: {[t.params for t in best_trials]}, user_attrs: {[t.user_attrs for t in best_trials]}"
+            )
             best_values = [t.values for t in best_trials]
             best_params = [t.params for t in best_trials]
             best_metrics = [t.user_attrs.get("full_result") or {} for t in best_trials]
@@ -177,6 +184,9 @@ class PortfolioStrategyOptimizerImpl(PortfolioStrategyOptimizer):
                 best_metrics = [best_metrics]
         else:
             best_trials = [study.best_trial]
+            self.logger.debug(
+                f"Best trial number: {best_trials[0].number}, value: {best_trials[0].value}, params: {best_trials[0].params}, user_attrs: {best_trials[0].user_attrs}"
+            )
             best_values = study.best_value
             best_params = study.best_params
             best_metrics = study.best_trial.user_attrs.get("full_result") or {}
@@ -184,12 +194,15 @@ class PortfolioStrategyOptimizerImpl(PortfolioStrategyOptimizer):
         print(
             f"DEBUG: is_multi={is_multi}, best_metrics type={type(best_metrics)}, value={best_metrics}"
         )
+        self.logger.debug(
+            f"Best trial: {best_trials[0].number} | Value: {best_values} | Params: {best_params} | Metrics: {best_metrics}"
+        )
         if not isinstance(best_metrics, dict) and not (
             is_multi and isinstance(best_metrics, list)
         ):
             best_metrics = {} if not is_multi else [{}]
         if not best_metrics:
-            self.logger.warning(f"[{symbol}] No metrics found in best trial result.")
+            self.logger.warning(f"[{symbols}] No metrics found in best trial result.")
         results = {
             "strategy": self.strategy_class.__name__,
             "best_value": best_values,
@@ -197,7 +210,7 @@ class PortfolioStrategyOptimizerImpl(PortfolioStrategyOptimizer):
             "meta": {
                 "run_time_sec": duration,
                 "n_trials": n_trials,
-                "symbol": symbol,
+                "symbols": symbols,
                 "direction": self.direction,
                 "multi_objective": is_multi,
             },
@@ -243,7 +256,7 @@ class MockPortfolioStrategyOptimizer(PortfolioStrategyOptimizer):
 
     async def optimize(
         self,
-        symbol: str,
+        symbols: str,
         df: pd.DataFrame,
         window_start_time: datetime,
         window_end_time: datetime,

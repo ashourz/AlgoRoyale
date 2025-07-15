@@ -1,8 +1,7 @@
 import json
 from datetime import datetime
 from pathlib import Path
-from typing import Dict, Optional, Sequence
-from algo_royale.logging.loggable import Loggable
+from typing import Dict, Mapping, Optional, Sequence
 
 from algo_royale.backtester.enum.backtest_stage import BacktestStage
 from algo_royale.backtester.evaluator.backtest.base_backtest_evaluator import (
@@ -17,6 +16,7 @@ from algo_royale.backtester.stage_data.stage_data_manager import StageDataManage
 from algo_royale.backtester.strategy_combinator.signal.base_signal_strategy_combinator import (
     SignalStrategyCombinator,
 )
+from algo_royale.logging.loggable import Loggable
 
 
 class BaseTestingStageCoordinator(StageCoordinator):
@@ -74,29 +74,19 @@ class BaseTestingStageCoordinator(StageCoordinator):
     ) -> bool:
         self.train_start_date = train_start_date
         self.train_end_date = train_end_date
-        self.logger.info(
-            f"Running {self.stage} for {train_start_date} to {train_end_date}"
+        self.train_window_id = self.stage_data_manager.get_window_id(
+            start_date=self.train_start_date, end_date=self.train_end_date
         )
+
         self.test_start_date = test_start_date
         self.test_end_date = test_end_date
+        self.test_window_id = self.stage_data_manager.get_window_id(
+            start_date=self.test_start_date, end_date=self.test_end_date
+        )
         self.logger.info(
-            f"Running {self.stage} for {test_start_date} to {test_end_date}"
+            f"Running {self.stage} for train window {self.train_window_id} | test window {self.test_window_id}"
         )
 
-    async def run_test(
-        self,
-        start_date: datetime,
-        end_date: datetime,
-    ) -> bool:
-        """
-        Orchestrate the stage: load, process, write.
-        """
-        self.start_date = start_date
-        self.end_date = end_date
-
-        self.logger.info(
-            f"Starting stage: {self.stage} | start_date: {start_date} | end_date: {end_date}"
-        )
         if not self.stage.input_stage:
             """ If no incoming stage is defined, skip loading data """
             self.logger.error(f"Stage {self.stage} has no incoming stage defined.")
@@ -108,8 +98,8 @@ class BaseTestingStageCoordinator(StageCoordinator):
         self.logger.info(f"stage:{self.stage} starting data loading.")
         data = await self.data_loader.load_data(
             stage=self.stage.input_stage,
-            start_date=self.start_date,
-            end_date=self.end_date,
+            start_date=self.test_start_date,
+            end_date=self.test_end_date,
             reverse_pages=True,
         )
         if not data:
@@ -175,3 +165,16 @@ class BaseTestingStageCoordinator(StageCoordinator):
         )
         out_dir.mkdir(parents=True, exist_ok=True)
         return out_dir / self.optimization_json_filename
+
+    def _deep_merge(self, d1, d2):
+        merged = dict(d1)  # Copy of d1
+        for key, value in d2.items():
+            if (
+                key in merged
+                and isinstance(merged[key], Mapping)
+                and isinstance(value, Mapping)
+            ):
+                merged[key] = self._deep_merge(merged[key], value)
+            else:
+                merged[key] = value
+        return merged

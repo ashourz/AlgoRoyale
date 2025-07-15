@@ -1,9 +1,12 @@
 from algo_royale.logging.loggable import Loggable
+
+
 def summary_metric_validator(metric, logger: Loggable) -> bool:
     """Validate a summary metric dict with mean, std, min, max (all floats)."""
     if not isinstance(metric, dict):
         logger.warning(f"Validation failed: Metric not dict. Value: {metric}")
         return False
+
     for k in ["mean", "std", "min", "max"]:
         if k not in metric or not isinstance(metric[k], float):
             logger.warning(
@@ -18,6 +21,7 @@ def most_common_best_params_validator(params, logger: Loggable) -> bool:
     if not isinstance(params, dict):
         logger.warning(f"Validation failed: Params not dict. Value: {params}")
         return False
+
     for key in ["entry_conditions", "exit_conditions", "trend_conditions"]:
         if key not in params or not isinstance(params[key], list):
             logger.warning(
@@ -40,6 +44,11 @@ def window_params_validator(window_params, logger: Loggable) -> bool:
             f"Validation failed: window_params not list. Value: {window_params}"
         )
         return False
+
+    if not window_params:  # Check for empty list
+        logger.warning("Validation failed: window_params list is empty.")
+        return False
+
     for param in window_params:
         if not most_common_best_params_validator(param, logger):
             logger.warning(

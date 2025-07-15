@@ -7,6 +7,9 @@ from algo_royale.backtester.strategy.signal.conditions.bollinger_bands_entry imp
 from algo_royale.backtester.strategy.signal.conditions.bollinger_bands_exit import (
     BollingerBandsExitCondition,
 )
+from algo_royale.backtester.strategy.signal.conditions.sma_trend import (
+    SMATrendCondition,
+)
 
 
 class BollingerBandsStrategy(BaseSignalStrategy):
@@ -26,6 +29,7 @@ class BollingerBandsStrategy(BaseSignalStrategy):
         self,
         entry_conditions: list[BollingerBandsEntryCondition],
         exit_conditions: list[BollingerBandsExitCondition],
+        trend_conditions: list[SMATrendCondition],
     ):
         """Initialize the Bollinger Bands Strategy with entry and exit conditions.
         Parameters:
@@ -33,5 +37,7 @@ class BollingerBandsStrategy(BaseSignalStrategy):
         - exit_condition: Condition for exiting a trade based on Bollinger Bands.
         """
         super().__init__(
-            entry_conditions=entry_conditions, exit_conditions=exit_conditions
+            entry_conditions=entry_conditions,
+            exit_conditions=exit_conditions,
+            trend_conditions=trend_conditions,
         )

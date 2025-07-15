@@ -1,4 +1,5 @@
 from algo_royale.logging.loggable import Loggable
+
 # Define the validation function outside the Enum
 
 
@@ -7,6 +8,11 @@ def signal_backtest_evaluator_validator(d: dict, logger: Loggable) -> bool:
     if not isinstance(d, dict):
         logger.warning(f"Validation failed: Not a dict. Value: {d}")
         return False
+
+    if not d:  # Check for empty dict
+        logger.warning("Validation failed: Backtest evaluation dict is empty.")
+        return False
+
     for k in ["total_return", "sharpe_ratio", "win_rate", "max_drawdown"]:
         if k not in d:
             logger.warning(f"Validation failed: '{k}' missing. Value: {d}")

@@ -1,7 +1,7 @@
 import json
 from pathlib import Path
-from algo_royale.logging.loggable import Loggable
 
+from algo_royale.logging.loggable import Loggable
 from algo_royale.logging.logger_factory import mockLogger
 
 
@@ -64,8 +64,23 @@ class PortfolioEvaluationCoordinator:
                         else:
                             self.logger.debug(f"No evaluation file found: {eval_path}")
 
+                    summary_path = symbol_dir / self.summary_json_filename
                     if not results:
                         self.logger.warning(f"No evaluation results found for {symbol}")
+                        # Write a default summary for the symbol
+                        summary = {
+                            "symbol": symbol,
+                            "recommended_strategy": None,
+                            "viability_score": None,
+                            "param_consistency": None,
+                            "metrics": {},
+                            "allocation_params": {},
+                            "rationale": "No evaluation results found for this symbol.",
+                            "status": "no_results",
+                        }
+                        with open(summary_path, "w") as f:
+                            json.dump(summary, f, indent=2)
+                        global_summary[symbol] = summary
                         continue
 
                     # Filter only viable strategies
@@ -123,11 +138,11 @@ class PortfolioEvaluationCoordinator:
                         },
                         "allocation_params": best.get("allocation_params", {}),
                         "rationale": rationale,
+                        "status": "ok",
                     }
                     global_summary[symbol] = summary
 
                     # Write a summary report for the symbol
-                    summary_path = symbol_dir / self.summary_json_filename
                     with open(summary_path, "w") as f:
                         json.dump(summary, f, indent=2)
                     self.logger.info(
@@ -138,19 +153,57 @@ class PortfolioEvaluationCoordinator:
                         f"Error during evaluation for symbol {symbol}: {e}",
                         exc_info=True,
                     )
+                    # Still write a summary file for the symbol with error info
+                    summary = {
+                        "symbol": symbol if "symbol" in locals() else None,
+                        "recommended_strategy": None,
+                        "viability_score": None,
+                        "param_consistency": None,
+                        "metrics": {},
+                        "allocation_params": {},
+                        "rationale": f"Error during evaluation: {e}",
+                        "status": "error",
+                    }
+                    with open(symbol_dir / self.summary_json_filename, "w") as f:
+                        json.dump(summary, f, indent=2)
+                    global_summary[symbol] = summary
                     continue
 
             # Write a global summary file
             global_summary_path = (
                 self.optimization_root / self.global_summary_json_filename
             )
+            if not global_summary:
+                # Write a default global summary if no results at all
+                global_summary_obj = {
+                    "status": "no_results",
+                    "message": "No evaluation results found for any symbol.",
+                    "results": {},
+                }
+            else:
+                global_summary_obj = {
+                    "status": "ok",
+                    "message": "Portfolio evaluation completed.",
+                    "results": global_summary,
+                }
             with open(global_summary_path, "w") as f:
-                json.dump(global_summary, f, indent=2)
+                json.dump(global_summary_obj, f, indent=2)
             self.logger.info(
                 f"Global portfolio evaluation summary written to {global_summary_path}"
             )
         except Exception as e:
             self.logger.error(f"Error during portfolio evaluation: {e}", exc_info=True)
+            # Write a global summary file with error info
+            global_summary_path = (
+                self.optimization_root / self.global_summary_json_filename
+            )
+            global_summary_obj = {
+                "status": "error",
+                "message": f"Error during portfolio evaluation: {e}",
+                "results": {},
+            }
+            with open(global_summary_path, "w") as f:
+                json.dump(global_summary_obj, f, indent=2)
             raise e
 
 

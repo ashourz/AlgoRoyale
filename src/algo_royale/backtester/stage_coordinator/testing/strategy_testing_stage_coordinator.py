@@ -1,7 +1,7 @@
 import inspect
 import json
+from datetime import datetime
 from typing import Any, AsyncIterator, Callable, Dict, Optional, Sequence
-from algo_royale.logging.loggable import Loggable
 
 import pandas as pd
 
@@ -25,6 +25,7 @@ from algo_royale.backtester.strategy_combinator.signal.base_signal_strategy_comb
 from algo_royale.backtester.strategy_factory.signal.strategy_factory import (
     StrategyFactory,
 )
+from algo_royale.logging.loggable import Loggable
 
 
 class StrategyTestingStageCoordinator(BaseTestingStageCoordinator):
@@ -92,12 +93,7 @@ class StrategyTestingStageCoordinator(BaseTestingStageCoordinator):
                 self.logger.warning(
                     f"No train optimization result for {symbol} {strategy_name} {self.train_window_id}"
                 )
-                return None
-            if not self._validate_optimization_results(train_opt_results):
-                self.logger.error(
-                    f"Train optimization results validation failed for {symbol} {strategy_name} {self.train_window_id}"
-                )
-                return None
+                return {}
             return train_opt_results
         except Exception as e:
             self.logger.error(
@@ -123,16 +119,11 @@ class StrategyTestingStageCoordinator(BaseTestingStageCoordinator):
                 start_date=start_date,
                 end_date=end_date,
             )
-            if not test_opt_results:
+            if test_opt_results is None:
                 self.logger.warning(
                     f"No test optimization result for {symbol} {strategy_name} {self.test_window_id}"
                 )
-                return None
-            if not self._validate_test_results(test_opt_results):
-                self.logger.error(
-                    f"Test optimization results validation failed for {symbol} {strategy_name} {self.test_window_id}"
-                )
-                return None
+                return {}
             return test_opt_results
         except Exception as e:
             self.logger.error(
@@ -168,12 +159,34 @@ class StrategyTestingStageCoordinator(BaseTestingStageCoordinator):
             for strategy_combinator in self.strategy_combinators:
                 strategy_class = strategy_combinator.strategy_class
                 strategy_name = strategy_class.__name__
-                self.logger.debug(f"Processing strategy: {strategy_name}")
-                optimized_params = self._get_train_optimization_results(
-                    symbol=symbol,
+
+                # Check if optimization has already been done for this strategy
+                existing_optimization_json = self.get_existing_optimization_results(
                     strategy_name=strategy_name,
+                    symbol=symbol,
                     start_date=self.train_start_date,
                     end_date=self.train_end_date,
+                )
+                self.logger.debug(
+                    f"Checking existing optimization results for {symbol} {strategy_name} in window {self.train_window_id} | existing_optimization_json: {existing_optimization_json} "
+                )
+
+                # If the optimization has already been run, skip it
+                # Use the stage's output validation function to check if results are valid
+                if self.stage.output_validation_fn(
+                    existing_optimization_json, self.logger
+                ):
+                    self.logger.info(
+                        f"Optimization already run for {symbol} {strategy_name} in window {self.train_window_id}"
+                    )
+                    results = results | existing_optimization_json
+                    continue
+
+                self.logger.debug(f"Processing strategy: {strategy_name}")
+                optimized_params = self._get_optimized_params(
+                    symbol=symbol,
+                    strategy_name=strategy_name,
+                    strategy_class=strategy_class,
                 )
                 self.logger.debug(
                     f"Optimized parameters for {strategy_name}: {optimized_params}"
@@ -222,7 +235,7 @@ class StrategyTestingStageCoordinator(BaseTestingStageCoordinator):
                 self.logger.debug(
                     f"Test optimization results for {strategy_name}: {test_opt_results}"
                 )
-                if not test_opt_results:
+                if test_opt_results is None:
                     self.logger.error(
                         f"Test results validation failed for {symbol} {strategy_name} {self.test_window_id}"
                     )
@@ -236,7 +249,7 @@ class StrategyTestingStageCoordinator(BaseTestingStageCoordinator):
                     strategy_name=strategy_name,
                     metrics=metrics,
                     optimization_result=test_opt_results,
-                    results=results,
+                    collective_results=results,
                 )
 
                 self.logger.debug(
@@ -247,6 +260,60 @@ class StrategyTestingStageCoordinator(BaseTestingStageCoordinator):
 
         self.logger.debug(f"Final results dictionary: {results}")
         return results
+
+    def get_existing_optimization_results(
+        self, strategy_name: str, symbol: str, start_date: datetime, end_date: datetime
+    ) -> Dict[str, dict]:
+        """Retrieve existing optimization results for a given strategy and symbol."""
+        try:
+            self.logger.info(
+                f"Retrieving optimization results for {strategy_name} during start date {start_date} and end date {end_date}"
+            )
+            train_opt_results = self._get_optimization_results(
+                strategy_name=strategy_name,
+                symbol=symbol,
+                start_date=start_date,
+                end_date=end_date,
+            )
+            if train_opt_results is None:
+                self.logger.warning(
+                    f"No optimization result for {symbol} {strategy_name} during start date {start_date} and end date {end_date}"
+                )
+                return {}
+            return train_opt_results
+        except Exception as e:
+            self.logger.error(
+                f"Error retrieving optimization results for {strategy_name} during start date {start_date} and end date {end_date}: {e}"
+            )
+            return None
+
+    def _has_optimization_run(
+        self, symbol: str, strategy_name: str, start_date: datetime, end_date: datetime
+    ) -> bool:
+        """Check if test has already been run for the current stage."""
+        # Get existing results for the symbol and strategy
+        try:
+            existing_optimization_json = self.get_existing_optimization_results(
+                strategy_name=strategy_name,
+                symbol=symbol,
+                start_date=start_date,
+                end_date=end_date,
+            )
+            if self.stage.output_validation_fn(existing_optimization_json, self.logger):
+                self.logger.info(
+                    f"Test already run for {symbol} {strategy_name} in start date {start_date} and end date {end_date}"
+                )
+                return True
+            else:
+                self.logger.info(
+                    f"No existing test results for {symbol} {strategy_name} in start date {start_date} and end date {end_date}"
+                )
+                return False
+        except Exception as e:
+            self.logger.error(
+                f"Error checking test run for {symbol} {strategy_name}: {e}"
+            )
+            return False
 
     def _get_optimized_params(
         self,
@@ -349,7 +416,7 @@ class StrategyTestingStageCoordinator(BaseTestingStageCoordinator):
         strategy_name: str,
         metrics: Dict[str, float],
         optimization_result: Dict[str, Any],
-        results: Dict[str, Dict[str, dict]],
+        collective_results: Dict[str, Dict[str, dict]],
     ) -> Dict[str, Dict[str, dict]]:
         try:
             self.logger.debug(
@@ -370,24 +437,30 @@ class StrategyTestingStageCoordinator(BaseTestingStageCoordinator):
             metrics = {k: metrics.get(k, 0.0) for k in required_metrics}
 
             # Update the optimization result dictionary
-            optimization_result.setdefault(self.test_window_id, {})
-            optimization_result[self.test_window_id]["test"] = {
-                "metrics": metrics,
+            test_optimization_json = {
+                self.test_window_id: {
+                    "test": {
+                        "metrics": metrics,
+                    },
+                    "window": {
+                        "start_date": self.test_start_date.strftime("%Y-%m-%d"),
+                        "end_date": self.test_end_date.strftime("%Y-%m-%d"),
+                        "window_id": self.test_window_id,
+                    },
+                }
             }
+
+            updated_optimization_json = self._deep_merge(
+                test_optimization_json, optimization_result
+            )
 
             self.logger.debug(
-                f"Optimization result after update: {optimization_result}"
+                f"Optimization result after update: {updated_optimization_json}"
             )
 
-            # Update the results dictionary
-            results.setdefault(symbol, {}).setdefault(strategy_name, {}).setdefault(
-                self.test_window_id, {}
+            self.logger.debug(
+                f"Results dictionary after update: {updated_optimization_json}"
             )
-            results[symbol][strategy_name][self.test_window_id] = {
-                "metrics": metrics,
-            }
-
-            self.logger.debug(f"Results dictionary after update: {results}")
 
             # Save the updated optimization results to the file
             test_opt_results_path = self._get_optimization_result_path(
@@ -400,10 +473,17 @@ class StrategyTestingStageCoordinator(BaseTestingStageCoordinator):
                 f"Saving test results for {strategy_name} and symbol {symbol} to {test_opt_results_path}"
             )
             with open(test_opt_results_path, "w") as f:
-                json.dump(optimization_result, f, indent=2, default=str)
+                json.dump(updated_optimization_json, f, indent=2, default=str)
 
+            # Update the results dictionary
+            collective_results.setdefault(symbol, {}).setdefault(
+                strategy_name, {}
+            ).setdefault(self.test_window_id, {})
+            collective_results[symbol][strategy_name][self.test_window_id] = {
+                "metrics": metrics,
+            }
         except Exception as e:
             self.logger.error(
                 f"Error writing test results for {strategy_name} during {self.test_window_id}: {e}"
             )
-        return results
+        return collective_results

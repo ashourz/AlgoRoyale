@@ -2,7 +2,6 @@ import asyncio
 import os
 from datetime import datetime
 from typing import TYPE_CHECKING
-from algo_royale.logging.loggable import Loggable
 
 from matplotlib.dates import relativedelta
 
@@ -21,6 +20,7 @@ from algo_royale.backtester.stage_coordinator.testing.base_testing_stage_coordin
 )
 from algo_royale.backtester.stage_data.loader.stage_data_loader import StageDataLoader
 from algo_royale.backtester.stage_data.stage_data_manager import StageDataManager
+from algo_royale.logging.loggable import Loggable
 
 if TYPE_CHECKING:
     pass
@@ -94,37 +94,43 @@ class WalkForwardCoordinator:
             for window in self.walk_forward_windows(
                 end_date=end_date, n_trials=n_trials, window_size=window_size
             ):
-                train_start = window["train_start"]
-                train_end = window["train_end"]
-                test_start = window["test_start"]
-                test_end = window["test_end"]
+                try:
+                    train_start = window["train_start"]
+                    train_end = window["train_end"]
+                    test_start = window["test_start"]
+                    test_end = window["test_end"]
 
-                # Optionally: log or print the window
-                self.logger.info(
-                    f"Train {train_start.date()} to {train_end.date()}, "
-                    f"Test {test_start.date()} to {test_end.date()}"
-                )
-                # Run the pipeline for this window
-                window_result = await self.run_window(
-                    train_start=train_start,
-                    train_end=train_end,
-                    test_start=test_start,
-                    test_end=test_end,
-                )
-                if not window_result:
-                    self.logger.error(
-                        f"Walk-forward failed: "
+                    # Optionally: log or print the window
+                    self.logger.info(
                         f"Train {train_start.date()} to {train_end.date()}, "
                         f"Test {test_start.date()} to {test_end.date()}"
                     )
-                    continue  # Skip to the next window
-                self.logger.info("Walk-forward completed successfully")
+                    # Run the pipeline for this window
+                    window_result = await self._run_window(
+                        train_start=train_start,
+                        train_end=train_end,
+                        test_start=test_start,
+                        test_end=test_end,
+                    )
+                    if not window_result:
+                        self.logger.error(
+                            f"Walk-forward failed: "
+                            f"Train {train_start.date()} to {train_end.date()}, "
+                            f"Test {test_start.date()} to {test_end.date()}"
+                        )
+                        continue  # Skip to the next window
+                    self.logger.info("Walk-forward completed successfully")
+                except Exception as e:
+                    self.logger.error(
+                        f"Walk-forward failed for window {train_start.date()} to {train_end.date()}: {e}"
+                    )
+                    continue
             return True
         except Exception as e:
             self.logger.error(f"Walk-forward failed: {e}")
             return False
 
-    async def run_window(self, train_start, train_end, test_start, test_end):
+    async def _run_window(self, train_start, train_end, test_start, test_end):
         """Run the pipeline for a single walk-forward window."""
         self.logger.info(
             f"Walk-forward: Train: {train_start.date()} to {train_end.date()} | Test: {test_start.date()} to {test_end.date()}"
@@ -171,52 +177,53 @@ class WalkForwardCoordinator:
             self.logger.error("Optimization stage failed")
             return False
 
-        # Data ingest for test window
-        self.logger.info(
-            f"Running data ingest for test window: {test_start.date()} to {test_end.date()}"
-        )
-        ingest_success = await self.data_ingest_stage_coordinator.run(
-            start_date=test_start, end_date=test_end
-        )
-        if not ingest_success:
-            self.logger.error(
-                f"Data ingest stage failed for test window: {test_start.date()} to {test_end.date()}"
-            )
-            return False
+        # TODO: UNCOMMENT
+        # # Data ingest for test window
+        # self.logger.info(
+        #     f"Running data ingest for test window: {test_start.date()} to {test_end.date()}"
+        # )
+        # ingest_success = await self.data_ingest_stage_coordinator.run(
+        #     start_date=test_start, end_date=test_end
+        # )
+        # if not ingest_success:
+        #     self.logger.error(
+        #         f"Data ingest stage failed for test window: {test_start.date()} to {test_end.date()}"
+        #     )
+        #     return False
 
-        # Check if data has been ingested for the test window
-        if not self.has_ingested_data(test_start, test_end):
-            self.logger.error(
-                f"Data not ingested for test window: {test_start.date()} to {test_end.date()}"
-            )
-            return False
+        # # Check if data has been ingested for the test window
+        # if not self.has_ingested_data(test_start, test_end):
+        #     self.logger.error(
+        #         f"Data not ingested for test window: {test_start.date()} to {test_end.date()}"
+        #     )
+        #     return False
 
-        # Feature engineering for test window
-        self.logger.info(
-            f"Running feature engineering for test window: {test_start.date()} to {test_end.date()}"
-        )
-        fe_success = await self.feature_engineering_stage_coordinator.run(
-            start_date=test_start, end_date=test_end
-        )
-        if not fe_success:
-            self.logger.error("Feature engineering stage failed")
-            return False
+        # # Feature engineering for test window
+        # self.logger.info(
+        #     f"Running feature engineering for test window: {test_start.date()} to {test_end.date()}"
+        # )
+        # fe_success = await self.feature_engineering_stage_coordinator.run(
+        #     start_date=test_start, end_date=test_end
+        # )
+        # if not fe_success:
+        #     self.logger.error("Feature engineering stage failed")
+        #     return False
 
-        # Test on test window using best params from train_results
-        self.logger.info(
-            f"Running backtest for test window: {test_start.date()} to {test_end.date()}"
-        )
-        testing_results = await self.testing_stage_coordinator.run(
-            train_start_date=train_start,
-            train_end_date=train_end,
-            test_start_date=test_start,
-            test_end_date=test_end,
-        )
-        if not testing_results:
-            self.logger.error(
-                f"Testing stage failed for test window: {test_start.date()} to {test_end.date()}: testing_results is empty"
-            )
-            return False
+        # # Test on test window using best params from train_results
+        # self.logger.info(
+        #     f"Running backtest for test window: {test_start.date()} to {test_end.date()}"
+        # )
+        # testing_results = await self.testing_stage_coordinator.run(
+        #     train_start_date=train_start,
+        #     train_end_date=train_end,
+        #     test_start_date=test_start,
+        #     test_end_date=test_end,
+        # )
+        # if not testing_results:
+        #     self.logger.error(
+        #         f"Testing stage failed for test window: {test_start.date()} to {test_end.date()}: testing_results is empty"
+        #     )
+        #     return False
 
         return True
 

@@ -1,11 +1,13 @@
 import json
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, AsyncIterator, Callable, Dict, Optional, Sequence
-from algo_royale.logging.loggable import Loggable
 
 import pandas as pd
 
+from algo_royale.backtester.column_names.feature_engineering_columns import (
+    FeatureEngineeringColumns,
+)
 from algo_royale.backtester.data_preparer.asset_matrix_preparer import (
     AssetMatrixPreparer,
 )
@@ -30,6 +32,7 @@ from algo_royale.backtester.stage_data.stage_data_manager import StageDataManage
 from algo_royale.backtester.strategy_combinator.portfolio.base_portfolio_strategy_combinator import (
     PortfolioStrategyCombinator,
 )
+from algo_royale.logging.loggable import Loggable
 
 
 class PortfolioOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
@@ -141,6 +144,7 @@ class PortfolioOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
                         if hasattr(strategy_class, "__name__")
                         else str(strategy_class)
                     )
+                    symbols = list(data.keys())
                     self.logger.debug(f"DEBUG: Optimizing strategy: {strategy_name}")
                     optimizer = self.portfolio_strategy_optimizer_factory.create(
                         strategy_class=strategy_class,
@@ -150,10 +154,10 @@ class PortfolioOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
                         metric_name=PortfolioMetric.SHARPE_RATIO,
                     )
                     optimization_result = await optimizer.optimize(
-                        self.stage.name,
-                        portfolio_matrix,
-                        self.start_date,
-                        self.end_date,
+                        symbols=symbols,
+                        df=portfolio_matrix,
+                        window_start_time=self.start_date,
+                        window_end_time=self.end_date,
                     )
                     self.logger.debug(
                         f"DEBUG: Optimization result for {strategy_name}: {optimization_result}"
@@ -215,6 +219,16 @@ class PortfolioOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
                     self.logger.debug(f"DEBUG: DataFrame for {symbol}: {df}")
                     self.logger.debug(f"DEBUG: DataFrame columns: {df.columns}")
                     self.logger.debug(f"DEBUG: DataFrame shape: {df.shape}")
+                    # Diagnostics for NaNs and value range
+                    self.logger.debug(f"DEBUG: {symbol} head:\n{df.head()}")
+                    self.logger.debug(f"DEBUG: {symbol} tail:\n{df.tail()}")
+                    self.logger.debug(f"DEBUG: {symbol} NaN count:\n{df.isna().sum()}")
+                    self.logger.debug(
+                        f"DEBUG: {symbol} min:\n{df.min(numeric_only=True)}"
+                    )
+                    self.logger.debug(
+                        f"DEBUG: {symbol} max:\n{df.max(numeric_only=True)}"
+                    )
                     df["symbol"] = symbol  # Optionally tag symbol
                     all_dfs.append(df)
 
@@ -223,7 +237,21 @@ class PortfolioOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
                 return None
 
             portfolio_df = pd.concat(all_dfs, ignore_index=True)
-            self.logger.debug(f"DEBUG: Combined portfolio DataFrame: {portfolio_df}")
+            self.logger.debug(
+                f"DEBUG: Combined portfolio DataFrame head:\n{portfolio_df.head()}"
+            )
+            self.logger.debug(
+                f"DEBUG: Combined portfolio DataFrame tail:\n{portfolio_df.tail()}"
+            )
+            self.logger.debug(
+                f"DEBUG: Combined portfolio DataFrame NaN count:\n{portfolio_df.isna().sum()}"
+            )
+            self.logger.debug(
+                f"DEBUG: Combined portfolio DataFrame min:\n{portfolio_df.min(numeric_only=True)}"
+            )
+            self.logger.debug(
+                f"DEBUG: Combined portfolio DataFrame max:\n{portfolio_df.max(numeric_only=True)}"
+            )
             self.logger.debug(
                 f"DEBUG: Combined portfolio DataFrame columns: {portfolio_df.columns}"
             )
@@ -231,15 +259,60 @@ class PortfolioOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
                 f"DEBUG: Combined portfolio DataFrame shape: {portfolio_df.shape}"
             )
 
+            # Filter for true price columns only
+            PRICE_COLUMN_NAMES = [
+                FeatureEngineeringColumns.CLOSE_PRICE,
+                FeatureEngineeringColumns.OPEN_PRICE,
+                FeatureEngineeringColumns.HIGH_PRICE,
+                FeatureEngineeringColumns.LOW_PRICE,
+            ]
+            price_columns = [
+                col for col in portfolio_df.columns if col in PRICE_COLUMN_NAMES
+            ]
+            if not price_columns:
+                self.logger.error(
+                    f"No price columns found in combined portfolio DataFrame. Columns: {list(portfolio_df.columns)}"
+                )
+                return None
+            # Always include 'symbol' and 'timestamp' columns if present
+            extra_cols = []
+            if FeatureEngineeringColumns.SYMBOL in portfolio_df.columns:
+                extra_cols.append(FeatureEngineeringColumns.SYMBOL)
+            if FeatureEngineeringColumns.TIMESTAMP in portfolio_df.columns:
+                extra_cols.append(FeatureEngineeringColumns.TIMESTAMP)
+            portfolio_df = portfolio_df[price_columns + extra_cols]
+            self.logger.debug(
+                f"Filtered price columns for portfolio matrix: {price_columns}"
+            )
+
             try:
-                print(f"DEBUG: Combined portfolio DataFrame: {portfolio_df}")
+                print(f"DEBUG: Filtered portfolio DataFrame: {portfolio_df}")
                 print(
-                    f"DEBUG: Combined portfolio DataFrame columns: {portfolio_df.columns}"
+                    f"DEBUG: Filtered portfolio DataFrame columns: {portfolio_df.columns}"
                 )
                 print(
-                    f"DEBUG: Combined portfolio DataFrame shape: {portfolio_df.shape}"
+                    f"DEBUG: Filtered portfolio DataFrame shape: {portfolio_df.shape}"
                 )
-                portfolio_matrix = self.asset_matrix_preparer.prepare(portfolio_df)
+                portfolio_matrix = self.asset_matrix_preparer.prepare(
+                    df=portfolio_df,
+                    symbol_col=FeatureEngineeringColumns.SYMBOL,
+                    timestamp_col=FeatureEngineeringColumns.TIMESTAMP,
+                )
+                self.logger.debug(
+                    f"DEBUG: Asset-matrix DataFrame head:\n{portfolio_matrix.head()}"
+                )
+                self.logger.debug(
+                    f"DEBUG: Asset-matrix DataFrame tail:\n{portfolio_matrix.tail()}"
+                )
+                self.logger.debug(
+                    f"DEBUG: Asset-matrix DataFrame NaN count:\n{portfolio_matrix.isna().sum()}"
+                )
+                self.logger.debug(
+                    f"DEBUG: Asset-matrix DataFrame min:\n{portfolio_matrix.min(numeric_only=True)}"
+                )
+                self.logger.debug(
+                    f"DEBUG: Asset-matrix DataFrame max:\n{portfolio_matrix.max(numeric_only=True)}"
+                )
                 print(f"DEBUG: Asset-matrix DataFrame shape: {portfolio_matrix.shape}")
                 return portfolio_matrix
             except Exception as e:
@@ -268,8 +341,14 @@ class PortfolioOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
                 f"Running backtest for strategy {strategy.get_id()} on data from {df.index.min()} to {df.index.max()}"
             )
             backtest_results = self.executor.run_backtest(strategy, df)
+            self.logger.debug(
+                f"Backtest results for strategy {strategy.get_id()}: {backtest_results}"
+            )
             print(f"DEBUG: run_backtest returned: {backtest_results}")
-            metrics = self.evaluator.evaluate(strategy, backtest_results)
+            metrics = self.evaluator.evaluate_from_dict(backtest_results)
+            self.logger.debug(
+                f"Backtest completed for strategy {strategy.get_id()} with metrics: {metrics}"
+            )
             print(f"DEBUG: evaluator.evaluate returned: {metrics}")
             self.logger.info(
                 f"Backtest completed for strategy {strategy.get_id()} with metrics: {metrics}"
@@ -329,13 +408,14 @@ class PortfolioOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
         to the optimization_result.json file under the specified window_id.
         It ensures that the results are stored in a structured format, keyed by symbol and strategy name
         """
+
         try:
             # Update the results dictionary with the optimization results
             for symbol in symbols:
                 results.setdefault(symbol, {}).setdefault(strategy_name, {}).setdefault(
                     self.window_id, {}
                 )
-                results[symbol][strategy_name][self.window_id] = {
+                results[self.window_id] = {
                     "optimization": optimization_result,
                     "window": {
                         "start_date": start_date.strftime("%Y-%m-%d"),
@@ -344,18 +424,34 @@ class PortfolioOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
                     },
                 }
 
-            # Save optimization metrics to optimization_result.json under window_id
+            # Prepare summary object
+            summary = {
+                "status": "completed",
+                "timestamp": datetime.now(timezone.utc)
+                .replace(microsecond=0)
+                .isoformat()
+                .replace("+00:00", "Z"),
+                "parameters": {
+                    "symbols": symbols,
+                    "window": f"{start_date.strftime('%Y-%m-%d')} to {end_date.strftime('%Y-%m-%d')}",
+                },
+                "results": results if results else {},
+                "message": "Optimization completed"
+                if results
+                else "No valid optimization results",
+            }
+
+            # Save summary to optimization_result.json under window_id
             out_path = self._get_output_path(
                 strategy_name,
                 start_date,
                 end_date,
             )
             self.logger.info(
-                f"Saving portfolio optimization results for PORTFOLIO {strategy_name} to {out_path}"
+                f"Saving portfolio optimization summary for PORTFOLIO {strategy_name} to {out_path}"
             )
-            # Write the updated results back to the file
             with open(out_path, "w") as f:
-                json.dump(results, f, indent=2, default=str)
+                json.dump(summary, f, indent=2, default=str)
 
         except Exception as e:
             self.logger.error(

@@ -1,5 +1,4 @@
-from typing import Any, Dict
-from algo_royale.logging.loggable import Loggable
+from typing import Any, Dict, Optional
 
 import numpy as np
 import pandas as pd
@@ -7,6 +6,7 @@ import pandas as pd
 from algo_royale.backtester.evaluator.backtest.base_backtest_evaluator import (
     BacktestEvaluator,
 )
+from algo_royale.logging.loggable import Loggable
 
 
 class PortfolioBacktestEvaluator(BacktestEvaluator):
@@ -17,7 +17,9 @@ class PortfolioBacktestEvaluator(BacktestEvaluator):
     def __init__(self, logger: Loggable):
         super().__init__(logger)
 
-    def _evaluate_signals(self, signals_df: pd.DataFrame) -> Dict[str, Any]:
+    def _evaluate_signals(
+        self, signals_df: pd.DataFrame, trades: Optional[list] = None
+    ) -> Dict[str, Any]:
         """
         Evaluate portfolio backtest results and compute key performance metrics.
 
@@ -46,12 +48,14 @@ class PortfolioBacktestEvaluator(BacktestEvaluator):
                 "Evaluating portfolio backtest results and computing performance metrics."
             )
             self.logger.debug(
-                f"Signals DataFrame shape: {signals_df.shape}\n"
-                f"Signals DataFrame columns: {signals_df.columns.tolist()}"
+                f"[EVAL] DataFrame shape: {signals_df.shape}, columns: {signals_df.columns.tolist()}"
+            )
+            self.logger.debug(
+                f"[EVAL] DataFrame head:\n{signals_df.head()}\nData types:\n{signals_df.dtypes}"
             )
 
             # Validate the input DataFrame
-            self._validate_dataframe(signals_df, context="input")
+            self._validate_dataframe(signals_df)
 
             # Use portfolio_values if available, else fallback to portfolio_returns
             if signals_df.empty:
@@ -73,11 +77,20 @@ class PortfolioBacktestEvaluator(BacktestEvaluator):
                 }
             if "portfolio_values" in signals_df:
                 values = pd.Series(signals_df["portfolio_values"])
+                self.logger.debug(
+                    f"[EVAL] portfolio_values length: {len(values)}, index: {values.index}"
+                )
                 returns = values.pct_change().fillna(0)
             else:
                 returns = pd.Series(signals_df["portfolio_returns"])
+                self.logger.debug(
+                    f"[EVAL] portfolio_returns length: {len(returns)}, index: {returns.index}"
+                )
             # Defensive: drop NaN/inf
             returns = returns.replace([np.inf, -np.inf], np.nan).dropna()
+            self.logger.debug(
+                f"[EVAL] Cleaned returns length: {len(returns)}, head: {returns.head()}"
+            )
             if returns.empty or (returns == 0).all():
                 self.logger.error(
                     "No valid or non-zero returns in input DataFrame. Cannot compute metrics."
@@ -108,8 +121,11 @@ class PortfolioBacktestEvaluator(BacktestEvaluator):
             win_rate = float((returns > 0).sum() / len(returns))
             profit_factor = self.profit_factor(returns)
             num_trades = None
-            if "trades" in signals_df and signals_df["trades"] is not None:
-                num_trades = len(signals_df["trades"])
+            if trades is not None:
+                num_trades = len(trades)
+            self.logger.debug(
+                f"[EVAL] Metrics: total_return={total_return}, mean_return={mean_return}, volatility={volatility}, sharpe_ratio={sharpe_ratio}, max_drawdown={max_dd}, sortino_ratio={sortino_ratio}, calmar_ratio={calmar_ratio}, win_rate={win_rate}, profit_factor={profit_factor}, num_trades={num_trades}"
+            )
             metrics = {
                 "total_return": total_return,
                 "mean_return": mean_return,
@@ -125,10 +141,39 @@ class PortfolioBacktestEvaluator(BacktestEvaluator):
                 metrics["num_trades"] = num_trades
             return metrics
         except Exception as e:
-            self.logger.error(f"Evaluation failed: {e}")
+            self.logger.error(f"[EVAL] Evaluation failed: {e}")
+            self.logger.debug("[EVAL] Exception details:", exc_info=True)
             raise ValueError(
                 f"Evaluation failed: {e}. Please check the input DataFrame and ensure it contains valid data."
             )
+
+    def evaluate_from_dict(self, result: dict) -> dict:
+        """
+        Evaluate portfolio backtest results from a result dictionary.
+        """
+        # Build DataFrame for evaluation
+        if "portfolio_values" in result and "portfolio_returns" in result:
+            df = pd.DataFrame(
+                {
+                    "portfolio_values": result["portfolio_values"],
+                    "portfolio_returns": result["portfolio_returns"],
+                }
+            )
+        elif "portfolio_values" in result:
+            df = pd.DataFrame({"portfolio_values": result["portfolio_values"]})
+            df["portfolio_returns"] = (
+                pd.Series(result["portfolio_values"]).pct_change().fillna(0)
+            )
+        elif "portfolio_returns" in result:
+            df = pd.DataFrame({"portfolio_returns": result["portfolio_returns"]})
+        else:
+            self.logger.error(
+                "No portfolio_values or portfolio_returns in result dict."
+            )
+            return {}
+        # Optionally add trades if present
+        trades = result["transactions"] if "transactions" in result else None
+        return self._evaluate_signals(df, trades=trades)
 
     def _validate_dataframe(self, df: pd.DataFrame) -> None:
         """
@@ -144,9 +189,6 @@ class PortfolioBacktestEvaluator(BacktestEvaluator):
             if df[col].isnull().any():
                 self.logger.error(f"Null values found in essential column: {col}")
                 raise ValueError(f"Null values found in essential column: {col}")
-            if (df[col] <= 0).any():
-                self.logger.error(f"Invalid values found in essential column: {col}")
-                raise ValueError(f"Invalid values found in essential column: {col}")
 
     @staticmethod
     def max_drawdown(returns: pd.Series) -> float:
