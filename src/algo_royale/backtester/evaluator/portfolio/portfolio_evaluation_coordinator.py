@@ -7,15 +7,15 @@ from algo_royale.logging.logger_factory import mockLogger
 
 class PortfolioEvaluationCoordinator:
     """
-    Aggregates and compares walk-forward evaluation results across all portfolio strategies for each symbol,
+    Aggregates and compares walk-forward evaluation results across all portfolio strategies for each strategy,
     and selects the best strategy based on viability_score and param_consistency.
-    Writes a detailed summary for each symbol and a global summary for all recommendations.
+    Writes a detailed summary for each strategy and a global summary for all recommendations.
     Parameters:
-        optimization_root (Path): Root directory containing symbol directories with strategy evaluations.
+        optimization_root (Path): Root directory containing strategy directories with strategy evaluations.
         strategy_window_evaluation_json_filename (str): Name of the JSON file containing walk-forward evaluation
             results for each strategy.
         strategy_summary_json_filename (str): Name of the JSON file to write the summary report for
-            each symbol.
+            each strategy.
         global_summary_json_filename (str): Name of the JSON file to write the global summary report.
         viability_threshold (float): Minimum viability score for a strategy to be considered viable.
     """
@@ -44,16 +44,30 @@ class PortfolioEvaluationCoordinator:
         try:
             global_summary = {}
             self.logger.info("Starting portfolio evaluation...")
-            # Loop over all symbol directories
-            for symbol_dir in self.optimization_root.iterdir():
+            # Loop over all strategy directories
+            for strategy_dir in self.optimization_root.iterdir():
                 try:
-                    if not symbol_dir.is_dir():
+                    self.logger.debug(f"Found strategy directory: {strategy_dir}")
+                    if not strategy_dir.is_dir():
+                        self.logger.debug(f"Skipping non-directory: {strategy_dir}")
                         continue
-                    symbol = symbol_dir.name
-                    self.logger.info(f"Evaluating symbol: {symbol}")
-                    strategy_dirs = [d for d in symbol_dir.iterdir() if d.is_dir()]
+                    strategy = strategy_dir.name
+                    self.logger.info(f"Evaluating strategy: {strategy}")
+                    strategy_dirs = [d for d in strategy_dir.iterdir() if d.is_dir()]
+                    if not strategy_dirs:
+                        self.logger.warning(
+                            f"No strategy directories found for strategy {strategy}. Skipping."
+                        )
+                        continue
+                    self.logger.debug(
+                        f"Found {len(strategy_dirs)} strategy directories for strategy {strategy}."
+                    )
                     results = []
                     for strat_dir in strategy_dirs:
+                        self.logger.debug(
+                            f"Processing strategy directory: {strat_dir} / {self.evaluation_json_filename}"
+                        )
+                        # Load evaluation results for this strategy
                         eval_path = strat_dir / self.evaluation_json_filename
                         if eval_path.exists():
                             self.logger.debug(f"Loading evaluation: {eval_path}")
@@ -64,23 +78,28 @@ class PortfolioEvaluationCoordinator:
                         else:
                             self.logger.debug(f"No evaluation file found: {eval_path}")
 
-                    summary_path = symbol_dir / self.summary_json_filename
+                    self.logger.debug(
+                        f"Processing strategy summary directory: {strat_dir} / {self.summary_json_filename}"
+                    )
+                    summary_path = strategy_dir / self.summary_json_filename
                     if not results:
-                        self.logger.warning(f"No evaluation results found for {symbol}")
-                        # Write a default summary for the symbol
+                        self.logger.warning(
+                            f"No evaluation results found for {strategy}"
+                        )
+                        # Write a default summary for the strategy
                         summary = {
-                            "symbol": symbol,
+                            "strategy": strategy,
                             "recommended_strategy": None,
                             "viability_score": None,
                             "param_consistency": None,
                             "metrics": {},
                             "allocation_params": {},
-                            "rationale": "No evaluation results found for this symbol.",
+                            "rationale": "No evaluation results found for this strategy.",
                             "status": "no_results",
                         }
                         with open(summary_path, "w") as f:
                             json.dump(summary, f, indent=2)
-                        global_summary[symbol] = summary
+                        global_summary[strategy] = summary
                         continue
 
                     # Filter only viable strategies
@@ -91,6 +110,9 @@ class PortfolioEvaluationCoordinator:
                     ]
 
                     if viable_strategies:
+                        self.logger.info(
+                            f"Found {len(viable_strategies)} viable strategies for {strategy}."
+                        )
                         # Sort by viability_score, then by param_consistency
                         best = max(
                             viable_strategies,
@@ -104,10 +126,13 @@ class PortfolioEvaluationCoordinator:
                             f" and parameter consistency (={best.get('param_consistency', 0)})"
                         )
                         self.logger.info(
-                            f"Selected strategy for {symbol}: {best['strategy']} "
+                            f"Selected strategy for {strategy}: {best['strategy']} "
                             f"(viability_score={best['viability_score']}, param_consistency={best.get('param_consistency', 0)})"
                         )
                     else:
+                        self.logger.warning(
+                            f"No viable strategies found for {strategy} (threshold={self.viability_threshold})."
+                        )
                         # If no viable strategy, pick the one with highest viability_score anyway
                         best = max(results, key=lambda r: r.get("viability_score", 0))
                         rationale = (
@@ -115,13 +140,13 @@ class PortfolioEvaluationCoordinator:
                             f"Selected best available by viability_score (={best['viability_score']})."
                         )
                         self.logger.warning(
-                            f"No viable strategy found for {symbol}. "
+                            f"No viable strategy found for {strategy}. "
                             f"Best available: {best['strategy']} (viability_score={best['viability_score']})"
                         )
 
                     # Prepare detailed summary
                     summary = {
-                        "symbol": symbol,
+                        "strategy": strategy,
                         "recommended_strategy": best["strategy"],
                         "viability_score": best.get("viability_score"),
                         "param_consistency": best.get("param_consistency"),
@@ -140,22 +165,22 @@ class PortfolioEvaluationCoordinator:
                         "rationale": rationale,
                         "status": "ok",
                     }
-                    global_summary[symbol] = summary
+                    global_summary[strategy] = summary
 
-                    # Write a summary report for the symbol
+                    # Write a summary report for the strategy
                     with open(summary_path, "w") as f:
                         json.dump(summary, f, indent=2)
                     self.logger.info(
-                        f"Portfolio symbol evaluation report written to {summary_path}"
+                        f"Portfolio strategy evaluation report written to {summary_path}"
                     )
                 except Exception as e:
                     self.logger.error(
-                        f"Error during evaluation for symbol {symbol}: {e}",
+                        f"Error during evaluation for strategy {strategy}: {e}",
                         exc_info=True,
                     )
-                    # Still write a summary file for the symbol with error info
+                    # Still write a summary file for the strategy with error info
                     summary = {
-                        "symbol": symbol if "symbol" in locals() else None,
+                        "strategy": strategy if "strategy" in locals() else None,
                         "recommended_strategy": None,
                         "viability_score": None,
                         "param_consistency": None,
@@ -164,9 +189,9 @@ class PortfolioEvaluationCoordinator:
                         "rationale": f"Error during evaluation: {e}",
                         "status": "error",
                     }
-                    with open(symbol_dir / self.summary_json_filename, "w") as f:
+                    with open(strategy_dir / self.summary_json_filename, "w") as f:
                         json.dump(summary, f, indent=2)
-                    global_summary[symbol] = summary
+                    global_summary[strategy] = summary
                     continue
 
             # Write a global summary file
@@ -177,7 +202,7 @@ class PortfolioEvaluationCoordinator:
                 # Write a default global summary if no results at all
                 global_summary_obj = {
                     "status": "no_results",
-                    "message": "No evaluation results found for any symbol.",
+                    "message": "No evaluation results found for any strategy.",
                     "results": {},
                 }
             else:

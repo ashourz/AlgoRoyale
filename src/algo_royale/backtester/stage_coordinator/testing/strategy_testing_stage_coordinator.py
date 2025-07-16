@@ -472,10 +472,6 @@ class StrategyTestingStageCoordinator(BaseTestingStageCoordinator):
                 f"Optimization result after update: {updated_optimization_json}"
             )
 
-            self.logger.debug(
-                f"Results dictionary after update: {updated_optimization_json}"
-            )
-
             # Save the updated optimization results to the file
             test_opt_results_path = self._get_optimization_result_path(
                 strategy_name=strategy_name,

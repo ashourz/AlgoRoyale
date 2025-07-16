@@ -1,5 +1,5 @@
 import json
-from datetime import datetime, timezone
+from datetime import datetime
 from pathlib import Path
 from typing import Any, AsyncIterator, Callable, Dict, Optional, Sequence
 
@@ -170,12 +170,11 @@ class PortfolioOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
                         continue
 
                     results = self._write_results(
-                        symbols=list(data.keys()),
                         start_date=self.start_date,
                         end_date=self.end_date,
                         strategy_name=strategy_name,
                         optimization_result=optimization_result,
-                        results=results,
+                        collective_results=results,
                     )
                     self.logger.debug(
                         f"DEBUG: Results updated for {strategy_name}: {results}"
@@ -396,26 +395,16 @@ class PortfolioOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
 
     def _write_results(
         self,
-        symbols: list[str],
         start_date: datetime,
         end_date: datetime,
         strategy_name: str,
         optimization_result: Dict[str, Any],
-        results: Dict[str, Dict[str, dict]],
+        collective_results: Dict[str, Dict[str, dict]],
     ) -> Dict[str, Dict[str, dict]]:
-        """Write the optimization results to a JSON file.
-        This method saves the optimization results for the given strategy and symbols
-        to the optimization_result.json file under the specified window_id.
-        It ensures that the results are stored in a structured format, keyed by symbol and strategy name
-        """
-
+        """Write the optimization results to a JSON file (cleaned up format)."""
         try:
-            # Update the results dictionary with the optimization results
-            for symbol in symbols:
-                results.setdefault(symbol, {}).setdefault(strategy_name, {}).setdefault(
-                    self.window_id, {}
-                )
-                results[self.window_id] = {
+            optimization_json = {
+                self.window_id: {
                     "optimization": optimization_result,
                     "window": {
                         "start_date": start_date.strftime("%Y-%m-%d"),
@@ -423,25 +412,24 @@ class PortfolioOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
                         "window_id": f"{start_date.strftime('%Y%m%d')}_{end_date.strftime('%Y%m%d')}",
                     },
                 }
-
-            # Prepare summary object
-            summary = {
-                "status": "completed",
-                "timestamp": datetime.now(timezone.utc)
-                .replace(microsecond=0)
-                .isoformat()
-                .replace("+00:00", "Z"),
-                "parameters": {
-                    "symbols": symbols,
-                    "window": f"{start_date.strftime('%Y-%m-%d')} to {end_date.strftime('%Y-%m-%d')}",
-                },
-                "results": results if results else {},
-                "message": "Optimization completed"
-                if results
-                else "No valid optimization results",
             }
 
-            # Save summary to optimization_result.json under window_id
+            # Get existing results for the symbol and strategy
+            existing_optimization_json = self.get_existing_optimization_results(
+                strategy_name=strategy_name,
+                start_date=start_date,
+                end_date=end_date,
+            )
+            if existing_optimization_json is None:
+                self.logger.warning(
+                    f"No existing optimization results for {strategy_name} {self.window_id}"
+                )
+                existing_optimization_json = {}
+
+            updated_optimization_json = self._deep_merge(
+                existing_optimization_json, optimization_json
+            )
+            # Save optimization metrics to optimization_result.json under window_id
             out_path = self._get_output_path(
                 strategy_name,
                 start_date,
@@ -451,10 +439,38 @@ class PortfolioOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
                 f"Saving portfolio optimization summary for PORTFOLIO {strategy_name} to {out_path}"
             )
             with open(out_path, "w") as f:
-                json.dump(summary, f, indent=2, default=str)
+                json.dump(updated_optimization_json, f, indent=2, default=str)
 
+            # Update the results dictionary to match the validator's requirements
+            collective_results[strategy_name] = updated_optimization_json
         except Exception as e:
             self.logger.error(
                 f"Error writing optimization results for {strategy_name} during {self.window_id}: {e}"
             )
-        return results
+        return collective_results
+
+    def get_existing_optimization_results(
+        self, strategy_name: str, start_date: datetime, end_date: datetime
+    ) -> Dict[str, dict]:
+        """Retrieve existing optimization results for a given strategy and symbol."""
+        try:
+            self.logger.info(
+                f"Retrieving optimization results for {strategy_name} during {self.window_id}"
+            )
+            train_opt_results = self._get_optimization_results(
+                strategy_name=strategy_name,
+                symbol=None,
+                start_date=start_date,
+                end_date=end_date,
+            )
+            if train_opt_results is None:
+                self.logger.warning(
+                    f"No optimization result for {strategy_name} {self.window_id}"
+                )
+                return {}
+            return train_opt_results
+        except Exception as e:
+            self.logger.error(
+                f"Error retrieving optimization results for {strategy_name} during {self.window_id}: {e}"
+            )
+            return None

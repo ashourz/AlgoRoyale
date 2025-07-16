@@ -157,12 +157,11 @@ class PortfolioTestingStageCoordinator(BaseTestingStageCoordinator):
                 self.logger.debug(f"DEBUG: Metrics: {metrics}")
 
                 results = self._write_test_results(
-                    symbols=list(data.keys()),
                     metrics=metrics,
                     strategy_name=strategy_name,
                     backtest_results=backtest_results,
                     optimization_result=test_opt_results,
-                    results=results,
+                    collective_results=results,
                 )
                 self.logger.debug(f"DEBUG: Results before writing: {results}")
 
@@ -315,12 +314,12 @@ class PortfolioTestingStageCoordinator(BaseTestingStageCoordinator):
         strategy_name: str,
         backtest_results: Dict[str, Any],
         optimization_result: Dict[str, Any],
-        results: Dict[str, Dict[str, Dict[str, float]]],
+        collective_results: Dict[str, Dict[str, Dict[str, float]]],
     ) -> Dict[str, Dict[str, Dict[str, float]]]:
         try:
             # Ensure results is a dict
-            if not results or not isinstance(results, dict):
-                results = {}
+            if not collective_results or not isinstance(collective_results, dict):
+                collective_results = {}
 
             # Ensure optimization_result is a dict and has the correct window structure
             if not optimization_result or not isinstance(optimization_result, dict):
@@ -338,43 +337,50 @@ class PortfolioTestingStageCoordinator(BaseTestingStageCoordinator):
             )
 
             # Build the test structure for this window
-            test_dict = {
-                "strategy": strategy_name,
-                "params": best_params,
-                "meta": {
-                    "symbols": symbols,
-                    "window_id": self.test_window_id,
-                    "transactions": backtest_results.get("transactions", []),
-                },
-                "metrics": metrics,
-                "window": {
-                    "start_date": self.test_start_date,
-                    "end_date": self.test_end_date,
-                    "window_id": self.test_window_id,
-                },
+            test_optimization_json = {
+                self.test_window_id: {
+                    "test": {
+                        "strategy": strategy_name,
+                        "params": best_params,
+                        "meta": {
+                            "symbols": symbols,
+                            "window_id": self.test_window_id,
+                            "transactions": backtest_results.get("transactions", []),
+                        },
+                        "metrics": metrics,
+                    },
+                    "window": {
+                        "start_date": self.test_start_date,
+                        "end_date": self.test_end_date,
+                        "window_id": self.test_window_id,
+                    },
+                }
             }
 
-            # Update the optimization result dictionary with test results
-            optimization_result[self.test_window_id]["test"] = test_dict
+            updated_optimization_json = self._deep_merge(
+                test_optimization_json, optimization_result
+            )
 
-            # Optionally, also update results dict for in-memory use
-            results[self.test_window_id] = {"test": test_dict}
+            self.logger.debug(
+                f"Optimization result after update: {updated_optimization_json}"
+            )
 
             # Save the updated optimization results to the file
-            out_path = self._get_optimization_result_path(
+            test_opt_results_path = self._get_optimization_result_path(
                 strategy_name=strategy_name,
                 start_date=self.test_start_date,
                 end_date=self.test_end_date,
                 symbol=None,
             )
             self.logger.info(
-                f"Saving test results for {strategy_name} and symbols {symbols} to {out_path}"
+                f"Saving test results for {strategy_name} to {test_opt_results_path}"
             )
-            with open(out_path, "w") as f:
-                json.dump(optimization_result, f, indent=2, default=str)
+            with open(test_opt_results_path, "w") as f:
+                json.dump(updated_optimization_json, f, indent=2, default=str)
 
+            collective_results[strategy_name] = updated_optimization_json
         except Exception as e:
             self.logger.error(
                 f"Error writing test results for {strategy_name} during {self.test_window_id}: {e}"
             )
-        return results
+        return collective_results
