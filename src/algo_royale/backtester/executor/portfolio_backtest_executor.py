@@ -163,58 +163,66 @@ class PortfolioBacktestExecutor(BacktestExecutor):
                     continue
 
                 trade_dollars[i] = min(trade_dollars[i], max_cost)
-                desired_shares = trade_dollars[i] // (
-                    buy_price * (1 + self.transaction_cost)
-                )
-                desired_shares = min(desired_shares, max_quantity)
 
-                if not np.isfinite(desired_shares) or desired_shares < 0:
-                    self.logger.warning(
-                        f"Skipping buy for {asset_name} at step {t} due to invalid desired_shares: {desired_shares}. trade_dollars[i]: {trade_dollars[i]}, buy_price: {buy_price}, transaction_cost: {self.transaction_cost}"
-                    )
-                    continue
+                # Only attempt buy if trade_dollars[i] is strictly positive and above a small epsilon
+                if trade_dollars[i] > 1e-8:
+                    denom = buy_price * (1 + self.transaction_cost)
+                    if denom <= 0 or not np.isfinite(denom):
+                        self.logger.warning(
+                            f"Skipping buy for {asset_name} at step {t} due to invalid denominator: {denom}."
+                        )
+                        continue
+                    desired_shares = trade_dollars[i] // denom
+                    desired_shares = min(desired_shares, max_quantity)
 
-                shares_to_buy = min(desired_shares, max_quantity)
-                shares_to_buy = shares_to_buy // self.min_lot * self.min_lot
-                if not np.isfinite(shares_to_buy) or shares_to_buy < 0:
-                    self.logger.warning(
-                        f"Skipping buy for {asset_name} at step {t} due to invalid shares_to_buy: {shares_to_buy}. desired_shares: {desired_shares}, max_quantity: {max_quantity}, min_lot: {self.min_lot}"
-                    )
-                    continue
+                    # Only proceed if desired_shares is strictly positive and finite
+                    if not np.isfinite(desired_shares) or desired_shares <= 0:
+                        self.logger.warning(
+                            f"Skipping buy for {asset_name} at step {t} due to non-positive or invalid desired_shares: {desired_shares}. trade_dollars[i]: {trade_dollars[i]}, buy_price: {buy_price}, transaction_cost: {self.transaction_cost}"
+                        )
+                        continue
 
-                # Ensure numerical stability
-                cost = shares_to_buy * buy_price * (1 + self.transaction_cost)
-                if cost > max_cost:
-                    self.logger.warning(
-                        f"Skipping buy for {asset_name} at step {t} due to excessive cost: {cost}"
-                    )
-                    continue
+                    shares_to_buy = min(desired_shares, max_quantity)
+                    shares_to_buy = shares_to_buy // self.min_lot * self.min_lot
+                    if not np.isfinite(shares_to_buy) or shares_to_buy <= 0:
+                        self.logger.warning(
+                            f"Skipping buy for {asset_name} at step {t} due to non-positive or invalid shares_to_buy: {shares_to_buy}. desired_shares: {desired_shares}, max_quantity: {max_quantity}, min_lot: {self.min_lot}"
+                        )
+                        continue
 
-                if (
-                    shares_to_buy > 0
-                    and cost <= cash + (self.leverage - 1) * total_portfolio_value
-                ):
-                    holdings[i] += shares_to_buy
-                    cash -= cost
-                    transactions.append(
-                        {
-                            "trade_id": trade_id,
-                            "timestamp": str(timestamp),
-                            "step": t,
-                            "asset": asset_name,
-                            "action": "buy",
-                            "quantity": int(shares_to_buy),
-                            "price": float(buy_price),
-                            "cost": float(cost),
-                            "cash_after": float(cash),
-                            "holdings_after": float(holdings[i]),
-                        }
-                    )
-                    self.logger.debug(
-                        f"Buy: {shares_to_buy} of {asset_name} at {buy_price} (cost={cost})"
-                    )
-                    trade_id += 1
-                    trades_executed += 1
+                    # Ensure numerical stability
+                    cost = shares_to_buy * buy_price * (1 + self.transaction_cost)
+                    if cost > max_cost:
+                        self.logger.warning(
+                            f"Skipping buy for {asset_name} at step {t} due to excessive cost: {cost}"
+                        )
+                        continue
+
+                    if (
+                        shares_to_buy > 0
+                        and cost <= cash + (self.leverage - 1) * total_portfolio_value
+                    ):
+                        holdings[i] += shares_to_buy
+                        cash -= cost
+                        transactions.append(
+                            {
+                                "trade_id": trade_id,
+                                "timestamp": str(timestamp),
+                                "step": t,
+                                "asset": asset_name,
+                                "action": "buy",
+                                "quantity": int(shares_to_buy),
+                                "price": float(buy_price),
+                                "cost": float(cost),
+                                "cash_after": float(cash),
+                                "holdings_after": float(holdings[i]),
+                            }
+                        )
+                        self.logger.debug(
+                            f"Buy: {shares_to_buy} of {asset_name} at {buy_price} (cost={cost})"
+                        )
+                        trade_id += 1
+                        trades_executed += 1
                 elif trade_dollars[i] < 0:  # Sell
                     shares_to_sell = min(-trade_dollars[i] // sell_price, holdings[i])
                     # Robustify: check for NaN/inf before int conversion

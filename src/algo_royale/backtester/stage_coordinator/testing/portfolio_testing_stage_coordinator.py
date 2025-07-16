@@ -106,17 +106,17 @@ class PortfolioTestingStageCoordinator(BaseTestingStageCoordinator):
                 self.logger.debug(
                     f"DEBUG: Strategy name: {strategy_name}, Strategy class: {strategy_class}"
                 )
-                optimize_params = self._get_optimized_params(
+                optimized_params = self._get_optimized_params(
                     strategy_name=strategy_name,
                     strategy_class=strategy_class,
                 )
-                if not optimize_params:
+                if optimized_params is None:
                     self.logger.warning(
                         f"No optimized parameters found for {strategy_name} during {self.train_window_id}. Skipping."
                     )
                     continue
                 # Instantiate strategy with filtered_params
-                strategy = strategy_class(**optimize_params)
+                strategy = strategy_class(**optimized_params)
                 # Run backtest using the pre-configured executor
                 backtest_results = self.executor.run_backtest(
                     strategy,
@@ -148,7 +148,7 @@ class PortfolioTestingStageCoordinator(BaseTestingStageCoordinator):
 
                 # Debug logs to trace the flow and values
                 self.logger.debug(
-                    f"DEBUG: Strategy name: {strategy_name}, Optimize params: {optimize_params}"
+                    f"DEBUG: Strategy name: {strategy_name}, Optimize params: {optimized_params}"
                 )
                 self.logger.debug(
                     f"DEBUG: Portfolio matrix shape: {portfolio_matrix.shape}"
