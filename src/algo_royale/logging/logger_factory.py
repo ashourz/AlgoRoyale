@@ -37,7 +37,7 @@ class LoggerFactory:
 
         log_file = os.path.join(log_dir, f"{environment.value}.log")
         file_handler = CustomRotatingFileHandler(
-            log_file, maxBytes=10_000_000, backupCount=5
+            log_file, maxBytes=10_000_000, backupCount=100
         )
         formatter = logging.Formatter(
             "[%(asctime)s] %(name)s %(levelname)s - %(message)s"

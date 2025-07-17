@@ -120,41 +120,41 @@ class PortfolioBacktestExecutor(BacktestExecutor):
             target_weights = weights.iloc[t].values
             prices = data.iloc[t].values
             timestamp = data.index[t] if hasattr(data, "index") else t
-            # Check for any invalid prices at this step
-            if (
-                not np.all(np.isfinite(prices))
-                or np.any(prices <= 0)
-                or np.any(prices > 1e6)
-            ):
-                invalid_assets = [
-                    data.columns[i] if hasattr(data, "columns") else str(i)
-                    for i, price in enumerate(prices)
-                    if not np.isfinite(price) or price <= 0 or price > 1e6
-                ]
+            # Identify valid and invalid assets at this step
+            valid_mask = np.isfinite(prices) & (prices > 0) & (prices <= 1e6)
+            invalid_assets = [
+                data.columns[i] if hasattr(data, "columns") else str(i)
+                for i, valid in enumerate(valid_mask)
+                if not valid
+            ]
+            if invalid_assets:
                 self.logger.warning(
-                    f"Invalid prices detected at step {t} for assets: {invalid_assets}. Skipping portfolio update."
+                    f"Invalid prices detected at step {t} for assets: {invalid_assets}. Skipping these assets for this step."
                 )
-                portfolio_values.append(cash + np.sum(holdings * prices))
-                cash_history.append(cash)
-                holdings_history.append(holdings.copy())
-                continue
+            # For invalid assets, set their weights and prices to zero for this step
+            step_target_weights = target_weights.copy()
+            step_prices = prices.copy()
+            step_target_weights[~valid_mask] = 0.0
+            step_prices[~valid_mask] = 0.0
 
-            total_portfolio_value = cash + np.sum(holdings * prices)
+            total_portfolio_value = cash + np.sum(holdings * step_prices)
             max_investable = total_portfolio_value * self.leverage
-            target_dollars = target_weights * max_investable
-            current_dollars = holdings * prices
+            target_dollars = step_target_weights * max_investable
+            current_dollars = holdings * step_prices
             trade_dollars = target_dollars - current_dollars
             self.logger.debug(
-                f"Step {t}: cash={cash}, holdings={holdings}, prices={prices}, target_weights={target_weights}"
+                f"Step {t}: cash={cash}, holdings={holdings}, prices={step_prices}, target_weights={step_target_weights}"
             )
             # Cap extreme quantities and costs
             max_quantity = 1e9
             max_cost = 1e12
 
             for i in range(n_assets):
+                if not valid_mask[i]:
+                    continue  # skip trading for invalid asset
                 asset_name = data.columns[i] if hasattr(data, "columns") else str(i)
-                buy_price = prices[i] * (1 + self.slippage)
-                sell_price = prices[i] * (1 - self.slippage)
+                buy_price = step_prices[i] * (1 + self.slippage)
+                sell_price = step_prices[i] * (1 - self.slippage)
 
                 if buy_price > 1e6 or sell_price > 1e6:
                     self.logger.warning(
