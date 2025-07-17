@@ -163,8 +163,8 @@ class StrategyTestingStageCoordinator(BaseTestingStageCoordinator):
                 if self._has_optimization_run(
                     symbol=symbol,
                     strategy_name=strategy_name,
-                    start_date=self.start_date,
-                    end_date=self.end_date,
+                    start_date=self.test_start_date,
+                    end_date=self.test_end_date,
                 ):
                     self.logger.info(
                         f"Skipping optimization for {symbol} {strategy_name} as it has already been run."
