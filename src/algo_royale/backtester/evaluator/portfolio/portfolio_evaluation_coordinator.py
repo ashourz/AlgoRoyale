@@ -37,7 +37,7 @@ class PortfolioEvaluationCoordinator:
             if not strategy_dir.is_dir():
                 continue
             self.logger.info(f"Aggregating windows for strategy: {strategy_dir.name}")
-            self.cross_window_eval.run(strategy_dir=strategy_dir)
+            self.cross_window_evaluator.run(strategy_dir=strategy_dir)
 
         # 2. Aggregate all strategy evaluation_result.json into summary_result.json
         self.logger.info("Aggregating strategy evaluations into summary...")

@@ -12,6 +12,12 @@ from algo_royale.backtester.evaluator.backtest.portfolio_backtest_evaluator impo
 from algo_royale.backtester.evaluator.backtest.signal_backtest_evaluator import (
     SignalBacktestEvaluator,
 )
+from algo_royale.backtester.evaluator.portfolio.portfolio_cross_strategy_summary import (
+    PortfolioCrossStrategySummary,
+)
+from algo_royale.backtester.evaluator.portfolio.portfolio_cross_window_evaluator import (
+    PortfolioCrossWindowEvaluator,
+)
 from algo_royale.backtester.evaluator.portfolio.portfolio_evaluation_coordinator import (
     PortfolioEvaluationCoordinator,
 )
@@ -731,30 +737,46 @@ class DIContainer(containers.DeclarativeContainer):
         logger=logger_symbol_evaluation,
     )
 
-    portfolio_evaluation_coordinator = providers.Singleton(
-        PortfolioEvaluationCoordinator,
+    portfolio_cross_window_evaluator = providers.Singleton(
+        PortfolioCrossWindowEvaluator,
         logger=logger_portfolio_evaluation,
-        optimization_root=providers.Object(
+        window_json_filename=providers.Object(
             config().get(
                 "backtester.portfolio.paths", "portfolio_optimization_root_path"
             )
         ),
-        strategy_window_evaluation_json_filename=providers.Object(
-            config().get(
-                "backtester.portfolio.filenames",
-                "portfolio_optimization_json_filename",
-            )
-        ),
-        strategy_summary_json_filename=providers.Object(
+        output_filename=providers.Object(
             config().get(
                 "backtester.portfolio.filenames",
                 "portfolio_strategy_evaluation_json_filename",
             )
         ),
-        global_summary_json_filename=providers.Object(
+    )
+    portfolio_cross_strategy_summary = providers.Singleton(
+        PortfolioCrossStrategySummary,
+        logger=logger_portfolio_evaluation,
+        evaluation_filename=providers.Object(
+            config().get(
+                "backtester.portfolio.filenames",
+                "portfolio_optimization_json_filename",
+            )
+        ),
+        output_filename=providers.Object(
             config().get(
                 "backtester.portfolio.filenames",
                 "portfolio_summary_json_filename",
+            )
+        ),
+    )
+    # Portfolio evaluation coordinator
+    portfolio_evaluation_coordinator = providers.Singleton(
+        PortfolioEvaluationCoordinator,
+        logger=logger_portfolio_evaluation,
+        cross_window_evaluator=portfolio_cross_window_evaluator,
+        cross_strategy_summary=portfolio_cross_strategy_summary,
+        optimization_root=providers.Object(
+            config().get(
+                "backtester.portfolio.paths", "portfolio_optimization_root_path"
             )
         ),
         viability_threshold=providers.Object(
