@@ -258,32 +258,6 @@ class PortfolioOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
                 f"DEBUG: Combined portfolio DataFrame shape: {portfolio_df.shape}"
             )
 
-            # Filter for true price columns only
-            PRICE_COLUMN_NAMES = [
-                FeatureEngineeringColumns.CLOSE_PRICE,
-                FeatureEngineeringColumns.OPEN_PRICE,
-                FeatureEngineeringColumns.HIGH_PRICE,
-                FeatureEngineeringColumns.LOW_PRICE,
-            ]
-            price_columns = [
-                col for col in portfolio_df.columns if col in PRICE_COLUMN_NAMES
-            ]
-            if not price_columns:
-                self.logger.error(
-                    f"No price columns found in combined portfolio DataFrame. Columns: {list(portfolio_df.columns)}"
-                )
-                return None
-            # Always include 'symbol' and 'timestamp' columns if present
-            extra_cols = []
-            if FeatureEngineeringColumns.SYMBOL in portfolio_df.columns:
-                extra_cols.append(FeatureEngineeringColumns.SYMBOL)
-            if FeatureEngineeringColumns.TIMESTAMP in portfolio_df.columns:
-                extra_cols.append(FeatureEngineeringColumns.TIMESTAMP)
-            portfolio_df = portfolio_df[price_columns + extra_cols]
-            self.logger.debug(
-                f"Filtered price columns for portfolio matrix: {price_columns}"
-            )
-
             try:
                 print(f"DEBUG: Filtered portfolio DataFrame: {portfolio_df}")
                 print(

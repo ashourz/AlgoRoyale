@@ -178,17 +178,22 @@ class PortfolioBacktestEvaluator(BacktestEvaluator):
     def _validate_dataframe(self, df: pd.DataFrame) -> None:
         """
         Validate the DataFrame for required columns, null values, and invalid data.
+        At least one of 'portfolio_values' or 'portfolio_returns' must be present.
+        Only check for nulls in columns that exist.
         Parameters:
             df: The DataFrame to validate.
         """
-        essential_cols = ["portfolio_values", "portfolio_returns"]
-        for col in essential_cols:
-            if col not in df.columns:
-                self.logger.error(f"Missing essential column: {col}")
-                raise ValueError(f"Missing essential column: {col}")
-            if df[col].isnull().any():
-                self.logger.error(f"Null values found in essential column: {col}")
-                raise ValueError(f"Null values found in essential column: {col}")
+        if not ("portfolio_values" in df.columns or "portfolio_returns" in df.columns):
+            self.logger.error(
+                "Missing both 'portfolio_values' and 'portfolio_returns' columns."
+            )
+            raise ValueError(
+                "At least one of 'portfolio_values' or 'portfolio_returns' must be present in the DataFrame."
+            )
+        for col in ["portfolio_values", "portfolio_returns"]:
+            if col in df.columns and df[col].isnull().any():
+                self.logger.error(f"Null values found in column: {col}")
+                raise ValueError(f"Null values found in column: {col}")
 
     @staticmethod
     def max_drawdown(returns: pd.Series) -> float:

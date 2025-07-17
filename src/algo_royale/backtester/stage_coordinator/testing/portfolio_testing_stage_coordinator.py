@@ -157,6 +157,7 @@ class PortfolioTestingStageCoordinator(BaseTestingStageCoordinator):
                 self.logger.debug(f"DEBUG: Metrics: {metrics}")
 
                 results = self._write_test_results(
+                    symbols=list(portfolio_matrix.columns),
                     metrics=metrics,
                     strategy_name=strategy_name,
                     backtest_results=backtest_results,
