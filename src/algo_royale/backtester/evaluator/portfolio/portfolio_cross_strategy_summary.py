@@ -27,6 +27,9 @@ class PortfolioCrossStrategySummary:
         for strategy_dir in sorted(portfolio_dir.iterdir()):
             if not strategy_dir.is_dir():
                 continue
+            self.logger.debug(
+                f"Processing strategy directory: {strategy_dir} | {self.evaluation_filename}"
+            )
             eval_path = strategy_dir / self.evaluation_filename
             if not eval_path.exists():
                 self.logger.warning(f"No evaluation_result.json found: {eval_path}")
@@ -59,7 +62,7 @@ class PortfolioCrossStrategySummary:
             "window_params": best.get("window_params", []),
             "strategy": best.get("strategy"),
         }
-        out_path = self.portfolio_dir / self.output_filename
+        out_path = portfolio_dir / self.output_filename
         with open(out_path, "w") as f:
             json.dump(summary, f, indent=2)
         self.logger.info(f"Wrote cross-strategy summary to {out_path}")
