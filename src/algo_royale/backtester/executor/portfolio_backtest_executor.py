@@ -3,6 +3,13 @@ from typing import Any, Dict
 import numpy as np
 import pandas as pd
 
+from algo_royale.backtester.column_names.portfolio_execution_keys import (
+    PortfolioExecutionKeys,
+    PortfolioExecutionMetricsKeys,
+)
+from algo_royale.backtester.column_names.portfolio_transaction_keys import (
+    PortfolioTransactionKeys,
+)
 from algo_royale.backtester.enum.backtest_stage import BacktestStage
 from algo_royale.backtester.executor.base_backtest_executor import BacktestExecutor
 from algo_royale.logging.loggable import Loggable
@@ -67,6 +74,9 @@ class PortfolioBacktestExecutor(BacktestExecutor):
                 "Ensure the data is a non-empty DataFrame of prices."
             )
 
+        # Forward-fill missing values so each symbol's value remains until new data arrives
+        data = data.ffill()
+
         try:
             weights = strategy.allocate(data, data)
         except Exception as e:
@@ -129,7 +139,7 @@ class PortfolioBacktestExecutor(BacktestExecutor):
             ]
             if invalid_assets:
                 self.logger.warning(
-                    f"Invalid prices detected at step {t} for assets: {invalid_assets}. Skipping these assets for this step."
+                    f"[{timestamp}] Invalid prices detected at step {t} for assets: {invalid_assets}. Skipping these assets for this step."
                 )
             # For invalid assets, set their weights and prices to zero for this step
             step_target_weights = target_weights.copy()
@@ -143,7 +153,7 @@ class PortfolioBacktestExecutor(BacktestExecutor):
             current_dollars = holdings * step_prices
             trade_dollars = target_dollars - current_dollars
             self.logger.debug(
-                f"Step {t}: cash={cash}, holdings={holdings}, prices={step_prices}, target_weights={step_target_weights}"
+                f"[{timestamp}] Step {t}: cash={cash}, holdings={holdings}, prices={step_prices}, target_weights={step_target_weights}"
             )
             # Cap extreme quantities and costs
             max_quantity = 1e9
@@ -158,7 +168,7 @@ class PortfolioBacktestExecutor(BacktestExecutor):
 
                 if buy_price > 1e6 or sell_price > 1e6:
                     self.logger.warning(
-                        f"Skipping trade for {asset_name} at step {t} due to extreme price: buy_price={buy_price}, sell_price={sell_price}"
+                        f"[{timestamp}] Skipping trade for {asset_name} at step {t} due to extreme price: buy_price={buy_price}, sell_price={sell_price} (value: {step_prices[i]})"
                     )
                     continue
 
@@ -169,7 +179,7 @@ class PortfolioBacktestExecutor(BacktestExecutor):
                     denom = buy_price * (1 + self.transaction_cost)
                     if denom <= 0 or not np.isfinite(denom):
                         self.logger.warning(
-                            f"Skipping buy for {asset_name} at step {t} due to invalid denominator: {denom}."
+                            f"[{timestamp}] Skipping buy for {asset_name} at step {t} due to invalid denominator: {denom}. (price: {step_prices[i]})"
                         )
                         continue
                     desired_shares = trade_dollars[i] // denom
@@ -178,7 +188,7 @@ class PortfolioBacktestExecutor(BacktestExecutor):
                     # Only proceed if desired_shares is strictly positive and finite
                     if not np.isfinite(desired_shares) or desired_shares <= 0:
                         self.logger.warning(
-                            f"Skipping buy for {asset_name} at step {t} due to non-positive or invalid desired_shares: {desired_shares}. trade_dollars[i]: {trade_dollars[i]}, buy_price: {buy_price}, transaction_cost: {self.transaction_cost}"
+                            f"[{timestamp}] Skipping buy for {asset_name} at step {t} due to non-positive or invalid desired_shares: {desired_shares}. trade_dollars[i]: {trade_dollars[i]}, buy_price: {buy_price}, transaction_cost: {self.transaction_cost}, price: {step_prices[i]}"
                         )
                         continue
 
@@ -186,7 +196,7 @@ class PortfolioBacktestExecutor(BacktestExecutor):
                     shares_to_buy = shares_to_buy // self.min_lot * self.min_lot
                     if not np.isfinite(shares_to_buy) or shares_to_buy <= 0:
                         self.logger.warning(
-                            f"Skipping buy for {asset_name} at step {t} due to non-positive or invalid shares_to_buy: {shares_to_buy}. desired_shares: {desired_shares}, max_quantity: {max_quantity}, min_lot: {self.min_lot}"
+                            f"[{timestamp}] Skipping buy for {asset_name} at step {t} due to non-positive or invalid shares_to_buy: {shares_to_buy}. desired_shares: {desired_shares}, max_quantity: {max_quantity}, min_lot: {self.min_lot}, price: {step_prices[i]}"
                         )
                         continue
 
@@ -194,7 +204,7 @@ class PortfolioBacktestExecutor(BacktestExecutor):
                     cost = shares_to_buy * buy_price * (1 + self.transaction_cost)
                     if cost > max_cost:
                         self.logger.warning(
-                            f"Skipping buy for {asset_name} at step {t} due to excessive cost: {cost}"
+                            f"[{timestamp}] Skipping buy for {asset_name} at step {t} due to excessive cost: {cost} (price: {step_prices[i]})"
                         )
                         continue
 
@@ -206,20 +216,22 @@ class PortfolioBacktestExecutor(BacktestExecutor):
                         cash -= cost
                         transactions.append(
                             {
-                                "trade_id": trade_id,
-                                "timestamp": str(timestamp),
-                                "step": t,
-                                "asset": asset_name,
-                                "action": "buy",
-                                "quantity": int(shares_to_buy),
-                                "price": float(buy_price),
-                                "cost": float(cost),
-                                "cash_after": float(cash),
-                                "holdings_after": float(holdings[i]),
+                                PortfolioTransactionKeys.TRADE_ID: trade_id,
+                                PortfolioTransactionKeys.TIMESTAMP: str(timestamp),
+                                PortfolioTransactionKeys.STEP: t,
+                                PortfolioTransactionKeys.ASSET: asset_name,
+                                PortfolioTransactionKeys.ACTION: "buy",
+                                PortfolioTransactionKeys.QUANTITY: int(shares_to_buy),
+                                PortfolioTransactionKeys.PRICE: float(buy_price),
+                                PortfolioTransactionKeys.COST: float(cost),
+                                PortfolioTransactionKeys.CASH_AFTER: float(cash),
+                                PortfolioTransactionKeys.HOLDINGS_AFTER: float(
+                                    holdings[i]
+                                ),
                             }
                         )
                         self.logger.debug(
-                            f"Buy: {shares_to_buy} of {asset_name} at {buy_price} (cost={cost})"
+                            f"[{timestamp}] Buy: {shares_to_buy} of {asset_name} at {buy_price} (cost={cost})"
                         )
                         trade_id += 1
                         trades_executed += 1
@@ -228,13 +240,13 @@ class PortfolioBacktestExecutor(BacktestExecutor):
                     # Robustify: check for NaN/inf before int conversion
                     if not np.isfinite(shares_to_sell) or shares_to_sell < 0:
                         self.logger.warning(
-                            f"Skipping sell for {asset_name} at step {t} due to non-finite or negative shares_to_sell: {shares_to_sell}"
+                            f"[{timestamp}] Skipping sell for {asset_name} at step {t} due to non-finite or negative shares_to_sell: {shares_to_sell} (price: {step_prices[i]})"
                         )
                         shares_to_sell = 0
                     shares_to_sell = shares_to_sell // self.min_lot * self.min_lot
                     if not np.isfinite(shares_to_sell) or shares_to_sell < 0:
                         self.logger.warning(
-                            f"Skipping sell for {asset_name} at step {t} after lot adjustment due to non-finite or negative shares_to_sell: {shares_to_sell}"
+                            f"[{timestamp}] Skipping sell for {asset_name} at step {t} after lot adjustment due to non-finite or negative shares_to_sell: {shares_to_sell} (price: {step_prices[i]})"
                         )
                         shares_to_sell = 0
                     shares_to_sell = int(shares_to_sell)
@@ -244,70 +256,83 @@ class PortfolioBacktestExecutor(BacktestExecutor):
                         cash += proceeds
                         transactions.append(
                             {
-                                "trade_id": trade_id,
-                                "timestamp": str(timestamp),
-                                "step": t,
-                                "asset": asset_name,
-                                "action": "sell",
-                                "quantity": int(shares_to_sell),
-                                "price": float(sell_price),
-                                "proceeds": float(proceeds),
-                                "cash_after": float(cash),
-                                "holdings_after": float(holdings[i]),
+                                PortfolioTransactionKeys.TRADE_ID: trade_id,
+                                PortfolioTransactionKeys.TIMESTAMP: str(timestamp),
+                                PortfolioTransactionKeys.STEP: t,
+                                PortfolioTransactionKeys.ASSET: asset_name,
+                                PortfolioTransactionKeys.ACTION: "sell",
+                                PortfolioTransactionKeys.QUANTITY: int(shares_to_sell),
+                                PortfolioTransactionKeys.PRICE: float(sell_price),
+                                PortfolioTransactionKeys.PROCEEDS: float(proceeds),
+                                PortfolioTransactionKeys.CASH_AFTER: float(cash),
+                                PortfolioTransactionKeys.HOLDINGS_AFTER: float(
+                                    holdings[i]
+                                ),
                             }
                         )
                         self.logger.debug(
-                            f"Sell: {shares_to_sell} of {asset_name} at {sell_price} (proceeds={proceeds})"
+                            f"[{timestamp}] Sell: {shares_to_sell} of {asset_name} at {sell_price} (proceeds={proceeds})"
                         )
                         trade_id += 1
                         trades_executed += 1
-            portfolio_value = cash + np.sum(holdings * prices)
+            # Only include valid prices/holdings in portfolio value calculation
+            valid_for_value = np.isfinite(prices) & (prices > 0) & np.isfinite(holdings)
+            portfolio_value = cash + np.sum(
+                holdings[valid_for_value] * prices[valid_for_value]
+            )
             portfolio_values.append(portfolio_value)
             self.logger.debug(
-                f"Step {t}: portfolio_value={portfolio_value}, cash={cash}, holdings={holdings}, prices={prices}"
+                f"[{timestamp}] Step {t}: portfolio_value={portfolio_value}, cash={cash}, holdings={holdings}, prices={prices}"
             )
             if not np.isfinite(portfolio_value):
                 self.logger.warning(
-                    f"Step {t}: NaN or inf in portfolio_value! cash={cash}, holdings={holdings}, prices={prices}"
+                    f"[{timestamp}] Step {t}: NaN or inf in portfolio_value! cash={cash}, holdings={holdings}, prices={prices}"
                 )
             if not np.all(np.isfinite(prices)):
-                self.logger.warning(f"Step {t}: Non-finite prices detected: {prices}")
+                non_finite_info = [
+                    f"{data.columns[i]}={prices[i]}"
+                    for i in range(len(prices))
+                    if not np.isfinite(prices[i])
+                ]
+                self.logger.warning(
+                    f"[{timestamp}] Step {t}: Non-finite prices detected for: {', '.join(non_finite_info)}"
+                )
             if not np.all(np.isfinite(holdings)):
                 self.logger.warning(
-                    f"Step {t}: Non-finite holdings detected: {holdings}"
+                    f"[{timestamp}] Step {t}: Non-finite holdings detected: {holdings}"
                 )
             cash_history.append(cash)
             holdings_history.append(holdings.copy())
 
         if trades_executed == 0:
             self.logger.warning(
-                "No trades were executed during the backtest. This may indicate that the strategy weights, price data, or constraints prevented any trades. "
-                f"Input data shape: {data.shape}, Weights shape: {weights.shape}, Initial balance: {self.initial_balance}, Transaction cost: {self.transaction_cost}, Min lot: {self.min_lot}, Leverage: {self.leverage}, Slippage: {self.slippage}"
+                f"[{timestamp}] No trades were executed during the backtest. This may indicate that the strategy weights, price data, or constraints prevented any trades. "
+                f"[{timestamp}] Input data shape: {data.shape}, Weights shape: {weights.shape}, Initial balance: {self.initial_balance}, Transaction cost: {self.transaction_cost}, Min lot: {self.min_lot}, Leverage: {self.leverage}, Slippage: {self.slippage}"
             )
             # Optionally, add a flag to results for downstream logic
 
         # Defensive: ensure portfolio_values is not empty
         if not portfolio_values:
             self.logger.error(
-                "No portfolio values were generated during the backtest. Returning empty result structure."
+                f"[{timestamp}] No portfolio values were generated during the backtest. Returning empty result structure."
             )
             results = {
-                "portfolio_values": [],
-                "cash_history": [],
-                "holdings_history": [],
-                "final_cash": cash,
-                "final_holdings": holdings,
-                "transactions": [],
-                "metrics": {
-                    "total_return": np.nan,
-                    "error": "No portfolio values generated",
+                PortfolioExecutionKeys.PORTFOLIO_VALUES: [],
+                PortfolioExecutionKeys.CASH_HISTORY: [],
+                PortfolioExecutionKeys.HOLDINGS_HISTORY: [],
+                PortfolioExecutionKeys.FINAL_CASH: cash,
+                PortfolioExecutionKeys.FINAL_HOLDINGS: holdings,
+                PortfolioExecutionKeys.TRANSACTIONS: [],
+                PortfolioExecutionKeys.METRICS: {
+                    PortfolioExecutionMetricsKeys.TOTAL_RETURN: np.nan,
+                    PortfolioExecutionMetricsKeys.ERROR: "No portfolio values generated",
                 },
-                "empty_result": True,
+                PortfolioExecutionKeys.EMPTY_RESULT: True,
             }
             return results
 
         self.logger.info(
-            f"Portfolio backtest complete. Final value: {portfolio_values[-1]}, Final cash: {cash}"
+            f"[{timestamp}] Portfolio backtest complete. Final value: {portfolio_values[-1]}, Final cash: {cash}"
         )
         # Log portfolio_values for diagnostics
         try:
@@ -318,12 +343,12 @@ class PortfolioBacktestExecutor(BacktestExecutor):
         except Exception as e:
             self.logger.error(f"Error logging portfolio_values diagnostics: {e}")
         results = {
-            "portfolio_values": portfolio_values,
-            "cash_history": cash_history,
-            "holdings_history": holdings_history,
-            "final_cash": cash,
-            "final_holdings": holdings,
-            "transactions": transactions,
+            PortfolioExecutionKeys.PORTFOLIO_VALUES: portfolio_values,
+            PortfolioExecutionKeys.CASH_HISTORY: cash_history,
+            PortfolioExecutionKeys.HOLDINGS_HISTORY: holdings_history,
+            PortfolioExecutionKeys.FINAL_CASH: cash,
+            PortfolioExecutionKeys.FINAL_HOLDINGS: holdings,
+            PortfolioExecutionKeys.TRANSACTIONS: transactions,
         }
         self.logger.debug(
             f"Backtest results keys: {list(results.keys())}, "
@@ -332,10 +357,10 @@ class PortfolioBacktestExecutor(BacktestExecutor):
         )
 
         # Add DataFrame versions for manual review and downstream analysis
-        results["transactions_df"] = (
+        results[PortfolioExecutionKeys.TRANSACTIONS_DF] = (
             pd.DataFrame(transactions) if transactions else pd.DataFrame()
         )
-        results["portfolio_values_df"] = (
+        results[PortfolioExecutionKeys.PORTFOLIO_VALUES_DF] = (
             pd.DataFrame({"portfolio_value": portfolio_values})
             if portfolio_values
             else pd.DataFrame()
@@ -348,10 +373,26 @@ class PortfolioBacktestExecutor(BacktestExecutor):
             total_return = (
                 (final_value / initial_value) - 1 if initial_value != 0 else np.nan
             )
-            results["metrics"] = {"total_return": total_return}
+            # Compute per-period (stepwise) returns
+            if len(portfolio_values) > 1:
+                pv_arr = np.array(portfolio_values)
+                portfolio_returns = (pv_arr[1:] / pv_arr[:-1]) - 1
+                portfolio_returns = portfolio_returns.tolist()
+            else:
+                portfolio_returns = []
+            results[PortfolioExecutionKeys.METRICS] = {
+                PortfolioExecutionMetricsKeys.TOTAL_RETURN: total_return,
+                PortfolioExecutionMetricsKeys.PORTFOLIO_RETURNS: portfolio_returns,
+            }
         except Exception as e:
-            self.logger.error(f"Error computing total_return metric: {e}")
-            results["metrics"] = {"total_return": np.nan, "error": str(e)}
+            self.logger.error(
+                f"Error computing total_return or portfolio_returns metric: {e}"
+            )
+            results[PortfolioExecutionKeys.METRICS] = {
+                PortfolioExecutionMetricsKeys.TOTAL_RETURN: np.nan,
+                PortfolioExecutionMetricsKeys.PORTFOLIO_RETURNS: [],
+                PortfolioExecutionMetricsKeys.ERROR: str(e),
+            }
 
         # Validate output data structure
         if not self._validate_output(results):
@@ -359,8 +400,10 @@ class PortfolioBacktestExecutor(BacktestExecutor):
                 "Output data validation failed for portfolio backtest. "
                 "Ensure the output contains the expected structure."
             )
-            results["metrics"]["error"] = "Output data validation failed"
-            results["invalid_output"] = True
+            results[PortfolioExecutionKeys.METRICS][
+                PortfolioExecutionMetricsKeys.ERROR
+            ] = "Output data validation failed"
+            results[PortfolioExecutionKeys.INVALID_OUTPUT] = True
             # Optionally, raise or just return the flagged result
             # raise ValueError(
             #     "Output data validation failed for portfolio backtest. "

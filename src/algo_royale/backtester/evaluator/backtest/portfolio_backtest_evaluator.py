@@ -3,6 +3,12 @@ from typing import Any, Dict, Optional
 import numpy as np
 import pandas as pd
 
+from algo_royale.backtester.column_names.portfolio_evaluation_keys import (
+    PortfolioEvaluationKeys,
+)
+from algo_royale.backtester.column_names.portfolio_execution_keys import (
+    PortfolioExecutionKeys,
+)
 from algo_royale.backtester.evaluator.backtest.base_backtest_evaluator import (
     BacktestEvaluator,
 )
@@ -63,26 +69,28 @@ class PortfolioBacktestEvaluator(BacktestEvaluator):
                 return {
                     k: np.nan
                     for k in [
-                        "total_return",
-                        "mean_return",
-                        "volatility",
-                        "sharpe_ratio",
-                        "max_drawdown",
-                        "sortino_ratio",
-                        "calmar_ratio",
-                        "win_rate",
-                        "profit_factor",
-                        "num_trades",
+                        PortfolioEvaluationKeys.TOTAL_RETURN,
+                        PortfolioEvaluationKeys.MEAN_RETURN,
+                        PortfolioEvaluationKeys.VOLATILITY,
+                        PortfolioEvaluationKeys.SHARPE_RATIO,
+                        PortfolioEvaluationKeys.MAX_DRAWDOWN,
+                        PortfolioEvaluationKeys.SORTINO_RATIO,
+                        PortfolioEvaluationKeys.CALMAR_RATIO,
+                        PortfolioEvaluationKeys.WIN_RATE,
+                        PortfolioEvaluationKeys.PROFIT_FACTOR,
+                        PortfolioEvaluationKeys.NUM_TRADES,
                     ]
                 }
-            if "portfolio_values" in signals_df:
-                values = pd.Series(signals_df["portfolio_values"])
+            if PortfolioExecutionKeys.PORTFOLIO_VALUES in signals_df:
+                values = pd.Series(signals_df[PortfolioExecutionKeys.PORTFOLIO_VALUES])
                 self.logger.debug(
                     f"[EVAL] portfolio_values length: {len(values)}, index: {values.index}"
                 )
                 returns = values.pct_change().fillna(0)
             else:
-                returns = pd.Series(signals_df["portfolio_returns"])
+                returns = pd.Series(
+                    signals_df[PortfolioExecutionKeys.PORTFOLIO_RETURNS]
+                )
                 self.logger.debug(
                     f"[EVAL] portfolio_returns length: {len(returns)}, index: {returns.index}"
                 )
@@ -98,16 +106,16 @@ class PortfolioBacktestEvaluator(BacktestEvaluator):
                 return {
                     k: np.nan
                     for k in [
-                        "total_return",
-                        "mean_return",
-                        "volatility",
-                        "sharpe_ratio",
-                        "max_drawdown",
-                        "sortino_ratio",
-                        "calmar_ratio",
-                        "win_rate",
-                        "profit_factor",
-                        "num_trades",
+                        PortfolioEvaluationKeys.TOTAL_RETURN,
+                        PortfolioEvaluationKeys.MEAN_RETURN,
+                        PortfolioEvaluationKeys.VOLATILITY,
+                        PortfolioEvaluationKeys.SHARPE_RATIO,
+                        PortfolioEvaluationKeys.MAX_DRAWDOWN,
+                        PortfolioEvaluationKeys.SORTINO_RATIO,
+                        PortfolioEvaluationKeys.CALMAR_RATIO,
+                        PortfolioEvaluationKeys.WIN_RATE,
+                        PortfolioEvaluationKeys.PROFIT_FACTOR,
+                        PortfolioEvaluationKeys.NUM_TRADES,
                     ]
                 }
             # Metrics
@@ -127,18 +135,18 @@ class PortfolioBacktestEvaluator(BacktestEvaluator):
                 f"[EVAL] Metrics: total_return={total_return}, mean_return={mean_return}, volatility={volatility}, sharpe_ratio={sharpe_ratio}, max_drawdown={max_dd}, sortino_ratio={sortino_ratio}, calmar_ratio={calmar_ratio}, win_rate={win_rate}, profit_factor={profit_factor}, num_trades={num_trades}"
             )
             metrics = {
-                "total_return": total_return,
-                "mean_return": mean_return,
-                "volatility": volatility,
-                "sharpe_ratio": sharpe_ratio,
-                "max_drawdown": max_dd,
-                "sortino_ratio": sortino_ratio,
-                "calmar_ratio": calmar_ratio,
-                "win_rate": win_rate,
-                "profit_factor": profit_factor,
+                PortfolioEvaluationKeys.TOTAL_RETURN: total_return,
+                PortfolioEvaluationKeys.MEAN_RETURN: mean_return,
+                PortfolioEvaluationKeys.VOLATILITY: volatility,
+                PortfolioEvaluationKeys.SHARPE_RATIO: sharpe_ratio,
+                PortfolioEvaluationKeys.MAX_DRAWDOWN: max_dd,
+                PortfolioEvaluationKeys.SORTINO_RATIO: sortino_ratio,
+                PortfolioEvaluationKeys.CALMAR_RATIO: calmar_ratio,
+                PortfolioEvaluationKeys.WIN_RATE: win_rate,
+                PortfolioEvaluationKeys.PROFIT_FACTOR: profit_factor,
             }
             if num_trades is not None:
-                metrics["num_trades"] = num_trades
+                metrics[PortfolioEvaluationKeys.NUM_TRADES] = num_trades
             return metrics
         except Exception as e:
             self.logger.error(f"[EVAL] Evaluation failed: {e}")
@@ -152,27 +160,52 @@ class PortfolioBacktestEvaluator(BacktestEvaluator):
         Evaluate portfolio backtest results from a result dictionary.
         """
         # Build DataFrame for evaluation
-        if "portfolio_values" in result and "portfolio_returns" in result:
+        if (
+            PortfolioExecutionKeys.PORTFOLIO_VALUES in result
+            and PortfolioExecutionKeys.PORTFOLIO_RETURNS in result
+        ):
             df = pd.DataFrame(
                 {
-                    "portfolio_values": result["portfolio_values"],
-                    "portfolio_returns": result["portfolio_returns"],
+                    PortfolioExecutionKeys.PORTFOLIO_VALUES: result[
+                        PortfolioExecutionKeys.PORTFOLIO_VALUES
+                    ],
+                    PortfolioExecutionKeys.PORTFOLIO_RETURNS: result[
+                        PortfolioExecutionKeys.PORTFOLIO_RETURNS
+                    ],
                 }
             )
-        elif "portfolio_values" in result:
-            df = pd.DataFrame({"portfolio_values": result["portfolio_values"]})
-            df["portfolio_returns"] = (
-                pd.Series(result["portfolio_values"]).pct_change().fillna(0)
+        elif PortfolioExecutionKeys.PORTFOLIO_VALUES in result:
+            df = pd.DataFrame(
+                {
+                    PortfolioExecutionKeys.PORTFOLIO_VALUES: result[
+                        PortfolioExecutionKeys.PORTFOLIO_VALUES
+                    ]
+                }
             )
-        elif "portfolio_returns" in result:
-            df = pd.DataFrame({"portfolio_returns": result["portfolio_returns"]})
+            df[PortfolioExecutionKeys.PORTFOLIO_RETURNS] = (
+                pd.Series(result[PortfolioExecutionKeys.PORTFOLIO_VALUES])
+                .pct_change()
+                .fillna(0)
+            )
+        elif PortfolioExecutionKeys.PORTFOLIO_RETURNS in result:
+            df = pd.DataFrame(
+                {
+                    PortfolioExecutionKeys.PORTFOLIO_RETURNS: result[
+                        PortfolioExecutionKeys.PORTFOLIO_RETURNS
+                    ]
+                }
+            )
         else:
             self.logger.error(
                 "No portfolio_values or portfolio_returns in result dict."
             )
             return {}
         # Optionally add trades if present
-        trades = result["transactions"] if "transactions" in result else None
+        trades = (
+            result[PortfolioExecutionKeys.TRANSACTIONS]
+            if PortfolioExecutionKeys.TRANSACTIONS in result
+            else None
+        )
         return self._evaluate_signals(df, trades=trades)
 
     def _validate_dataframe(self, df: pd.DataFrame) -> None:
@@ -183,14 +216,20 @@ class PortfolioBacktestEvaluator(BacktestEvaluator):
         Parameters:
             df: The DataFrame to validate.
         """
-        if not ("portfolio_values" in df.columns or "portfolio_returns" in df.columns):
+        if not (
+            PortfolioExecutionKeys.PORTFOLIO_VALUES in df.columns
+            or PortfolioExecutionKeys.PORTFOLIO_RETURNS in df.columns
+        ):
             self.logger.error(
                 "Missing both 'portfolio_values' and 'portfolio_returns' columns."
             )
             raise ValueError(
                 "At least one of 'portfolio_values' or 'portfolio_returns' must be present in the DataFrame."
             )
-        for col in ["portfolio_values", "portfolio_returns"]:
+        for col in [
+            PortfolioExecutionKeys.PORTFOLIO_VALUES,
+            PortfolioExecutionKeys.PORTFOLIO_RETURNS,
+        ]:
             if col in df.columns and df[col].isnull().any():
                 self.logger.error(f"Null values found in column: {col}")
                 raise ValueError(f"Null values found in column: {col}")

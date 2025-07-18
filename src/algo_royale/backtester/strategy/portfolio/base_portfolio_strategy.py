@@ -5,6 +5,9 @@ import numpy as np
 import pandas as pd
 from optuna import Trial
 
+from algo_royale.backtester.column_names.portfolio_execution_keys import (
+    PortfolioExecutionKeys,
+)
 from algo_royale.backtester.strategy.base_strategy import BaseStrategy
 
 
@@ -69,7 +72,7 @@ class BasePortfolioStrategy(BaseStrategy):
         # Compute portfolio returns as weighted sum of asset returns
         portfolio_returns = (weights * returns).sum(axis=1)
         result = pd.DataFrame(index=returns.index)
-        result["portfolio_returns"] = portfolio_returns
+        result[PortfolioExecutionKeys.PORTFOLIO_RETURNS] = portfolio_returns
         return result
 
     @abstractmethod

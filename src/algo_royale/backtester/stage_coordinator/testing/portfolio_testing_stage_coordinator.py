@@ -4,6 +4,9 @@ from typing import Any, AsyncIterator, Callable, Dict, Optional, Sequence
 
 import pandas as pd
 
+from algo_royale.backtester.column_names.portfolio_execution_keys import (
+    PortfolioExecutionKeys,
+)
 from algo_royale.backtester.data_preparer.asset_matrix_preparer import (
     AssetMatrixPreparer,
 )
@@ -123,7 +126,7 @@ class PortfolioTestingStageCoordinator(BaseTestingStageCoordinator):
                     portfolio_matrix,
                 )
                 self.logger.info(
-                    f"Backtest completed for {strategy_name} with {len(backtest_results.get('portfolio_returns', []))} returns."
+                    f"Backtest completed for {strategy_name} with {len(backtest_results.get(PortfolioExecutionKeys.PORTFOLIO_RETURNS, []))} returns."
                 )
                 # Evaluate metrics (now includes all new metrics)
                 metrics = self.evaluator.evaluate_from_dict(backtest_results)
