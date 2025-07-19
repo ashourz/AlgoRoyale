@@ -8,6 +8,7 @@ from algo_royale.backtester.column_names.portfolio_evaluation_keys import (
 )
 from algo_royale.backtester.column_names.portfolio_execution_keys import (
     PortfolioExecutionKeys,
+    PortfolioExecutionMetricsKeys,
 )
 from algo_royale.backtester.evaluator.backtest.base_backtest_evaluator import (
     BacktestEvaluator,
@@ -87,13 +88,45 @@ class PortfolioBacktestEvaluator(BacktestEvaluator):
                     f"[EVAL] portfolio_values length: {len(values)}, index: {values.index}"
                 )
                 returns = values.pct_change().fillna(0)
-            else:
+            elif PortfolioExecutionMetricsKeys.PORTFOLIO_RETURNS in signals_df:
                 returns = pd.Series(
-                    signals_df[PortfolioExecutionKeys.PORTFOLIO_RETURNS]
+                    signals_df[PortfolioExecutionMetricsKeys.PORTFOLIO_RETURNS]
                 )
                 self.logger.debug(
                     f"[EVAL] portfolio_returns length: {len(returns)}, index: {returns.index}"
                 )
+            else:
+                # Try to extract from metrics dict if available
+                metrics = getattr(self, PortfolioExecutionKeys.METRICS, None)
+                if (
+                    metrics
+                    and PortfolioExecutionMetricsKeys.PORTFOLIO_RETURNS in metrics
+                ):
+                    returns = pd.Series(
+                        metrics[PortfolioExecutionMetricsKeys.PORTFOLIO_RETURNS]
+                    )
+                    self.logger.debug(
+                        f"[EVAL] portfolio_returns (from metrics) length: {len(returns)}, index: {returns.index}"
+                    )
+                else:
+                    self.logger.error(
+                        "No portfolio_returns found in DataFrame or metrics."
+                    )
+                    return {
+                        k: np.nan
+                        for k in [
+                            PortfolioEvaluationKeys.TOTAL_RETURN,
+                            PortfolioEvaluationKeys.MEAN_RETURN,
+                            PortfolioEvaluationKeys.VOLATILITY,
+                            PortfolioEvaluationKeys.SHARPE_RATIO,
+                            PortfolioEvaluationKeys.MAX_DRAWDOWN,
+                            PortfolioEvaluationKeys.SORTINO_RATIO,
+                            PortfolioEvaluationKeys.CALMAR_RATIO,
+                            PortfolioEvaluationKeys.WIN_RATE,
+                            PortfolioEvaluationKeys.PROFIT_FACTOR,
+                            PortfolioEvaluationKeys.NUM_TRADES,
+                        ]
+                    }
             # Defensive: drop NaN/inf
             returns = returns.replace([np.inf, -np.inf], np.nan).dropna()
             self.logger.debug(
@@ -159,19 +192,28 @@ class PortfolioBacktestEvaluator(BacktestEvaluator):
         """
         Evaluate portfolio backtest results from a result dictionary.
         """
+        # Extract metrics dict if present
+        metrics = result.get(PortfolioExecutionKeys.METRICS, {})
         # Build DataFrame for evaluation
         if (
             PortfolioExecutionKeys.PORTFOLIO_VALUES in result
-            and PortfolioExecutionKeys.PORTFOLIO_RETURNS in result
+            and PortfolioExecutionMetricsKeys.PORTFOLIO_RETURNS in metrics
         ):
+            values = result[PortfolioExecutionKeys.PORTFOLIO_VALUES]
+            returns = metrics[PortfolioExecutionMetricsKeys.PORTFOLIO_RETURNS]
+            len_values = len(values)
+            len_returns = len(returns)
+            if len_values != len_returns:
+                self.logger.error(
+                    f"[EVAL] Length mismatch: portfolio_values ({len_values}) vs portfolio_returns ({len_returns}). Raising error for troubleshooting."
+                )
+                raise ValueError(
+                    f"portfolio_values and portfolio_returns must have the same length. Got {len_values} and {len_returns}."
+                )
             df = pd.DataFrame(
                 {
-                    PortfolioExecutionKeys.PORTFOLIO_VALUES: result[
-                        PortfolioExecutionKeys.PORTFOLIO_VALUES
-                    ],
-                    PortfolioExecutionKeys.PORTFOLIO_RETURNS: result[
-                        PortfolioExecutionKeys.PORTFOLIO_RETURNS
-                    ],
+                    PortfolioExecutionKeys.PORTFOLIO_VALUES: values,
+                    PortfolioExecutionMetricsKeys.PORTFOLIO_RETURNS: returns,
                 }
             )
         elif PortfolioExecutionKeys.PORTFOLIO_VALUES in result:
@@ -182,22 +224,22 @@ class PortfolioBacktestEvaluator(BacktestEvaluator):
                     ]
                 }
             )
-            df[PortfolioExecutionKeys.PORTFOLIO_RETURNS] = (
+            df[PortfolioExecutionMetricsKeys.PORTFOLIO_RETURNS] = (
                 pd.Series(result[PortfolioExecutionKeys.PORTFOLIO_VALUES])
                 .pct_change()
                 .fillna(0)
             )
-        elif PortfolioExecutionKeys.PORTFOLIO_RETURNS in result:
+        elif PortfolioExecutionMetricsKeys.PORTFOLIO_RETURNS in metrics:
             df = pd.DataFrame(
                 {
-                    PortfolioExecutionKeys.PORTFOLIO_RETURNS: result[
-                        PortfolioExecutionKeys.PORTFOLIO_RETURNS
+                    PortfolioExecutionMetricsKeys.PORTFOLIO_RETURNS: metrics[
+                        PortfolioExecutionMetricsKeys.PORTFOLIO_RETURNS
                     ]
                 }
             )
         else:
             self.logger.error(
-                "No portfolio_values or portfolio_returns in result dict."
+                "No portfolio_values or portfolio_returns in result dict or metrics."
             )
             return {}
         # Optionally add trades if present
@@ -216,23 +258,36 @@ class PortfolioBacktestEvaluator(BacktestEvaluator):
         Parameters:
             df: The DataFrame to validate.
         """
-        if not (
-            PortfolioExecutionKeys.PORTFOLIO_VALUES in df.columns
-            or PortfolioExecutionKeys.PORTFOLIO_RETURNS in df.columns
-        ):
+        self.logger.debug(f"Validating DataFrame: {df}")
+        # Only check for portfolio_values in DataFrame columns
+        if PortfolioExecutionKeys.PORTFOLIO_VALUES not in df.columns:
+            self.logger.error("Missing 'portfolio_values' column in DataFrame.")
+            raise ValueError("'portfolio_values' must be present in the DataFrame.")
+        if df[PortfolioExecutionKeys.PORTFOLIO_VALUES].isnull().any():
+            self.logger.error("Null values found in column: portfolio_values")
+            raise ValueError("Null values found in column: portfolio_values")
+
+        # If metrics dict is present as an attribute, validate portfolio_returns in metrics
+        metrics = getattr(self, PortfolioExecutionKeys.METRICS, None)
+        if metrics is not None:
+            self._validate_portfolio_returns(metrics)
+        else:
             self.logger.error(
-                "Missing both 'portfolio_values' and 'portfolio_returns' columns."
+                "Metrics dictionary not found in PortfolioBacktestEvaluator instance."
             )
             raise ValueError(
-                "At least one of 'portfolio_values' or 'portfolio_returns' must be present in the DataFrame."
+                "Metrics dictionary not found in PortfolioBacktestEvaluator instance."
             )
-        for col in [
-            PortfolioExecutionKeys.PORTFOLIO_VALUES,
-            PortfolioExecutionKeys.PORTFOLIO_RETURNS,
-        ]:
-            if col in df.columns and df[col].isnull().any():
-                self.logger.error(f"Null values found in column: {col}")
-                raise ValueError(f"Null values found in column: {col}")
+
+    def _validate_portfolio_returns(self, metrics: dict) -> None:
+        """
+        Validate the portfolio_returns in the metrics dict for nulls if present.
+        """
+        if PortfolioExecutionMetricsKeys.PORTFOLIO_RETURNS in metrics:
+            returns = metrics[PortfolioExecutionMetricsKeys.PORTFOLIO_RETURNS]
+            if pd.isnull(returns).any():
+                self.logger.error("Null values found in portfolio_returns in metrics.")
+                raise ValueError("Null values found in portfolio_returns in metrics.")
 
     @staticmethod
     def max_drawdown(returns: pd.Series) -> float:

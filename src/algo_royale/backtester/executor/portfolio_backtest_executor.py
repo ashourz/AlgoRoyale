@@ -378,6 +378,8 @@ class PortfolioBacktestExecutor(BacktestExecutor):
                 pv_arr = np.array(portfolio_values)
                 portfolio_returns = (pv_arr[1:] / pv_arr[:-1]) - 1
                 portfolio_returns = portfolio_returns.tolist()
+                # Prepend 0.0 so returns aligns with values
+                portfolio_returns = [0.0] + portfolio_returns
             else:
                 portfolio_returns = []
             results[PortfolioExecutionKeys.METRICS] = {
@@ -409,6 +411,7 @@ class PortfolioBacktestExecutor(BacktestExecutor):
             #     "Output data validation failed for portfolio backtest. "
             #     "Ensure the output contains the expected structure."
             # )
+        # self.logger.info(f"Backtest results: {results}")
         return results
 
     def _validate_input(self, input_data: pd.DataFrame) -> bool:
