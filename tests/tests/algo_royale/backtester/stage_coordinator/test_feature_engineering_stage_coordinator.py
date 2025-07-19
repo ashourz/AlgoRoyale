@@ -52,7 +52,7 @@ def coordinator(
     return FeatureEngineeringStageCoordinator(
         data_loader=mock_data_loader,
         data_writer=mock_data_writer,
-        stage_data_manager=mock_stage_data_manager,
+        data_manager=mock_stage_data_manager,
         logger=mock_logger,
         feature_engineer=mock_feature_engineer,
     )

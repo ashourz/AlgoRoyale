@@ -71,6 +71,7 @@ class StrategyTestingStageCoordinator(BaseTestingStageCoordinator):
             optimization_json_filename=optimization_json_filename,
         )
         self.strategy_factory = strategy_factory
+        self.strategy_debug = strategy_debug
 
     def _get_train_optimization_results(
         self,

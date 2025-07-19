@@ -36,14 +36,14 @@ class FeatureEngineeringStageCoordinator(StageCoordinator):
         self,
         data_loader: SymbolStrategyDataLoader,
         data_writer: SymbolStrategyDataWriter,
-        stage_data_manager: StageDataManager,
+        data_manager: StageDataManager,
         logger: Loggable,
         feature_engineer: FeatureEngineer,
     ):
         self.stage = BacktestStage.FEATURE_ENGINEERING
         self.data_loader = data_loader
         self.data_writer = data_writer
-        self.stage_data_manager = stage_data_manager
+        self.stage_data_manager = data_manager
         self.logger = logger
         self.feature_engineer = feature_engineer
 
