@@ -64,6 +64,7 @@ class StrategyOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
         optimization_root: str,
         optimization_json_filename: str,
         signal_strategy_optimizer_factory: SignalStrategyOptimizerFactory,
+        strategy_debug: bool = False,
     ):
         super().__init__(
             stage=BacktestStage.STRATEGY_OPTIMIZATION,
@@ -81,6 +82,7 @@ class StrategyOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
         self.executor = strategy_executor
         self.evaluator = strategy_evaluator
         self.stage_data_manager = stage_data_manager
+        self.strategy_debug = strategy_debug
 
     async def _process_and_write(
         self,

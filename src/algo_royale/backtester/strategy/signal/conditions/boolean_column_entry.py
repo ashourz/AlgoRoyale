@@ -9,12 +9,14 @@ from algo_royale.backtester.strategy.signal.conditions.base_strategy_condition i
 
 class BooleanColumnEntryCondition(StrategyCondition):
     def __init__(
-        self, entry_col: SignalStrategyColumns = SignalStrategyColumns.ENTRY_SIGNAL
+        self,
+        entry_col: SignalStrategyColumns = SignalStrategyColumns.ENTRY_SIGNAL,
+        debug: bool = False,
     ):
         """
         Condition based on a boolean column.
         """
-        super().__init__(entry_col=entry_col)
+        super().__init__(entry_col=entry_col, debug=debug)
         self.entry_col = entry_col
 
     @property

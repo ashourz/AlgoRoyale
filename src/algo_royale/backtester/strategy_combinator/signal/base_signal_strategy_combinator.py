@@ -1,7 +1,6 @@
 import inspect
 import itertools
 from typing import Callable, Generator
-from algo_royale.logging.loggable import Loggable
 
 from algo_royale.backtester.strategy.signal.base_signal_strategy import (
     BaseSignalStrategy,
@@ -9,6 +8,7 @@ from algo_royale.backtester.strategy.signal.base_signal_strategy import (
 from algo_royale.backtester.strategy_combinator.base_strategy_combinator import (
     BaseStrategyCombinator,
 )
+from algo_royale.logging.loggable import Loggable
 
 
 class SignalStrategyCombinator(BaseStrategyCombinator):
@@ -33,7 +33,13 @@ class SignalStrategyCombinator(BaseStrategyCombinator):
     ##TODO: METRICS SHOULD BE DERIVED FROM CONFIG
     @classmethod
     def all_strategy_combinations(
-        cls, logger: Loggable, max_filter=1, max_entry=1, max_trend=1, max_exit=1
+        cls,
+        logger: Loggable,
+        max_filter=1,
+        max_entry=1,
+        max_trend=1,
+        max_exit=1,
+        debug: bool = False,
     ) -> Generator[Callable[[], BaseSignalStrategy], None, None]:
         """
         Generate all possible strategy combinations based on the defined condition types.
@@ -160,7 +166,11 @@ class SignalStrategyCombinator(BaseStrategyCombinator):
                                 # Yield a partial (lambda) that will instantiate the strategy when called
                                 from functools import partial
 
-                                yield partial(cls.strategy_class, **filtered_kwargs)
+                                yield partial(
+                                    cls.strategy_class,
+                                    debug=strategy_debug,
+                                    **filtered_kwargs,
+                                )
                             except Exception as e:
                                 logger.error(
                                     "Error creating strategy with filter=%s, entry=%s, "

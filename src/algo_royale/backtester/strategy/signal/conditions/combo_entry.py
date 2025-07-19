@@ -24,6 +24,7 @@ class ComboEntryCondition(StrategyCondition):
         macd_col: SignalStrategyColumns = SignalStrategyColumns.MACD,
         volume_col: SignalStrategyColumns = SignalStrategyColumns.VOLUME,
         vol_ma_col: SignalStrategyColumns = SignalStrategyColumns.VOL_MA_20,
+        debug: bool = False,
     ):
         super().__init__(
             rsi_col=rsi_col,
@@ -32,6 +33,7 @@ class ComboEntryCondition(StrategyCondition):
             vol_ma_col=vol_ma_col,
             rsi_buy_thresh=rsi_buy_thresh,
             macd_buy_thresh=macd_buy_thresh,
+            debug=debug,
         )
         self.rsi_col = rsi_col
         self.macd_col = macd_col

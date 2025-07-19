@@ -20,10 +20,10 @@ class SMATrendCondition(StrategyCondition):
         self,
         sma_fast_col: SignalStrategyColumns = SignalStrategyColumns.SMA_50,
         sma_slow_col: SignalStrategyColumns = SignalStrategyColumns.SMA_200,
+        debug: bool = False,
     ):
         super().__init__(
-            sma_fast_col=sma_fast_col,
-            sma_slow_col=sma_slow_col,
+            sma_fast_col=sma_fast_col, sma_slow_col=sma_slow_col, debug=debug
         )
         self.sma_fast_col = sma_fast_col
         self.sma_slow_col = sma_slow_col

@@ -19,8 +19,9 @@ class MomentumPortfolioStrategy(BasePortfolioStrategy):
         window: int, rolling window size for momentum estimation (default: 20)
     """
 
-    def __init__(self, window: int = 20):
+    def __init__(self, window: int = 20, debug: bool = False):
         self.window = window
+        super().__init__(debug=debug)
 
     @property
     def required_columns(self):

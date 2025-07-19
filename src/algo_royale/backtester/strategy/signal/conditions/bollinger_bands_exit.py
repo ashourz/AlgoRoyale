@@ -13,8 +13,11 @@ class BollingerBandsExitCondition(StrategyCondition):
         close_col: SignalStrategyColumns = SignalStrategyColumns.CLOSE_PRICE,
         window=20,
         num_std=2,
+        debug: bool = False,
     ):
-        super().__init__(close_col=close_col, window=window, num_std=num_std)
+        super().__init__(
+            close_col=close_col, window=window, num_std=num_std, debug=debug
+        )
         self.close_col = close_col
         self.window = window
         self.num_std = num_std

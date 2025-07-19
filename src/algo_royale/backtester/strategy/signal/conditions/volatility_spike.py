@@ -49,10 +49,12 @@ class VolatilitySpikeCondition(StrategyCondition):
         self,
         range_col: SignalStrategyColumns = SignalStrategyColumns.RANGE,
         volatility_col: SignalStrategyColumns = SignalStrategyColumns.VOLATILITY_10,
+        debug: bool = False,
     ):
         super().__init__(
             range_col=range_col,
             volatility_col=volatility_col,
+            debug=debug,
         )
         self.range_col = range_col
         self.volatility_col = volatility_col

@@ -8,9 +8,10 @@ class StatefulLogic:
     update signals and state based on the current row of data.
     """
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, debug: bool = False, *args, **kwargs):
         for k, v in kwargs.items():
             setattr(self, k, v)
+        self.debug = debug
 
     def __call__(self, i, df, signals, state, trend_mask, entry_mask, exit_mask):
         missing = [col for col in self.required_columns if col not in df.columns]

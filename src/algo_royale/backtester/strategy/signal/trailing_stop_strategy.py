@@ -31,8 +31,10 @@ class TrailingStopStrategy(BaseSignalStrategy):
                 sma_col=SignalStrategyColumns.SMA_200,
             )
         ],
+        debug: bool = False,
     ):
         super().__init__(
             entry_conditions=entry_conditions,
             trend_conditions=trend_conditions,
+            debug=debug,
         )

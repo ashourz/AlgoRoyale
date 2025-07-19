@@ -1,12 +1,12 @@
 from datetime import datetime
 from typing import AsyncIterator, Callable, Dict, Optional
-from algo_royale.logging.loggable import Loggable
 
 import pandas as pd
 
 from algo_royale.backtester.enum.backtest_stage import BacktestStage
 from algo_royale.backtester.stage_data.loader.stage_data_loader import StageDataLoader
 from algo_royale.backtester.stage_data.stage_data_manager import StageDataManager
+from algo_royale.logging.loggable import Loggable
 
 
 class SymbolStrategyDataLoader:
@@ -37,6 +37,7 @@ class SymbolStrategyDataLoader:
         end_date: datetime,
         strategy_name: Optional[str] = None,
         reverse_pages: bool = False,
+        exclude_done_symbols: bool = False,
     ) -> Dict[str, Callable[[], AsyncIterator[pd.DataFrame]]]:
         """Load data based on the configuration"""
         try:
@@ -49,6 +50,7 @@ class SymbolStrategyDataLoader:
                 start_date=start_date,
                 end_date=end_date,
                 reverse_pages=reverse_pages,
+                exclude_done_symbols=exclude_done_symbols,
             )
             return data
         except Exception as e:

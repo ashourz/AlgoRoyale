@@ -3,7 +3,6 @@ import re
 from datetime import datetime
 from pathlib import Path
 from typing import AsyncIterator, Callable, Dict, Optional
-from algo_royale.logging.loggable import Loggable
 
 import pandas as pd
 
@@ -13,6 +12,7 @@ from algo_royale.backtester.stage_data.stage_data_manager import (
     StageDataManager,
     mockStageDataManager,
 )
+from algo_royale.logging.loggable import Loggable
 
 
 class StageDataLoader:
@@ -53,6 +53,7 @@ class StageDataLoader:
         strategy_name: Optional[str] = None,
         start_date: Optional[datetime] = None,
         end_date: Optional[datetime] = None,
+        exclude_done_symbols: bool = False,
         reverse_pages: bool = False,
     ) -> Dict[str, Callable[[], AsyncIterator[pd.DataFrame]]]:
         """Returns async data generators with automatic data fetching
@@ -95,6 +96,17 @@ class StageDataLoader:
         # Then prepare the async iterators
         data = {}
         for symbol in existing_symbols:
+            if exclude_done_symbols and self.stage_data_manager.is_symbol_stage_done(
+                stage=stage,
+                strategy_name=strategy_name,
+                symbol=symbol,
+                start_date=start_date,
+                end_date=end_date,
+            ):
+                self.logger.info(
+                    f"Skipping {symbol} as it is already marked as done for stage: {stage} | strategy: {strategy_name}"
+                )
+                continue
             # Skip if symbol is not in watchlist
             if symbol not in self.get_watchlist():
                 self.logger.warning(

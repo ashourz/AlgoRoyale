@@ -39,14 +39,14 @@ class BaseSignalStrategy(BaseStrategy):
         entry_conditions: Optional[list[StrategyCondition]] = None,
         exit_conditions: Optional[list[StrategyCondition]] = None,
         stateful_logic: Optional[StatefulLogic] = None,
+        debug: bool = False,
     ):
         self.filter_conditions = filter_conditions or []
         self.trend_conditions = trend_conditions or []
         self.entry_conditions = entry_conditions or []
         self.exit_conditions = exit_conditions or []
         self.stateful_logic = stateful_logic
-        # TODO: pull from config
-        self.debug = True  # Set to True for debugging output
+        self.debug = debug
 
     @property
     def required_columns(self) -> list[str]:

@@ -25,6 +25,7 @@ class VolumeSurgeStrategy(BaseSignalStrategy):
                 vol_col=SignalStrategyColumns.VOLUME, threshold=2.0, ma_window=20
             )
         ],
+        debug: bool = False,
     ):
         """Initialize the Volume Surge Strategy with entry and exit conditions.
         Parameters:
@@ -43,4 +44,5 @@ class VolumeSurgeStrategy(BaseSignalStrategy):
         super().__init__(
             entry_conditions=self.entry_conditions,
             exit_conditions=self.exit_conditions,
+            debug=debug,
         )

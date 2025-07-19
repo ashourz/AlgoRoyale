@@ -9,9 +9,15 @@ from algo_royale.backtester.strategy.signal.conditions.base_strategy_condition i
 
 class RSIExitCondition(StrategyCondition):
     def __init__(
-        self, close_col=SignalStrategyColumns.CLOSE_PRICE, period=14, overbought=70
+        self,
+        close_col=SignalStrategyColumns.CLOSE_PRICE,
+        period=14,
+        overbought=70,
+        debug: bool = False,
     ):
-        super().__init__(close_col=close_col, period=period, overbought=overbought)
+        super().__init__(
+            close_col=close_col, period=period, overbought=overbought, debug=debug
+        )
         self.close_col = close_col
         self.period = period
         self.overbought = overbought

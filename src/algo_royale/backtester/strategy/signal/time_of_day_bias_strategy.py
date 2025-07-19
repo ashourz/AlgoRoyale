@@ -33,6 +33,7 @@ class TimeOfDayBiasStrategy(BaseSignalStrategy):
                 hour_col=SignalStrategyColumns.HOUR,
             )
         ],
+        debug: bool = False,
     ):
         """Initialize the Time of Day Bias Strategy with entry and exit conditions.
         Parameters:
@@ -42,4 +43,5 @@ class TimeOfDayBiasStrategy(BaseSignalStrategy):
         super().__init__(
             entry_conditions=entry_conditions,
             exit_conditions=exit_conditions,
+            debug=debug,
         )

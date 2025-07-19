@@ -32,6 +32,7 @@ class MovingAverageStrategy(BaseSignalStrategy):
                 long_window=200,
             )
         ],
+        debug: bool = False,
     ):
         """Initialize the Moving Average Strategy with entry and exit conditions.
         Parameters:
@@ -40,4 +41,5 @@ class MovingAverageStrategy(BaseSignalStrategy):
         super().__init__(
             entry_conditions=entry_conditions,
             exit_conditions=exit_conditions,
+            debug=debug,
         )

@@ -25,6 +25,7 @@ class MovingAverageCrossoverExitCondition(StrategyCondition):
         trend_window: int = 200,
         volume_ma_window=20,
         ma_type: MA_Type = MA_Type.EMA,
+        debug: bool = False,
     ):
         super().__init__(
             close_col=close_col,
@@ -34,6 +35,7 @@ class MovingAverageCrossoverExitCondition(StrategyCondition):
             trend_window=trend_window,
             volume_ma_window=volume_ma_window,
             ma_type=ma_type,
+            debug=debug,
         )
         self.close_col = close_col
         self.volume_col = volume_col

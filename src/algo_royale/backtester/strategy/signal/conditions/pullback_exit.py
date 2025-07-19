@@ -12,10 +12,8 @@ from algo_royale.backtester.strategy.signal.conditions.pullback_entry import (
 
 
 class PullbackExitCondition(StrategyCondition):
-    def __init__(self, entry_condition: PullbackEntryCondition):
-        super().__init__(
-            entry_condition=entry_condition,
-        )
+    def __init__(self, entry_condition: PullbackEntryCondition, debug: bool = False):
+        super().__init__(entry_condition=entry_condition, debug=debug)
         self.entry_condition = entry_condition
 
     @property

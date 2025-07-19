@@ -13,11 +13,13 @@ class TimeOfDayExitCondition(StrategyCondition):
         sell_start_hour=10,
         sell_end_hour=16,
         hour_col: SignalStrategyColumns = SignalStrategyColumns.HOUR,
+        debug: bool = False,
     ):
         super().__init__(
             sell_start_hour=sell_start_hour,
             sell_end_hour=sell_end_hour,
             hour_col=hour_col,
+            debug=debug,
         )
         self.sell_start_hour = sell_start_hour
         self.sell_end_hour = sell_end_hour

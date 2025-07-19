@@ -22,9 +22,12 @@ class MeanVariancePortfolioStrategy(BasePortfolioStrategy):
         risk_aversion: float, risk aversion parameter (default: 1.0)
     """
 
-    def __init__(self, lookback: int = 60, risk_aversion: float = 1.0):
+    def __init__(
+        self, lookback: int = 60, risk_aversion: float = 1.0, debug: bool = False
+    ):
         self.lookback = lookback
         self.risk_aversion = risk_aversion
+        super().__init__(debug=debug)
 
     @property
     def required_columns(self):

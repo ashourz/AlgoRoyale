@@ -54,8 +54,11 @@ class ADXAboveThresholdCondition(StrategyCondition):
         adx_col: SignalStrategyColumns = SignalStrategyColumns.ADX,
         close_col: SignalStrategyColumns = SignalStrategyColumns.CLOSE_PRICE,
         threshold: float = 25,
+        debug: bool = False,
     ):
-        super().__init__(adx_col=adx_col, close_col=close_col, threshold=threshold)
+        super().__init__(
+            adx_col=adx_col, close_col=close_col, threshold=threshold, debug=debug
+        )
         self.adx_col = adx_col
         self.close_col = close_col
         self.threshold = threshold

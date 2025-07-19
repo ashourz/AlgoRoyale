@@ -1,6 +1,5 @@
 from datetime import datetime
 from typing import AsyncIterator, Callable, Dict, Optional
-from algo_royale.logging.loggable import Loggable
 
 import pandas as pd
 
@@ -16,6 +15,7 @@ from algo_royale.backtester.stage_data.stage_data_manager import StageDataManage
 from algo_royale.backtester.stage_data.writer.symbol_strategy_data_writer import (
     SymbolStrategyDataWriter,
 )
+from algo_royale.logging.loggable import Loggable
 
 
 class FeatureEngineeringStageCoordinator(StageCoordinator):
@@ -114,6 +114,7 @@ class FeatureEngineeringStageCoordinator(StageCoordinator):
                 start_date=start_date,
                 end_date=end_date,
                 reverse_pages=True,
+                exclude_done_symbols=True,  # Exclude symbols already processed
             )
             if not data:
                 self.logger.error(f"No data loaded for stage: {stage}")

@@ -12,8 +12,8 @@ from algo_royale.backtester.strategy.signal.conditions.volume_surge_entry import
 
 
 class VolumeSurgeExitCondition(StrategyCondition):
-    def __init__(self, entry_condition: VolumeSurgeEntryCondition):
-        super().__init__(entry_condition=entry_condition)
+    def __init__(self, entry_condition: VolumeSurgeEntryCondition, debug: bool = False):
+        super().__init__(entry_condition=entry_condition, debug=debug)
         self.entry_condition = entry_condition
 
     @property

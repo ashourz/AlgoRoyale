@@ -64,6 +64,7 @@ class PortfolioOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
         optimization_json_filename: str,
         asset_matrix_preparer: AssetMatrixPreparer,
         portfolio_strategy_optimizer_factory: PortfolioStrategyOptimizerFactory,
+        strategy_debug: bool = False,
     ):
         super().__init__(
             stage=BacktestStage.PORTFOLIO_OPTIMIZATION,
@@ -82,6 +83,7 @@ class PortfolioOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
         self.stage_data_manager = stage_data_manager
         self.evaluator = evaluator
         self.executor = executor
+        self.strategy_debug = strategy_debug
 
     async def _process_and_write(
         self,
@@ -124,7 +126,7 @@ class PortfolioOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
                 f"DEBUG: Using strategy combinator: {strategy_combinator.__name__}"
             )
             combinations = strategy_combinator.all_strategy_combinations(
-                logger=self.logger
+                logger=self.logger, debug=self.strategy_debug
             )
             for strat_factory in combinations:
                 try:

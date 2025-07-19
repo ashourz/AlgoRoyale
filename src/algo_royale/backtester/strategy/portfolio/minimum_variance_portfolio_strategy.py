@@ -21,8 +21,9 @@ class MinimumVariancePortfolioStrategy(BasePortfolioStrategy):
         lookback: int, window size for covariance estimation (default: 60)
     """
 
-    def __init__(self, lookback: int = 60):
+    def __init__(self, lookback: int = 60, debug: bool = False):
         self.lookback = lookback
+        super().__init__(debug=debug)
 
     @property
     def required_columns(self):

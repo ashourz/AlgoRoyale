@@ -9,9 +9,15 @@ from algo_royale.backtester.strategy.signal.conditions.base_strategy_condition i
 
 class VolumeSurgeEntryCondition(StrategyCondition):
     def __init__(
-        self, vol_col=SignalStrategyColumns.VOLUME, threshold=2.0, ma_window=20
+        self,
+        vol_col=SignalStrategyColumns.VOLUME,
+        threshold=2.0,
+        ma_window=20,
+        debug: bool = False,
     ):
-        super().__init__(vol_col=vol_col, threshold=threshold, ma_window=ma_window)
+        super().__init__(
+            vol_col=vol_col, threshold=threshold, ma_window=ma_window, debug=debug
+        )
         self.vol_col = vol_col
         self.threshold = threshold
         self.ma_window = ma_window

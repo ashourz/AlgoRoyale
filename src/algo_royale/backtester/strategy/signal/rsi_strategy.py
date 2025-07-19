@@ -28,6 +28,7 @@ class RSIStrategy(BaseSignalStrategy):
                 close_col=SignalStrategyColumns.CLOSE_PRICE, period=14, overbought=70
             )
         ],
+        debug: bool = False,
     ) -> None:
         """Initialize the RSI Strategy with entry and exit conditions.
         Parameters:
@@ -37,4 +38,5 @@ class RSIStrategy(BaseSignalStrategy):
         super().__init__(
             entry_conditions=entry_conditions,
             exit_conditions=exit_conditions,
+            debug=debug,
         )

@@ -36,6 +36,7 @@ class TrendScraperStrategy(BaseSignalStrategy):
                 threshold=-0.005,
             )
         ],
+        debug: bool = False,
     ):
         """Initialize the Trend Scraper Strategy with trend and exit conditions.
         Parameters:
@@ -43,5 +44,7 @@ class TrendScraperStrategy(BaseSignalStrategy):
         - exit_conditions: List of exit conditions for the strategy.
         """
         super().__init__(
-            trend_conditions=trend_conditions, exit_conditions=exit_conditions
+            trend_conditions=trend_conditions,
+            exit_conditions=exit_conditions,
+            debug=debug,
         )

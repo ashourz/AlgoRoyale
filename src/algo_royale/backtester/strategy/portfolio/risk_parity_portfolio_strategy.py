@@ -21,10 +21,17 @@ class RiskParityPortfolioStrategy(BasePortfolioStrategy):
         tol: float, tolerance for convergence (default: 1e-6)
     """
 
-    def __init__(self, window: int = 20, max_iter: int = 100, tol: float = 1e-6):
+    def __init__(
+        self,
+        window: int = 20,
+        max_iter: int = 100,
+        tol: float = 1e-6,
+        debug: bool = False,
+    ):
         self.window = window
         self.max_iter = max_iter
         self.tol = tol
+        super().__init__(debug=debug)
 
     @property
     def required_columns(self):
