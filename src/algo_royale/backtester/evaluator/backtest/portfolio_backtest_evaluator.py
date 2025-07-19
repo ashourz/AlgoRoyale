@@ -267,27 +267,13 @@ class PortfolioBacktestEvaluator(BacktestEvaluator):
             self.logger.error("Null values found in column: portfolio_values")
             raise ValueError("Null values found in column: portfolio_values")
 
-        # If metrics dict is present as an attribute, validate portfolio_returns in metrics
-        metrics = getattr(self, PortfolioExecutionKeys.METRICS, None)
-        if metrics is not None:
-            self._validate_portfolio_returns(metrics)
-        else:
-            self.logger.error(
-                "Metrics dictionary not found in PortfolioBacktestEvaluator instance."
-            )
-            raise ValueError(
-                "Metrics dictionary not found in PortfolioBacktestEvaluator instance."
-            )
-
-    def _validate_portfolio_returns(self, metrics: dict) -> None:
-        """
-        Validate the portfolio_returns in the metrics dict for nulls if present.
-        """
-        if PortfolioExecutionMetricsKeys.PORTFOLIO_RETURNS in metrics:
-            returns = metrics[PortfolioExecutionMetricsKeys.PORTFOLIO_RETURNS]
-            if pd.isnull(returns).any():
-                self.logger.error("Null values found in portfolio_returns in metrics.")
-                raise ValueError("Null values found in portfolio_returns in metrics.")
+        # Check for portfolio_returns if it exists
+        if PortfolioExecutionMetricsKeys.PORTFOLIO_RETURNS not in df.columns:
+            self.logger.error("Missing 'portfolio_returns' column in DataFrame.")
+            raise ValueError("'portfolio_returns' must be present in the DataFrame.")
+        if df[PortfolioExecutionMetricsKeys.PORTFOLIO_RETURNS].isnull().any():
+            self.logger.error("Null values found in column: portfolio_returns")
+            raise ValueError("Null values found in column: portfolio_returns")
 
     @staticmethod
     def max_drawdown(returns: pd.Series) -> float:
