@@ -4,6 +4,10 @@ from typing import Any, AsyncIterator, Callable, Dict, Optional, Sequence
 
 import pandas as pd
 
+from algo_royale.backtester.column_names.portfolio_execution_keys import (
+    PortfolioExecutionKeys,
+    PortfolioExecutionMetricsKeys,
+)
 from algo_royale.backtester.data_preparer.asset_matrix_preparer import (
     AssetMatrixPreparer,
 )
@@ -106,24 +110,24 @@ class PortfolioTestingStageCoordinator(BaseTestingStageCoordinator):
                 self.logger.debug(
                     f"DEBUG: Strategy name: {strategy_name}, Strategy class: {strategy_class}"
                 )
-                optimize_params = self._get_optimized_params(
+                optimized_params = self._get_optimized_params(
                     strategy_name=strategy_name,
                     strategy_class=strategy_class,
                 )
-                if not optimize_params:
+                if optimized_params is None:
                     self.logger.warning(
                         f"No optimized parameters found for {strategy_name} during {self.train_window_id}. Skipping."
                     )
                     continue
                 # Instantiate strategy with filtered_params
-                strategy = strategy_class(**optimize_params)
+                strategy = strategy_class(**optimized_params)
                 # Run backtest using the pre-configured executor
                 backtest_results = self.executor.run_backtest(
                     strategy,
                     portfolio_matrix,
                 )
                 self.logger.info(
-                    f"Backtest completed for {strategy_name} with {len(backtest_results.get('portfolio_returns', []))} returns."
+                    f"Backtest completed for {strategy_name} with {len(backtest_results.get(PortfolioExecutionKeys.METRICS, {}).get(PortfolioExecutionMetricsKeys.PORTFOLIO_RETURNS, []))} returns."
                 )
                 # Evaluate metrics (now includes all new metrics)
                 metrics = self.evaluator.evaluate_from_dict(backtest_results)
@@ -148,7 +152,7 @@ class PortfolioTestingStageCoordinator(BaseTestingStageCoordinator):
 
                 # Debug logs to trace the flow and values
                 self.logger.debug(
-                    f"DEBUG: Strategy name: {strategy_name}, Optimize params: {optimize_params}"
+                    f"DEBUG: Strategy name: {strategy_name}, Optimize params: {optimized_params}"
                 )
                 self.logger.debug(
                     f"DEBUG: Portfolio matrix shape: {portfolio_matrix.shape}"
@@ -157,12 +161,12 @@ class PortfolioTestingStageCoordinator(BaseTestingStageCoordinator):
                 self.logger.debug(f"DEBUG: Metrics: {metrics}")
 
                 results = self._write_test_results(
-                    symbols=list(data.keys()),
+                    symbols=list(portfolio_matrix.columns),
                     metrics=metrics,
                     strategy_name=strategy_name,
                     backtest_results=backtest_results,
                     optimization_result=test_opt_results,
-                    results=results,
+                    collective_results=results,
                 )
                 self.logger.debug(f"DEBUG: Results before writing: {results}")
 
@@ -315,12 +319,12 @@ class PortfolioTestingStageCoordinator(BaseTestingStageCoordinator):
         strategy_name: str,
         backtest_results: Dict[str, Any],
         optimization_result: Dict[str, Any],
-        results: Dict[str, Dict[str, Dict[str, float]]],
+        collective_results: Dict[str, Dict[str, Dict[str, float]]],
     ) -> Dict[str, Dict[str, Dict[str, float]]]:
         try:
             # Ensure results is a dict
-            if not results or not isinstance(results, dict):
-                results = {}
+            if not collective_results or not isinstance(collective_results, dict):
+                collective_results = {}
 
             # Ensure optimization_result is a dict and has the correct window structure
             if not optimization_result or not isinstance(optimization_result, dict):
@@ -338,43 +342,50 @@ class PortfolioTestingStageCoordinator(BaseTestingStageCoordinator):
             )
 
             # Build the test structure for this window
-            test_dict = {
-                "strategy": strategy_name,
-                "params": best_params,
-                "meta": {
-                    "symbols": symbols,
-                    "window_id": self.test_window_id,
-                    "transactions": backtest_results.get("transactions", []),
-                },
-                "metrics": metrics,
-                "window": {
-                    "start_date": self.test_start_date,
-                    "end_date": self.test_end_date,
-                    "window_id": self.test_window_id,
-                },
+            test_optimization_json = {
+                self.test_window_id: {
+                    "test": {
+                        "strategy": strategy_name,
+                        "params": best_params,
+                        "meta": {
+                            "symbols": symbols,
+                            "window_id": self.test_window_id,
+                            "transactions": backtest_results.get("transactions", []),
+                        },
+                        "metrics": metrics,
+                    },
+                    "window": {
+                        "start_date": self.test_start_date,
+                        "end_date": self.test_end_date,
+                        "window_id": self.test_window_id,
+                    },
+                }
             }
 
-            # Update the optimization result dictionary with test results
-            optimization_result[self.test_window_id]["test"] = test_dict
+            updated_optimization_json = self._deep_merge(
+                test_optimization_json, optimization_result
+            )
 
-            # Optionally, also update results dict for in-memory use
-            results[self.test_window_id] = {"test": test_dict}
+            self.logger.debug(
+                f"Optimization result after update: {updated_optimization_json}"
+            )
 
             # Save the updated optimization results to the file
-            out_path = self._get_optimization_result_path(
+            test_opt_results_path = self._get_optimization_result_path(
                 strategy_name=strategy_name,
                 start_date=self.test_start_date,
                 end_date=self.test_end_date,
                 symbol=None,
             )
             self.logger.info(
-                f"Saving test results for {strategy_name} and symbols {symbols} to {out_path}"
+                f"Saving test results for {strategy_name} to {test_opt_results_path}"
             )
-            with open(out_path, "w") as f:
-                json.dump(optimization_result, f, indent=2, default=str)
+            with open(test_opt_results_path, "w") as f:
+                json.dump(updated_optimization_json, f, indent=2, default=str)
 
+            collective_results[strategy_name] = updated_optimization_json
         except Exception as e:
             self.logger.error(
                 f"Error writing test results for {strategy_name} during {self.test_window_id}: {e}"
             )
-        return results
+        return collective_results

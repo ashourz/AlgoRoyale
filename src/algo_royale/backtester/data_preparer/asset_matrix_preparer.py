@@ -2,6 +2,9 @@ from typing import Optional
 
 import pandas as pd
 
+from algo_royale.backtester.column_names.feature_engineering_columns import (
+    FeatureEngineeringColumns,
+)
 from algo_royale.logging.loggable import Loggable
 from algo_royale.logging.logger_factory import mockLogger
 
@@ -28,10 +31,11 @@ class AssetMatrixPreparer:
     ) -> pd.DataFrame:
         """
         Prepares the DataFrame in asset-matrix form for portfolio strategies.
+        Only price columns (close, open, high, low) are included by default unless value_col is specified.
         Args:
             df: Input DataFrame (raw or feature-engineered)
             symbol_col: Name of the column containing asset symbols
-            value_col: Name of the column containing the feature/values to pivot (if None, uses all columns except symbol/timestamp)
+            value_col: Name of the column containing the feature/values to pivot (if None, uses only price columns)
             timestamp_col: Name of the column containing timestamps
         Returns:
             pd.DataFrame: Asset-matrix DataFrame (index: timestamp, columns: symbols)
@@ -47,16 +51,32 @@ class AssetMatrixPreparer:
                 index=timestamp_col, columns=symbol_col, values=value_col
             )
         else:
-            # Use all columns except symbol/timestamp
-            value_cols = [c for c in df.columns if c not in {symbol_col, timestamp_col}]
-            if len(value_cols) == 1:
+            # Only use price columns by default
+            price_cols = [
+                c
+                for c in df.columns
+                if c.lower()
+                in {
+                    FeatureEngineeringColumns.CLOSE_PRICE,
+                    FeatureEngineeringColumns.OPEN_PRICE,
+                    FeatureEngineeringColumns.HIGH_PRICE,
+                    FeatureEngineeringColumns.LOW_PRICE,
+                }
+            ]
+            if not price_cols:
+                self.logger.warning(
+                    "No price columns found in DataFrame for asset matrix. Columns: %s",
+                    df.columns,
+                )
+                return pd.DataFrame()
+            if len(price_cols) == 1:
                 pivot_df = df.pivot(
-                    index=timestamp_col, columns=symbol_col, values=value_cols[0]
+                    index=timestamp_col, columns=symbol_col, values=price_cols[0]
                 )
             else:
                 # Multi-feature: create MultiIndex columns
                 pivot_df = df.pivot(
-                    index=timestamp_col, columns=symbol_col, values=value_cols
+                    index=timestamp_col, columns=symbol_col, values=price_cols
                 )
 
         self.logger.info(

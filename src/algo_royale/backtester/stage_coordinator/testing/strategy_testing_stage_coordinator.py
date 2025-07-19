@@ -160,26 +160,27 @@ class StrategyTestingStageCoordinator(BaseTestingStageCoordinator):
                 strategy_class = strategy_combinator.strategy_class
                 strategy_name = strategy_class.__name__
 
-                # Check if optimization has already been done for this strategy
-                existing_optimization_json = self.get_existing_optimization_results(
-                    strategy_name=strategy_name,
+                if self._has_optimization_run(
                     symbol=symbol,
-                    start_date=self.train_start_date,
-                    end_date=self.train_end_date,
-                )
-                self.logger.debug(
-                    f"Checking existing optimization results for {symbol} {strategy_name} in window {self.train_window_id} | existing_optimization_json: {existing_optimization_json} "
-                )
-
-                # If the optimization has already been run, skip it
-                # Use the stage's output validation function to check if results are valid
-                if self.stage.output_validation_fn(
-                    existing_optimization_json, self.logger
+                    strategy_name=strategy_name,
+                    start_date=self.test_start_date,
+                    end_date=self.test_end_date,
                 ):
                     self.logger.info(
-                        f"Optimization already run for {symbol} {strategy_name} in window {self.train_window_id}"
+                        f"Skipping optimization for {symbol} {strategy_name} as it has already been run."
                     )
-                    results = results | existing_optimization_json
+                    skip_result_json = {
+                        strategy_name: {
+                            "test": {
+                                "symbol": symbol,
+                                "strategy": strategy_name,
+                                "window_id": self.window_id,
+                                "status": "skipped",
+                                "reason": "Already run",
+                            }
+                        }
+                    }
+                    results = results | skip_result_json
                     continue
 
                 self.logger.debug(f"Processing strategy: {strategy_name}")
@@ -290,8 +291,7 @@ class StrategyTestingStageCoordinator(BaseTestingStageCoordinator):
     def _has_optimization_run(
         self, symbol: str, strategy_name: str, start_date: datetime, end_date: datetime
     ) -> bool:
-        """Check if test has already been run for the current stage."""
-        # Get existing results for the symbol and strategy
+        """Check if test has already been run for the current stage and test window."""
         try:
             existing_optimization_json = self.get_existing_optimization_results(
                 strategy_name=strategy_name,
@@ -299,16 +299,30 @@ class StrategyTestingStageCoordinator(BaseTestingStageCoordinator):
                 start_date=start_date,
                 end_date=end_date,
             )
-            if self.stage.output_validation_fn(existing_optimization_json, self.logger):
+            # Check for the specific test window in the JSON
+            test_data = existing_optimization_json.get(self.test_window_id)
+            if not test_data:
                 self.logger.info(
-                    f"Test already run for {symbol} {strategy_name} in start date {start_date} and end date {end_date}"
-                )
-                return True
-            else:
-                self.logger.info(
-                    f"No existing test results for {symbol} {strategy_name} in start date {start_date} and end date {end_date}"
+                    f"No test data for window {self.test_window_id} for {symbol} {strategy_name}"
                 )
                 return False
+            # Check for the presence of 'test' key and metrics
+            test_section = test_data.get("test")
+            if not test_section or not test_section.get("metrics"):
+                self.logger.info(
+                    f"No test metrics for window {self.test_window_id} for {symbol} {strategy_name}"
+                )
+                return False
+            # Validate the structure of the test data
+            if not self.stage.output_validation_fn(test_data, self.logger):
+                self.logger.error(
+                    f"Test data validation failed for {symbol} {strategy_name} in window {self.test_window_id}"
+                )
+                return False
+            self.logger.info(
+                f"Test already run for {symbol} {strategy_name} in window {self.test_window_id}"
+            )
+            return True
         except Exception as e:
             self.logger.error(
                 f"Error checking test run for {symbol} {strategy_name}: {e}"
@@ -456,10 +470,6 @@ class StrategyTestingStageCoordinator(BaseTestingStageCoordinator):
 
             self.logger.debug(
                 f"Optimization result after update: {updated_optimization_json}"
-            )
-
-            self.logger.debug(
-                f"Results dictionary after update: {updated_optimization_json}"
             )
 
             # Save the updated optimization results to the file
