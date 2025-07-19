@@ -83,6 +83,10 @@ class PortfolioTestingStageCoordinator(BaseTestingStageCoordinator):
         )
         self.strategy_debug = strategy_debug
         self.asset_matrix_preparer = asset_matrix_preparer
+        self.strategy_combinator_max_filter = strategy_combinator_max_filter
+        self.strategy_combinator_max_entry = strategy_combinator_max_entry
+        self.strategy_combinator_max_trend = strategy_combinator_max_trend
+        self.strategy_combinator_max_exit = strategy_combinator_max_exit
 
     async def _process_and_write(
         self,

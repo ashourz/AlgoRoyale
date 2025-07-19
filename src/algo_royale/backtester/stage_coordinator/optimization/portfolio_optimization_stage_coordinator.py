@@ -51,10 +51,10 @@ class PortfolioOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
         asset_matrix_preparer (AssetMatrixPreparer): Prepares asset-matrix form for portfolio strategies.
         portfolio_strategy_optimizer_factory (PortfolioStrategyOptimizerFactory): Factory to create portfolio strategy optimizers.
         strategy_debug (bool): Whether to enable debug mode for strategy combinators.
-        strategy_combinators_max_filter (int): Maximum number of filters for strategy combinators.
-        strategy_combinators_max_entry (int): Maximum number of entry conditions for strategy combinators.
-        strategy_combinators_max_trend (int): Maximum number of trend conditions for strategy combinators.
-        strategy_combinators_max_exit (int): Maximum number of exit conditions for strategy combinators.
+        strategy_combinator_max_filter (int): Maximum number of filters for strategy combinators.
+        strategy_combinator_max_entry (int): Maximum number of entry conditions for strategy combinators.
+        strategy_combinator_max_trend (int): Maximum number of trend conditions for strategy combinators.
+        strategy_combinator_max_exit (int): Maximum number of exit conditions for strategy combinators.
     """
 
     def __init__(
