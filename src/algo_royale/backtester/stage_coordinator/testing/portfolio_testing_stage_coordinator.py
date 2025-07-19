@@ -46,6 +46,11 @@ class PortfolioTestingStageCoordinator(BaseTestingStageCoordinator):
         optimization_root (str): Root directory for saving optimization results.
         optimization_json_filename (str): Name of the JSON file to save optimization results.
         asset_matrix_preparer (AssetMatrixPreparer): Preparer for converting data to asset-matrix form.
+        strategy_debug (bool): Whether to enable debug mode for strategy combinators.
+        strategy_combinator_max_filter (int): Maximum number of filters for strategy combinators.
+        strategy_combinator_max_entry (int): Maximum number of entry conditions for strategy combinators.
+        strategy_combinator_max_trend (int): Maximum number of trend conditions for strategy combinators.
+        strategy_combinator_max_exit (int): Maximum number of exit conditions for strategy combinators.
     """
 
     def __init__(
@@ -60,6 +65,10 @@ class PortfolioTestingStageCoordinator(BaseTestingStageCoordinator):
         optimization_json_filename: str,
         asset_matrix_preparer: AssetMatrixPreparer,
         strategy_debug: bool = False,
+        strategy_combinator_max_filter: int = 1,
+        strategy_combinator_max_entry: int = 1,
+        strategy_combinator_max_trend: int = 1,
+        strategy_combinator_max_exit: int = 1,
     ):
         super().__init__(
             stage=BacktestStage.PORTFOLIO_TESTING,
@@ -97,7 +106,12 @@ class PortfolioTestingStageCoordinator(BaseTestingStageCoordinator):
         )
         for strategy_combinator in self.strategy_combinators:
             for strat_factory in strategy_combinator.all_strategy_combinations(
-                logger=self.logger, debug=self.strategy_debug
+                logger=self.logger,
+                max_filter=self.strategy_combinator_max_filter,
+                max_entry=self.strategy_combinator_max_entry,
+                max_trend=self.strategy_combinator_max_trend,
+                max_exit=self.strategy_combinator_max_exit,
+                debug=self.strategy_debug,
             ):
                 strategy_class = (
                     strat_factory.func

@@ -4,10 +4,11 @@ import time
 from abc import ABC, abstractmethod
 from datetime import datetime
 from typing import Any, Callable, Dict, Type
-from algo_royale.logging.loggable import Loggable
 
 import optuna
 import pandas as pd
+
+from algo_royale.logging.loggable import Loggable
 
 
 class SignalStrategyOptimizer(ABC):
@@ -61,6 +62,7 @@ class SignalStrategyOptimizerImpl(SignalStrategyOptimizer):
         self.direction = direction
         self.logger = logger
 
+    ## TODO: pull from config
     def optimize(
         self,
         symbol: str,

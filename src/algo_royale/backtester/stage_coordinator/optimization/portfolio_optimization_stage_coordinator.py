@@ -50,6 +50,11 @@ class PortfolioOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
         optimization_json_filename (str): Name of the JSON file to write optimization results.
         asset_matrix_preparer (AssetMatrixPreparer): Prepares asset-matrix form for portfolio strategies.
         portfolio_strategy_optimizer_factory (PortfolioStrategyOptimizerFactory): Factory to create portfolio strategy optimizers.
+        strategy_debug (bool): Whether to enable debug mode for strategy combinators.
+        strategy_combinators_max_filter (int): Maximum number of filters for strategy combinators.
+        strategy_combinators_max_entry (int): Maximum number of entry conditions for strategy combinators.
+        strategy_combinators_max_trend (int): Maximum number of trend conditions for strategy combinators.
+        strategy_combinators_max_exit (int): Maximum number of exit conditions for strategy combinators.
     """
 
     def __init__(
@@ -65,6 +70,10 @@ class PortfolioOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
         asset_matrix_preparer: AssetMatrixPreparer,
         portfolio_strategy_optimizer_factory: PortfolioStrategyOptimizerFactory,
         strategy_debug: bool = False,
+        strategy_combinator_max_filter: int = 1,
+        strategy_combinator_max_entry: int = 1,
+        strategy_combinator_max_trend: int = 1,
+        strategy_combinator_max_exit: int = 1,
     ):
         super().__init__(
             stage=BacktestStage.PORTFOLIO_OPTIMIZATION,
@@ -126,7 +135,12 @@ class PortfolioOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
                 f"DEBUG: Using strategy combinator: {strategy_combinator.__name__}"
             )
             combinations = strategy_combinator.all_strategy_combinations(
-                logger=self.logger, debug=self.strategy_debug
+                logger=self.logger,
+                max_filter=self.strategy_combinator_max_filter,
+                max_entry=self.strategy_combinator_max_entry,
+                max_trend=self.strategy_combinator_max_trend,
+                max_exit=self.strategy_combinator_max_exit,
+                debug=self.strategy_debug,
             )
             for strat_factory in combinations:
                 try:

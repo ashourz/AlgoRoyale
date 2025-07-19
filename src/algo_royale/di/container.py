@@ -670,6 +670,20 @@ class DIContainer(containers.DeclarativeContainer):
         strategy_debug=providers.Object(
             config().get_bool("logger.log", "base_portfolio_strategy_debug", False)
         ),
+        strategy_combinators_max_filter=providers.Object(
+            config().get_int(
+                "backtester.portfolio.strategy_combinator", "max_filter", 1
+            )
+        ),
+        strategy_combinators_max_entry=providers.Object(
+            config().get_int("backtester.portfolio.strategy_combinator", "max_entry", 1)
+        ),
+        strategy_combinators_max_trend=providers.Object(
+            config().get_int("backtester.portfolio.strategy_combinator", "max_trend", 1)
+        ),
+        strategy_combinators_max_exit=providers.Object(
+            config().get_int("backtester.portfolio.strategy_combinator", "max_exit", 1)
+        ),
     )
 
     portfolio_testing_stage_coordinator = providers.Singleton(
@@ -693,6 +707,20 @@ class DIContainer(containers.DeclarativeContainer):
         asset_matrix_preparer=portfolio_asset_matrix_preparer,
         strategy_debug=providers.Object(
             config().get_bool("logger.log", "base_portfolio_strategy_debug", False)
+        ),
+        strategy_combinators_max_filter=providers.Object(
+            config().get_int(
+                "backtester.portfolio.strategy_combinator", "max_filter", 1
+            )
+        ),
+        strategy_combinators_max_entry=providers.Object(
+            config().get_int("backtester.portfolio.strategy_combinator", "max_entry", 1)
+        ),
+        strategy_combinators_max_trend=providers.Object(
+            config().get_int("backtester.portfolio.strategy_combinator", "max_trend", 1)
+        ),
+        strategy_combinators_max_exit=providers.Object(
+            config().get_int("backtester.portfolio.strategy_combinator", "max_exit", 1)
         ),
     )
 
