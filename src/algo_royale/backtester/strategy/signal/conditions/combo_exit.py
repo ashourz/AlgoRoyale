@@ -24,6 +24,7 @@ class ComboExitCondition(StrategyCondition):
         macd_col: SignalStrategyColumns = SignalStrategyColumns.MACD,
         volume_col: SignalStrategyColumns = SignalStrategyColumns.VOLUME,
         vol_ma_col: SignalStrategyColumns = SignalStrategyColumns.VOL_MA_20,
+        debug: bool = False,
     ):
         super().__init__(
             rsi_col=rsi_col,
@@ -32,6 +33,7 @@ class ComboExitCondition(StrategyCondition):
             vol_ma_col=vol_ma_col,
             rsi_sell_thresh=rsi_sell_thresh,
             macd_sell_thresh=macd_sell_thresh,
+            debug=debug,
         )
         self.rsi_col = rsi_col
         self.macd_col = macd_col

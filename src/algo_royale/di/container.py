@@ -77,80 +77,8 @@ from algo_royale.backtester.stage_data.writer.symbol_strategy_data_writer import
 from algo_royale.backtester.strategy_combinator.portfolio.equal_risk_contribution_portfolio_strategy_combinator import (
     EqualRiskContributionPortfolioStrategyCombinator,
 )
-from algo_royale.backtester.strategy_combinator.portfolio.equal_weight_portfolio_strategy_combinator import (
-    EqualWeightPortfolioStrategyCombinator,
-)
-from algo_royale.backtester.strategy_combinator.portfolio.inverse_volatility_portfolio_strategy_combinator import (
-    InverseVolatilityPortfolioStrategyCombinator,
-)
-from algo_royale.backtester.strategy_combinator.portfolio.max_sharpe_portfolio_strategy_combinator import (
-    MaxSharpePortfolioStrategyCombinator,
-)
-from algo_royale.backtester.strategy_combinator.portfolio.mean_variance_portfolio_strategy_combinator import (
-    MeanVariancePortfolioStrategyCombinator,
-)
-from algo_royale.backtester.strategy_combinator.portfolio.minimum_variance_portfolio_strategy_combinator import (
-    MinimumVariancePortfolioStrategyCombinator,
-)
-from algo_royale.backtester.strategy_combinator.portfolio.momentum_portfolio_strategy_combinator import (
-    MomentumPortfolioStrategyCombinator,
-)
-from algo_royale.backtester.strategy_combinator.portfolio.risk_parity_portfolio_strategy_combinator import (
-    RiskParityPortfolioStrategyCombinator,
-)
-from algo_royale.backtester.strategy_combinator.portfolio.volatility_weighted_portfolio_strategy_combinator import (
-    VolatilityWeightedPortfolioStrategyCombinator,
-)
-from algo_royale.backtester.strategy_combinator.portfolio.winner_takes_all_portfolio_strategy_combinator import (
-    WinnerTakesAllPortfolioStrategyCombinator,
-)
 from algo_royale.backtester.strategy_combinator.signal.bollinger_bands_strategy_combinator import (
     BollingerBandsStrategyCombinator,
-)
-from algo_royale.backtester.strategy_combinator.signal.combo_strategy_combinator import (
-    ComboStrategyCombinator,
-)
-from algo_royale.backtester.strategy_combinator.signal.macd_trailing_strategy_combinator import (
-    MACDTrailingStrategyCombinator,
-)
-from algo_royale.backtester.strategy_combinator.signal.mean_reversion_strategy_combinator import (
-    MeanReversionStrategyCombinator,
-)
-from algo_royale.backtester.strategy_combinator.signal.momentum_strategy_combinator import (
-    MomentumStrategyCombinator,
-)
-from algo_royale.backtester.strategy_combinator.signal.moving_average_crossover_strategy_combinator import (
-    MovingAverageCrossoverStrategyCombinator,
-)
-from algo_royale.backtester.strategy_combinator.signal.moving_average_strategy_combinator import (
-    MovingAverageStrategyCombinator,
-)
-from algo_royale.backtester.strategy_combinator.signal.pullback_entry_strategy_combinator import (
-    PullbackEntryStrategyCombinator,
-)
-from algo_royale.backtester.strategy_combinator.signal.rsi_strategy_combinator import (
-    RSIStrategyCombinator,
-)
-from algo_royale.backtester.strategy_combinator.signal.time_of_day_bias_strategy_combinator import (
-    TimeOfDayBiasStrategyCombinator,
-)
-from algo_royale.backtester.strategy_combinator.signal.trailing_stop_strategy_combinator import (
-    TrailingStopStrategyCombinator,
-)
-from algo_royale.backtester.strategy_combinator.signal.trend_scraper_strategy_combinator import (
-    TrendScraperStrategyCombinator,
-)
-from algo_royale.backtester.strategy_combinator.signal.volatility_breakout_strategy_combinator import (
-    VolatilityBreakoutStrategyCombinator,
-)
-from algo_royale.backtester.strategy_combinator.signal.volume_surge_strategy_combinator import (
-    VolumeSurgeStrategyCombinator,
-)
-from algo_royale.backtester.strategy_combinator.signal.vwap_reversion_strategy_combinator import (
-    VWAPReversionStrategyCombinator,
-)
-from algo_royale.backtester.strategy_combinator.signal.wick_reversal_strategy_combinator import (
-    WickReversalStrategyCombinator,
 )
 from algo_royale.backtester.strategy_factory.signal.strategy_factory import (
     StrategyFactory,
@@ -557,6 +485,7 @@ class DIContainer(containers.DeclarativeContainer):
         DataIngestStageCoordinator,
         data_loader=stage_data_loader,
         data_writer=symbol_strategy_data_writer,
+        data_manager=stage_data_manager,
         logger=logger_backtest_data_ingest,
         quote_service=alpaca_quote_service,
         load_watchlist=load_watchlist_func,
@@ -567,7 +496,7 @@ class DIContainer(containers.DeclarativeContainer):
         FeatureEngineeringStageCoordinator,
         data_loader=symbol_strategy_data_loader,
         data_writer=symbol_strategy_data_writer,
-        stage_data_manager=stage_data_manager,
+        data_manager=stage_data_manager,
         logger=logger_backtest_feature_engineering,
         feature_engineer=feature_engineer,
     )
@@ -585,28 +514,25 @@ class DIContainer(containers.DeclarativeContainer):
 
     signal_strategy_combinators = [
         BollingerBandsStrategyCombinator,
-        ComboStrategyCombinator,
-        MACDTrailingStrategyCombinator,
-        MeanReversionStrategyCombinator,
-        MomentumStrategyCombinator,
-        MovingAverageCrossoverStrategyCombinator,
-        MovingAverageStrategyCombinator,
-        PullbackEntryStrategyCombinator,
-        RSIStrategyCombinator,
-        TimeOfDayBiasStrategyCombinator,
-        TrailingStopStrategyCombinator,
-        TrendScraperStrategyCombinator,
-        VolatilityBreakoutStrategyCombinator,
-        VolumeSurgeStrategyCombinator,
-        VWAPReversionStrategyCombinator,
-        WickReversalStrategyCombinator,
+        # ComboStrategyCombinator,
+        # MACDTrailingStrategyCombinator,
+        # MeanReversionStrategyCombinator,
+        # MomentumStrategyCombinator,
+        # MovingAverageCrossoverStrategyCombinator,
+        # MovingAverageStrategyCombinator,
+        # PullbackEntryStrategyCombinator,
+        # RSIStrategyCombinator,
+        # TimeOfDayBiasStrategyCombinator,
+        # TrailingStopStrategyCombinator,
+        # TrendScraperStrategyCombinator,
+        # VolatilityBreakoutStrategyCombinator,
+        # VolumeSurgeStrategyCombinator,
+        # VWAPReversionStrategyCombinator,
+        # WickReversalStrategyCombinator,
     ]
 
     strategy_factory = providers.Singleton(
         StrategyFactory,
-        strategy_map_path=providers.Object(
-            config().get("backtester.signal.paths", "signal_strategy_map_path")
-        ),
         strategy_combinators=signal_strategy_combinators,
         logger=logger_strategy_factory,
     )
@@ -633,6 +559,12 @@ class DIContainer(containers.DeclarativeContainer):
             )
         ),
         signal_strategy_optimizer_factory=signal_strategy_optimizer_factory,
+        strategy_debug=providers.Object(
+            config().get_bool("logger.log", "base_signal_strategy_debug", False)
+        ),
+        optimization_n_trials=providers.Object(
+            config().get_int("backtester.signal", "optimization_n_trials", 1)
+        ),
     )
 
     strategy_testing_stage_coordinator = providers.Singleton(
@@ -651,6 +583,9 @@ class DIContainer(containers.DeclarativeContainer):
             config().get(
                 "backtester.signal.filenames", "signal_optimization_json_filename"
             )
+        ),
+        strategy_debug=providers.Object(
+            config().get_bool("logger.log", "base_signal_strategy_debug", False)
         ),
     )
 
@@ -694,15 +629,15 @@ class DIContainer(containers.DeclarativeContainer):
 
     portfolio_strategy_combinators = [
         EqualRiskContributionPortfolioStrategyCombinator,
-        EqualWeightPortfolioStrategyCombinator,
-        InverseVolatilityPortfolioStrategyCombinator,
-        MaxSharpePortfolioStrategyCombinator,
-        MeanVariancePortfolioStrategyCombinator,
-        MinimumVariancePortfolioStrategyCombinator,
-        MomentumPortfolioStrategyCombinator,
-        RiskParityPortfolioStrategyCombinator,
-        VolatilityWeightedPortfolioStrategyCombinator,
-        WinnerTakesAllPortfolioStrategyCombinator,
+        # EqualWeightPortfolioStrategyCombinator,
+        # InverseVolatilityPortfolioStrategyCombinator,
+        # MaxSharpePortfolioStrategyCombinator,
+        # MeanVariancePortfolioStrategyCombinator,
+        # MinimumVariancePortfolioStrategyCombinator,
+        # MomentumPortfolioStrategyCombinator,
+        # RiskParityPortfolioStrategyCombinator,
+        # VolatilityWeightedPortfolioStrategyCombinator,
+        # WinnerTakesAllPortfolioStrategyCombinator,
     ]
 
     portfolio_asset_matrix_preparer = providers.Singleton(
@@ -735,6 +670,12 @@ class DIContainer(containers.DeclarativeContainer):
         ),
         asset_matrix_preparer=portfolio_asset_matrix_preparer,
         portfolio_strategy_optimizer_factory=portfolio_strategy_optimizer_factory,
+        strategy_debug=providers.Object(
+            config().get_bool("logger.log", "base_portfolio_strategy_debug", False)
+        ),
+        optimization_n_trials=providers.Object(
+            config().get_int("backtester.portfolio", "optimization_n_trials", 1)
+        ),
     )
 
     portfolio_testing_stage_coordinator = providers.Singleton(
@@ -756,6 +697,9 @@ class DIContainer(containers.DeclarativeContainer):
             )
         ),
         asset_matrix_preparer=portfolio_asset_matrix_preparer,
+        strategy_debug=providers.Object(
+            config().get_bool("logger.log", "base_portfolio_strategy_debug", False)
+        ),
     )
 
     portfolio_walk_forward_coordinator = providers.Singleton(

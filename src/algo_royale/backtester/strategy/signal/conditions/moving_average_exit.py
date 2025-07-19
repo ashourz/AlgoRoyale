@@ -24,8 +24,9 @@ class MovingAverageExitCondition(StrategyCondition):
         close_col: SignalStrategyColumns = SignalStrategyColumns.CLOSE_PRICE,
         short_window: int = 50,
         long_window: int = 200,
+        debug: bool = False,
     ):
-        super().__init__(close_col=close_col)
+        super().__init__(close_col=close_col, debug=debug)
         self.close_col = close_col
         self.short_window = short_window
         self.long_window = long_window

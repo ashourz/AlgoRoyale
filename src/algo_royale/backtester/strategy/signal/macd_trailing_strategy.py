@@ -48,6 +48,7 @@ class MACDTrailingStopStrategy(BaseSignalStrategy):
             stop_pct=0.02,
             close_col=SignalStrategyColumns.CLOSE_PRICE,
         ),
+        debug: bool = False,
     ):
         # Store the condition(s) as attributes
         self.entry_conditions = entry_conditions if entry_conditions else []
@@ -58,4 +59,5 @@ class MACDTrailingStopStrategy(BaseSignalStrategy):
             entry_conditions=self.entry_conditions,
             trend_conditions=self.trend_conditions,
             stateful_logic=self.stateful_logic,
+            debug=debug,
         )

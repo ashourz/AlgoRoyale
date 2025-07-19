@@ -34,8 +34,10 @@ class WickReversalStrategy(BaseSignalStrategy):
                 body_col=SignalStrategyColumns.BODY,
             )
         ],
+        debug: bool = False,
     ):
         super().__init__(
             entry_conditions=entry_conditions,
             exit_conditions=exit_conditions,
+            debug=debug,
         )

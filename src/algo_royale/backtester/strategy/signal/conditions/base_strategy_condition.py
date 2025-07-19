@@ -1,8 +1,9 @@
 import itertools
-from algo_royale.logging.loggable import Loggable
 
 import pandas as pd
 from optuna import Trial
+
+from algo_royale.logging.loggable import Loggable
 
 
 class StrategyCondition:
@@ -10,10 +11,10 @@ class StrategyCondition:
     Base class for all strategy filters.
     """
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, debug: bool = False, *args, **kwargs):
         for k, v in kwargs.items():
             setattr(self, k, v)
-        self.debug = False  # Set to True for verbose debug output
+        self.debug = debug  # Set to True for verbose debug output
 
     def apply(self, df: pd.DataFrame) -> pd.Series:
         # Check for missing columns

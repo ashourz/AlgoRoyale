@@ -54,11 +54,13 @@ class VolumeSurgeCondition(StrategyCondition):
         volume_col: SignalStrategyColumns = SignalStrategyColumns.VOLUME,
         vol_ma_col: SignalStrategyColumns = SignalStrategyColumns.VOL_MA_20,
         threshold: float = 2.0,
+        debug: bool = False,
     ):
         super().__init__(
             volume_col=volume_col,
             vol_ma_col=vol_ma_col,
             threshold=threshold,
+            debug=debug,
         )
         self.volume_col = volume_col
         self.vol_ma_col = vol_ma_col

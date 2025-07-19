@@ -20,6 +20,7 @@ class VolatilityBreakoutExitCondition(StrategyCondition):
         volatility_col: SignalStrategyColumns = SignalStrategyColumns.VOLATILITY_20,
         range_col: SignalStrategyColumns = SignalStrategyColumns.RANGE,
         close_col: SignalStrategyColumns = SignalStrategyColumns.CLOSE_PRICE,
+        debug: bool = False,
     ):
         super().__init__(
             threshold=threshold,
@@ -27,6 +28,7 @@ class VolatilityBreakoutExitCondition(StrategyCondition):
             volatility_col=volatility_col,
             range_col=range_col,
             close_col=close_col,
+            debug=debug,
         )
         self.threshold = threshold
         self.sma_col = sma_col

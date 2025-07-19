@@ -21,7 +21,8 @@ class EqualRiskContributionPortfolioStrategy(BasePortfolioStrategy):
         lookback: int, window size for covariance estimation (default: 60)
     """
 
-    def __init__(self, lookback: int = 60):
+    def __init__(self, lookback: int = 60, debug: bool = False):
+        super().__init__(debug=debug)
         self.lookback = lookback
 
     @property

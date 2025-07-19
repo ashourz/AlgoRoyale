@@ -22,12 +22,14 @@ class ReturnVolatilityExitCondition(StrategyCondition):
         return_col=SignalStrategyColumns.PCT_RETURN,  # or LOG_RETURN
         range_col: SignalStrategyColumns = SignalStrategyColumns.RANGE,
         volatility_col: SignalStrategyColumns = SignalStrategyColumns.VOLATILITY_20,
+        debug: bool = False,
     ):
         super().__init__(
             return_col=return_col,
             range_col=range_col,
             volatility_col=volatility_col,
             threshold=threshold,
+            debug=debug,
         )
         self.return_col = return_col
         self.range_col = range_col

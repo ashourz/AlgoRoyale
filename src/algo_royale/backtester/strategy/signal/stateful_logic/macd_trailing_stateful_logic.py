@@ -28,6 +28,7 @@ class MACDTrailingStatefulLogic(StatefulLogic):
         slow: int = 26,
         signal: int = 9,
         stop_pct: float = 0.02,
+        debug: bool = False,
     ):
         super().__init__(
             close_col=close_col,
@@ -35,6 +36,7 @@ class MACDTrailingStatefulLogic(StatefulLogic):
             slow=slow,
             signal=signal,
             stop_pct=stop_pct,
+            debug=debug,
         )
         self.close_col = close_col
         self.fast = fast

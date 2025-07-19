@@ -3,7 +3,6 @@ import re
 from datetime import datetime
 from pathlib import Path
 from typing import AsyncIterator, Callable, Dict, Optional
-from algo_royale.logging.loggable import Loggable
 
 import pandas as pd
 
@@ -13,6 +12,7 @@ from algo_royale.backtester.stage_data.stage_data_manager import (
     StageDataManager,
     mockStageDataManager,
 )
+from algo_royale.logging.loggable import Loggable
 
 
 class StageDataLoader:
@@ -98,7 +98,7 @@ class StageDataLoader:
             # Skip if symbol is not in watchlist
             if symbol not in self.get_watchlist():
                 self.logger.warning(
-                    f"Symbol {symbol} not in watchlist, skipping for stage: {stage} | strategy: {strategy_name}"
+                    f"Symbol {symbol} not in watchlist, skipping for stage: {stage} | strategy: {strategy_name} | start_date: {start_date} | end_date: {end_date}"
                 )
                 continue
             try:

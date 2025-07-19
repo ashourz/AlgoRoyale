@@ -30,6 +30,7 @@ class BollingerBandsStrategy(BaseSignalStrategy):
         entry_conditions: list[BollingerBandsEntryCondition],
         exit_conditions: list[BollingerBandsExitCondition],
         trend_conditions: list[SMATrendCondition],
+        debug: bool = False,
     ):
         """Initialize the Bollinger Bands Strategy with entry and exit conditions.
         Parameters:
@@ -40,4 +41,5 @@ class BollingerBandsStrategy(BaseSignalStrategy):
             entry_conditions=entry_conditions,
             exit_conditions=exit_conditions,
             trend_conditions=trend_conditions,
+            debug=debug,
         )

@@ -34,6 +34,7 @@ class VWAPReversionStrategy(BaseSignalStrategy):
                 vwp_col=SignalStrategyColumns.VOLUME_WEIGHTED_PRICE,
             )
         ],
+        debug: bool = False,
     ):
         """Initialize the VWAP Reversion Strategy with entry and exit conditions.
         Parameters:
@@ -44,4 +45,5 @@ class VWAPReversionStrategy(BaseSignalStrategy):
         super().__init__(
             entry_conditions=entry_conditions,
             exit_conditions=exit_conditions,
+            debug=debug,
         )

@@ -23,6 +23,7 @@ class PortfolioStrategyCombinator(BaseStrategyCombinator):
         cls,
         optuna_trial=None,
         logger=None,
+        debug: bool = False,
     ) -> Generator[Callable[[], BasePortfolioStrategy], None, None]:
         """
         Yield a callable that instantiates the single strategy, optionally with optuna params.
@@ -36,7 +37,7 @@ class PortfolioStrategyCombinator(BaseStrategyCombinator):
             try:
                 params = cls.strategy_class.optuna_suggest(optuna_trial)
                 if isinstance(params, dict):
-                    yield partial(cls.strategy_class, **params)
+                    yield partial(cls.strategy_class, debug=debug, **params)
                 else:
                     # If optuna_suggest returns a class or callable, yield a lambda
                     yield lambda: params

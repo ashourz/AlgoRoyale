@@ -1,6 +1,5 @@
 from datetime import datetime
 from typing import AsyncIterator, Callable, Dict, Optional
-from algo_royale.logging.loggable import Loggable
 
 import pandas as pd
 from alpaca.common.enums import SupportedCurrencies
@@ -9,9 +8,11 @@ from algo_royale.backtester.column_names.data_ingest_columns import DataIngestCo
 from algo_royale.backtester.enum.backtest_stage import BacktestStage
 from algo_royale.backtester.stage_coordinator.stage_coordinator import StageCoordinator
 from algo_royale.backtester.stage_data.loader.stage_data_loader import StageDataLoader
+from algo_royale.backtester.stage_data.stage_data_manager import StageDataManager
 from algo_royale.backtester.stage_data.writer.symbol_strategy_data_writer import (
     SymbolStrategyDataWriter,
 )
+from algo_royale.logging.loggable import Loggable
 from algo_royale.models.alpaca_market_data.enums import DataFeed
 from algo_royale.services.market_data.alpaca_stock_service import AlpacaQuoteService
 
@@ -32,6 +33,7 @@ class DataIngestStageCoordinator(StageCoordinator):
         self,
         data_loader: StageDataLoader,
         data_writer: SymbolStrategyDataWriter,
+        data_manager: StageDataManager,
         logger: Loggable,
         quote_service: AlpacaQuoteService,
         load_watchlist: Callable[[str], list[str]],
@@ -40,6 +42,7 @@ class DataIngestStageCoordinator(StageCoordinator):
         self.stage = BacktestStage.DATA_INGEST
         self.data_loader = data_loader
         self.data_writer = data_writer
+        self.data_manager = data_manager
         self.logger = logger
         self.quote_service = quote_service
         self.load_watchlist = load_watchlist
@@ -80,9 +83,12 @@ class DataIngestStageCoordinator(StageCoordinator):
         watchlist_symbol_data = await self._fetch_watchlist_symbol_data(
             watchlist=watchlist
         )
+
         if not watchlist_symbol_data:
-            self.logger.error(f"Data fetching failed for stage:{self.stage}")
-            return False
+            self.logger.info(
+                f"No data fetched for watchlist symbols in stage: {self.stage}. Cannot proceed with data ingestion."
+            )
+            return True
 
         # Write watchlist symbol data to disk
         self.logger.info(f"stage:{self.stage} starting data writing.")
@@ -118,6 +124,11 @@ class DataIngestStageCoordinator(StageCoordinator):
         result: Dict[str, Dict[str, Callable[[], AsyncIterator[pd.DataFrame]]]] = {}
 
         for symbol in watchlist:
+            if self._does_symbol_data_exist(symbol):
+                self.logger.info(
+                    f"Data for {symbol} already exists in stage: {self.stage}. Skipping."
+                )
+                continue
             # Wrap the factory in a dict with None as the strategy name
             result[symbol] = {
                 None: (lambda symbol=symbol: self._fetch_symbol_data(symbol=symbol))
@@ -191,6 +202,17 @@ class DataIngestStageCoordinator(StageCoordinator):
         finally:
             await self.quote_service.client.aclose()
             self.logger.info(f"Closed connection for {symbol}")
+
+    def _does_symbol_data_exist(self, symbol: str) -> bool:
+        """
+        Check if data exists for a specific symbol.
+        """
+        return self.data_manager.is_symbol_stage_done(
+            stage=self.stage,
+            symbol=symbol,
+            start_date=self.start_date,
+            end_date=self.end_date,
+        )
 
     def _validate_symbol_data(self, symbol: str, data: pd.DataFrame) -> bool:
         """

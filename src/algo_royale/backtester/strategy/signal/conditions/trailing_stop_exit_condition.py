@@ -17,8 +17,9 @@ class TrailingStopExitCondition(StrategyCondition):
         self,
         close_col: SignalStrategyColumns = SignalStrategyColumns.CLOSE_PRICE,
         stop_pct=0.02,
+        debug: bool = False,
     ):
-        super().__init__(close_col=close_col, stop_pct=stop_pct)
+        super().__init__(close_col=close_col, stop_pct=stop_pct, debug=debug)
         self.close_col = close_col
         self.stop_pct = stop_pct
 

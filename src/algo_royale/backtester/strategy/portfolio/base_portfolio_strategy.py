@@ -16,8 +16,11 @@ class BasePortfolioStrategy(BaseStrategy):
     Abstract base class for portfolio allocation strategies.
     """
 
-    def __init__(self, optimization_options: Dict[str, Any] = None):
+    def __init__(
+        self, optimization_options: Dict[str, Any] = None, debug: bool = False
+    ):
         self.optimization_options = optimization_options or {}
+        self.debug = debug
 
     @property
     def required_columns(self):

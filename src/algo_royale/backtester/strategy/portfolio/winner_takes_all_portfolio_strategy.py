@@ -21,10 +21,14 @@ class WinnerTakesAllPortfolioStrategy(BasePortfolioStrategy):
     """
 
     def __init__(
-        self, use_signals: bool = True, move_to_cash_at_end_of_day: bool = False
+        self,
+        use_signals: bool = True,
+        move_to_cash_at_end_of_day: bool = False,
+        debug: bool = False,
     ):
         self.use_signals = use_signals
         self.move_to_cash_at_end_of_day = move_to_cash_at_end_of_day
+        super().__init__(debug=debug)
 
     @property
     def required_columns(self):

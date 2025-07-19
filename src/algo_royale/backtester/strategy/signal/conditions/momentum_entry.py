@@ -15,6 +15,7 @@ class MomentumEntryCondition(StrategyCondition):
         threshold=0.0,
         smooth_window=None,
         confirmation_periods=1,
+        debug: bool = False,
     ):
         super().__init__(
             close_col=close_col,
@@ -22,6 +23,7 @@ class MomentumEntryCondition(StrategyCondition):
             threshold=threshold,
             smooth_window=smooth_window,
             confirmation_periods=confirmation_periods,
+            debug=debug,
         )
         self.close_col = close_col
         self.lookback = lookback

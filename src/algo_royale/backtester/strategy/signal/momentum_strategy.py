@@ -48,6 +48,7 @@ class MomentumStrategy(BaseSignalStrategy):
                 confirmation_periods=1,
             )
         ],
+        debug: bool = False,
     ):
         """Initialize the Momentum Strategy with modular entry and exit conditions.
         Parameters:
@@ -57,4 +58,5 @@ class MomentumStrategy(BaseSignalStrategy):
         super().__init__(
             entry_conditions=entry_conditions,
             exit_conditions=exit_conditions,
+            debug=debug,
         )

@@ -44,6 +44,7 @@ class MeanReversionStrategy(BaseSignalStrategy):
             reentry_cooldown=5,
             close_col=SignalStrategyColumns.CLOSE_PRICE,
         ),
+        debug: bool = False,
     ):
         """Initialize the Mean Reversion Strategy with trend conditions and stateful logic.
         Parameters:
@@ -51,5 +52,7 @@ class MeanReversionStrategy(BaseSignalStrategy):
         - stateful_logic: Stateful logic for managing trades and positions.
         """
         super().__init__(
-            trend_conditions=trend_conditions, stateful_logic=stateful_logic
+            trend_conditions=trend_conditions,
+            stateful_logic=stateful_logic,
+            debug=debug,
         )

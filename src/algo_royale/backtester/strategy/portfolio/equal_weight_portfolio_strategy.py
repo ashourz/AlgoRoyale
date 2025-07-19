@@ -36,8 +36,8 @@ class EqualWeightPortfolioStrategy(BasePortfolioStrategy):
         }, index=pd.date_range('2023-01-01', periods=3))
     """
 
-    def __init__(self):
-        pass
+    def __init__(self, debug: bool = False):
+        super().__init__(debug=debug)
 
     @property
     def required_columns(self):

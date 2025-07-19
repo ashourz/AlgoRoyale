@@ -13,11 +13,13 @@ class WickReversalExitCondition(StrategyCondition):
         wick_body_ratio=2.0,
         upper_wick_col=SignalStrategyColumns.UPPER_WICK,
         body_col=SignalStrategyColumns.BODY,
+        debug: bool = False,
     ):
         super().__init__(
             wick_body_ratio=wick_body_ratio,
             upper_wick_col=upper_wick_col,
             body_col=body_col,
+            debug=debug,
         )
         self.wick_body_ratio = wick_body_ratio
         self.upper_wick_col = upper_wick_col

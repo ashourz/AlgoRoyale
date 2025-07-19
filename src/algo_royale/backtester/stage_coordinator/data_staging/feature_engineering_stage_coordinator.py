@@ -1,6 +1,5 @@
 from datetime import datetime
 from typing import AsyncIterator, Callable, Dict, Optional
-from algo_royale.logging.loggable import Loggable
 
 import pandas as pd
 
@@ -16,6 +15,7 @@ from algo_royale.backtester.stage_data.stage_data_manager import StageDataManage
 from algo_royale.backtester.stage_data.writer.symbol_strategy_data_writer import (
     SymbolStrategyDataWriter,
 )
+from algo_royale.logging.loggable import Loggable
 
 
 class FeatureEngineeringStageCoordinator(StageCoordinator):
@@ -36,14 +36,14 @@ class FeatureEngineeringStageCoordinator(StageCoordinator):
         self,
         data_loader: SymbolStrategyDataLoader,
         data_writer: SymbolStrategyDataWriter,
-        stage_data_manager: StageDataManager,
+        data_manager: StageDataManager,
         logger: Loggable,
         feature_engineer: FeatureEngineer,
     ):
         self.stage = BacktestStage.FEATURE_ENGINEERING
         self.data_loader = data_loader
         self.data_writer = data_writer
-        self.stage_data_manager = stage_data_manager
+        self.stage_data_manager = data_manager
         self.logger = logger
         self.feature_engineer = feature_engineer
 
