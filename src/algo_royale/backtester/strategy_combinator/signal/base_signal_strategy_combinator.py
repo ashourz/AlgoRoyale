@@ -30,7 +30,6 @@ class SignalStrategyCombinator(BaseStrategyCombinator):
     allow_empty_stateful_logic = False
     strategy_class = None
 
-    ##TODO: METRICS SHOULD BE DERIVED FROM CONFIG
     @classmethod
     def all_strategy_combinations(
         cls,

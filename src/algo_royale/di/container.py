@@ -562,6 +562,9 @@ class DIContainer(containers.DeclarativeContainer):
         strategy_debug=providers.Object(
             config().get_bool("logger.log", "base_signal_strategy_debug", False)
         ),
+        optimization_n_trials=providers.Object(
+            config().get_int("backtester.signal", "optimization_n_trials", 1)
+        ),
     )
 
     strategy_testing_stage_coordinator = providers.Singleton(
@@ -683,6 +686,9 @@ class DIContainer(containers.DeclarativeContainer):
         ),
         strategy_combinators_max_exit=providers.Object(
             config().get_int("backtester.portfolio.strategy_combinator", "max_exit", 1)
+        ),
+        optimization_n_trials=providers.Object(
+            config().get_int("backtester.portfolio", "optimization_n_trials", 1)
         ),
     )
 

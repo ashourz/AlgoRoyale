@@ -74,6 +74,7 @@ class PortfolioOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
         strategy_combinator_max_entry: int = 1,
         strategy_combinator_max_trend: int = 1,
         strategy_combinator_max_exit: int = 1,
+        optimization_n_trials: int = 1,
     ):
         super().__init__(
             stage=BacktestStage.PORTFOLIO_OPTIMIZATION,
@@ -93,6 +94,11 @@ class PortfolioOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
         self.evaluator = evaluator
         self.executor = executor
         self.strategy_debug = strategy_debug
+        self.strategy_combinator_max_filter = strategy_combinator_max_filter
+        self.strategy_combinator_max_entry = strategy_combinator_max_entry
+        self.strategy_combinator_max_trend = strategy_combinator_max_trend
+        self.strategy_combinator_max_exit = strategy_combinator_max_exit
+        self.optimization_n_trials = optimization_n_trials
 
     async def _process_and_write(
         self,
@@ -168,6 +174,7 @@ class PortfolioOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
                         df=portfolio_matrix,
                         window_start_time=self.start_date,
                         window_end_time=self.end_date,
+                        n_trials=self.optimization_n_trials,
                     )
                     self.logger.debug(
                         f"DEBUG: Optimization result for {strategy_name}: {optimization_result}"

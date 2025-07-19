@@ -51,6 +51,8 @@ class StrategyOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
         optimization_root: Root directory for saving optimization results.
         optimization_json_filename: Name of the JSON file to save optimization results.
         signal_strategy_optimizer_factory: Factory for creating signal strategy optimizers.
+        strategy_debug: bool = False,
+        optimization_n_trials: int = 100,
     """
 
     def __init__(
@@ -65,6 +67,7 @@ class StrategyOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
         optimization_json_filename: str,
         signal_strategy_optimizer_factory: SignalStrategyOptimizerFactory,
         strategy_debug: bool = False,
+        optimization_n_trials: int = 1,
     ):
         super().__init__(
             stage=BacktestStage.STRATEGY_OPTIMIZATION,
@@ -83,6 +86,7 @@ class StrategyOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
         self.evaluator = strategy_evaluator
         self.stage_data_manager = stage_data_manager
         self.strategy_debug = strategy_debug
+        self.optimization_n_trials = optimization_n_trials
 
     async def _process_and_write(
         self,
@@ -146,7 +150,11 @@ class StrategyOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
                         ),
                     )
                     optimization_result = optimizer.optimize(
-                        symbol, train_df, self.start_date, self.end_date
+                        symbols=symbol,
+                        df=train_df,
+                        window_start_time=self.start_date,
+                        window_end_time=self.end_date,
+                        n_trials=self.optimization_n_trials,
                     )
                     # Fix: Use the correct validator for single result dicts
                     if (
