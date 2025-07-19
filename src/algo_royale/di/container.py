@@ -12,6 +12,12 @@ from algo_royale.backtester.evaluator.backtest.portfolio_backtest_evaluator impo
 from algo_royale.backtester.evaluator.backtest.signal_backtest_evaluator import (
     SignalBacktestEvaluator,
 )
+from algo_royale.backtester.evaluator.portfolio.portfolio_cross_strategy_summary import (
+    PortfolioCrossStrategySummary,
+)
+from algo_royale.backtester.evaluator.portfolio.portfolio_cross_window_evaluator import (
+    PortfolioCrossWindowEvaluator,
+)
 from algo_royale.backtester.evaluator.portfolio.portfolio_evaluation_coordinator import (
     PortfolioEvaluationCoordinator,
 )
@@ -100,6 +106,51 @@ from algo_royale.backtester.strategy_combinator.portfolio.winner_takes_all_portf
 )
 from algo_royale.backtester.strategy_combinator.signal.bollinger_bands_strategy_combinator import (
     BollingerBandsStrategyCombinator,
+)
+from algo_royale.backtester.strategy_combinator.signal.combo_strategy_combinator import (
+    ComboStrategyCombinator,
+)
+from algo_royale.backtester.strategy_combinator.signal.macd_trailing_strategy_combinator import (
+    MACDTrailingStrategyCombinator,
+)
+from algo_royale.backtester.strategy_combinator.signal.mean_reversion_strategy_combinator import (
+    MeanReversionStrategyCombinator,
+)
+from algo_royale.backtester.strategy_combinator.signal.momentum_strategy_combinator import (
+    MomentumStrategyCombinator,
+)
+from algo_royale.backtester.strategy_combinator.signal.moving_average_crossover_strategy_combinator import (
+    MovingAverageCrossoverStrategyCombinator,
+)
+from algo_royale.backtester.strategy_combinator.signal.moving_average_strategy_combinator import (
+    MovingAverageStrategyCombinator,
+)
+from algo_royale.backtester.strategy_combinator.signal.pullback_entry_strategy_combinator import (
+    PullbackEntryStrategyCombinator,
+)
+from algo_royale.backtester.strategy_combinator.signal.rsi_strategy_combinator import (
+    RSIStrategyCombinator,
+)
+from algo_royale.backtester.strategy_combinator.signal.time_of_day_bias_strategy_combinator import (
+    TimeOfDayBiasStrategyCombinator,
+)
+from algo_royale.backtester.strategy_combinator.signal.trailing_stop_strategy_combinator import (
+    TrailingStopStrategyCombinator,
+)
+from algo_royale.backtester.strategy_combinator.signal.trend_scraper_strategy_combinator import (
+    TrendScraperStrategyCombinator,
+)
+from algo_royale.backtester.strategy_combinator.signal.volatility_breakout_strategy_combinator import (
+    VolatilityBreakoutStrategyCombinator,
+)
+from algo_royale.backtester.strategy_combinator.signal.volume_surge_strategy_combinator import (
+    VolumeSurgeStrategyCombinator,
+)
+from algo_royale.backtester.strategy_combinator.signal.vwap_reversion_strategy_combinator import (
+    VWAPReversionStrategyCombinator,
+)
+from algo_royale.backtester.strategy_combinator.signal.wick_reversal_strategy_combinator import (
+    WickReversalStrategyCombinator,
 )
 from algo_royale.backtester.strategy_factory.signal.strategy_factory import (
     StrategyFactory,
@@ -534,21 +585,21 @@ class DIContainer(containers.DeclarativeContainer):
 
     signal_strategy_combinators = [
         BollingerBandsStrategyCombinator,
-        # ComboStrategyCombinator,
-        # MACDTrailingStrategyCombinator,
-        # MeanReversionStrategyCombinator,
-        # MomentumStrategyCombinator,
-        # MovingAverageCrossoverStrategyCombinator,
-        # MovingAverageStrategyCombinator,
-        # PullbackEntryStrategyCombinator,
-        # RSIStrategyCombinator,
-        # TimeOfDayBiasStrategyCombinator,
-        # TrailingStopStrategyCombinator,
-        # TrendScraperStrategyCombinator,
-        # VolatilityBreakoutStrategyCombinator,
-        # VolumeSurgeStrategyCombinator,
-        # VWAPReversionStrategyCombinator,
-        # WickReversalStrategyCombinator,
+        ComboStrategyCombinator,
+        MACDTrailingStrategyCombinator,
+        MeanReversionStrategyCombinator,
+        MomentumStrategyCombinator,
+        MovingAverageCrossoverStrategyCombinator,
+        MovingAverageStrategyCombinator,
+        PullbackEntryStrategyCombinator,
+        RSIStrategyCombinator,
+        TimeOfDayBiasStrategyCombinator,
+        TrailingStopStrategyCombinator,
+        TrendScraperStrategyCombinator,
+        VolatilityBreakoutStrategyCombinator,
+        VolumeSurgeStrategyCombinator,
+        VWAPReversionStrategyCombinator,
+        WickReversalStrategyCombinator,
     ]
 
     strategy_factory = providers.Singleton(
@@ -758,29 +809,46 @@ class DIContainer(containers.DeclarativeContainer):
         logger=logger_symbol_evaluation,
     )
 
+    portfolio_cross_window_evaluator = providers.Singleton(
+        PortfolioCrossWindowEvaluator,
+        logger=logger_portfolio_evaluation,
+        window_json_filename=providers.Object(
+            config().get(
+                "backtester.portfolio.filenames", "portfolio_optimization_json_filename"
+            )
+        ),
+        output_filename=providers.Object(
+            config().get(
+                "backtester.portfolio.filenames",
+                "portfolio_strategy_evaluation_json_filename",
+            )
+        ),
+    )
+    portfolio_cross_strategy_summary = providers.Singleton(
+        PortfolioCrossStrategySummary,
+        logger=logger_portfolio_evaluation,
+        evaluation_filename=providers.Object(
+            config().get(
+                "backtester.portfolio.filenames",
+                "portfolio_strategy_evaluation_json_filename",
+            )
+        ),
+        output_filename=providers.Object(
+            config().get(
+                "backtester.portfolio.filenames",
+                "portfolio_summary_json_filename",
+            )
+        ),
+    )
+    # Portfolio evaluation coordinator
     portfolio_evaluation_coordinator = providers.Singleton(
         PortfolioEvaluationCoordinator,
         logger=logger_portfolio_evaluation,
+        cross_window_evaluator=portfolio_cross_window_evaluator,
+        cross_strategy_summary=portfolio_cross_strategy_summary,
         optimization_root=providers.Object(
             config().get(
                 "backtester.portfolio.paths", "portfolio_optimization_root_path"
-            )
-        ),
-        strategy_window_evaluation_json_filename=providers.Object(
-            config().get(
-                "backtester.portfolio.filenames",
-                "portfolio_evaluation_json_filename",
-            )
-        ),
-        strategy_summary_json_filename=providers.Object(
-            config().get(
-                "backtester.portfolio.filenames", "portfolio_summary_json_filename"
-            )
-        ),
-        global_summary_json_filename=providers.Object(
-            config().get(
-                "backtester.portfolio.filenames",
-                "portfolio_global_summary_json_filename",
             )
         ),
         viability_threshold=providers.Object(

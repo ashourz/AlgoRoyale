@@ -23,12 +23,17 @@ def signal_strategy_optimization_validator(d, logger: Loggable) -> bool:
     if not isinstance(bp, dict):
         logger.warning(f"Validation failed: 'best_params' not dict. Value: {bp}")
         return False
-    for key in ["entry_conditions", "exit_conditions", "trend_conditions"]:
-        if key not in bp or not isinstance(bp[key], list):
-            logger.warning(
-                f"Validation failed: '{key}' missing or not list in best_params. Value: {bp}"
-            )
-            return False
+    # At least one of the condition lists must be present and valid
+    condition_keys = ["entry_conditions", "exit_conditions", "trend_conditions"]
+    present_keys = [
+        key for key in condition_keys if key in bp and isinstance(bp[key], list)
+    ]
+    if not present_keys:
+        logger.warning(
+            f"Validation failed: None of entry_conditions, exit_conditions, or trend_conditions present as lists in best_params. Value: {bp}"
+        )
+        return False
+    for key in present_keys:
         for cond in bp[key]:
             if not isinstance(cond, dict):
                 logger.warning(

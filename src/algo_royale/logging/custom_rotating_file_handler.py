@@ -14,21 +14,17 @@ class CustomRotatingFileHandler(RotatingFileHandler):
 
         base, ext = os.path.splitext(self.baseFilename)
 
-        # Remove the oldest log if it exists
-        oldest = f"{base}{self.backupCount}.log"
-        if os.path.exists(oldest):
-            os.remove(oldest)
+        # Find the next available log number
+        i = 1
+        while True:
+            candidate = f"{base}{i}.log"
+            if not os.path.exists(candidate):
+                break
+            i += 1
 
-        # Shift all logs up by one
-        for i in range(self.backupCount - 1, 0, -1):
-            src = f"{base}{'' if i == 1 else i}.log"
-            dst = f"{base}{i + 1}.log"
-            if os.path.exists(src):
-                os.rename(src, dst)
-
-        # Rename the current log to filename2.log
+        # Rename the current log to the next available number
         if os.path.exists(self.baseFilename):
-            os.rename(self.baseFilename, f"{base}2.log")
+            os.rename(self.baseFilename, f"{base}{i}.log")
 
         # Reopen the stream
         self.mode = "a"
