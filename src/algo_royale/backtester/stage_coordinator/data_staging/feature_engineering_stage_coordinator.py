@@ -114,7 +114,6 @@ class FeatureEngineeringStageCoordinator(StageCoordinator):
                 start_date=start_date,
                 end_date=end_date,
                 reverse_pages=True,
-                exclude_done_symbols=True,  # Exclude symbols already processed
             )
             if not data:
                 self.logger.error(f"No data loaded for stage: {stage}")

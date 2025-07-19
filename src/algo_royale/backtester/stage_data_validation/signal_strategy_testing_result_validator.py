@@ -62,6 +62,7 @@ def signal_strategy_testing_result_validator(d, logger: Loggable) -> bool:
         return False
 
     for window_key, window_val in d.items():
+        logger.info(f"Validating window key: {window_key} | Value: {window_val}")
         if not isinstance(window_val, dict):
             logger.warning(
                 f"Validation failed: Window value not dict. Key: {window_key}, Value: {window_val}"

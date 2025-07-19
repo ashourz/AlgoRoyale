@@ -245,7 +245,13 @@ class WalkForwardCoordinator:
                         continue
                     fpath = os.path.join(data_dir, fname)
                     if os.path.isfile(fpath) and os.path.getsize(fpath) > 0:
+                        self.logger.info(
+                            f"Data ingested for {symbol} in the range {start_date.date()} to {end_date.date()}"
+                        )
                         return True
+        self.logger.warning(
+            f"No data ingested for any symbol in the range {start_date.date()} to {end_date.date()}"
+        )
         return False
 
     def run(self):

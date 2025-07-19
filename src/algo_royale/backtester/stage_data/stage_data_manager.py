@@ -3,10 +3,10 @@ import shutil
 from datetime import datetime
 from pathlib import Path
 from typing import Any, Optional
-from algo_royale.logging.loggable import Loggable
 
 from algo_royale.backtester.enum.backtest_stage import BacktestStage
 from algo_royale.backtester.enum.data_extension import DataExtension
+from algo_royale.logging.loggable import Loggable
 
 
 class StageDataManager:
@@ -105,8 +105,8 @@ class StageDataManager:
     def is_symbol_stage_done(
         self,
         stage: BacktestStage,
-        strategy_name: Optional[str],
         symbol: str,
+        strategy_name: Optional[str] = None,
         start_date: Optional[datetime] = None,
         end_date: Optional[datetime] = None,
     ) -> bool:

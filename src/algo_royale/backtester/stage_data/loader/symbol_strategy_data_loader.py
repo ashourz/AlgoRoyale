@@ -37,7 +37,6 @@ class SymbolStrategyDataLoader:
         end_date: datetime,
         strategy_name: Optional[str] = None,
         reverse_pages: bool = False,
-        exclude_done_symbols: bool = False,
     ) -> Dict[str, Callable[[], AsyncIterator[pd.DataFrame]]]:
         """Load data based on the configuration"""
         try:
@@ -50,7 +49,6 @@ class SymbolStrategyDataLoader:
                 start_date=start_date,
                 end_date=end_date,
                 reverse_pages=reverse_pages,
-                exclude_done_symbols=exclude_done_symbols,
             )
             return data
         except Exception as e:

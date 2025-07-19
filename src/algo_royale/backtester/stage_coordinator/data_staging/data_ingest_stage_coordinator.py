@@ -83,9 +83,12 @@ class DataIngestStageCoordinator(StageCoordinator):
         watchlist_symbol_data = await self._fetch_watchlist_symbol_data(
             watchlist=watchlist
         )
+
         if not watchlist_symbol_data:
-            self.logger.error(f"Data fetching failed for stage:{self.stage}")
-            return False
+            self.logger.info(
+                f"No data fetched for watchlist symbols in stage: {self.stage}. Cannot proceed with data ingestion."
+            )
+            return True
 
         # Write watchlist symbol data to disk
         self.logger.info(f"stage:{self.stage} starting data writing.")
