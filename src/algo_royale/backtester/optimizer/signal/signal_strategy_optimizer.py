@@ -62,7 +62,6 @@ class SignalStrategyOptimizerImpl(SignalStrategyOptimizer):
         self.direction = direction
         self.logger = logger
 
-    ## TODO: pull from config
     def optimize(
         self,
         symbol: str,
