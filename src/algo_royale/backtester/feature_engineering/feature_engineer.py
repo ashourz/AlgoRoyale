@@ -1,9 +1,9 @@
 from typing import AsyncGenerator, AsyncIterator, Callable
-from algo_royale.logging.loggable import Loggable
 
 import pandas as pd
 
 from algo_royale.backtester.enum.backtest_stage import BacktestStage
+from algo_royale.logging.loggable import Loggable
 from algo_royale.logging.logger_factory import mockLogger
 
 
@@ -84,9 +84,6 @@ class FeatureEngineer:
         self.logger.debug(
             f"Validating input DataFrame columns: {df.columns}, expected: {required_input_columns}"
         )
-        print(
-            f"Validating input DataFrame columns: {df.columns}, expected: {required_input_columns}"
-        )
         if not required_input_columns:
             self.logger.error(
                 "No input columns defined for feature engineering. Cannot validate input."
@@ -109,9 +106,6 @@ class FeatureEngineer:
         """
         required_output_columns = BacktestStage.FEATURE_ENGINEERING.output_columns
         self.logger.debug(
-            f"Validating output DataFrame columns: {df.columns}, expected: {required_output_columns}"
-        )
-        print(
             f"Validating output DataFrame columns: {df.columns}, expected: {required_output_columns}"
         )
         if not required_output_columns:

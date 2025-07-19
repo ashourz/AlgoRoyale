@@ -45,6 +45,7 @@ class BaseSignalStrategy(BaseStrategy):
         self.entry_conditions = entry_conditions or []
         self.exit_conditions = exit_conditions or []
         self.stateful_logic = stateful_logic
+        # TODO: pull from config
         self.debug = True  # Set to True for debugging output
 
     @property

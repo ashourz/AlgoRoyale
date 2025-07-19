@@ -113,12 +113,6 @@ class PortfolioOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
             f"DEBUG: Strategy combinators: {[combinator.__name__ for combinator in self.strategy_combinators]}"
         )
 
-        print(f"DEBUG: Prepared data keys: {list(data.keys())}")
-        print(f"DEBUG: Portfolio matrix before optimization: {portfolio_matrix}")
-        print(
-            f"DEBUG: Strategy combinators: {[combinator.__name__ for combinator in self.strategy_combinators]}"
-        )
-
         try:
             self.logger.debug(f"DEBUG: Starting optimization process with data: {data}")
             self.logger.debug(f"DEBUG: Portfolio matrix: {portfolio_matrix}")
@@ -259,11 +253,16 @@ class PortfolioOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
             )
 
             try:
-                print(f"DEBUG: Filtered portfolio DataFrame: {portfolio_df}")
-                print(
+                self.logger.debug(
+                    f"DEBUG: Preparing asset-matrix for portfolio DataFrame with shape: {portfolio_df.shape}"
+                )
+                self.logger.debug(
+                    f"DEBUG: Filtered portfolio DataFrame: {portfolio_df}"
+                )
+                self.logger.debug(
                     f"DEBUG: Filtered portfolio DataFrame columns: {portfolio_df.columns}"
                 )
-                print(
+                self.logger.debug(
                     f"DEBUG: Filtered portfolio DataFrame shape: {portfolio_df.shape}"
                 )
                 portfolio_matrix = self.asset_matrix_preparer.prepare(
@@ -286,7 +285,9 @@ class PortfolioOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
                 self.logger.debug(
                     f"DEBUG: Asset-matrix DataFrame max:\n{portfolio_matrix.max(numeric_only=True)}"
                 )
-                print(f"DEBUG: Asset-matrix DataFrame shape: {portfolio_matrix.shape}")
+                self.logger.debug(
+                    f"DEBUG: Asset-matrix DataFrame shape: {portfolio_matrix.shape}"
+                )
                 return portfolio_matrix
             except Exception as e:
                 self.logger.error(
@@ -317,21 +318,17 @@ class PortfolioOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
             self.logger.debug(
                 f"Backtest results for strategy {strategy.get_id()}: {backtest_results}"
             )
-            print(f"DEBUG: run_backtest returned: {backtest_results}")
             metrics = self.evaluator.evaluate_from_dict(backtest_results)
             self.logger.debug(
                 f"Backtest completed for strategy {strategy.get_id()} with metrics: {metrics}"
             )
-            print(f"DEBUG: evaluator.evaluate returned: {metrics}")
             self.logger.info(
                 f"Backtest completed for strategy {strategy.get_id()} with metrics: {metrics}"
             )
-            print(f"DEBUG: _backtest_and_evaluate returns metrics: {metrics}")
             # Return only the metrics dict for clarity and consistency
             return metrics
         except Exception as e:
             self.logger.error(f"Portfolio backtest/evaluation failed: {e}")
-            print(f"DEBUG: _backtest_and_evaluate exception: {e}")
             return {}
 
     def _validate_optimization_results(

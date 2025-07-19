@@ -228,9 +228,6 @@ class PortfolioTestingStageCoordinator(BaseTestingStageCoordinator):
                 end_date=self.train_end_date,
             )
             if not train_opt_results:
-                print(
-                    f"No optimization results found for PORTFOLIO {strategy_name} {self.train_window_id}"
-                )
                 self.logger.warning(
                     f"No optimization result for PORTFOLIO {strategy_name} {self.train_window_id}"
                 )

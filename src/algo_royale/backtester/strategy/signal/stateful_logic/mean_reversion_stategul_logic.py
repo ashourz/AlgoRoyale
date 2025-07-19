@@ -29,6 +29,7 @@ class MeanReversionStatefulLogic(StatefulLogic):
         self.profit_target_pct = profit_target_pct
         self.reentry_cooldown = reentry_cooldown
         self.close_col = close_col
+        # TODO: pull from config
         self.debug = False
 
     def __call_impl(self, i, df, signals, state, trend_mask, entry_mask, exit_mask):

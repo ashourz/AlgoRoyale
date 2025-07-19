@@ -69,6 +69,7 @@ class PriceAboveSMACondition(StrategyCondition):
         super().__init__(close_col=close_col, sma_col=sma_col)
         self.close_col = close_col
         self.sma_col = sma_col
+        # TODO: pull from config
         self.debug = False
 
     def _apply(self, df: pd.DataFrame) -> pd.Series:

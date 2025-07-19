@@ -22,9 +22,6 @@ class TaggableLogger(Loggable):
         self._logger_type = logger_type
         self._log_level = logger_type.log_level
         self._tag = logger_type.name_str
-        # print(
-        #     f"[DEBUG] Initializing TaggableLogger with type: {self._logger_type} tag: {self._tag}"
-        # )
 
     def _should_log(self, level):
         return level >= self._log_level
@@ -33,6 +30,8 @@ class TaggableLogger(Loggable):
         if self._should_log(level):
             tagged_msg = f"{self._tag} - {msg}"
             self._logger.log(level, tagged_msg, *args, **kwargs)
+            if self._logger_type.print_logs:
+                print(tagged_msg)
 
     def debug(self, msg, *args, **kwargs):
         self._log(logging.DEBUG, msg, *args, **kwargs)

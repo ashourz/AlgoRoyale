@@ -1,8 +1,9 @@
 import itertools
-from algo_royale.logging.loggable import Loggable
 
 import pandas as pd
 from optuna import Trial
+
+from algo_royale.logging.loggable import Loggable
 
 
 class StrategyCondition:
@@ -13,6 +14,7 @@ class StrategyCondition:
     def __init__(self, *args, **kwargs):
         for k, v in kwargs.items():
             setattr(self, k, v)
+        # TODO: pull from config
         self.debug = False  # Set to True for verbose debug output
 
     def apply(self, df: pd.DataFrame) -> pd.Series:

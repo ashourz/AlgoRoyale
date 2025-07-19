@@ -50,3 +50,7 @@ class LoggerType(Enum):
     @property
     def log_level(self):
         return self.value[1]
+
+    @property
+    def print_logs(self):
+        return self.value[2] if len(self.value) > 2 else False
