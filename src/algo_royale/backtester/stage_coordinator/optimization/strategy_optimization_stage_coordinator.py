@@ -150,7 +150,7 @@ class StrategyOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
                         ),
                     )
                     optimization_result = optimizer.optimize(
-                        symbols=symbol,
+                        symbol=symbol,
                         df=train_df,
                         window_start_time=self.start_date,
                         window_end_time=self.end_date,

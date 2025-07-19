@@ -1,16 +1,14 @@
 from abc import ABC
 from typing import Any, Callable, Dict, Type
-from algo_royale.logging.loggable import Loggable
 
 import pandas as pd
 
-from algo_royale.backtester.optimizer.portfolio.portfolio_strategy_optimizer import (
-    PortfolioStrategyOptimizer,
-)
 from algo_royale.backtester.optimizer.signal.signal_strategy_optimizer import (
     MockSignalStrategyOptimizer,
+    SignalStrategyOptimizer,
     SignalStrategyOptimizerImpl,
 )
+from algo_royale.logging.loggable import Loggable
 
 
 class SignalStrategyOptimizerFactory(ABC):
@@ -26,14 +24,14 @@ class SignalStrategyOptimizerFactory(ABC):
         backtest_fn: Callable[[Any, pd.DataFrame], Any],
         metric_name: str = "total_return",
         direction: str = "maximize",
-    ) -> PortfolioStrategyOptimizer:
+    ) -> SignalStrategyOptimizer:
         """
         Create a portfolio strategy optimizer instance.
         :param strategy_class: The strategy class to optimize.
         :param backtest_fn: Function to backtest the strategy.
         :param metric_name: Name of the metric to optimize.
         :param direction: Direction of optimization (maximize/minimize).
-        :return: PortfolioStrategyOptimizer instance.
+        :return: SignalStrategyOptimizer instance.
         """
         raise NotImplementedError("This method should be implemented by subclasses.")
 
@@ -58,7 +56,7 @@ class SignalStrategyOptimizerFactoryImpl(SignalStrategyOptimizerFactory):
         backtest_fn: Callable[[Any, pd.DataFrame], Any],
         metric_name: str = "total_return",
         direction: str = "maximize",
-    ) -> SignalStrategyOptimizerImpl:
+    ) -> SignalStrategyOptimizer:
         """
         Create a mock optimizer instance.
         :param strategy_class: The strategy class to optimize.
@@ -66,7 +64,7 @@ class SignalStrategyOptimizerFactoryImpl(SignalStrategyOptimizerFactory):
         :param logger: Loggable instance for logging.
         :param metric_name: Name of the metric to optimize.
         :param direction: Direction of optimization (maximize/minimize).
-        :return: SignalStrategyOptimizerImpl instance.
+        :return: SignalStrategyOptimizer instance.
         """
         return SignalStrategyOptimizerImpl(
             strategy_class=strategy_class,
@@ -115,7 +113,7 @@ class MockSignalStrategyOptimizerFactory(SignalStrategyOptimizerFactory):
         backtest_fn: Callable[[Any, pd.DataFrame], Any],
         metric_name: str = "total_return",
         direction: str = "maximize",
-    ) -> SignalStrategyOptimizerImpl:
+    ) -> SignalStrategyOptimizer:
         """
         Create a mock optimizer instance.
         :return: SignalStrategyOptimizerImpl instance.

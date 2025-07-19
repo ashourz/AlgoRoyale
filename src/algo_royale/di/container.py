@@ -673,20 +673,6 @@ class DIContainer(containers.DeclarativeContainer):
         strategy_debug=providers.Object(
             config().get_bool("logger.log", "base_portfolio_strategy_debug", False)
         ),
-        strategy_combinator_max_filter=providers.Object(
-            config().get_int(
-                "backtester.portfolio.strategy_combinator", "max_filter", 1
-            )
-        ),
-        strategy_combinator_max_entry=providers.Object(
-            config().get_int("backtester.portfolio.strategy_combinator", "max_entry", 1)
-        ),
-        strategy_combinator_max_trend=providers.Object(
-            config().get_int("backtester.portfolio.strategy_combinator", "max_trend", 1)
-        ),
-        strategy_combinator_max_exit=providers.Object(
-            config().get_int("backtester.portfolio.strategy_combinator", "max_exit", 1)
-        ),
         optimization_n_trials=providers.Object(
             config().get_int("backtester.portfolio", "optimization_n_trials", 1)
         ),
@@ -713,20 +699,6 @@ class DIContainer(containers.DeclarativeContainer):
         asset_matrix_preparer=portfolio_asset_matrix_preparer,
         strategy_debug=providers.Object(
             config().get_bool("logger.log", "base_portfolio_strategy_debug", False)
-        ),
-        strategy_combinator_max_filter=providers.Object(
-            config().get_int(
-                "backtester.portfolio.strategy_combinator", "max_filter", 1
-            )
-        ),
-        strategy_combinator_max_entry=providers.Object(
-            config().get_int("backtester.portfolio.strategy_combinator", "max_entry", 1)
-        ),
-        strategy_combinator_max_trend=providers.Object(
-            config().get_int("backtester.portfolio.strategy_combinator", "max_trend", 1)
-        ),
-        strategy_combinator_max_exit=providers.Object(
-            config().get_int("backtester.portfolio.strategy_combinator", "max_exit", 1)
         ),
     )
 

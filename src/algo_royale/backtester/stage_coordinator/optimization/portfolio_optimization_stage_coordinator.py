@@ -51,10 +51,6 @@ class PortfolioOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
         asset_matrix_preparer (AssetMatrixPreparer): Prepares asset-matrix form for portfolio strategies.
         portfolio_strategy_optimizer_factory (PortfolioStrategyOptimizerFactory): Factory to create portfolio strategy optimizers.
         strategy_debug (bool): Whether to enable debug mode for strategy combinators.
-        strategy_combinator_max_filter (int): Maximum number of filters for strategy combinators.
-        strategy_combinator_max_entry (int): Maximum number of entry conditions for strategy combinators.
-        strategy_combinator_max_trend (int): Maximum number of trend conditions for strategy combinators.
-        strategy_combinator_max_exit (int): Maximum number of exit conditions for strategy combinators.
     """
 
     def __init__(
@@ -70,10 +66,6 @@ class PortfolioOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
         asset_matrix_preparer: AssetMatrixPreparer,
         portfolio_strategy_optimizer_factory: PortfolioStrategyOptimizerFactory,
         strategy_debug: bool = False,
-        strategy_combinator_max_filter: int = 1,
-        strategy_combinator_max_entry: int = 1,
-        strategy_combinator_max_trend: int = 1,
-        strategy_combinator_max_exit: int = 1,
         optimization_n_trials: int = 1,
     ):
         super().__init__(
@@ -94,11 +86,8 @@ class PortfolioOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
         self.evaluator = evaluator
         self.executor = executor
         self.strategy_debug = strategy_debug
-        self.strategy_combinator_max_filter = strategy_combinator_max_filter
-        self.strategy_combinator_max_entry = strategy_combinator_max_entry
-        self.strategy_combinator_max_trend = strategy_combinator_max_trend
-        self.strategy_combinator_max_exit = strategy_combinator_max_exit
         self.optimization_n_trials = optimization_n_trials
+        self.strategy_combinators = strategy_combinators
 
     async def _process_and_write(
         self,
@@ -142,10 +131,6 @@ class PortfolioOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
             )
             combinations = strategy_combinator.all_strategy_combinations(
                 logger=self.logger,
-                max_filter=self.strategy_combinator_max_filter,
-                max_entry=self.strategy_combinator_max_entry,
-                max_trend=self.strategy_combinator_max_trend,
-                max_exit=self.strategy_combinator_max_exit,
                 debug=self.strategy_debug,
             )
             for strat_factory in combinations:
