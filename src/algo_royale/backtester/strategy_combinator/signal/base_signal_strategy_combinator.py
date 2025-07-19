@@ -168,7 +168,7 @@ class SignalStrategyCombinator(BaseStrategyCombinator):
 
                                 yield partial(
                                     cls.strategy_class,
-                                    debug=strategy_debug,
+                                    debug=debug,
                                     **filtered_kwargs,
                                 )
                             except Exception as e:
