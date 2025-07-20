@@ -196,8 +196,8 @@ class StrategyOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
             existing_optimization_json = self.get_existing_optimization_results(
                 strategy_name=strategy_name,
                 symbol=symbol,
-                start_date=self.start_date,
-                end_date=self.end_date,
+                start_date=start_date,
+                end_date=end_date,
             )
             self.logger.debug(
                 f"Checking existing optimization results for {symbol} {strategy_name} in window {self.window_id} | existing_optimization_json: {existing_optimization_json} "
@@ -273,7 +273,7 @@ class StrategyOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
         async def data_factory():
             yield df
 
-        raw_results = await self.executor.run_backtest(
+        raw_results = await self.executor.run_backtest_async(
             [strategy], {symbol: data_factory}
         )
         self.logger.debug(f"Raw backtest results: line count: {len(raw_results)}")

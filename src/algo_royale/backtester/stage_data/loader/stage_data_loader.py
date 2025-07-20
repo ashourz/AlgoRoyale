@@ -103,15 +103,13 @@ class StageDataLoader:
                 continue
             try:
                 # Prepare the async generator for the symbol
-                data[symbol] = (
-                    lambda s=symbol, st=stage, str=strategy_name: self._symbol_data_gen(
-                        stage=st,
-                        symbol=s,
-                        strategy_name=str,
-                        reverse_pages=reverse_pages,
-                        start_date=start_date,
-                        end_date=end_date,
-                    )
+                data[symbol] = self.load_stage_data(
+                    symbol=symbol,
+                    stage=stage,
+                    strategy_name=strategy_name,
+                    start_date=start_date,
+                    end_date=end_date,
+                    reverse_pages=reverse_pages,
                 )
 
                 self.logger.info(f"Prepared async data loader for: {stage} | {symbol}")
@@ -129,12 +127,37 @@ class StageDataLoader:
 
         return data
 
+    def load_stage_data(
+        self,
+        symbol: str,
+        stage: BacktestStage,
+        start_date: datetime,
+        end_date: datetime,
+        strategy_name: Optional[str] = None,
+        reverse_pages: bool = True,
+    ) -> Callable[[], AsyncIterator[pd.DataFrame]]:
+        """
+        Load input data for the stage.
+        Returns a dictionary mapping symbols to async generators that yield DataFrames.
+        """
+        self.logger.info(
+            f"Loading input data for stage: {stage} | start_date: {start_date} | end_date: {end_date}"
+        )
+        return lambda s=symbol: self._symbol_data_gen(
+            stage=stage,
+            symbol=s,
+            strategy_name=strategy_name,
+            reverse_pages=reverse_pages,
+            start_date=start_date,
+            end_date=end_date,
+        )
+
     def _symbol_data_gen(
         self,
         stage,
         symbol,
-        strategy_name,
         reverse_pages=False,
+        strategy_name: Optional[str] = None,
         start_date: Optional[datetime] = None,
         end_date: Optional[datetime] = None,
     ):

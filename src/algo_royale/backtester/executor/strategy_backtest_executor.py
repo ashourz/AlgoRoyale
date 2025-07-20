@@ -1,7 +1,6 @@
 import asyncio
 from pathlib import Path
 from typing import AsyncIterator, Callable, Dict
-from algo_royale.logging.loggable import Loggable
 
 import pandas as pd
 
@@ -17,6 +16,7 @@ from algo_royale.backtester.stage_data.stage_data_manager import (
 from algo_royale.backtester.strategy.signal.base_signal_strategy import (
     BaseSignalStrategy,
 )
+from algo_royale.logging.loggable import Loggable
 from algo_royale.logging.logger_factory import mockLogger
 
 
@@ -27,7 +27,7 @@ class StrategyBacktestExecutor(BacktestExecutor):
         self.stage = BacktestStage.SIGNAL_BACKTEST_EXECUTOR
         self._processed_pairs = set()
 
-    async def run_backtest(
+    async def run_backtest_async(
         self,
         strategies: list[BaseSignalStrategy],
         data: Dict[str, Callable[[], AsyncIterator[pd.DataFrame]]],

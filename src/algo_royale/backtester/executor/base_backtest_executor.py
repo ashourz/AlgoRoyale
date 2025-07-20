@@ -29,3 +29,19 @@ class BacktestExecutor(ABC):
             : Dictionary containing portfolio values, cash history, holdings history, and transactions.
         """
         raise NotImplementedError("Subclasses must implement run_backtest method.")
+
+    @abstractmethod
+    async def run_backtest_async(
+        self,
+        strategy,
+        data: pd.DataFrame,
+    ) -> Dict[str, Any]:
+        """
+        Run a backtest for the given strategy and data.
+        Parameters:
+            : strategy: Strategy instance implementing allocation logic.
+            : data: DataFrame containing asset prices or returns/signals.
+        Returns:
+            : Dictionary containing portfolio values, cash history, holdings history, and transactions.
+        """
+        raise NotImplementedError("Subclasses must implement run_backtest method.")

@@ -76,6 +76,7 @@ class PortfolioTestingStageCoordinator(BaseTestingStageCoordinator):
         self.strategy_debug = strategy_debug
         self.asset_matrix_preparer = asset_matrix_preparer
         self.strategy_combinators = strategy_combinators
+        self.executor = executor
 
     async def _process_and_write(
         self,

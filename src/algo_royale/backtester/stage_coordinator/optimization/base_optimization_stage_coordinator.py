@@ -1,7 +1,9 @@
 import json
 from datetime import datetime
 from pathlib import Path
-from typing import Dict, Mapping, Optional, Sequence
+from typing import AsyncIterator, Callable, Dict, Mapping, Optional, Sequence
+
+import pandas as pd
 
 from algo_royale.backtester.enum.backtest_stage import BacktestStage
 from algo_royale.backtester.stage_coordinator.stage_coordinator import StageCoordinator
@@ -69,11 +71,9 @@ class BaseOptimizationStageCoordinator(StageCoordinator):
 
         # Load the data from the input stage
         self.logger.info(f"stage:{self.stage} starting data loading.")
-        data = await self.data_loader.load_data(
-            stage=self.stage.input_stage,
+        data = await self._load_input_data(
             start_date=self.start_date,
             end_date=self.end_date,
-            reverse_pages=True,
         )
         if not data:
             self.logger.error(f"No data loaded from stage:{self.stage.input_stage}")
@@ -89,6 +89,26 @@ class BaseOptimizationStageCoordinator(StageCoordinator):
 
         self.logger.info(f"stage:{self.stage} completed and files saved.")
         return True
+
+    async def _load_input_data(
+        self,
+        start_date: datetime,
+        end_date: datetime,
+        reverse_pages: bool = True,
+    ) -> Dict[str, Callable[[], AsyncIterator[pd.DataFrame]]]:
+        """
+        Load input data for the stage.
+        This method should be overridden by subclasses if they need to load specific data.
+        """
+        self.logger.info(
+            f"Loading input data for stage: {self.stage} | start_date: {start_date} | end_date: {end_date}"
+        )
+        return await self.data_loader.load_data(
+            stage=self.stage.input_stage,
+            start_date=start_date,
+            end_date=end_date,
+            reverse_pages=reverse_pages,
+        )
 
     def _get_optimization_results(
         self, strategy_name: str, symbol: str, start_date: datetime, end_date: datetime
