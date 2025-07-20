@@ -13,19 +13,19 @@ from algo_royale.backtester.strategy_factory.signal.strategy_factory import (
 class SymbolStrategyManager:
     def __init__(
         self,
-        base_dir: str,
+        data_dir: str,
         stage_data_manager: StageDataManager,
         symbol_strategy_evaluation_filename: str = "evaluation_result.json",
         logger: Logger = None,
     ):
         """
         Args:
-            base_dir: Base directory for stage data (used by stage_data_manager).
+            data_dir: Base directory for stage data (used by stage_data_manager).
             strategy_class_registry: Mapping from strategy class name (str) to class type.
             stage_data_manager: Object responsible for resolving symbol directory paths.
             logger: Optional logger for debug/info/warning messages.
         """
-        self.base_dir = Path(base_dir)
+        self.data_dir = Path(data_dir)
         self.stage_data_manager = stage_data_manager
         self.symbol_strategy_evaluation_filename = symbol_strategy_evaluation_filename
         self.logger = (logger,)
@@ -36,7 +36,7 @@ class SymbolStrategyManager:
         Logs key events if logger is provided.
         """
         symbol_dir = self.stage_data_manager.get_directory_path(
-            base_dir=self.base_dir, symbol=symbol
+            base_dir=self.data_dir, symbol=symbol
         )
         eval_file = Path(symbol_dir) / self.symbol_strategy_evaluation_filename
         if not eval_file.exists():

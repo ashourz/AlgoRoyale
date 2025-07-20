@@ -74,6 +74,9 @@ from algo_royale.backtester.stage_data.writer.stage_data_writer import StageData
 from algo_royale.backtester.stage_data.writer.symbol_strategy_data_writer import (
     SymbolStrategyDataWriter,
 )
+from algo_royale.backtester.strategy.signal.manager.symbol_strategy_manager import (
+    SymbolStrategyManager,
+)
 from algo_royale.backtester.strategy_combinator.portfolio.equal_risk_contribution_portfolio_strategy_combinator import (
     EqualRiskContributionPortfolioStrategyCombinator,
 )
@@ -605,19 +608,15 @@ class DIContainer(containers.DeclarativeContainer):
         logger=logger_strategy_walk_forward,
     )
 
-    # symbol_strategy_manager = providers.Singleton(
-    #     SymbolStrategyManager,
-    #     base_dir=providers.Object(
-    #         config().get("backtester.signal.paths", "symbol_strategy_root_path")
-    #     ),
-    #     stage_data_manager=stage_data_manager,
-    #     symbol_strategy_evaluation_filename=providers.Object(
-    #         config().get(
-    #             "backtester.signal.filenames", "signal_strategy_evaluation_filename"
-    #         )
-    #     ),
-    #     logger=logger_symbol_strategy_manager,
-    # )
+    symbol_strategy_manager = providers.Singleton(
+        SymbolStrategyManager,
+        data_dir=get_data_dir(),
+        stage_data_manager=stage_data_manager,
+        symbol_strategy_evaluation_filename=providers.Object(
+            config().get("backtester.signal.filenames", "signal_summary_json_filename")
+        ),
+        logger=logger_symbol_strategy_manager,
+    )
 
     portfolio_executor = providers.Singleton(
         PortfolioBacktestExecutor,
