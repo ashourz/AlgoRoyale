@@ -1,13 +1,28 @@
-# src/models/alpaca_models/alpaca_bar.py
-
 from datetime import datetime
 from typing import Dict, Optional, Union
 
+import numpy as np
 import pandas as pd
 from dateutil.parser import isoparse  # If you want to use the isoparse method
 from pydantic import BaseModel
 
 
+def safe_float(val, default=np.nan):
+    try:
+        return float(val)
+    except (TypeError, ValueError):
+        return default
+
+
+def safe_int(val, default=0):
+    try:
+        return int(val)
+    except (TypeError, ValueError):
+        return default
+
+
+# Base model for a single historical price bar
+# This is used to represent a single bar of market data for a stock symbol.
 class Bar(BaseModel):
     """
     Represents a single historical price bar for a stock symbol.
@@ -62,20 +77,22 @@ class Bar(BaseModel):
 
         return cls(
             timestamp=cls.parse_timestamp(timestamp),
-            open_price=float(
+            open_price=safe_float(
                 data.get("o") or data.get("open_price") or data.get("open")
             ),
-            high_price=float(
+            high_price=safe_float(
                 data.get("h") or data.get("high_price") or data.get("high")
             ),
-            low_price=float(data.get("l") or data.get("low_price") or data.get("low")),
-            close_price=float(
+            low_price=safe_float(
+                data.get("l") or data.get("low_price") or data.get("low")
+            ),
+            close_price=safe_float(
                 data.get("c") or data.get("close_price") or data.get("close")
             ),
-            volume=int(data.get("v") or data.get("volume") or 0),
-            num_trades=int(data.get("n") or data.get("num_trades") or 0),
-            volume_weighted_price=float(
-                data.get("vw") or data.get("volume_weighted_price") or 0
+            volume=safe_int(data.get("v") or data.get("volume")),
+            num_trades=safe_int(data.get("n") or data.get("num_trades")),
+            volume_weighted_price=safe_float(
+                data.get("vw") or data.get("volume_weighted_price")
             ),
         )
 
@@ -95,13 +112,26 @@ class BarsResponse(BaseModel):
     @classmethod
     def from_raw(cls, raw_data: dict) -> "BarsResponse":
         """
-        Creates a BarsResponse instance from raw API response.
+                Creates a BarsResponse instance from raw API response.
 
-        Args:
-            raw_data (dict): The raw dictionary response from the Alpaca API.
+                Args:
+                    raw_data (dict): The raw dictionary response from the Alpaca API.
 
-        Returns:
-            BarsResponse: A parsed and validated BarsResponse object.
+                Returns:
+
+        def safe_float(val, default=np.nan):
+            try:
+                return float(val)
+            except (TypeError, ValueError):
+                return default
+
+        def safe_int(val, default=0):
+            try:
+                return int(val)
+            except (TypeError, ValueError):
+                return default
+
+                    BarsResponse: A parsed and validated BarsResponse object.
         """
         # We are expecting a "bars" dictionary containing symbols with their corresponding list of bars.
         parsed = {

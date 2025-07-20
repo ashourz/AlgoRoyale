@@ -296,6 +296,11 @@ class DIContainer(containers.DeclarativeContainer):
         base_logger=base_logger_backtest,
         logger_type=LoggerType.BACKTEST_PORTFOLIO_TESTING,
     )
+    logger_symbol_strategy_manager = providers.Factory(
+        TaggableLogger,
+        base_logger=base_logger_backtest,
+        logger_type=LoggerType.SYMBOL_STRATEGY_MANAGER,
+    )
     logger_strategy_walk_forward = providers.Factory(
         TaggableLogger,
         base_logger=base_logger_backtest,
@@ -592,6 +597,20 @@ class DIContainer(containers.DeclarativeContainer):
         testing_stage_coordinator=strategy_testing_stage_coordinator,
         logger=logger_strategy_walk_forward,
     )
+
+    # symbol_strategy_manager = providers.Singleton(
+    #     SymbolStrategyManager,
+    #     base_dir=providers.Object(
+    #         config().get("backtester.signal.paths", "symbol_strategy_root_path")
+    #     ),
+    #     stage_data_manager=stage_data_manager,
+    #     symbol_strategy_evaluation_filename=providers.Object(
+    #         config().get(
+    #             "backtester.signal.filenames", "signal_strategy_evaluation_filename"
+    #         )
+    #     ),
+    #     logger=logger_symbol_strategy_manager,
+    # )
 
     portfolio_executor = providers.Singleton(
         PortfolioBacktestExecutor,

@@ -1,8 +1,8 @@
 import json
 from pathlib import Path
-from algo_royale.logging.loggable import Loggable
 
 from algo_royale.backtester.enum.backtest_stage import BacktestStage
+from algo_royale.logging.loggable import Loggable
 from algo_royale.logging.logger_factory import mockLogger
 
 
@@ -62,7 +62,9 @@ class SymbolEvaluationCoordinator:
                         results.append(report)
 
                 if not results:
-                    print(f"No evaluation results found for {symbol}")
+                    self.logger.warning(
+                        f"No evaluation results found for symbol: {symbol}"
+                    )
                     continue
 
                 # Filter only viable strategies
