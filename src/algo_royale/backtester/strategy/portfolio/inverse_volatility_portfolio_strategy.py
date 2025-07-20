@@ -20,8 +20,9 @@ class InverseVolatilityPortfolioStrategy(BasePortfolioStrategy):
         lookback: int, rolling window size for volatility estimation (default: 20)
     """
 
-    def __init__(self, lookback: int = 20):
+    def __init__(self, lookback: int = 20, debug: bool = False):
         self.lookback = lookback
+        super().__init__(debug=debug)
 
     @property
     def required_columns(self):

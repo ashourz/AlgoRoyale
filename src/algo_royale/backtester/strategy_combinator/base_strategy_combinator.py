@@ -15,6 +15,7 @@ class BaseStrategyCombinator(ABC):
         cls,
         optuna_trial=None,
         logger=None,
+        debug: bool = False,
     ) -> Generator[Callable[[], BaseStrategy], None, None]:
         """
         Generate all possible strategy combinations (with parameterizations if optuna_trial is provided).

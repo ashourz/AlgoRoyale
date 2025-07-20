@@ -30,6 +30,7 @@ class VolatilityBreakoutStrategy(BaseSignalStrategy):
                 threshold=1.5, sma_col=SignalStrategyColumns.SMA_20
             )
         ],
+        debug: bool = False,
     ):
         """Initialize the Volatility Breakout Strategy with entry and exit conditions.
         Parameters:
@@ -39,4 +40,5 @@ class VolatilityBreakoutStrategy(BaseSignalStrategy):
         super().__init__(
             entry_conditions=entry_conditions,
             exit_conditions=exit_conditions,
+            debug=debug,
         )

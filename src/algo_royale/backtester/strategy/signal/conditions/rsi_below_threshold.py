@@ -57,8 +57,11 @@ class RSIBelowThresholdCondition(StrategyCondition):
         rsi_col: SignalStrategyColumns = SignalStrategyColumns.RSI,
         close_col: SignalStrategyColumns = SignalStrategyColumns.CLOSE_PRICE,
         threshold=30,
+        debug: bool = False,
     ):
-        super().__init__(rsi_col=rsi_col, close_col=close_col, threshold=threshold)
+        super().__init__(
+            rsi_col=rsi_col, close_col=close_col, threshold=threshold, debug=debug
+        )
         self.rsi_col = rsi_col
         self.close_col = close_col
         self.threshold = threshold

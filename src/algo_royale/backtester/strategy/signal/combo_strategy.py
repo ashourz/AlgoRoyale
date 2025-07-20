@@ -25,7 +25,10 @@ class ComboStrategy(BaseSignalStrategy):
         self,
         entry_conditions: list[ComboEntryCondition],
         exit_conditions: list[ComboExitCondition],
+        debug: bool = False,
     ):
         super().__init__(
-            entry_conditions=entry_conditions, exit_conditions=exit_conditions
+            entry_conditions=entry_conditions,
+            exit_conditions=exit_conditions,
+            debug=debug,
         )

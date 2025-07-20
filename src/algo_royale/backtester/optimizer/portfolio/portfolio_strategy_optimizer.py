@@ -122,9 +122,13 @@ class PortfolioStrategyOptimizerImpl(PortfolioStrategyOptimizer):
             # Always extract metrics from result['metrics'] if present
             metrics_dict = result.get("metrics", result)
             if is_multi:
-                print(f"DEBUG: extracting metrics {metric_names} from: {metrics_dict}")
+                logger.debug(
+                    f"[{symbols}] Extracting metrics {metric_names} from: {metrics_dict}"
+                )
             else:
-                print(f"DEBUG: extracting metric '{metric_name}' from: {metrics_dict}")
+                logger.debug(
+                    f"[{symbols}] Extracting metric '{metric_name}' from: {metrics_dict}"
+                )
             try:
                 if is_multi:
                     scores = []
@@ -191,9 +195,6 @@ class PortfolioStrategyOptimizerImpl(PortfolioStrategyOptimizer):
             best_params = study.best_params
             best_metrics = study.best_trial.user_attrs.get("full_result") or {}
         # Always ensure metrics is a dict or list of dicts
-        print(
-            f"DEBUG: is_multi={is_multi}, best_metrics type={type(best_metrics)}, value={best_metrics}"
-        )
         self.logger.debug(
             f"Best trial: {best_trials[0].number} | Value: {best_values} | Params: {best_params} | Metrics: {best_metrics}"
         )

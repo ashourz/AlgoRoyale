@@ -63,7 +63,7 @@ class SymbolEvaluationCoordinator:
 
                 if not results:
                     self.logger.warning(
-                        f"No evaluation results found for symbol: {symbol}"
+                        f"No evaluation results found for {symbol} in {symbol_dir}. Skipping."
                     )
                     continue
 
@@ -83,14 +83,16 @@ class SymbolEvaluationCoordinator:
                             r.get("param_consistency", 0),
                         ),
                     )
-                    print(
+                    # Log the selected strategy
+                    self.logger.info(
                         f"Selected strategy for {symbol}: {best['strategy']} "
-                        f"(viability_score={best['viability_score']}, param_consistency={best.get('param_consistency', 0)})"
+                        f"(viability_score={best['viability_score']}, "
+                        f"param_consistency={best.get('param_consistency', 0)})"
                     )
                 else:
                     # If no viable strategy, pick the one with highest viability_score anyway
                     best = max(results, key=lambda r: r.get("viability_score", 0))
-                    print(
+                    self.logger.warning(
                         f"No viable strategy found for {symbol}. "
                         f"Best available: {best['strategy']} (viability_score={best['viability_score']})"
                     )
@@ -99,7 +101,9 @@ class SymbolEvaluationCoordinator:
                 summary_path = symbol_dir / self.summary_json_filename
                 with open(summary_path, "w") as f:
                     json.dump(best, f, indent=2)
-                print(f"Symbol evaluation report written to {summary_path}")
+                self.logger.info(
+                    f"Summary report for {symbol} written to {summary_path}"
+                )
         except Exception as e:
             self.logger.error(f"Error during symbol evaluation: {e}")
             raise e

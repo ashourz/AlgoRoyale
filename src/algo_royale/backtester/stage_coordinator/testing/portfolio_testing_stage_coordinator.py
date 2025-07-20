@@ -46,6 +46,7 @@ class PortfolioTestingStageCoordinator(BaseTestingStageCoordinator):
         optimization_root (str): Root directory for saving optimization results.
         optimization_json_filename (str): Name of the JSON file to save optimization results.
         asset_matrix_preparer (AssetMatrixPreparer): Preparer for converting data to asset-matrix form.
+        strategy_debug (bool): Whether to enable debug mode for strategy combinators.
     """
 
     def __init__(
@@ -59,6 +60,7 @@ class PortfolioTestingStageCoordinator(BaseTestingStageCoordinator):
         optimization_root: str,
         optimization_json_filename: str,
         asset_matrix_preparer: AssetMatrixPreparer,
+        strategy_debug: bool = False,
     ):
         super().__init__(
             stage=BacktestStage.PORTFOLIO_TESTING,
@@ -71,8 +73,9 @@ class PortfolioTestingStageCoordinator(BaseTestingStageCoordinator):
             optimization_json_filename=optimization_json_filename,
             optimization_root=optimization_root,
         )
-
+        self.strategy_debug = strategy_debug
         self.asset_matrix_preparer = asset_matrix_preparer
+        self.strategy_combinators = strategy_combinators
 
     async def _process_and_write(
         self,
@@ -89,13 +92,14 @@ class PortfolioTestingStageCoordinator(BaseTestingStageCoordinator):
             self.logger.warning("No valid portfolio data available for optimization.")
             return results
 
-        # TODO: Validate portfolio_matrix structure
-
         self.logger.info(
             f"Starting portfolio testing for window {self.test_window_id} with {len(portfolio_matrix)} rows of data."
         )
         for strategy_combinator in self.strategy_combinators:
-            for strat_factory in strategy_combinator.all_strategy_combinations():
+            for strat_factory in strategy_combinator.all_strategy_combinations(
+                logger=self.logger,
+                debug=self.strategy_debug,
+            ):
                 strategy_class = (
                     strat_factory.func
                     if hasattr(strat_factory, "func")
@@ -228,9 +232,6 @@ class PortfolioTestingStageCoordinator(BaseTestingStageCoordinator):
                 end_date=self.train_end_date,
             )
             if not train_opt_results:
-                print(
-                    f"No optimization results found for PORTFOLIO {strategy_name} {self.train_window_id}"
-                )
                 self.logger.warning(
                     f"No optimization result for PORTFOLIO {strategy_name} {self.train_window_id}"
                 )

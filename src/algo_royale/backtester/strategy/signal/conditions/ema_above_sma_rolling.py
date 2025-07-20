@@ -18,8 +18,9 @@ class EMAAboveSMARollingCondition(StrategyCondition):
         ema_col=SignalStrategyColumns.EMA_20,
         sma_col=SignalStrategyColumns.SMA_50,
         window: int = 3,
+        debug: bool = False,
     ):
-        super().__init__(ema_col=ema_col, sma_col=sma_col, window=window)
+        super().__init__(ema_col=ema_col, sma_col=sma_col, window=window, debug=debug)
         self.ema_col = ema_col
         self.sma_col = sma_col
         self.window = window

@@ -51,8 +51,9 @@ class RSIAboveThresholdCondition(StrategyCondition):
         self,
         rsi_col: SignalStrategyColumns = SignalStrategyColumns.RSI,
         threshold: float = 70,
+        debug: bool = False,
     ):
-        super().__init__(rsi_col=rsi_col, threshold=threshold)
+        super().__init__(rsi_col=rsi_col, threshold=threshold, debug=debug)
         self.rsi_col = rsi_col
         self.threshold = threshold
 

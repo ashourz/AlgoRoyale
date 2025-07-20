@@ -56,11 +56,10 @@ class MACDBullishCrossCondition(StrategyCondition):
         macd_col: SignalStrategyColumns = SignalStrategyColumns.MACD,
         signal_col: SignalStrategyColumns = SignalStrategyColumns.MACD_SIGNAL,
         close_col: SignalStrategyColumns = SignalStrategyColumns.CLOSE_PRICE,
+        debug: bool = False,
     ):
         super().__init__(
-            macd_col=macd_col,
-            signal_col=signal_col,
-            close_col=close_col,
+            macd_col=macd_col, signal_col=signal_col, close_col=close_col, debug=debug
         )
         self.macd_col = macd_col
         self.signal_col = signal_col

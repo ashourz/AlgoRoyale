@@ -490,6 +490,7 @@ class DIContainer(containers.DeclarativeContainer):
         DataIngestStageCoordinator,
         data_loader=stage_data_loader,
         data_writer=symbol_strategy_data_writer,
+        data_manager=stage_data_manager,
         logger=logger_backtest_data_ingest,
         quote_service=alpaca_quote_service,
         load_watchlist=load_watchlist_func,
@@ -500,7 +501,7 @@ class DIContainer(containers.DeclarativeContainer):
         FeatureEngineeringStageCoordinator,
         data_loader=symbol_strategy_data_loader,
         data_writer=symbol_strategy_data_writer,
-        stage_data_manager=stage_data_manager,
+        data_manager=stage_data_manager,
         logger=logger_backtest_feature_engineering,
         feature_engineer=feature_engineer,
     )
@@ -537,9 +538,6 @@ class DIContainer(containers.DeclarativeContainer):
 
     strategy_factory = providers.Singleton(
         StrategyFactory,
-        strategy_map_path=providers.Object(
-            config().get("backtester.signal.paths", "signal_strategy_map_path")
-        ),
         strategy_combinators=signal_strategy_combinators,
         logger=logger_strategy_factory,
     )
@@ -566,6 +564,12 @@ class DIContainer(containers.DeclarativeContainer):
             )
         ),
         signal_strategy_optimizer_factory=signal_strategy_optimizer_factory,
+        strategy_debug=providers.Object(
+            config().get_bool("logger.log", "base_signal_strategy_debug", False)
+        ),
+        optimization_n_trials=providers.Object(
+            config().get_int("backtester.signal", "optimization_n_trials", 1)
+        ),
     )
 
     strategy_testing_stage_coordinator = providers.Singleton(
@@ -584,6 +588,9 @@ class DIContainer(containers.DeclarativeContainer):
             config().get(
                 "backtester.signal.filenames", "signal_optimization_json_filename"
             )
+        ),
+        strategy_debug=providers.Object(
+            config().get_bool("logger.log", "base_signal_strategy_debug", False)
         ),
     )
 
@@ -682,6 +689,12 @@ class DIContainer(containers.DeclarativeContainer):
         ),
         asset_matrix_preparer=portfolio_asset_matrix_preparer,
         portfolio_strategy_optimizer_factory=portfolio_strategy_optimizer_factory,
+        strategy_debug=providers.Object(
+            config().get_bool("logger.log", "base_portfolio_strategy_debug", False)
+        ),
+        optimization_n_trials=providers.Object(
+            config().get_int("backtester.portfolio", "optimization_n_trials", 1)
+        ),
     )
 
     portfolio_testing_stage_coordinator = providers.Singleton(
@@ -703,6 +716,9 @@ class DIContainer(containers.DeclarativeContainer):
             )
         ),
         asset_matrix_preparer=portfolio_asset_matrix_preparer,
+        strategy_debug=providers.Object(
+            config().get_bool("logger.log", "base_portfolio_strategy_debug", False)
+        ),
     )
 
     portfolio_walk_forward_coordinator = providers.Singleton(

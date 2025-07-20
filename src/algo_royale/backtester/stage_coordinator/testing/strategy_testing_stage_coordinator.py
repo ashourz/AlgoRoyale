@@ -57,6 +57,7 @@ class StrategyTestingStageCoordinator(BaseTestingStageCoordinator):
         strategy_combinators: Sequence[type[SignalStrategyCombinator]],
         optimization_root: str,
         optimization_json_filename: str,
+        strategy_debug: bool = False,
     ):
         super().__init__(
             data_loader=data_loader,
@@ -70,6 +71,7 @@ class StrategyTestingStageCoordinator(BaseTestingStageCoordinator):
             optimization_json_filename=optimization_json_filename,
         )
         self.strategy_factory = strategy_factory
+        self.strategy_debug = strategy_debug
 
     def _get_train_optimization_results(
         self,
@@ -198,7 +200,7 @@ class StrategyTestingStageCoordinator(BaseTestingStageCoordinator):
                     )
                     continue
                 strategy = self.strategy_factory.build_strategy(
-                    strategy_class, optimized_params
+                    strategy_class, optimized_params, debug=self.strategy_debug
                 )
 
                 async def data_factory():

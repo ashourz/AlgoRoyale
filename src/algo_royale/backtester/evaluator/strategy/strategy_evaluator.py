@@ -1,6 +1,5 @@
 import json
 from pathlib import Path
-from algo_royale.logging.loggable import Loggable
 
 import numpy as np
 
@@ -8,6 +7,7 @@ from algo_royale.backtester.enum.backtest_stage import BacktestStage
 from algo_royale.backtester.evaluator.strategy.strategy_evaluation_type import (
     StrategyEvaluationType,
 )
+from algo_royale.logging.loggable import Loggable
 
 
 class StrategyEvaluator:
@@ -121,27 +121,3 @@ class StrategyEvaluator:
 
     def is_viable(self, min_score=0.75):
         return self.viability_score() >= min_score
-
-    def print_report(self):
-        print("Walk-Forward Evaluation Report")
-        print("=" * 32)
-        for m in self.metrics:
-            type_str = f" ({m['type']})" if "type" in m else ""
-            print(f"Window: {m['window']}{type_str}")
-            print(f"  Total Return: {m['total_return']:.3f}")
-            print(f"  Sharpe Ratio: {m['sharpe_ratio']:.3f}")
-            print(f"  Win Rate: {m['win_rate']:.3f}")
-            print(f"  Max Drawdown: {m['max_drawdown']:.3f}")
-            print("-" * 32)
-        print("Summary Statistics:")
-        for k, v in self.summary().items():
-            print(
-                f"{k}: mean={v['mean']:.3f}, std={v['std']:.3f}, min={v['min']:.3f}, max={v['max']:.3f}"
-            )
-        print(f"Viability Score: {self.viability_score():.2f}")
-        print(f"Is Viable: {self.is_viable()}")
-
-
-# Example usage:
-# evaluator = WalkForwardEvaluator("c:/Users/ashou/AlgoRoyale/data/optimization/BollingerBandsStrategy/QUBT/20230101_20240101/optimization_result.json", metric_type="both")
-# evaluator.print_report()

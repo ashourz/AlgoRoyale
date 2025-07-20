@@ -13,9 +13,13 @@ class TimeOfDayEntryCondition(StrategyCondition):
         buy_start_hour=10,
         buy_end_hour=14,
         hour_col: SignalStrategyColumns = SignalStrategyColumns.HOUR,
+        debug: bool = False,
     ):
         super().__init__(
-            buy_start_hour=buy_start_hour, buy_end_hour=buy_end_hour, hour_col=hour_col
+            buy_start_hour=buy_start_hour,
+            buy_end_hour=buy_end_hour,
+            hour_col=hour_col,
+            debug=debug,
         )
         self.buy_start_hour = buy_start_hour
         self.buy_end_hour = buy_end_hour

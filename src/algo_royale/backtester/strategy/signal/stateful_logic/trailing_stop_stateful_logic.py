@@ -11,8 +11,13 @@ class TrailingStopStatefulLogic(StatefulLogic):
     Keeps track of the highest price since entry and exits when price falls below trailing stop.
     """
 
-    def __init__(self, close_col=SignalStrategyColumns.CLOSE_PRICE, stop_pct=0.02):
-        super().__init__(close_col=close_col, stop_pct=stop_pct)
+    def __init__(
+        self,
+        close_col=SignalStrategyColumns.CLOSE_PRICE,
+        stop_pct=0.02,
+        debug: bool = False,
+    ):
+        super().__init__(close_col=close_col, stop_pct=stop_pct, debug=debug)
         self.close_col = close_col
         self.stop_pct = stop_pct
 

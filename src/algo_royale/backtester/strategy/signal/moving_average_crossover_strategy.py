@@ -51,6 +51,7 @@ class MovingAverageCrossoverStrategy(BaseSignalStrategy):
                 ma_type=MA_Type.EMA,
             )
         ],
+        debug: bool = False,
     ):
         """Initialize the Moving Average Crossover Strategy with entry and exit conditions.
         Parameters:
@@ -61,4 +62,5 @@ class MovingAverageCrossoverStrategy(BaseSignalStrategy):
         super().__init__(
             entry_conditions=entry_conditions,
             exit_conditions=exit_conditions,
+            debug=debug,
         )

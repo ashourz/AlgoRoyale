@@ -19,6 +19,7 @@ class PullbackEntryStrategy(BaseSignalStrategy):
                 close_col=SignalStrategyColumns.CLOSE_PRICE,
             )
         ],
+        debug: bool = False,
     ) -> None:
         """Initialize the Pullback Entry Strategy with entry and exit conditions.
         Parameters:
@@ -35,4 +36,5 @@ class PullbackEntryStrategy(BaseSignalStrategy):
         super().__init__(
             entry_conditions=self.entry_conditions,
             exit_conditions=self.exit_conditions,
+            debug=debug,
         )

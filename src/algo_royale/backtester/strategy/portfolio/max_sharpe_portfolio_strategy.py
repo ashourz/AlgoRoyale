@@ -22,9 +22,12 @@ class MaxSharpePortfolioStrategy(BasePortfolioStrategy):
         risk_free_rate: float, risk-free rate for Sharpe ratio calculation (default: 0.0)
     """
 
-    def __init__(self, lookback: int = 60, risk_free_rate: float = 0.0):
+    def __init__(
+        self, lookback: int = 60, risk_free_rate: float = 0.0, debug: bool = False
+    ):
         self.lookback = lookback
         self.risk_free_rate = risk_free_rate
+        super().__init__(debug=debug)
 
     @property
     def required_columns(self):

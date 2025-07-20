@@ -13,8 +13,8 @@ from algo_royale.backtester.stage_data.loader.symbol_strategy_data_loader import
     SymbolStrategyDataLoader,
 )
 from algo_royale.backtester.stage_data.stage_data_manager import StageDataManager
-from algo_royale.backtester.strategy_combinator.signal.base_signal_strategy_combinator import (
-    SignalStrategyCombinator,
+from algo_royale.backtester.strategy_combinator.base_strategy_combinator import (
+    BaseStrategyCombinator,
 )
 from algo_royale.logging.loggable import Loggable
 
@@ -46,7 +46,7 @@ class BaseTestingStageCoordinator(StageCoordinator):
         logger: Loggable,
         executor: BacktestExecutor,
         evaluator: BacktestEvaluator,
-        strategy_combinators: Sequence[type[SignalStrategyCombinator]],
+        strategy_combinators: Sequence[type[BaseStrategyCombinator]],
         optimization_root: str,
         optimization_json_filename: str,
     ):

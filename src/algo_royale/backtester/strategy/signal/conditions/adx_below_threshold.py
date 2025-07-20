@@ -49,8 +49,9 @@ class ADXBelowThresholdCondition(StrategyCondition):
         self,
         adx_col: SignalStrategyColumns = SignalStrategyColumns.ADX,
         threshold: float = 25,
+        debug: bool = False,
     ):
-        super().__init__(adx_col=adx_col, threshold=threshold)
+        super().__init__(adx_col=adx_col, threshold=threshold, debug=debug)
         self.adx_col = adx_col
         self.threshold = threshold
 
