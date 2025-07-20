@@ -77,8 +77,8 @@ from algo_royale.backtester.stage_data.writer.symbol_strategy_data_writer import
 from algo_royale.backtester.strategy_combinator.portfolio.equal_risk_contribution_portfolio_strategy_combinator import (
     EqualRiskContributionPortfolioStrategyCombinator,
 )
-from algo_royale.backtester.strategy_combinator.signal.macd_trailing_strategy_combinator import (
-    MACDTrailingStrategyCombinator,
+from algo_royale.backtester.strategy_combinator.signal.bollinger_bands_strategy_combinator import (
+    BollingerBandsStrategyCombinator,
 )
 from algo_royale.backtester.strategy_factory.signal.strategy_factory import (
     StrategyFactory,
@@ -518,9 +518,9 @@ class DIContainer(containers.DeclarativeContainer):
     )
 
     signal_strategy_combinators = [
-        # BollingerBandsStrategyCombinator,
+        BollingerBandsStrategyCombinator,
         # ComboStrategyCombinator,
-        MACDTrailingStrategyCombinator,
+        # MACDTrailingStrategyCombinator,
         # MeanReversionStrategyCombinator,
         # MomentumStrategyCombinator,
         # MovingAverageCrossoverStrategyCombinator,

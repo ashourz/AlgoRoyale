@@ -95,6 +95,7 @@ class StrategyEvaluator:
         }
         return summary
 
+    ## TODO: implement from config
     def viability_score(self, thresholds=None):
         if not self.metrics:
             return 0
@@ -119,5 +120,6 @@ class StrategyEvaluator:
                 score += 1
         return score / checks if checks > 0 else 0
 
+    ## TODO: implement from config
     def is_viable(self, min_score=0.75):
         return self.viability_score() >= min_score

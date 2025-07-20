@@ -1,4 +1,6 @@
 from algo_royale.logging.loggable import Loggable
+
+
 def summary_metric_validator(metric, logger: Loggable) -> bool:
     """Validate a summary metric dict with mean, std, min, max (all floats)."""
     if not isinstance(metric, dict):
@@ -18,18 +20,39 @@ def most_common_best_params_validator(params, logger: Loggable) -> bool:
     if not isinstance(params, dict):
         logger.warning(f"Validation failed: Params not dict. Value: {params}")
         return False
-    for key in ["entry_conditions", "exit_conditions", "trend_conditions"]:
-        if key not in params or not isinstance(params[key], list):
-            logger.warning(
-                f"Validation failed: '{key}' missing or not list in params. Value: {params}"
-            )
-            return False
-        for cond in params[key]:
-            if not isinstance(cond, dict):
+
+    expected_keys = [
+        "filter_conditions",
+        "trend_conditions",
+        "entry_conditions",
+        "exit_conditions",
+        "stateful_logic",
+    ]
+    present_keys = [k for k in expected_keys if k in params]
+    if not present_keys:
+        logger.warning(
+            f"Validation failed: No expected keys present in params. Value: {params}"
+        )
+        return False
+    for key in present_keys:
+        if key == "stateful_logic":
+            if not isinstance(params[key], dict):
                 logger.warning(
-                    f"Validation failed: Condition in '{key}' not dict. Value: {cond}"
+                    f"Validation failed: 'stateful_logic' not dict in params. Value: {params[key]}"
                 )
                 return False
+        else:
+            if not isinstance(params[key], list):
+                logger.warning(
+                    f"Validation failed: '{key}' not list in params. Value: {params[key]}"
+                )
+                return False
+            for cond in params[key]:
+                if not isinstance(cond, dict):
+                    logger.warning(
+                        f"Validation failed: Condition in '{key}' not dict. Value: {cond}"
+                    )
+                    return False
     return True
 
 

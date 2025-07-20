@@ -60,8 +60,8 @@ class PipelineCoordinator:
     ):
         try:
             self.logger.info("Running pipeline stages...")
-            await self.strategy_walk_forward_coordinator.run_async()
-            self.strategy_evaluation_coordinator.run()
+            # await self.strategy_walk_forward_coordinator.run_async()
+            # self.strategy_evaluation_coordinator.run()
             self.symbol_evaluation_coordinator.run()
             # await self.portfolio_walk_forward_coordinator.run_async()
             # self.portfolio_evaluation_coordinator.run()
