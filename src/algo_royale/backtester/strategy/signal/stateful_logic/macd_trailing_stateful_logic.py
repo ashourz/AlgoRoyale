@@ -42,7 +42,9 @@ class MACDTrailingStatefulLogic(StatefulLogic):
         self.signal = signal
         self.stop_pct = stop_pct
 
-    def __call_impl(self, i, df, signals, state, trend_mask, entry_mask, exit_mask):
+    def __call_impl(
+        self, i, df, entry_signal, exit_signal, state, trend_mask, filter_mask
+    ):
         # Initialize state if empty
         if not state:
             state = {
@@ -59,17 +61,21 @@ class MACDTrailingStatefulLogic(StatefulLogic):
 
         # Skip if not enough data
         if pd.isna(macd.iloc[i]) or pd.isna(signal_line.iloc[i]):
-            return signals.iloc[i], state
+            return entry_signal, exit_signal, state
 
         price = df.iloc[i][self.close_col]
         trend_ok = trend_mask.iloc[i]
+
+        # Default: do not change signals
+        new_entry_signal = entry_signal
+        new_exit_signal = exit_signal
 
         if not state["in_position"]:
             buy_signal = (macd_prev.iloc[i] < signal_prev.iloc[i]) and (
                 macd.iloc[i] > signal_line.iloc[i]
             )
             if buy_signal and trend_ok:
-                signals.iloc[i] = SignalType.BUY.value
+                new_entry_signal = SignalType.BUY.value
                 state["in_position"] = True
                 state["trailing_stop"] = price * (1 - self.stop_pct)
         else:
@@ -80,11 +86,11 @@ class MACDTrailingStatefulLogic(StatefulLogic):
                 macd.iloc[i] < signal_line.iloc[i]
             )
             if sell_signal or price < state["trailing_stop"]:
-                signals.iloc[i] = SignalType.SELL.value
+                new_exit_signal = SignalType.SELL.value
                 state["in_position"] = False
                 state["trailing_stop"] = None
 
-        return signals.iloc[i], state
+        return new_entry_signal, new_exit_signal, state
 
     @property
     def required_columns(self):

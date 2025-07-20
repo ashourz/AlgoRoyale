@@ -12,13 +12,35 @@ class StatefulLogic:
         for k, v in kwargs.items():
             setattr(self, k, v)
 
-    def __call__(self, i, df, signals, state, trend_mask, entry_mask, exit_mask):
+    def __call__(
+        self, i, df, entry_signal, exit_signal, state, trend_mask, filter_mask
+    ):
+        """
+        Dual-signal interface for stateful logic.
+        Args:
+            i: Current row index (int)
+            df: DataFrame
+            entry_signal: Current entry signal for this row (str or int)
+            exit_signal: Current exit signal for this row (str or int)
+            state: Mutable state object (dict or custom)
+            trend_mask: Series[bool] for trend
+            filter_mask: Series[bool] for filter
+        Returns:
+            (entry_signal, exit_signal, state): tuple
+        """
         missing = [col for col in self.required_columns if col not in df.columns]
         if missing:
-            return signals.iloc[i], state
-        return self._call_impl(i, df, signals, state, trend_mask, entry_mask, exit_mask)
+            return entry_signal, exit_signal, state
+        return self._call_impl(
+            i, df, entry_signal, exit_signal, state, trend_mask, filter_mask
+        )
 
-    def _call_impl(self, i, df, signals, state, trend_mask, entry_mask, exit_mask):
+    def _call_impl(
+        self, i, df, entry_signal, exit_signal, state, trend_mask, filter_mask
+    ):
+        """
+        Implement in subclass. Should return (entry_signal, exit_signal, state).
+        """
         raise NotImplementedError("Implement in subclass")
 
     @property

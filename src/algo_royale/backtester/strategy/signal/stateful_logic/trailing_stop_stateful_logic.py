@@ -16,32 +16,35 @@ class TrailingStopStatefulLogic(StatefulLogic):
         self.close_col = close_col
         self.stop_pct = stop_pct
 
-    def __call_impl(self, i, df, signals, state, trend_mask, entry_mask, exit_mask):
+    def __call_impl(
+        self, i, df, entry_signal, exit_signal, state, trend_mask, filter_mask
+    ):
         # Initialize state if needed
         if state is None or "trailing_high" not in state:
             state = {"in_position": False, "trailing_high": None}
 
         price = df.iloc[i][self.close_col]
-        signal = signals.iloc[i]
+        new_entry_signal = entry_signal
+        new_exit_signal = exit_signal
 
         if not state["in_position"]:
-            if entry_mask.iloc[i]:
+            if trend_mask.iloc[i] and filter_mask.iloc[i]:
                 # Enter position
                 state["in_position"] = True
                 state["trailing_high"] = price
-                signal = SignalType.BUY.value
+                new_entry_signal = SignalType.BUY.value
         else:
             # Update trailing high
             if price > state["trailing_high"]:
                 state["trailing_high"] = price
             trailing_stop = state["trailing_high"] * (1 - self.stop_pct)
-            if price < trailing_stop or (exit_mask is not None and exit_mask.iloc[i]):
+            if price < trailing_stop:
                 # Exit position
                 state["in_position"] = False
                 state["trailing_high"] = None
-                signal = SignalType.SELL.value
+                new_exit_signal = SignalType.SELL.value
 
-        return signal, state
+        return new_entry_signal, new_exit_signal, state
 
     @property
     def required_columns(self):
