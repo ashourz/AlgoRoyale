@@ -8,9 +8,6 @@ from algo_royale.backtester.column_names.portfolio_execution_keys import (
     PortfolioExecutionKeys,
     PortfolioExecutionMetricsKeys,
 )
-from algo_royale.backtester.data_preparer.asset_matrix_preparer import (
-    AssetMatrixPreparer,
-)
 from algo_royale.backtester.enum.backtest_stage import BacktestStage
 from algo_royale.backtester.evaluator.backtest.portfolio_backtest_evaluator import (
     PortfolioBacktestEvaluator,
@@ -20,6 +17,9 @@ from algo_royale.backtester.executor.portfolio_backtest_executor import (
 )
 from algo_royale.backtester.stage_coordinator.testing.base_testing_stage_coordinator import (
     BaseTestingStageCoordinator,
+)
+from algo_royale.backtester.stage_data.loader.portfolio_matrix_loader import (
+    PortfolioMatrixLoader,
 )
 from algo_royale.backtester.stage_data.loader.symbol_strategy_data_loader import (
     SymbolStrategyDataLoader,
@@ -59,7 +59,7 @@ class PortfolioTestingStageCoordinator(BaseTestingStageCoordinator):
         evaluator: PortfolioBacktestEvaluator,
         optimization_root: str,
         optimization_json_filename: str,
-        asset_matrix_preparer: AssetMatrixPreparer,
+        portfolio_matrix_loader: PortfolioMatrixLoader,
         strategy_debug: bool = False,
     ):
         super().__init__(
@@ -73,7 +73,7 @@ class PortfolioTestingStageCoordinator(BaseTestingStageCoordinator):
             optimization_root=optimization_root,
         )
         self.strategy_debug = strategy_debug
-        self.asset_matrix_preparer = asset_matrix_preparer
+        self.portfolio_matrix_loader = portfolio_matrix_loader
         self.strategy_combinators = strategy_combinators
         self.executor = executor
 
@@ -86,10 +86,10 @@ class PortfolioTestingStageCoordinator(BaseTestingStageCoordinator):
         This method does not set these parameters per run.
         """
         results = {}
-        portfolio_matrix = await self._get_input_matrix(data)
+        portfolio_matrix = await self._get_portfolio_matrix()
         # If no valid portfolio data is available, log a warning and return empty results
         if portfolio_matrix is None:
-            self.logger.warning("No valid portfolio data available for optimization.")
+            self.logger.warning("No valid portfolio data available for testing.")
             return results
 
         self.logger.info(
@@ -176,43 +176,28 @@ class PortfolioTestingStageCoordinator(BaseTestingStageCoordinator):
 
         return results
 
-    async def _get_input_matrix(
-        self, data: Optional[Dict[str, Callable[[], AsyncIterator[pd.DataFrame]]]]
+    async def _get_portfolio_matrix(
+        self,
     ) -> Optional[pd.DataFrame]:
-        """Get the input matrix for the portfolio optimization."""
+        """Load the portfolio matrix for the testing stage."""
         try:
-            if not data:
-                self.logger.warning("No data provided for portfolio optimization.")
+            watchlist = self.data_loader.get_watchlist()
+            if not watchlist:
+                self.logger.error("Watchlist is empty. Cannot load portfolio matrix.")
                 return None
-            # Aggregate all symbol data into a single DataFrame
-            self.logger.info(
-                f"Aggregating data for {len(data)} symbols for portfolio optimization."
+            portfolio_matrix = await self.portfolio_matrix_loader.get_portfolio_matrix(
+                symbols=watchlist,
+                start_date=self.test_start_date,
+                end_date=self.test_end_date,
             )
-            all_dfs = []
-            for symbol, df_iter_factory in data.items():
-                async for df in df_iter_factory():
-                    ## TODO: VALIDATE DATAFRAME
-                    df["symbol"] = symbol  # Optionally tag symbol
-                    all_dfs.append(df)
-            if not all_dfs:
-                self.logger.warning("No data for portfolio optimization window.")
-                return {}
-
-            portfolio_df = pd.concat(all_dfs, ignore_index=True)
-            self.logger.debug(
-                f"Combined portfolio DataFrame shape: {portfolio_df.shape}, columns: {list(portfolio_df.columns)}"
-            )
-            self.logger.debug(
-                f"Combined portfolio DataFrame index: {portfolio_df.index}"
-            )
-            # Prepare asset-matrix form for portfolio strategies
-            portfolio_matrix = self.asset_matrix_preparer.prepare(portfolio_df)
-            self.logger.info(
-                f"Asset-matrix DataFrame shape: {portfolio_matrix.shape}, columns: {portfolio_matrix.columns}"
-            )
+            if portfolio_matrix is None or portfolio_matrix.empty:
+                self.logger.warning(
+                    "No valid portfolio data available for optimization."
+                )
+                return None
             return portfolio_matrix
         except Exception as e:
-            self.logger.error(f"Error preparing portfolio matrix for optimization: {e}")
+            self.logger.error(f"Error loading portfolio matrix: {e}")
             return None
 
     def _get_optimized_params(

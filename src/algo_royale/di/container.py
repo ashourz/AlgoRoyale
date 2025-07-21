@@ -708,11 +708,13 @@ class DIContainer(containers.DeclarativeContainer):
         logger=logger_backtest_portfolio_optimization,
         strategy_combinators=portfolio_strategy_combinators,
         optimization_root=providers.Object(
-            config().get("backtester.signal.paths", "signal_optimization_root_path")
+            config().get(
+                "backtester.portfolio.paths", "portfolio_optimization_root_path"
+            ),
         ),
         optimization_json_filename=providers.Object(
             config().get(
-                "backtester.signal.filenames", "signal_optimization_json_filename"
+                "backtester.portfolio.filenames", "portfolio_optimization_json_filename"
             )
         ),
         portfolio_matrix_loader=portfolio_matrix_loader,
@@ -743,7 +745,7 @@ class DIContainer(containers.DeclarativeContainer):
                 "backtester.portfolio.filenames", "portfolio_optimization_json_filename"
             )
         ),
-        asset_matrix_preparer=portfolio_asset_matrix_preparer,
+        portfolio_matrix_loader=portfolio_matrix_loader,
         strategy_debug=providers.Object(
             config().get_bool("logger.log", "base_portfolio_strategy_debug", False)
         ),

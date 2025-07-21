@@ -5,7 +5,10 @@ from typing import Dict, List, Optional
 
 import pandas as pd
 
-from algo_royale.backtester.column_names.strategy_columns import SignalStrategyColumns
+from algo_royale.backtester.column_names.strategy_columns import (
+    SignalStrategyColumns,
+    SignalStrategyExecutorColumns,
+)
 from algo_royale.backtester.data_preparer.asset_matrix_preparer import (
     AssetMatrixPreparer,
 )
@@ -63,7 +66,7 @@ class PortfolioMatrixLoader:
         """
         Oversees the workflow: runs backtest and save signals, then compiles and returns the asset-matrix DataFrame."""
         await self._run_backtest_and_save_signals(symbols, start_date, end_date)
-        return self._compile_portfolio_matrix(
+        return await self._compile_portfolio_matrix(
             symbols,
             start_date,
             end_date,
@@ -131,20 +134,19 @@ class PortfolioMatrixLoader:
     ) -> bool:
         """Check if backtest has already been run for the current stage, for the specific symbol and date range."""
         try:
-            return self.stage_data_manager.file_exists(
+            return self.stage_data_manager.is_symbol_stage_done(
                 stage=self.stage,
                 symbol=symbol,
                 start_date=start_date,
                 end_date=end_date,
-                extension=DataExtension.DONE,
             )
         except Exception as e:
             self.logger.error(
-                f"Error checking portfolio symbol backtest results for {symbol} in window {self.window_id}: {e}"
+                f"Error checking portfolio symbol backtest results for {symbol} in start_date: {start_date}, end_date: {end_date}: {e}"
             )
             return False
 
-    def _compile_portfolio_matrix(
+    async def _compile_portfolio_matrix(
         self,
         symbols: List[str],
         start_date: datetime,
@@ -153,7 +155,7 @@ class PortfolioMatrixLoader:
         timestamp_col: str = SignalStrategyColumns.TIMESTAMP,
     ) -> Optional[pd.DataFrame]:
         """
-        Compiles the portfolio matrix from individual symbol data.
+        Compiles the portfolio matrix from individual symbol data asynchronously.
 
         Args:
             symbols (List[str]): List of symbols to include.
@@ -166,27 +168,44 @@ class PortfolioMatrixLoader:
             Optional[pd.DataFrame]: Compiled portfolio matrix, or None if error.
 
         Note:
-            For large symbol lists, consider parallelizing this step if I/O bound.
+            For large symbol lists, this step is parallelized using asyncio for I/O bound operations.
         """
+        import asyncio
+
         try:
-            dfs = []
-            for symbol in symbols:
-                df = self._load_symbol_data(
-                    symbol=symbol, start_date=start_date, end_date=end_date
+
+            async def load_symbol(symbol):
+                self.logger.info(
+                    f"[PortfolioMatrixLoader] Loading data for {symbol} from {start_date} to {end_date}"
+                )
+                loop = asyncio.get_running_loop()
+                # Run the blocking _load_symbol_data in a thread
+                df = await loop.run_in_executor(
+                    None,
+                    self._load_symbol_data,
+                    symbol,
+                    start_date,
+                    end_date,
                 )
                 if df is None:
                     self.logger.warning(
                         f"[PortfolioMatrixLoader] No data found for {symbol} in range {start_date} to {end_date}, skipping."
                     )
-                    continue
+                    return None
                 if symbol_col not in df.columns:
                     df[symbol_col] = symbol
-                dfs.append(df)
+                return df
+
+            tasks = [load_symbol(symbol) for symbol in symbols]
+            dfs = [df for df in await asyncio.gather(*tasks) if df is not None]
             if not dfs:
                 self.logger.error(
                     "[PortfolioMatrixLoader] No valid dataframes to concatenate for portfolio matrix."
                 )
                 return None
+            self.logger.info(
+                f"[PortfolioMatrixLoader] Compiling portfolio matrix for {len(dfs)} symbols."
+            )
             all_df = pd.concat(dfs, axis=0, ignore_index=True)
             matrix = self.asset_matrix_preparer.prepare(
                 all_df,
@@ -251,14 +270,30 @@ class PortfolioMatrixLoader:
                     f"[PortfolioMatrixLoader] Backtest result for {symbol} is not a list of DataFrames: {dfs}"
                 )
                 return
+
             df = pd.concat(dfs, axis=0, ignore_index=True)
             if df.empty:
                 self.logger.warning(
                     f"[PortfolioMatrixLoader] Backtest returned empty DataFrame for {symbol}."
                 )
                 return
-            file_path = self._get_signal_file_path(symbol, start_date, end_date)
 
+            # Filter columns to only those needed downstream
+            downstream_cols = [
+                SignalStrategyExecutorColumns.ENTRY_SIGNAL,
+                SignalStrategyExecutorColumns.EXIT_SIGNAL,
+                SignalStrategyExecutorColumns.SYMBOL,
+                SignalStrategyExecutorColumns.TIMESTAMP,
+                SignalStrategyExecutorColumns.OPEN_PRICE,
+                SignalStrategyExecutorColumns.HIGH_PRICE,
+                SignalStrategyExecutorColumns.LOW_PRICE,
+                SignalStrategyExecutorColumns.CLOSE_PRICE,
+            ]
+            # Only keep columns that exist in df
+            filtered_cols = [col for col in downstream_cols if col in df.columns]
+            df = df[filtered_cols]
+
+            file_path = self._get_signal_file_path(symbol, start_date, end_date)
             df.to_parquet(file_path)
 
             self.stage_data_manager.mark_symbol_stage(
@@ -298,7 +333,8 @@ class PortfolioMatrixLoader:
                 end_date=end_date,
             )
         )
-        # Only create directory when saving, not when reading
+        if not dir_path.is_dir():
+            dir_path.mkdir(parents=True, exist_ok=True)  # Ensure directory exists
         return dir_path / self.symbol_signals_filename
 
     def _load_symbol_data(

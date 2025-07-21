@@ -89,7 +89,19 @@ class PortfolioOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
         self,
         data: Optional[Dict[str, Callable[[], AsyncIterator[pd.DataFrame]]]] = None,
     ) -> Dict[str, Dict[str, dict]]:
-        """Process the portfolio optimization stage by aggregating all symbol data and optimizing the portfolio as a whole."""
+        """
+        Process the portfolio optimization stage by aggregating all symbol data and optimizing the portfolio as a whole.
+
+        Args:
+            data (Optional[Dict[str, Callable[[], AsyncIterator[pd.DataFrame]]]]):
+                Optional mapping of symbol to async data loader.
+
+        Returns:
+            Dict[str, Dict[str, dict]]: Results of the optimization for each strategy.
+
+        Note:
+            The optimization is run for all symbols at once (portfolio-level optimization), not per-symbol.
+        """
         try:
             results = {}
             portfolio_matrix = await self._get_portfolio_matrix()
@@ -139,7 +151,7 @@ class PortfolioOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
                         )
                         symbols = list(data.keys())
                         self.logger.info(
-                            f"Optimizing strategy: {strategy_name} for window {self.window_id}"
+                            f"Optimizing symbols: {symbols} strategy: {strategy_name} for window {self.window_id}"
                         )
                         optimizer = self.portfolio_strategy_optimizer_factory.create(
                             strategy_class=strategy_class,
@@ -151,8 +163,6 @@ class PortfolioOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
                         optimization_result = await optimizer.optimize(
                             symbols=symbols,
                             df=portfolio_matrix,
-                            window_start_time=self.start_date,
-                            window_end_time=self.end_date,
                             n_trials=self.optimization_n_trials,
                         )
                         self.logger.info(
@@ -187,11 +197,13 @@ class PortfolioOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
     async def _get_portfolio_matrix(
         self,
     ) -> Optional[pd.DataFrame]:
-        """Load the portfolio matrix for the optimization stage."""
+        """
+        Load the portfolio matrix for the optimization stage.
+
+        Returns:
+            Optional[pd.DataFrame]: The portfolio matrix DataFrame, or None if not available.
+        """
         try:
-            self.logger.info(
-                f"Loading portfolio matrix for optimization from {self.optimization_root}"
-            )
             watchlist = self.data_loader.get_watchlist()
             if not watchlist:
                 self.logger.error("Watchlist is empty. Cannot load portfolio matrix.")
@@ -212,7 +224,17 @@ class PortfolioOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
             return None
 
     def _get_output_path(self, strategy_name, start_date: datetime, end_date: datetime):
-        """Get the output path for the optimization results JSON file."""
+        """
+        Get the output path for the optimization results JSON file.
+
+        Args:
+            strategy_name (str): Name of the strategy.
+            start_date (datetime): Start date of the window.
+            end_date (datetime): End date of the window.
+
+        Returns:
+            Path: Path to the output JSON file.
+        """
         out_dir = self.stage_data_manager.get_directory_path(
             base_dir=self.optimization_root,
             strategy_name=strategy_name,
@@ -223,6 +245,16 @@ class PortfolioOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
         return out_dir / self.optimization_json_filename
 
     def _backtest_and_evaluate(self, strategy, df):
+        """
+        Run a backtest and evaluate metrics for a given portfolio strategy and DataFrame.
+
+        Args:
+            strategy: The portfolio strategy instance.
+            df (pd.DataFrame): The portfolio matrix DataFrame (all symbols).
+
+        Returns:
+            dict: Metrics dictionary from the evaluation.
+        """
         try:
             self.logger.info(
                 f"Running backtest for strategy {strategy.get_id()} on data from {df.index.min()} to {df.index.max()}"
@@ -248,7 +280,15 @@ class PortfolioOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
         self,
         results: Dict[str, Any],
     ) -> bool:
-        """Validate the optimization results to ensure they contain the expected structure."""
+        """
+        Validate the optimization results to ensure they contain the expected structure.
+
+        Args:
+            results (Dict[str, Any]): The optimization results to validate.
+
+        Returns:
+            bool: True if results are valid, False otherwise.
+        """
         try:
             validation_method = (
                 BacktestStage.PORTFOLIO_OPTIMIZATION.value.output_validation_fn
@@ -285,7 +325,19 @@ class PortfolioOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
         optimization_result: Dict[str, Any],
         collective_results: Dict[str, Dict[str, dict]],
     ) -> Dict[str, Dict[str, dict]]:
-        """Write the optimization results to a JSON file (cleaned up format)."""
+        """
+        Write the optimization results to a JSON file (cleaned up format).
+
+        Args:
+            start_date (datetime): Start date of the window.
+            end_date (datetime): End date of the window.
+            strategy_name (str): Name of the strategy.
+            optimization_result (Dict[str, Any]): Optimization result dictionary.
+            collective_results (Dict[str, Dict[str, dict]]): Results dictionary to update.
+
+        Returns:
+            Dict[str, Dict[str, dict]]: Updated results dictionary.
+        """
         try:
             optimization_json = {
                 self.window_id: {
@@ -336,7 +388,17 @@ class PortfolioOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
     def get_existing_optimization_results(
         self, strategy_name: str, start_date: datetime, end_date: datetime
     ) -> Dict[str, dict]:
-        """Retrieve existing optimization results for a given strategy and symbol."""
+        """
+        Retrieve existing optimization results for a given strategy and symbol.
+
+        Args:
+            strategy_name (str): Name of the strategy.
+            start_date (datetime): Start date of the window.
+            end_date (datetime): End date of the window.
+
+        Returns:
+            Dict[str, dict]: Existing optimization results dictionary.
+        """
         try:
             self.logger.info(
                 f"Retrieving optimization results for {strategy_name} during {self.window_id}"
