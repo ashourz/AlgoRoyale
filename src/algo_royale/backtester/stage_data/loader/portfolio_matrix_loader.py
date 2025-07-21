@@ -152,7 +152,22 @@ class PortfolioMatrixLoader:
         symbol_col: str = SignalStrategyColumns.SYMBOL,
         timestamp_col: str = SignalStrategyColumns.TIMESTAMP,
     ) -> Optional[pd.DataFrame]:
-        """Compiles the portfolio matrix from individual symbol data."""
+        """
+        Compiles the portfolio matrix from individual symbol data.
+
+        Args:
+            symbols (List[str]): List of symbols to include.
+            start_date (datetime): Start date for data window.
+            end_date (datetime): End date for data window.
+            symbol_col (str): Column name for symbol.
+            timestamp_col (str): Column name for timestamp.
+
+        Returns:
+            Optional[pd.DataFrame]: Compiled portfolio matrix, or None if error.
+
+        Note:
+            For large symbol lists, consider parallelizing this step if I/O bound.
+        """
         try:
             dfs = []
             for symbol in symbols:
@@ -167,6 +182,11 @@ class PortfolioMatrixLoader:
                 if symbol_col not in df.columns:
                     df[symbol_col] = symbol
                 dfs.append(df)
+            if not dfs:
+                self.logger.error(
+                    "[PortfolioMatrixLoader] No valid dataframes to concatenate for portfolio matrix."
+                )
+                return None
             all_df = pd.concat(dfs, axis=0, ignore_index=True)
             matrix = self.asset_matrix_preparer.prepare(
                 all_df,
@@ -258,6 +278,17 @@ class PortfolioMatrixLoader:
     def _get_signal_file_path(
         self, symbol: str, start_date: datetime, end_date: datetime
     ) -> Path:
+        """
+        Get the full path to the signal file for a symbol and date window.
+
+        Args:
+            symbol (str): The symbol.
+            start_date (datetime): Start date.
+            end_date (datetime): End date.
+
+        Returns:
+            Path: Full path to the signal file.
+        """
         dir_path = Path(
             self.stage_data_manager.get_directory_path(
                 base_dir=self.data_dir,
@@ -267,7 +298,7 @@ class PortfolioMatrixLoader:
                 end_date=end_date,
             )
         )
-        dir_path.mkdir(parents=True, exist_ok=True)
+        # Only create directory when saving, not when reading
         return dir_path / self.symbol_signals_filename
 
     def _load_symbol_data(
@@ -276,13 +307,24 @@ class PortfolioMatrixLoader:
         start_date: datetime,
         end_date: datetime,
     ) -> Optional[pd.DataFrame]:
+        """
+        Load the signal data for a symbol and date window.
+
+        Args:
+            symbol (str): The symbol.
+            start_date (datetime): Start date.
+            end_date (datetime): End date.
+
+        Returns:
+            Optional[pd.DataFrame]: The loaded DataFrame, or None if not found.
+        """
         file_path = self._get_signal_file_path(symbol, start_date, end_date)
         if not file_path.exists():
             self.logger.warning(
                 f"[PortfolioMatrixLoader] Data file not found for {symbol}: {file_path} (will exclude from matrix)"
             )
             return None
-        return pd.read_parquet(str(file_path))
+        return pd.read_parquet(file_path)
 
     def _get_optimized_strategy(
         self,
@@ -321,8 +363,16 @@ class PortfolioMatrixLoader:
             )
             return None
 
-    def _get_optimization_summary(self, symbol: str) -> Dict[str, dict]:
-        """Get optimization summary for a given strategy and symbol."""
+    def _get_optimization_summary(self, symbol: str) -> Optional[Dict]:
+        """
+        Get optimization summary for a given strategy and symbol.
+
+        Args:
+            symbol (str): The symbol.
+
+        Returns:
+            Optional[Dict]: Optimization summary dictionary, or None if error.
+        """
         try:
             json_path = self._get_optimization_result_path(symbol=symbol)
             self.logger.debug(
@@ -332,9 +382,6 @@ class PortfolioMatrixLoader:
                 self.logger.warning(
                     f"No optimization summary for Symbol:{symbol} (optimization summary file does not exist or is empty)"
                 )
-                json_path.parent.mkdir(parents=True, exist_ok=True)
-                with open(json_path, "w") as f:
-                    json.dump({}, f)
                 return {}
             with open(json_path, "r") as f:
                 try:
@@ -360,15 +407,25 @@ class PortfolioMatrixLoader:
             return opt_results
         except Exception as e:
             self.logger.error(
-                f"Error retrieving optimization summary for {symbol}: {e}"
+                f"Error retrieving optimization summary for {symbol}: {e} (symbol: {symbol})"
             )
             return None
 
     def _get_optimization_result_path(self, symbol: Optional[str]) -> Path:
-        """Get the path to the optimization result JSON file for a given strategy and symbol."""
-        out_dir = self.stage_data_manager.get_directory_path(
-            base_dir=self.optimization_root,
-            symbol=symbol,
+        """
+        Get the path to the optimization result JSON file for a given strategy and symbol.
+
+        Args:
+            symbol (Optional[str]): The symbol.
+
+        Returns:
+            Path: Path to the optimization summary JSON file.
+        """
+        out_dir = Path(
+            self.stage_data_manager.get_directory_path(
+                base_dir=self.optimization_root,
+                symbol=symbol,
+            )
         )
-        out_dir.mkdir(parents=True, exist_ok=True)
+        # Only create directory when saving, not when reading
         return out_dir / self.signal_summary_json_filename
