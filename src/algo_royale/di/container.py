@@ -677,7 +677,7 @@ class DIContainer(containers.DeclarativeContainer):
         asset_matrix_preparer=portfolio_asset_matrix_preparer,
         stage_data_manager=stage_data_manager,
         stage_data_loader=stage_data_loader,
-        startegy_facotry=strategy_factory,
+        strategy_factory=strategy_factory,
         data_dir=get_data_dir(),
         signal_optimization_json_filename=providers.Object(
             config().get("backtester.signal.filenames", "signal_summary_json_filename")
