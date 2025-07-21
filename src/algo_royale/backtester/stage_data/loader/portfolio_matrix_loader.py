@@ -53,34 +53,22 @@ class PortfolioMatrixLoader:
         self.stage = BacktestStage.PORTFOLIO_MATRIX_LOADER
 
     async def get_portfolio_matrix(
-        self,
-        symbols: List[str],
-        strategy: str,
-        start_date: datetime,
-        end_date: datetime,
-        value_col: str = None,
-        symbol_col: str = "symbol",
-        timestamp_col: str = "timestamp",
+        self, symbols: List[str], start_date: datetime, end_date: datetime
     ) -> pd.DataFrame:
         """
         Oversees the workflow: runs backtest and save signals, then compiles and returns the asset-matrix DataFrame."""
-        await self._run_backtest_and_save_signals(
-            symbols, strategy, start_date, end_date
-        )
+        await self._run_backtest_and_save_signals(symbols, start_date, end_date)
         return self._compile_portfolio_matrix(
             symbols,
-            strategy,
             start_date,
             end_date,
-            value_col,
-            symbol_col,
-            timestamp_col,
+            symbol_col=SignalStrategyColumns.SYMBOL,
+            timestamp_col=SignalStrategyColumns.TIMESTAMP,
         )
 
     async def _run_backtest_and_save_signals(
         self,
         symbols: List[str],
-        strategy: str,
         start_date: datetime,
         end_date: datetime,
     ):
@@ -92,7 +80,7 @@ class PortfolioMatrixLoader:
 
         try:
             self.logger.info(
-                f"[PortfolioMatrixLoader] Running backtest for symbols: {symbols} with strategy: {strategy} | {start_date} to {end_date}"
+                f"[PortfolioMatrixLoader] Running backtest for symbols: {symbols} | {start_date} to {end_date}"
             )
             tasks = []
             for symbol in symbols:
@@ -100,7 +88,7 @@ class PortfolioMatrixLoader:
                 async def process_symbol(symbol=symbol):
                     try:
                         self.logger.info(
-                            f"[PortfolioMatrixLoader] Checking backtest file for {symbol} | {strategy} | {start_date} to {end_date}"
+                            f"[PortfolioMatrixLoader] Checking backtest file for {symbol} | {start_date} to {end_date}"
                         )
                         if not self._has_backtest_run(
                             symbol=symbol, start_date=start_date, end_date=end_date
@@ -151,7 +139,6 @@ class PortfolioMatrixLoader:
         symbols: List[str],
         start_date: datetime,
         end_date: datetime,
-        value_col: str = None,
         symbol_col: str = SignalStrategyColumns.SYMBOL,
         timestamp_col: str = SignalStrategyColumns.TIMESTAMP,
     ) -> pd.DataFrame:
@@ -168,7 +155,6 @@ class PortfolioMatrixLoader:
         matrix = self.asset_matrix_preparer.prepare(
             all_df,
             symbol_col=symbol_col,
-            value_col=value_col,
             timestamp_col=timestamp_col,
         )
         return matrix

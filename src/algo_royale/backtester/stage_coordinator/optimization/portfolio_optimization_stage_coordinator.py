@@ -5,12 +5,6 @@ from typing import Any, AsyncIterator, Callable, Dict, Optional, Sequence
 
 import pandas as pd
 
-from algo_royale.backtester.column_names.feature_engineering_columns import (
-    FeatureEngineeringColumns,
-)
-from algo_royale.backtester.data_preparer.asset_matrix_preparer import (
-    AssetMatrixPreparer,
-)
 from algo_royale.backtester.enum.backtest_stage import BacktestStage
 from algo_royale.backtester.evaluator.backtest.portfolio_backtest_evaluator import (
     PortfolioBacktestEvaluator,
@@ -24,6 +18,9 @@ from algo_royale.backtester.optimizer.portfolio.portfolio_strategy_optimizer_fac
 )
 from algo_royale.backtester.stage_coordinator.optimization.base_optimization_stage_coordinator import (
     BaseOptimizationStageCoordinator,
+)
+from algo_royale.backtester.stage_data.loader.portfolio_matrix_loader import (
+    PortfolioMatrixLoader,
 )
 from algo_royale.backtester.stage_data.loader.symbol_strategy_data_loader import (
     SymbolStrategyDataLoader,
@@ -48,7 +45,6 @@ class PortfolioOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
         evaluator (PortfolioBacktestEvaluator): Evaluator to assess backtest results.
         optimization_root (str): Root directory for optimization results.
         optimization_json_filename (str): Name of the JSON file to write optimization results.
-        asset_matrix_preparer (AssetMatrixPreparer): Prepares asset-matrix form for portfolio strategies.
         portfolio_strategy_optimizer_factory (PortfolioStrategyOptimizerFactory): Factory to create portfolio strategy optimizers.
         strategy_debug (bool): Whether to enable debug mode for strategy combinators.
     """
@@ -63,7 +59,7 @@ class PortfolioOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
         evaluator: PortfolioBacktestEvaluator,
         optimization_root: str,
         optimization_json_filename: str,
-        asset_matrix_preparer: AssetMatrixPreparer,
+        portfolio_matrix_loader: PortfolioMatrixLoader,
         portfolio_strategy_optimizer_factory: PortfolioStrategyOptimizerFactory,
         strategy_debug: bool = False,
         optimization_n_trials: int = 1,
@@ -80,7 +76,7 @@ class PortfolioOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
             ## Create the directory if it does not exist
             self.optimization_root.mkdir(parents=True, exist_ok=True)
         self.optimization_json_filename = optimization_json_filename
-        self.asset_matrix_preparer = asset_matrix_preparer
+        self.portfolio_matrix_loader = portfolio_matrix_loader
         self.portfolio_strategy_optimizer_factory = portfolio_strategy_optimizer_factory
         self.stage_data_manager = stage_data_manager
         self.evaluator = evaluator
@@ -94,216 +90,125 @@ class PortfolioOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
         data: Optional[Dict[str, Callable[[], AsyncIterator[pd.DataFrame]]]] = None,
     ) -> Dict[str, Dict[str, dict]]:
         """Process the portfolio optimization stage by aggregating all symbol data and optimizing the portfolio as a whole."""
-        results = {}
-        portfolio_matrix = await self._get_input_matrix(data)
-        # If no valid portfolio data is available, log a warning and return empty results
-        if portfolio_matrix is None:
-            self.logger.warning("No valid portfolio data available for optimization.")
-            return results
-
-        self.logger.info(
-            f"Starting portfolio optimization for dates {self.start_date} to {self.end_date} with {len(portfolio_matrix)} rows of data."
-        )
-        self.logger.debug(
-            f"DEBUG: Starting _process_and_write with data keys: {list(data.keys()) if data else 'None'}"
-        )
-        self.logger.debug(
-            f"DEBUG: Portfolio matrix shape: {portfolio_matrix.shape if portfolio_matrix is not None else 'None'}"
-        )
-        self.logger.debug(f"DEBUG: Portfolio matrix: {portfolio_matrix}")
-        self.logger.debug(f"DEBUG: Prepared data keys: {list(data.keys())}")
-        self.logger.debug(
-            f"DEBUG: Portfolio matrix before optimization: {portfolio_matrix}"
-        )
-        self.logger.debug(
-            f"DEBUG: Strategy combinators: {[combinator.__name__ for combinator in self.strategy_combinators]}"
-        )
-
         try:
-            self.logger.debug(f"DEBUG: Starting optimization process with data: {data}")
-            self.logger.debug(f"DEBUG: Portfolio matrix: {portfolio_matrix}")
-        except Exception as e:
-            self.logger.error(f"Error during debug logging in _process_and_write: {e}")
+            results = {}
+            portfolio_matrix = await self._get_portfolio_matrix()
+            if portfolio_matrix is None or portfolio_matrix.empty:
+                self.logger.warning(
+                    "No valid portfolio data available for optimization. Skipping stage."
+                )
+                return results
 
-        for strategy_combinator in self.strategy_combinators:
+            # If no valid portfolio data is available, log a warning and return empty results
+            if portfolio_matrix is None:
+                self.logger.warning(
+                    "No valid portfolio data available for optimization."
+                )
+                return results
+
+            self.logger.info(
+                f"Starting portfolio optimization: {len(portfolio_matrix)} rows, {self.start_date} to {self.end_date}."
+            )
             self.logger.debug(
-                f"DEBUG: Using strategy combinator: {strategy_combinator.__name__}"
+                f"Portfolio matrix shape: {portfolio_matrix.shape}, columns: {list(portfolio_matrix.columns)}"
             )
-            combinations = strategy_combinator.all_strategy_combinations(
-                logger=self.logger,
-                debug=self.strategy_debug,
+            self.logger.debug(
+                f"Strategy combinators: {[c.__name__ for c in self.strategy_combinators]}"
             )
-            for strat_factory in combinations:
-                try:
-                    strategy_class = (
-                        strat_factory.func
-                        if hasattr(strat_factory, "func")
-                        else strat_factory
-                    )
-                    strategy_name = (
-                        strategy_class.__name__
-                        if hasattr(strategy_class, "__name__")
-                        else str(strategy_class)
-                    )
-                    symbols = list(data.keys())
-                    self.logger.debug(f"DEBUG: Optimizing strategy: {strategy_name}")
-                    optimizer = self.portfolio_strategy_optimizer_factory.create(
-                        strategy_class=strategy_class,
-                        backtest_fn=lambda strat, df_: self._backtest_and_evaluate(
-                            strat, df_
-                        ),
-                        metric_name=PortfolioMetric.SHARPE_RATIO,
-                    )
-                    optimization_result = await optimizer.optimize(
-                        symbols=symbols,
-                        df=portfolio_matrix,
-                        window_start_time=self.start_date,
-                        window_end_time=self.end_date,
-                        n_trials=self.optimization_n_trials,
-                    )
-                    self.logger.debug(
-                        f"DEBUG: Optimization result for {strategy_name}: {optimization_result}"
-                    )
+            self.logger.debug(f"Data keys: {list(data.keys()) if data else 'None'}")
 
-                    if not self._validate_optimization_results(optimization_result):
-                        self.logger.warning(
-                            f"Validation failed for optimization results of {strategy_name} during {self.window_id}. Skipping."
+            for strategy_combinator in self.strategy_combinators:
+                self.logger.info(
+                    f"Using strategy combinator: {strategy_combinator.__name__}"
+                )
+                combinations = strategy_combinator.all_strategy_combinations(
+                    logger=self.logger,
+                    debug=self.strategy_debug,
+                )
+                for strat_factory in combinations:
+                    try:
+                        strategy_class = (
+                            strat_factory.func
+                            if hasattr(strat_factory, "func")
+                            else strat_factory
+                        )
+                        strategy_name = (
+                            strategy_class.__name__
+                            if hasattr(strategy_class, "__name__")
+                            else str(strategy_class)
+                        )
+                        symbols = list(data.keys())
+                        self.logger.info(
+                            f"Optimizing strategy: {strategy_name} for window {self.window_id}"
+                        )
+                        optimizer = self.portfolio_strategy_optimizer_factory.create(
+                            strategy_class=strategy_class,
+                            backtest_fn=lambda strat, df_: self._backtest_and_evaluate(
+                                strat, df_
+                            ),
+                            metric_name=PortfolioMetric.SHARPE_RATIO,
+                        )
+                        optimization_result = await optimizer.optimize(
+                            symbols=symbols,
+                            df=portfolio_matrix,
+                            window_start_time=self.start_date,
+                            window_end_time=self.end_date,
+                            n_trials=self.optimization_n_trials,
+                        )
+                        self.logger.info(
+                            f"Optimization result for {strategy_name} ({self.window_id}) written."
+                        )
+
+                        if not self._validate_optimization_results(optimization_result):
+                            self.logger.warning(
+                                f"Validation failed for {strategy_name} ({self.window_id}). Skipping."
+                            )
+                            continue
+
+                        results = self._write_results(
+                            start_date=self.start_date,
+                            end_date=self.end_date,
+                            strategy_name=strategy_name,
+                            optimization_result=optimization_result,
+                            collective_results=results,
+                        )
+                    except Exception as e:
+                        self.logger.error(
+                            f"Portfolio optimization failed for {strategy_name} ({self.window_id}): {e}"
                         )
                         continue
-
-                    results = self._write_results(
-                        start_date=self.start_date,
-                        end_date=self.end_date,
-                        strategy_name=strategy_name,
-                        optimization_result=optimization_result,
-                        collective_results=results,
-                    )
-                    self.logger.debug(
-                        f"DEBUG: Results updated for {strategy_name}: {results}"
-                    )
-                except Exception as e:
-                    self.logger.error(
-                        f"Portfolio optimization failed for strategy {strategy_name}: {e}"
-                    )
-                    continue
-        return results
-
-    async def _get_input_matrix(
-        self, data: Optional[Dict[str, Callable[[], AsyncIterator[pd.DataFrame]]]]
-    ) -> Optional[pd.DataFrame]:
-        """Get the input matrix for the portfolio optimization."""
-        try:
-            if not data:
-                self.logger.warning("No data provided for portfolio optimization.")
-                return None
-            # Aggregate all symbol data into a single DataFrame
-            self.logger.info(
-                f"Aggregating data for {len(data)} symbols for portfolio optimization."
-            )
-            self.logger.debug(
-                f"DEBUG: Starting _get_input_matrix with data keys: {list(data.keys()) if data else 'None'}"
-            )
-            try:
-                self.logger.debug(
-                    f"DEBUG: Aggregating data for symbols: {list(data.keys())}"
-                )
-                self.logger.debug(f"DEBUG: Data provided: {data}")
-            except Exception as e:
-                self.logger.error(
-                    f"Error during debug logging in _get_input_matrix: {e}"
-                )
-
-            all_dfs = []
-            for symbol, df_iter_factory in data.items():
-                self.logger.debug(f"DEBUG: Processing symbol: {symbol}")
-                async for df in df_iter_factory():
-                    self.logger.debug(f"DEBUG: DataFrame for {symbol}: {df}")
-                    self.logger.debug(f"DEBUG: DataFrame columns: {df.columns}")
-                    self.logger.debug(f"DEBUG: DataFrame shape: {df.shape}")
-                    # Diagnostics for NaNs and value range
-                    self.logger.debug(f"DEBUG: {symbol} head:\n{df.head()}")
-                    self.logger.debug(f"DEBUG: {symbol} tail:\n{df.tail()}")
-                    self.logger.debug(f"DEBUG: {symbol} NaN count:\n{df.isna().sum()}")
-                    self.logger.debug(
-                        f"DEBUG: {symbol} min:\n{df.min(numeric_only=True)}"
-                    )
-                    self.logger.debug(
-                        f"DEBUG: {symbol} max:\n{df.max(numeric_only=True)}"
-                    )
-                    df["symbol"] = symbol  # Optionally tag symbol
-                    all_dfs.append(df)
-
-            if not all_dfs:
-                self.logger.warning("No data for portfolio optimization window.")
-                return None
-
-            portfolio_df = pd.concat(all_dfs, ignore_index=True)
-            self.logger.debug(
-                f"DEBUG: Combined portfolio DataFrame head:\n{portfolio_df.head()}"
-            )
-            self.logger.debug(
-                f"DEBUG: Combined portfolio DataFrame tail:\n{portfolio_df.tail()}"
-            )
-            self.logger.debug(
-                f"DEBUG: Combined portfolio DataFrame NaN count:\n{portfolio_df.isna().sum()}"
-            )
-            self.logger.debug(
-                f"DEBUG: Combined portfolio DataFrame min:\n{portfolio_df.min(numeric_only=True)}"
-            )
-            self.logger.debug(
-                f"DEBUG: Combined portfolio DataFrame max:\n{portfolio_df.max(numeric_only=True)}"
-            )
-            self.logger.debug(
-                f"DEBUG: Combined portfolio DataFrame columns: {portfolio_df.columns}"
-            )
-            self.logger.debug(
-                f"DEBUG: Combined portfolio DataFrame shape: {portfolio_df.shape}"
-            )
-
-            try:
-                self.logger.debug(
-                    f"DEBUG: Preparing asset-matrix for portfolio DataFrame with shape: {portfolio_df.shape}"
-                )
-                self.logger.debug(
-                    f"DEBUG: Filtered portfolio DataFrame: {portfolio_df}"
-                )
-                self.logger.debug(
-                    f"DEBUG: Filtered portfolio DataFrame columns: {portfolio_df.columns}"
-                )
-                self.logger.debug(
-                    f"DEBUG: Filtered portfolio DataFrame shape: {portfolio_df.shape}"
-                )
-                portfolio_matrix = self.asset_matrix_preparer.prepare(
-                    df=portfolio_df,
-                    symbol_col=FeatureEngineeringColumns.SYMBOL,
-                    timestamp_col=FeatureEngineeringColumns.TIMESTAMP,
-                )
-                self.logger.debug(
-                    f"DEBUG: Asset-matrix DataFrame head:\n{portfolio_matrix.head()}"
-                )
-                self.logger.debug(
-                    f"DEBUG: Asset-matrix DataFrame tail:\n{portfolio_matrix.tail()}"
-                )
-                self.logger.debug(
-                    f"DEBUG: Asset-matrix DataFrame NaN count:\n{portfolio_matrix.isna().sum()}"
-                )
-                self.logger.debug(
-                    f"DEBUG: Asset-matrix DataFrame min:\n{portfolio_matrix.min(numeric_only=True)}"
-                )
-                self.logger.debug(
-                    f"DEBUG: Asset-matrix DataFrame max:\n{portfolio_matrix.max(numeric_only=True)}"
-                )
-                self.logger.debug(
-                    f"DEBUG: Asset-matrix DataFrame shape: {portfolio_matrix.shape}"
-                )
-                return portfolio_matrix
-            except Exception as e:
-                self.logger.error(
-                    f"Error preparing portfolio matrix for optimization: {e}"
-                )
-                return None
+            return results
         except Exception as e:
-            self.logger.error(f"Error preparing portfolio matrix for optimization: {e}")
+            self.logger.error(
+                f"Error during portfolio optimization stage processing: {e}"
+            )
+            return {}
+
+    async def _get_portfolio_matrix(
+        self,
+    ) -> Optional[pd.DataFrame]:
+        """Load the portfolio matrix for the optimization stage."""
+        try:
+            self.logger.info(
+                f"Loading portfolio matrix for optimization from {self.optimization_root}"
+            )
+            watchlist = self.data_loader.get_watchlist()
+            if not watchlist:
+                self.logger.error("Watchlist is empty. Cannot load portfolio matrix.")
+                return None
+            portfolio_matrix = await self.portfolio_matrix_loader.get_portfolio_matrix(
+                symbols=watchlist,
+                start_date=self.start_date,
+                end_date=self.end_date,
+            )
+            if portfolio_matrix is None or portfolio_matrix.empty:
+                self.logger.warning(
+                    "No valid portfolio data available for optimization."
+                )
+                return None
+            return portfolio_matrix
+        except Exception as e:
+            self.logger.error(f"Error loading portfolio matrix: {e}")
             return None
 
     def _get_output_path(self, strategy_name, start_date: datetime, end_date: datetime):

@@ -65,6 +65,9 @@ from algo_royale.backtester.stage_coordinator.testing.portfolio_testing_stage_co
 from algo_royale.backtester.stage_coordinator.testing.strategy_testing_stage_coordinator import (
     StrategyTestingStageCoordinator,
 )
+from algo_royale.backtester.stage_data.loader.portfolio_matrix_loader import (
+    PortfolioMatrixLoader,
+)
 from algo_royale.backtester.stage_data.loader.stage_data_loader import StageDataLoader
 from algo_royale.backtester.stage_data.loader.symbol_strategy_data_loader import (
     SymbolStrategyDataLoader,
@@ -248,6 +251,11 @@ class DIContainer(containers.DeclarativeContainer):
         TaggableLogger,
         base_logger=base_logger_backtest,
         logger_type=LoggerType.PORTFOLIO_ASSET_MATRIX_PREPARER,
+    )
+    logger_portfolio_matrix_loader = providers.Factory(
+        TaggableLogger,
+        base_logger=base_logger_backtest,
+        logger_type=LoggerType.PORTFOLIO_MATRIX_LOADER,
     )
     logger_portfolio_strategy_optimizer = providers.Factory(
         TaggableLogger,
@@ -663,6 +671,26 @@ class DIContainer(containers.DeclarativeContainer):
         logger=logger_portfolio_asset_matrix_preparer,
     )
 
+    portfolio_matrix_loader = providers.Singleton(
+        PortfolioMatrixLoader,
+        strategy_backtest_executor=strategy_executor,
+        asset_matrix_preparer=portfolio_asset_matrix_preparer,
+        stage_data_manager=stage_data_manager,
+        stage_data_loader=stage_data_loader,
+        startegy_facotry=strategy_factory,
+        data_dir=get_data_dir(),
+        signal_optimization_json_filename=providers.Object(
+            config().get("backtester.signal.filenames", "signal_summary_json_filename")
+        ),
+        symbol_signals_filename=providers.Object(
+            config().get("backtester.signal.filenames", "symbol_signals_filename")
+        ),
+        logger=logger_portfolio_matrix_loader,
+        strategy_debug=providers.Object(
+            config().get_bool("logger.log", "base_portfolio_strategy_debug", False)
+        ),
+    )
+
     portfolio_strategy_optimizer_factory = providers.Singleton(
         PortfolioStrategyOptimizerFactoryImpl,
         logger=logger_portfolio_strategy_optimizer,
@@ -686,7 +714,7 @@ class DIContainer(containers.DeclarativeContainer):
                 "backtester.portfolio.filenames", "portfolio_optimization_json_filename"
             )
         ),
-        asset_matrix_preparer=portfolio_asset_matrix_preparer,
+        portfolio_matrix_loader=portfolio_matrix_loader,
         portfolio_strategy_optimizer_factory=portfolio_strategy_optimizer_factory,
         strategy_debug=providers.Object(
             config().get_bool("logger.log", "base_portfolio_strategy_debug", False)
