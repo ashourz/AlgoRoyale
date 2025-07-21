@@ -30,6 +30,7 @@ class BacktestStageName(str):
     STRATEGY_EVALUATION = "strategy_evaluation"
     SYMBOL_EVALUATION = "symbol_evaluation"
     ##PORTFOLIO
+    PORTFOLIO_MATRIX_LOADER = "portfolio_matrix_loader"
     PORTFOLIO_STRATEGY = "portfolio_strategy"
     PORTFOLIO_BACKTEST_EXECUTOR = "portfolio_backtest_executor"
     PORTFOLIO_OPTIMIZATION = "portfolio_optimization"
