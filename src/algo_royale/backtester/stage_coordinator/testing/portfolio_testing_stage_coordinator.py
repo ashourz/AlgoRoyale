@@ -68,7 +68,6 @@ class PortfolioTestingStageCoordinator(BaseTestingStageCoordinator):
             stage_data_manager=stage_data_manager,
             logger=logger,
             evaluator=evaluator,
-            executor=executor,
             strategy_combinators=strategy_combinators,
             optimization_json_filename=optimization_json_filename,
             optimization_root=optimization_root,

@@ -64,7 +64,6 @@ class StrategyTestingStageCoordinator(BaseTestingStageCoordinator):
             stage_data_manager=stage_data_manager,
             stage=BacktestStage.STRATEGY_TESTING,
             logger=logger,
-            executor=strategy_executor,
             evaluator=strategy_evaluator,
             strategy_combinators=strategy_combinators,
             optimization_root=optimization_root,
@@ -72,6 +71,7 @@ class StrategyTestingStageCoordinator(BaseTestingStageCoordinator):
         )
         self.strategy_factory = strategy_factory
         self.strategy_debug = strategy_debug
+        self.executor = strategy_executor
 
     def _get_train_optimization_results(
         self,

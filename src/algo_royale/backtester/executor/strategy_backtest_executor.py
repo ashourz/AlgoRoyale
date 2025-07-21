@@ -8,7 +8,6 @@ from algo_royale.backtester.column_names.strategy_columns import (
     SignalStrategyExecutorColumns,
 )
 from algo_royale.backtester.enum.backtest_stage import BacktestStage
-from algo_royale.backtester.executor.base_backtest_executor import BacktestExecutor
 from algo_royale.backtester.stage_data.stage_data_manager import (
     StageDataManager,
     mockStageDataManager,
@@ -20,7 +19,7 @@ from algo_royale.logging.loggable import Loggable
 from algo_royale.logging.logger_factory import mockLogger
 
 
-class StrategyBacktestExecutor(BacktestExecutor):
+class StrategyBacktestExecutor:
     def __init__(self, stage_data_manager: StageDataManager, logger: Loggable):
         self.logger = logger
         self.stage_data_manager = stage_data_manager

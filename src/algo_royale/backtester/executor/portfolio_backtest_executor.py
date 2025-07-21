@@ -11,12 +11,11 @@ from algo_royale.backtester.column_names.portfolio_transaction_keys import (
     PortfolioTransactionKeys,
 )
 from algo_royale.backtester.enum.backtest_stage import BacktestStage
-from algo_royale.backtester.executor.base_backtest_executor import BacktestExecutor
 from algo_royale.logging.loggable import Loggable
 from algo_royale.logging.logger_factory import mockLogger
 
 
-class PortfolioBacktestExecutor(BacktestExecutor):
+class PortfolioBacktestExecutor:
     """
     Executes a portfolio strategy over a DataFrame of returns/signals and produces portfolio results.
     Simulates cash constraints, partial fills, transaction costs, minimum lot size, and leverage.
