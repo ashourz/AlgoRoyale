@@ -1,5 +1,4 @@
 import json
-import os
 from datetime import datetime
 from pathlib import Path
 from typing import Dict, List, Optional
@@ -11,6 +10,7 @@ from algo_royale.backtester.data_preparer.asset_matrix_preparer import (
     AssetMatrixPreparer,
 )
 from algo_royale.backtester.enum.backtest_stage import BacktestStage
+from algo_royale.backtester.enum.data_extension import DataExtension
 from algo_royale.backtester.executor.strategy_backtest_executor import (
     StrategyBacktestExecutor,
 )
@@ -35,7 +35,8 @@ class PortfolioMatrixLoader:
         stage_data_loader: StageDataLoader,
         strategy_factory: StrategyFactory,
         data_dir: str,
-        signal_optimization_json_filename: str,
+        optimization_root: str,
+        signal_summary_json_filename: str,
         symbol_signals_filename: str,
         logger: Loggable,
         strategy_debug: bool = False,
@@ -45,7 +46,11 @@ class PortfolioMatrixLoader:
         self.stage_data_loader = stage_data_loader
         self.strategy_factory = strategy_factory
         self.data_dir = data_dir
-        self.signal_optimization_json_filename = signal_optimization_json_filename
+        self.optimization_root = Path(optimization_root)
+        if not self.optimization_root.is_dir():
+            ## Create the directory if it does not exist
+            self.optimization_root.mkdir(parents=True, exist_ok=True)
+        self.signal_summary_json_filename = signal_summary_json_filename
         self.symbol_signals_filename = symbol_signals_filename
         self.executor = strategy_backtest_executor
         self.logger = logger
@@ -54,7 +59,7 @@ class PortfolioMatrixLoader:
 
     async def get_portfolio_matrix(
         self, symbols: List[str], start_date: datetime, end_date: datetime
-    ) -> pd.DataFrame:
+    ) -> Optional[pd.DataFrame]:
         """
         Oversees the workflow: runs backtest and save signals, then compiles and returns the asset-matrix DataFrame."""
         await self._run_backtest_and_save_signals(symbols, start_date, end_date)
@@ -97,6 +102,11 @@ class PortfolioMatrixLoader:
                                 f"[PortfolioMatrixLoader] No optimized strategy signals for {symbol}, running backtest..."
                             )
                             strategy_instance = self._get_optimized_strategy(symbol)
+                            if not strategy_instance:
+                                self.logger.warning(
+                                    f"[PortfolioMatrixLoader] No viable strategy found for {symbol}, skipping backtest."
+                                )
+                                return
                             await self._run_and_save_symbol_data(
                                 symbol, strategy_instance, start_date, end_date
                             )
@@ -121,13 +131,13 @@ class PortfolioMatrixLoader:
     ) -> bool:
         """Check if backtest has already been run for the current stage, for the specific symbol and date range."""
         try:
-            self.stage_data_manager.is_symbol_stage_done(
+            return self.stage_data_manager.file_exists(
                 stage=self.stage,
                 symbol=symbol,
                 start_date=start_date,
                 end_date=end_date,
+                extension=DataExtension.DONE,
             )
-            return True
         except Exception as e:
             self.logger.error(
                 f"Error checking portfolio symbol backtest results for {symbol} in window {self.window_id}: {e}"
@@ -141,23 +151,34 @@ class PortfolioMatrixLoader:
         end_date: datetime,
         symbol_col: str = SignalStrategyColumns.SYMBOL,
         timestamp_col: str = SignalStrategyColumns.TIMESTAMP,
-    ) -> pd.DataFrame:
+    ) -> Optional[pd.DataFrame]:
         """Compiles the portfolio matrix from individual symbol data."""
-        dfs = []
-        for symbol in symbols:
-            df = self._load_symbol_data(
-                symbol=symbol, start_date=start_date, end_date=end_date
+        try:
+            dfs = []
+            for symbol in symbols:
+                df = self._load_symbol_data(
+                    symbol=symbol, start_date=start_date, end_date=end_date
+                )
+                if df is None:
+                    self.logger.warning(
+                        f"[PortfolioMatrixLoader] No data found for {symbol} in range {start_date} to {end_date}, skipping."
+                    )
+                    continue
+                if symbol_col not in df.columns:
+                    df[symbol_col] = symbol
+                dfs.append(df)
+            all_df = pd.concat(dfs, axis=0, ignore_index=True)
+            matrix = self.asset_matrix_preparer.prepare(
+                all_df,
+                symbol_col=symbol_col,
+                timestamp_col=timestamp_col,
             )
-            if symbol_col not in df.columns:
-                df[symbol_col] = symbol
-            dfs.append(df)
-        all_df = pd.concat(dfs, axis=0, ignore_index=True)
-        matrix = self.asset_matrix_preparer.prepare(
-            all_df,
-            symbol_col=symbol_col,
-            timestamp_col=timestamp_col,
-        )
-        return matrix
+            return matrix
+        except Exception as e:
+            self.logger.error(
+                f"[PortfolioMatrixLoader] Error compiling portfolio matrix: {e}"
+            )
+            return None
 
     async def _run_and_save_symbol_data(
         self,
@@ -165,26 +186,33 @@ class PortfolioMatrixLoader:
         strategy: BaseSignalStrategy,
         start_date: datetime,
         end_date: datetime,
-    ):
+    ) -> Optional[pd.DataFrame]:
         """
         Runs backtest for a symbol with best params and saves the DataFrame, loading feature data if needed.
         start_date and end_date are only used for file naming and feature data loading, not passed to backtest_func.
         """
         try:
             # Load feature data for the symbol
-            feature_data_loader = await self.stage_data_loader.load_stage_data(
+            feature_data_loader = self.stage_data_loader.load_stage_data(
                 symbol=symbol,
                 stage=self.stage.input_stage,
                 start_date=start_date,
                 end_date=end_date,
                 reverse_pages=True,
             )
-
+            if feature_data_loader is None:
+                self.logger.warning(
+                    f"[PortfolioMatrixLoader] No feature data found for {symbol} in range {start_date} to {end_date}, skipping backtest."
+                )
+                return None
             # Run the backtest
             result: Dict[
                 str, list[pd.DataFrame]
             ] = await self.executor.run_backtest_async(
                 [strategy], {symbol: feature_data_loader}
+            )
+            self.logger.info(
+                f"[PortfolioMatrixLoader] Backtest completed for {symbol} with strategy {strategy.__class__.__name__}."
             )
             if not result or not result.get(symbol):
                 self.logger.warning(
@@ -198,72 +226,63 @@ class PortfolioMatrixLoader:
                     f"[PortfolioMatrixLoader] Backtest returned empty DataFrame for {symbol}."
                 )
                 return
+            if not isinstance(dfs, list):
+                self.logger.error(
+                    f"[PortfolioMatrixLoader] Backtest result for {symbol} is not a list of DataFrames: {dfs}"
+                )
+                return
             df = pd.concat(dfs, axis=0, ignore_index=True)
             if df.empty:
                 self.logger.warning(
                     f"[PortfolioMatrixLoader] Backtest returned empty DataFrame for {symbol}."
                 )
                 return
-            file_path = self.stage_data_manager.get_directory_path(
+            file_path = self._get_signal_file_path(symbol, start_date, end_date)
+
+            df.to_parquet(file_path)
+
+            self.stage_data_manager.mark_symbol_stage(
+                stage=self.stage,
+                symbol=symbol,
+                start_date=start_date,
+                end_date=end_date,
+                statusExtension=DataExtension.DONE,
+            )
+            return
+        except Exception as e:
+            self.logger.error(
+                f"[PortfolioMatrixLoader] Failed to run/save data for {symbol}: {e}"
+            )
+            return None
+
+    def _get_signal_file_path(
+        self, symbol: str, start_date: datetime, end_date: datetime
+    ) -> Path:
+        dir_path = Path(
+            self.stage_data_manager.get_directory_path(
                 base_dir=self.data_dir,
                 stage=self.stage,
                 symbol=symbol,
                 start_date=start_date,
                 end_date=end_date,
             )
-            df.to_parquet(file_path)
-            return
-        except Exception as e:
-            self.logger.error(
-                f"[PortfolioMatrixLoader] Failed to run/save data for {symbol}: {e}"
-            )
-            self.stage_data_manager.write_error_file(
-                stage=self.stage,
-                strategy_name=strategy,
-                filename=f"{symbol}_error",
-                error_message=str(e),
-                start_date=start_date,
-                end_date=end_date,
-            )
-            raise
+        )
+        dir_path.mkdir(parents=True, exist_ok=True)
+        return dir_path / self.symbol_signals_filename
 
     def _load_symbol_data(
         self,
         symbol: str,
         start_date: datetime,
         end_date: datetime,
-    ) -> pd.DataFrame:
-        file_path = self.stage_data_manager.get_directory_path(
-            base_dir=self.data_dir,
-            stage=self.stage,
-            symbol=symbol,
-            start_date=start_date,
-            end_date=end_date,
-        )
-        if not os.path.exists(file_path):
-            raise FileNotFoundError(
-                f"[PortfolioMatrixLoader] Data file not found for {symbol}: {file_path}"
+    ) -> Optional[pd.DataFrame]:
+        file_path = self._get_signal_file_path(symbol, start_date, end_date)
+        if not file_path.exists():
+            self.logger.warning(
+                f"[PortfolioMatrixLoader] Data file not found for {symbol}: {file_path} (will exclude from matrix)"
             )
-        return pd.read_parquet(file_path)
-
-    def _has_optimized_strategy_signals(
-        self,
-        symbol: str,
-        strategy: str,
-    ) -> bool:
-        try:
-            df = self._load_symbol_data(
-                symbol=symbol,
-                strategy=strategy,
-                start_date=self.start_date,
-                end_date=self.end_date,
-            )
-            return not df.empty
-        except Exception as e:
-            self.logger.error(
-                f"[PortfolioMatrixLoader] Error checking optimized strategy signals for {symbol}: {e}"
-            )
-            return False
+            return None
+        return pd.read_parquet(str(file_path))
 
     def _get_optimized_strategy(
         self,
@@ -274,17 +293,22 @@ class PortfolioMatrixLoader:
         Logs key events if logger is provided.
         """
         try:
-            optimization_results = self._get_optimization_results(
+            optimized_strategy_summary = self._get_optimization_summary(
                 symbol=symbol,
             )
-            is_viable = optimization_results.get("is_viable", False)
+            self.logger.debug(
+                f"[PortfolioMatrixLoader] Loaded optimization summary for {symbol}: {optimized_strategy_summary}"
+            )
+            is_viable = optimized_strategy_summary.get("is_viable", False)
             if not is_viable:
                 self.logger.info(
                     f"[PortfolioMatrixLoader] Symbol {symbol} is not viable based on optimization results."
                 )
                 return None
-            strategy_name = optimization_results.get("strategy")
-            strategy_params = optimization_results.get("most_common_best_params", {})
+            strategy_name = optimized_strategy_summary.get("strategy")
+            strategy_params = optimized_strategy_summary.get(
+                "most_common_best_params", {}
+            )
             strategy = SYMBOL_STRATEGY_CLASS_MAP.get(strategy_name)
             return self.strategy_factory.build_strategy(
                 strategy_class=strategy,
@@ -297,16 +321,16 @@ class PortfolioMatrixLoader:
             )
             return None
 
-    def _get_optimization_results(self, symbol: str) -> Dict[str, dict]:
-        """Get optimization results for a given strategy and symbol."""
+    def _get_optimization_summary(self, symbol: str) -> Dict[str, dict]:
+        """Get optimization summary for a given strategy and symbol."""
         try:
             json_path = self._get_optimization_result_path(symbol=symbol)
             self.logger.debug(
-                f"Loading optimization results from {json_path} for Symbol:{symbol}"
+                f"Loading optimization summary from {json_path} for Symbol:{symbol}"
             )
             if not json_path.exists() or json_path.stat().st_size == 0:
                 self.logger.warning(
-                    f"No optimization result for Symbol:{symbol} (optimization result file does not exist or is empty)"
+                    f"No optimization summary for Symbol:{symbol} (optimization summary file does not exist or is empty)"
                 )
                 json_path.parent.mkdir(parents=True, exist_ok=True)
                 with open(json_path, "w") as f:
@@ -317,20 +341,26 @@ class PortfolioMatrixLoader:
                     opt_results = json.load(f)
                 except json.JSONDecodeError:
                     self.logger.warning(
-                        f"Optimization result file {json_path} is not valid JSON. Returning empty dict."
+                        f"Optimization summary file {json_path} is not valid JSON. Returning empty dict."
                     )
                     return {}
 
             if opt_results is None:
                 self.logger.warning(
-                    f"No optimization result for {symbol} (optimization result file is empty)"
+                    f"No optimization summary for {symbol} (optimization summary file is empty)"
+                )
+                return {}
+            self.logger.debug(f"Optimization summary for {symbol}: {opt_results}")
+            if not isinstance(opt_results, dict):
+                self.logger.warning(
+                    f"Optimization summary for {symbol} is not a dictionary: {opt_results}"
                 )
                 return {}
 
             return opt_results
         except Exception as e:
             self.logger.error(
-                f"Error retrieving optimization results for {symbol}: {e}"
+                f"Error retrieving optimization summary for {symbol}: {e}"
             )
             return None
 
@@ -341,4 +371,4 @@ class PortfolioMatrixLoader:
             symbol=symbol,
         )
         out_dir.mkdir(parents=True, exist_ok=True)
-        return out_dir / self.optimization_json_filename
+        return out_dir / self.signal_summary_json_filename

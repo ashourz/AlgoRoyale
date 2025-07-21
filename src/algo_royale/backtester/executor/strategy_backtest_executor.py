@@ -119,7 +119,13 @@ class StrategyBacktestExecutor:
         page_num: int,
     ) -> pd.DataFrame:
         """Process a single page of data with proper signal handling"""
+        self.logger.debug(
+            f"Processing page {page_num} for symbol: {symbol} with strategy"
+        )
         strategy_name = strategy.get_hash_id()
+        self.logger.debug(
+            f"Processing page {page_num} for symbol: {symbol} with strategy: {strategy_name}"
+        )
         if page_df.empty:
             self.logger.debug(
                 f"Empty page {page_num} for symbol:{symbol} | strategy:{strategy_name}"

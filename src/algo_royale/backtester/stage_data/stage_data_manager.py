@@ -141,9 +141,9 @@ class StageDataManager:
     def mark_symbol_stage(
         self,
         stage: BacktestStage,
-        strategy_name: Optional[str],
         symbol: str,
         statusExtension: DataExtension,
+        strategy_name: Optional[str] = None,
         start_date: Optional[datetime] = None,
         end_date: Optional[datetime] = None,
     ) -> None:
@@ -167,15 +167,19 @@ class StageDataManager:
     def file_exists(
         self,
         stage: BacktestStage,
-        strategy_name: Optional[str],
         symbol: str,
         filename: str,
         extension: DataExtension,
+        strategy_name: Optional[str] = None,
+        start_date: Optional[datetime] = None,
+        end_date: Optional[datetime] = None,
     ) -> bool:
         path = self.get_file_path(
             stage=stage,
             strategy_name=strategy_name,
             symbol=symbol,
+            start_date=start_date,
+            end_date=end_date,
             filename=filename,
             extension=extension,
         )
@@ -251,10 +255,10 @@ class StageDataManager:
     def write_error_file(
         self,
         stage: BacktestStage,
-        strategy_name: Optional[str],
-        symbol: Optional[str],
         filename: str,
         error_message: str,
+        strategy_name: Optional[str] = None,
+        symbol: Optional[str] = None,
         start_date: Optional[datetime] = None,
         end_date: Optional[datetime] = None,
     ) -> None:

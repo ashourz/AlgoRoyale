@@ -679,7 +679,10 @@ class DIContainer(containers.DeclarativeContainer):
         stage_data_loader=stage_data_loader,
         strategy_factory=strategy_factory,
         data_dir=get_data_dir(),
-        signal_optimization_json_filename=providers.Object(
+        optimization_root=providers.Object(
+            config().get("backtester.signal.paths", "signal_optimization_root_path")
+        ),
+        signal_summary_json_filename=providers.Object(
             config().get("backtester.signal.filenames", "signal_summary_json_filename")
         ),
         symbol_signals_filename=providers.Object(
@@ -705,13 +708,11 @@ class DIContainer(containers.DeclarativeContainer):
         logger=logger_backtest_portfolio_optimization,
         strategy_combinators=portfolio_strategy_combinators,
         optimization_root=providers.Object(
-            config().get(
-                "backtester.portfolio.paths", "portfolio_optimization_root_path"
-            )
+            config().get("backtester.signal.paths", "signal_optimization_root_path")
         ),
         optimization_json_filename=providers.Object(
             config().get(
-                "backtester.portfolio.filenames", "portfolio_optimization_json_filename"
+                "backtester.signal.filenames", "signal_optimization_json_filename"
             )
         ),
         portfolio_matrix_loader=portfolio_matrix_loader,
