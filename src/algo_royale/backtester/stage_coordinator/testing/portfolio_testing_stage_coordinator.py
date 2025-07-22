@@ -420,6 +420,7 @@ class PortfolioTestingStageCoordinator(BaseTestingStageCoordinator):
         return collective_results
 
     def _get_symbols_dir_name(
+        self,
         symbols: Sequence[str],
     ) -> str:
         return "_".join(sorted(symbols)) if symbols else "empty"
