@@ -202,6 +202,7 @@ class PortfolioTestingStageCoordinator(BaseTestingStageCoordinator):
                     metrics=metrics,
                     strategy_name=strategy_name,
                     backtest_results=backtest_results,
+                    optimized_params=optimized_params,
                     optimization_result=test_opt_results,
                     collective_results=results,
                 )
@@ -340,6 +341,7 @@ class PortfolioTestingStageCoordinator(BaseTestingStageCoordinator):
         metrics: Dict[str, float],
         strategy_name: str,
         backtest_results: Dict[str, Any],
+        optimized_params: Dict[str, Any],
         optimization_result: Dict[str, Any],
         collective_results: Dict[str, Dict[str, Dict[str, float]]],
     ) -> Dict[str, Dict[str, Dict[str, float]]]:
@@ -356,12 +358,20 @@ class PortfolioTestingStageCoordinator(BaseTestingStageCoordinator):
             ):
                 optimization_result[self.test_window_id] = {}
 
-            # Ensure the optimization section exists for params extraction
-            best_params = (
-                optimization_result[self.test_window_id]
-                .get("optimization", {})
-                .get("best_params", {})
-            )
+            # Ensure transactions are extracted correctly
+            if "transactions" not in backtest_results or not isinstance(
+                backtest_results["transactions"], list
+            ):
+                transactions = []
+            else:
+                transactions = backtest_results["transactions"]
+
+            for tx in transactions:
+                asset = tx.get("asset")
+                if isinstance(asset, (list, tuple)) and len(asset) > 1:
+                    tx["symbol"] = asset[1]
+                else:
+                    tx["symbol"] = asset  # fallback if asset is just a string
 
             # Build the test structure for this window
             test_optimization_json = {
@@ -369,8 +379,8 @@ class PortfolioTestingStageCoordinator(BaseTestingStageCoordinator):
                     "strategy": strategy_name,
                     "symbols": symbols,
                     "test": {
-                        "params": best_params,
-                        "transactions": backtest_results.get("transactions", []),
+                        "params": optimized_params,
+                        "transactions": transactions,
                         "metrics": metrics,
                     },
                     "window": {

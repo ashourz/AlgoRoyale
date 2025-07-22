@@ -115,7 +115,7 @@ class PortfolioStrategyOptimizerImpl(PortfolioStrategyOptimizer):
         start_time = time.time()
 
         def objective(trial, logger=self.logger):
-            params = self.strategy_class.optuna_suggest(trial, prefix=f"{symbols}_")
+            params = self.strategy_class.optuna_suggest(trial)
             if isinstance(params, dict):
                 strategy = self.strategy_class(**params)
             else:
