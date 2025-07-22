@@ -369,9 +369,9 @@ class PortfolioTestingStageCoordinator(BaseTestingStageCoordinator):
             for tx in transactions:
                 asset = tx.get("asset")
                 if isinstance(asset, (list, tuple)) and len(asset) > 1:
-                    tx["symbol"] = asset[1]
+                    tx["asset"] = asset[1]
                 else:
-                    tx["symbol"] = asset  # fallback if asset is just a string
+                    tx["asset"] = asset  # fallback if asset is just a string
 
             # Build the test structure for this window
             test_optimization_json = {
