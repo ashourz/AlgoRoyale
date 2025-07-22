@@ -111,7 +111,7 @@ class PortfolioOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
                 )
                 return results
 
-            symbols = list(
+            symbols = sorted(
                 {
                     col[1]
                     for col in portfolio_matrix.columns
@@ -128,7 +128,6 @@ class PortfolioOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
             self.logger.debug(
                 f"Strategy combinators: {[c.__name__ for c in self.strategy_combinators]}"
             )
-            self.logger.debug(f"Data keys: {list(data.keys()) if data else 'None'}")
 
             for strategy_combinator in self.strategy_combinators:
                 self.logger.info(
@@ -150,7 +149,6 @@ class PortfolioOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
                             if hasattr(strategy_class, "__name__")
                             else str(strategy_class)
                         )
-                        symbols = list(data.keys())
                         self.logger.info(
                             f"Optimizing symbols: {symbols} strategy: {strategy_name} for window {self.window_id}"
                         )

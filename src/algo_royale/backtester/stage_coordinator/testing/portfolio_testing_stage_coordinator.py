@@ -108,7 +108,7 @@ class PortfolioTestingStageCoordinator(BaseTestingStageCoordinator):
             )
             return results
 
-        train_symbols = list(
+        train_symbols = sorted(
             {
                 col[1]
                 for col in train_portfolio_matrix.columns
@@ -116,7 +116,7 @@ class PortfolioTestingStageCoordinator(BaseTestingStageCoordinator):
             }
         )
 
-        test_symbols = list(
+        test_symbols = sorted(
             {
                 col[1]
                 for col in test_portfolio_matrix.columns
