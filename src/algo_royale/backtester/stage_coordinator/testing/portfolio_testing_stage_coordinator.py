@@ -88,9 +88,19 @@ class PortfolioTestingStageCoordinator(BaseTestingStageCoordinator):
         results = {}
         portfolio_matrix = await self._get_portfolio_matrix()
         # If no valid portfolio data is available, log a warning and return empty results
-        if portfolio_matrix is None:
-            self.logger.warning("No valid portfolio data available for testing.")
+        if portfolio_matrix is None or portfolio_matrix.empty:
+            self.logger.warning(
+                "No valid portfolio data available for optimization. Skipping stage."
+            )
             return results
+
+        symbols = list(
+            {
+                col[1]
+                for col in portfolio_matrix.columns
+                if isinstance(col, (tuple, list)) and len(col) > 1
+            }
+        )
 
         self.logger.info(
             f"Starting portfolio testing for window {self.test_window_id} with {len(portfolio_matrix)} rows of data."
@@ -115,6 +125,7 @@ class PortfolioTestingStageCoordinator(BaseTestingStageCoordinator):
                     f"DEBUG: Strategy name: {strategy_name}, Strategy class: {strategy_class}"
                 )
                 optimized_params = self._get_optimized_params(
+                    symbols=str(symbols),
                     strategy_name=strategy_name,
                     strategy_class=strategy_class,
                 )
@@ -137,7 +148,7 @@ class PortfolioTestingStageCoordinator(BaseTestingStageCoordinator):
                 metrics = self.evaluator.evaluate_from_dict(backtest_results)
                 test_opt_results = self._get_optimization_results(
                     strategy_name=strategy_name,
-                    symbol=None,
+                    symbol=str(symbols),
                     start_date=self.test_start_date,
                     end_date=self.test_end_date,
                 )
@@ -165,7 +176,7 @@ class PortfolioTestingStageCoordinator(BaseTestingStageCoordinator):
                 self.logger.debug(f"DEBUG: Metrics: {metrics}")
 
                 results = self._write_test_results(
-                    symbols=list(portfolio_matrix.columns),
+                    symbols=symbols,
                     metrics=metrics,
                     strategy_name=strategy_name,
                     backtest_results=backtest_results,
@@ -202,6 +213,7 @@ class PortfolioTestingStageCoordinator(BaseTestingStageCoordinator):
 
     def _get_optimized_params(
         self,
+        symbols: str,
         strategy_name: str,
         strategy_class: type,
     ) -> Optional[Dict[str, Any]]:
@@ -212,7 +224,7 @@ class PortfolioTestingStageCoordinator(BaseTestingStageCoordinator):
             )
             train_opt_results = self._get_optimization_results(
                 strategy_name=strategy_name,
-                symbol=None,
+                symbol=symbols,
                 start_date=self.train_start_date,
                 end_date=self.train_end_date,
             )
@@ -300,7 +312,7 @@ class PortfolioTestingStageCoordinator(BaseTestingStageCoordinator):
 
     def _write_test_results(
         self,
-        symbols: Sequence[str],
+        symbols: list[str],
         metrics: Dict[str, float],
         strategy_name: str,
         backtest_results: Dict[str, Any],
@@ -330,14 +342,11 @@ class PortfolioTestingStageCoordinator(BaseTestingStageCoordinator):
             # Build the test structure for this window
             test_optimization_json = {
                 self.test_window_id: {
+                    "strategy": strategy_name,
+                    "symbols": symbols,
                     "test": {
-                        "strategy": strategy_name,
                         "params": best_params,
-                        "meta": {
-                            "symbols": symbols,
-                            "window_id": self.test_window_id,
-                            "transactions": backtest_results.get("transactions", []),
-                        },
+                        "transactions": backtest_results.get("transactions", []),
                         "metrics": metrics,
                     },
                     "window": {
@@ -359,9 +368,9 @@ class PortfolioTestingStageCoordinator(BaseTestingStageCoordinator):
             # Save the updated optimization results to the file
             test_opt_results_path = self._get_optimization_result_path(
                 strategy_name=strategy_name,
+                symbol=str(symbols),
                 start_date=self.test_start_date,
                 end_date=self.test_end_date,
-                symbol=None,
             )
             self.logger.info(
                 f"Saving test results for {strategy_name} to {test_opt_results_path}"

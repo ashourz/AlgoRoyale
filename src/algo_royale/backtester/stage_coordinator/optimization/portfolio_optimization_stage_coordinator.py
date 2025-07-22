@@ -111,12 +111,13 @@ class PortfolioOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
                 )
                 return results
 
-            # If no valid portfolio data is available, log a warning and return empty results
-            if portfolio_matrix is None:
-                self.logger.warning(
-                    "No valid portfolio data available for optimization."
-                )
-                return results
+            symbols = list(
+                {
+                    col[1]
+                    for col in portfolio_matrix.columns
+                    if isinstance(col, (tuple, list)) and len(col) > 1
+                }
+            )
 
             self.logger.info(
                 f"Starting portfolio optimization: {len(portfolio_matrix)} rows, {self.start_date} to {self.end_date}."
@@ -176,6 +177,7 @@ class PortfolioOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
                             continue
 
                         results = self._write_results(
+                            symbols=symbols,
                             start_date=self.start_date,
                             end_date=self.end_date,
                             strategy_name=strategy_name,
@@ -223,7 +225,9 @@ class PortfolioOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
             self.logger.error(f"Error loading portfolio matrix: {e}")
             return None
 
-    def _get_output_path(self, strategy_name, start_date: datetime, end_date: datetime):
+    def _get_output_path(
+        self, strategy_name, symbols: str, start_date: datetime, end_date: datetime
+    ):
         """
         Get the output path for the optimization results JSON file.
 
@@ -238,6 +242,7 @@ class PortfolioOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
         out_dir = self.stage_data_manager.get_directory_path(
             base_dir=self.optimization_root,
             strategy_name=strategy_name,
+            symbol=symbols,
             start_date=start_date,
             end_date=end_date,
         )
@@ -321,6 +326,7 @@ class PortfolioOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
         self,
         start_date: datetime,
         end_date: datetime,
+        symbols: list[str],
         strategy_name: str,
         optimization_result: Dict[str, Any],
         collective_results: Dict[str, Dict[str, dict]],
@@ -341,6 +347,8 @@ class PortfolioOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
         try:
             optimization_json = {
                 self.window_id: {
+                    "strategy": strategy_name,
+                    "symbols": symbols,
                     "optimization": optimization_result,
                     "window": {
                         "start_date": start_date.strftime("%Y-%m-%d"),
@@ -353,12 +361,13 @@ class PortfolioOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
             # Get existing results for the symbol and strategy
             existing_optimization_json = self.get_existing_optimization_results(
                 strategy_name=strategy_name,
+                symbols=str(symbols),
                 start_date=start_date,
                 end_date=end_date,
             )
             if existing_optimization_json is None:
                 self.logger.warning(
-                    f"No existing optimization results for {strategy_name} {self.window_id}"
+                    f"No existing optimization results for {strategy_name} {symbols} {self.window_id}"
                 )
                 existing_optimization_json = {}
 
@@ -367,12 +376,13 @@ class PortfolioOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
             )
             # Save optimization metrics to optimization_result.json under window_id
             out_path = self._get_output_path(
-                strategy_name,
-                start_date,
-                end_date,
+                strategy_name=strategy_name,
+                symbols=str(symbols),
+                start_date=start_date,
+                end_date=end_date,
             )
             self.logger.info(
-                f"Saving portfolio optimization summary for PORTFOLIO {strategy_name} to {out_path}"
+                f"Saving portfolio optimization summary for PORTFOLIO {strategy_name} {symbols} to {out_path}"
             )
             with open(out_path, "w") as f:
                 json.dump(updated_optimization_json, f, indent=2, default=str)
@@ -381,12 +391,12 @@ class PortfolioOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
             collective_results[strategy_name] = updated_optimization_json
         except Exception as e:
             self.logger.error(
-                f"Error writing optimization results for {strategy_name} during {self.window_id}: {e}"
+                f"Error writing optimization results for {strategy_name} {symbols} during {self.window_id}: {e}"
             )
         return collective_results
 
     def get_existing_optimization_results(
-        self, strategy_name: str, start_date: datetime, end_date: datetime
+        self, strategy_name: str, symbols: str, start_date: datetime, end_date: datetime
     ) -> Dict[str, dict]:
         """
         Retrieve existing optimization results for a given strategy and symbol.
@@ -401,22 +411,22 @@ class PortfolioOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
         """
         try:
             self.logger.info(
-                f"Retrieving optimization results for {strategy_name} during {self.window_id}"
+                f"Retrieving optimization results for {strategy_name} {symbols} during {self.window_id}"
             )
             train_opt_results = self._get_optimization_results(
                 strategy_name=strategy_name,
-                symbol=None,
+                symbol=symbols,
                 start_date=start_date,
                 end_date=end_date,
             )
             if train_opt_results is None:
                 self.logger.warning(
-                    f"No optimization result for {strategy_name} {self.window_id}"
+                    f"No optimization result for {strategy_name} {symbols} {self.window_id}"
                 )
                 return {}
             return train_opt_results
         except Exception as e:
             self.logger.error(
-                f"Error retrieving optimization results for {strategy_name} during {self.window_id}: {e}"
+                f"Error retrieving optimization results for {strategy_name} {symbols} during {self.window_id}: {e}"
             )
             return None
