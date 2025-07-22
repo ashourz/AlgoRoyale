@@ -147,7 +147,7 @@ class PortfolioTestingStageCoordinator(BaseTestingStageCoordinator):
                     f"DEBUG: Strategy name: {strategy_name}, Strategy class: {strategy_class}"
                 )
                 optimized_params = self._get_optimized_params(
-                    symbols=str(train_symbols),
+                    symbols=train_symbols,
                     strategy_name=strategy_name,
                     strategy_class=strategy_class,
                 )
@@ -170,7 +170,7 @@ class PortfolioTestingStageCoordinator(BaseTestingStageCoordinator):
                 metrics = self.evaluator.evaluate_from_dict(backtest_results)
                 test_opt_results = self._get_optimization_results(
                     strategy_name=strategy_name,
-                    symbol=str(test_symbols),
+                    symbol=self._get_symbols_dir_name(test_symbols),
                     start_date=self.test_start_date,
                     end_date=self.test_end_date,
                 )
@@ -238,7 +238,7 @@ class PortfolioTestingStageCoordinator(BaseTestingStageCoordinator):
 
     def _get_optimized_params(
         self,
-        symbols: str,
+        symbols: list[str],
         strategy_name: str,
         strategy_class: type,
     ) -> Optional[Dict[str, Any]]:
@@ -249,7 +249,7 @@ class PortfolioTestingStageCoordinator(BaseTestingStageCoordinator):
             )
             train_opt_results = self._get_optimization_results(
                 strategy_name=strategy_name,
-                symbol=symbols,
+                symbol=self._get_symbols_dir_name(symbols),
                 start_date=self.train_start_date,
                 end_date=self.train_end_date,
             )
@@ -402,7 +402,7 @@ class PortfolioTestingStageCoordinator(BaseTestingStageCoordinator):
             # Save the updated optimization results to the file
             test_opt_results_path = self._get_optimization_result_path(
                 strategy_name=strategy_name,
-                symbol=str(symbols),
+                symbol=self._get_symbols_dir_name(symbols),
                 start_date=self.test_start_date,
                 end_date=self.test_end_date,
             )
@@ -418,3 +418,8 @@ class PortfolioTestingStageCoordinator(BaseTestingStageCoordinator):
                 f"Error writing test results for {strategy_name} during {self.test_window_id}: {e}"
             )
         return collective_results
+
+    def _get_symbols_dir_name(
+        symbols: Sequence[str],
+    ) -> str:
+        return "_".join(sorted(symbols)) if symbols else "empty"

@@ -224,7 +224,11 @@ class PortfolioOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
             return None
 
     def _get_output_path(
-        self, strategy_name, symbols: str, start_date: datetime, end_date: datetime
+        self,
+        strategy_name,
+        symbols: list[str],
+        start_date: datetime,
+        end_date: datetime,
     ):
         """
         Get the output path for the optimization results JSON file.
@@ -240,7 +244,7 @@ class PortfolioOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
         out_dir = self.stage_data_manager.get_directory_path(
             base_dir=self.optimization_root,
             strategy_name=strategy_name,
-            symbol=symbols,
+            symbol=self._get_symbols_dir_name(symbols),
             start_date=start_date,
             end_date=end_date,
         )
@@ -359,7 +363,7 @@ class PortfolioOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
             # Get existing results for the symbol and strategy
             existing_optimization_json = self.get_existing_optimization_results(
                 strategy_name=strategy_name,
-                symbols=str(symbols),
+                symbols=symbols,
                 start_date=start_date,
                 end_date=end_date,
             )
@@ -375,12 +379,12 @@ class PortfolioOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
             # Save optimization metrics to optimization_result.json under window_id
             out_path = self._get_output_path(
                 strategy_name=strategy_name,
-                symbols=str(symbols),
+                symbols=symbols,
                 start_date=start_date,
                 end_date=end_date,
             )
             self.logger.info(
-                f"Saving portfolio optimization summary for PORTFOLIO {strategy_name} {symbols} to {out_path}"
+                f"Saving portfolio optimization summary for PORTFOLIO {strategy_name} {self._get_symbols_dir_name(symbols)} to {out_path}"
             )
             with open(out_path, "w") as f:
                 json.dump(updated_optimization_json, f, indent=2, default=str)
@@ -394,7 +398,11 @@ class PortfolioOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
         return collective_results
 
     def get_existing_optimization_results(
-        self, strategy_name: str, symbols: str, start_date: datetime, end_date: datetime
+        self,
+        strategy_name: str,
+        symbols: list[str],
+        start_date: datetime,
+        end_date: datetime,
     ) -> Dict[str, dict]:
         """
         Retrieve existing optimization results for a given strategy and symbol.
@@ -413,7 +421,7 @@ class PortfolioOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
             )
             train_opt_results = self._get_optimization_results(
                 strategy_name=strategy_name,
-                symbol=symbols,
+                symbol=self._get_symbols_dir_name(symbols),
                 start_date=start_date,
                 end_date=end_date,
             )
@@ -428,3 +436,8 @@ class PortfolioOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
                 f"Error retrieving optimization results for {strategy_name} {symbols} during {self.window_id}: {e}"
             )
             return None
+
+    def _get_symbols_dir_name(
+        symbols: Sequence[str],
+    ) -> str:
+        return "_".join(sorted(symbols)) if symbols else "empty"
