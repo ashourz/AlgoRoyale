@@ -52,7 +52,7 @@ class StrategyOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
         optimization_json_filename: Name of the JSON file to save optimization results.
         signal_strategy_optimizer_factory: Factory for creating signal strategy optimizers.
         strategy_debug: bool = False,
-        optimization_n_trials: int = 100,
+        optimization_n_trials: int = 1,
     """
 
     def __init__(

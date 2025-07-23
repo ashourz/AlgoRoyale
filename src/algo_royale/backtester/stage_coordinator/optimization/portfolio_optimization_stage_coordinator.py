@@ -62,7 +62,7 @@ class PortfolioOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
         portfolio_matrix_loader: PortfolioMatrixLoader,
         portfolio_strategy_optimizer_factory: PortfolioStrategyOptimizerFactory,
         strategy_debug: bool = False,
-        optimization_n_trials: int = 500,
+        optimization_n_trials: int = 1,
     ):
         super().__init__(
             stage=BacktestStage.PORTFOLIO_OPTIMIZATION,
