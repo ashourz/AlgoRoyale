@@ -33,13 +33,20 @@ class PortfolioEvaluationCoordinator:
     def run(self):
         self.logger.info("Starting portfolio evaluation...")
         # 1. For each strategy, aggregate all window results into evaluation_result.json
-        for strategy_dir in sorted(self.optimization_root.iterdir()):
-            if not strategy_dir.is_dir():
+        for symbol_dir in sorted(self.optimization_root.iterdir()):
+            if not symbol_dir.is_dir():
                 continue
-            self.logger.info(f"Aggregating windows for strategy: {strategy_dir.name}")
-            self.cross_window_evaluator.run(strategy_dir=strategy_dir)
+            self.logger.debug(f"Processing symbol directory: {symbol_dir}")
+            # Now, iterate over strategy-level directories within each symbol directory
+            for strategy_dir in sorted(symbol_dir.iterdir()):
+                if not strategy_dir.is_dir():
+                    continue
+                self.logger.info(
+                    f"Aggregating windows for strategy: {strategy_dir.name}"
+                )
+                self.cross_window_evaluator.run(strategy_dir=strategy_dir)
 
-        # 2. Aggregate all strategy evaluation_result.json into summary_result.json
-        self.logger.info("Aggregating strategy evaluations into summary...")
-        self.cross_strategy_summary.run(portfolio_dir=self.optimization_root)
-        self.logger.info("Portfolio evaluation completed successfully.")
+            # 2. Aggregate all strategy evaluation_result.json into summary_result.json
+            self.logger.info("Aggregating strategy evaluations into summary...")
+            self.cross_strategy_summary.run(symbol_dir=symbol_dir)
+            self.logger.info("Portfolio evaluation completed successfully.")

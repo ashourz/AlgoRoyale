@@ -26,6 +26,10 @@ class PortfolioCrossWindowEvaluator:
         strategy_dir: Path,
     ):
         window_results = []
+        # First, iterate over window-level directories
+        if not strategy_dir.is_dir():
+            self.logger.error(f"Strategy directory does not exist: {strategy_dir}")
+            return None
         for window_dir in sorted(strategy_dir.iterdir()):
             if not window_dir.is_dir():
                 continue
