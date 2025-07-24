@@ -222,7 +222,7 @@ class PortfolioTestingStageCoordinator(BaseTestingStageCoordinator):
                 self.logger.error("Watchlist is empty. Cannot load portfolio matrix.")
                 return None
             portfolio_matrix = (
-                await self.portfolio_matrix_repository.get_portfolio_matrix(
+                await self.portfolio_matrix_repository.get_or_create_matrix(
                     symbols=watchlist,
                     start_date=start_data,
                     end_date=end_data,
