@@ -64,3 +64,7 @@ class SymbolStrategyDataLoader:
                 end_date=end_date,
             )
             return {}
+
+    def get_watchlist(self) -> list[str]:
+        """Get the watchlist for the current stage"""
+        return self.stage_data_loader.get_watchlist()

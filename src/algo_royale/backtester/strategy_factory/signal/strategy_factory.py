@@ -59,7 +59,9 @@ class StrategyFactory:
         raise ValueError(f"Unsupported logic format: {logic}")
 
     @classmethod
-    def build_strategy(cls, strategy_class, params: dict, debug: bool = False):
+    def build_strategy(
+        cls, strategy_class, params: dict, debug: bool = False
+    ) -> BaseSignalStrategy:
         """
         Given a strategy class and params (with *_conditions as lists of dicts),
         returns an initialized strategy with all condition objects.

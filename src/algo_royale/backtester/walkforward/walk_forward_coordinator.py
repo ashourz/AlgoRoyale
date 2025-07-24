@@ -173,6 +173,9 @@ class WalkForwardCoordinator:
         optimization_success = await self.optimization_stage_coordinator.run(
             start_date=train_start, end_date=train_end
         )
+        self.logger.debug(
+            f"Optimization results for window {train_start.date()} to {train_end.date()}: {optimization_success}"
+        )
         if not optimization_success:
             self.logger.error("Optimization stage failed")
             return False
@@ -217,6 +220,9 @@ class WalkForwardCoordinator:
             train_end_date=train_end,
             test_start_date=test_start,
             test_end_date=test_end,
+        )
+        self.logger.debug(
+            f"Testing results for window {train_start.date()} to {train_end.date()}: {testing_results}"
         )
         if not testing_results:
             self.logger.error(

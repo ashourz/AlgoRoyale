@@ -139,44 +139,46 @@ class BaseSignalStrategy(BaseStrategy):
             )
         return exit_signals
 
-    def _apply_strategy(self, df: pd.DataFrame) -> pd.Series:
+    def _apply_strategy(self, df: pd.DataFrame) -> pd.DataFrame:
         """
         Applies the strategy logic to the DataFrame.
-        Generates trading signals based on trend, entry, and exit conditions.
-        Returns a Series with 'buy', 'sell', or 'hold' signals.
+        Generates entry and exit signals based on trend, entry, and exit conditions.
+        Returns a DataFrame with ENTRY_SIGNAL and EXIT_SIGNAL columns.
         """
-        signals = pd.Series("hold", index=df.index, name="signal")
         trend_mask = self._apply_trend(df)
-        entry_mask = self._apply_entry(df)
-        exit_mask = self._apply_exit(df)
+        entry_signals = self._apply_entry(df)
+        exit_signals = self._apply_exit(df)
         filter_mask = self._apply_filters(df)
 
-        # Default state object (can be anything, e.g. dict)
-        state = {}
+        # Only allow entry signals where both filter and trend masks are True
+        entry_signals = entry_signals.where(
+            filter_mask & trend_mask, other=SignalType.HOLD.value
+        )
 
-        for i in range(len(df)):
-            if not filter_mask.iloc[i]:
-                continue
-
-            # Default stateless logic
-            if trend_mask.iloc[i] and entry_mask.iloc[i] == SignalType.BUY.value:
-                signals.iloc[i] = SignalType.BUY.value
-            if exit_mask.iloc[i] == SignalType.SELL.value:
-                signals.iloc[i] = SignalType.SELL.value
-
-            # Call stateful logic hook if present
-            if self.stateful_logic is not None:
-                signals.iloc[i], state = self.stateful_logic(
-                    i=i,
-                    df=df,
-                    signals=signals,
-                    state=state,
-                    trend_mask=trend_mask,
-                    entry_mask=entry_mask,
-                    exit_mask=exit_mask,
+        # If stateful logic is present, apply it row by row
+        if self.stateful_logic is not None:
+            state = {}
+            entry_signals_new = entry_signals.copy()
+            exit_signals_new = exit_signals.copy()
+            for i in range(len(df)):
+                entry_signals_new.iloc[i], exit_signals_new.iloc[i], state = (
+                    self.stateful_logic(
+                        i=i,
+                        df=df,
+                        entry_signal=entry_signals.iloc[i],
+                        exit_signal=exit_signals.iloc[i],
+                        state=state,
+                        trend_mask=trend_mask,
+                        filter_mask=filter_mask,
+                    )
                 )
+            entry_signals = entry_signals_new
+            exit_signals = exit_signals_new
 
-        return signals
+        result = df.copy()
+        result[SignalStrategyColumns.ENTRY_SIGNAL] = entry_signals
+        result[SignalStrategyColumns.EXIT_SIGNAL] = exit_signals
+        return result
 
     def generate_signals(self, df: pd.DataFrame) -> pd.DataFrame:
         # Ensure all required columns are numeric before any math

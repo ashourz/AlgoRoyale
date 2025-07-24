@@ -197,11 +197,6 @@ class SignalStrategyOptimizerImpl(SignalStrategyOptimizer):
                 "direction": self.direction,
             },
             "metrics": study.best_trial.user_attrs.get("full_result"),
-            "window": {
-                "start_date": window_start_time.strftime("%Y-%m-%d"),
-                "end_date": window_end_time.strftime("%Y-%m-%d"),
-                "window_id": f"{window_start_time.strftime('%Y%m%d')}_{window_end_time.strftime('%Y%m%d')}",
-            },
         }
         self.logger.debug(f"Optimization results: {results}")
         return results

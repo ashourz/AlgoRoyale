@@ -1,5 +1,6 @@
 import inspect
 import json
+from datetime import datetime
 from typing import Any, AsyncIterator, Callable, Dict, Optional, Sequence
 
 import pandas as pd
@@ -7,9 +8,6 @@ import pandas as pd
 from algo_royale.backtester.column_names.portfolio_execution_keys import (
     PortfolioExecutionKeys,
     PortfolioExecutionMetricsKeys,
-)
-from algo_royale.backtester.data_preparer.asset_matrix_preparer import (
-    AssetMatrixPreparer,
 )
 from algo_royale.backtester.enum.backtest_stage import BacktestStage
 from algo_royale.backtester.evaluator.backtest.portfolio_backtest_evaluator import (
@@ -20,6 +18,9 @@ from algo_royale.backtester.executor.portfolio_backtest_executor import (
 )
 from algo_royale.backtester.stage_coordinator.testing.base_testing_stage_coordinator import (
     BaseTestingStageCoordinator,
+)
+from algo_royale.backtester.stage_data.loader.portfolio_matrix_loader import (
+    PortfolioMatrixLoader,
 )
 from algo_royale.backtester.stage_data.loader.symbol_strategy_data_loader import (
     SymbolStrategyDataLoader,
@@ -59,7 +60,7 @@ class PortfolioTestingStageCoordinator(BaseTestingStageCoordinator):
         evaluator: PortfolioBacktestEvaluator,
         optimization_root: str,
         optimization_json_filename: str,
-        asset_matrix_preparer: AssetMatrixPreparer,
+        portfolio_matrix_loader: PortfolioMatrixLoader,
         strategy_debug: bool = False,
     ):
         super().__init__(
@@ -68,14 +69,14 @@ class PortfolioTestingStageCoordinator(BaseTestingStageCoordinator):
             stage_data_manager=stage_data_manager,
             logger=logger,
             evaluator=evaluator,
-            executor=executor,
             strategy_combinators=strategy_combinators,
             optimization_json_filename=optimization_json_filename,
             optimization_root=optimization_root,
         )
         self.strategy_debug = strategy_debug
-        self.asset_matrix_preparer = asset_matrix_preparer
+        self.portfolio_matrix_loader = portfolio_matrix_loader
         self.strategy_combinators = strategy_combinators
+        self.executor = executor
 
     async def _process_and_write(
         self,
@@ -86,14 +87,45 @@ class PortfolioTestingStageCoordinator(BaseTestingStageCoordinator):
         This method does not set these parameters per run.
         """
         results = {}
-        portfolio_matrix = await self._get_input_matrix(data)
+        train_portfolio_matrix = await self._get_portfolio_matrix(
+            start_data=self.train_start_date,
+            end_data=self.train_end_date,
+        )
+        test_portfolio_matrix = await self._get_portfolio_matrix(
+            start_data=self.test_start_date,
+            end_data=self.test_end_date,
+        )
         # If no valid portfolio data is available, log a warning and return empty results
-        if portfolio_matrix is None:
-            self.logger.warning("No valid portfolio data available for optimization.")
+        if train_portfolio_matrix is None or train_portfolio_matrix.empty:
+            self.logger.warning(
+                "No valid portfolio data available for optimization. Skipping stage."
+            )
             return results
 
+        if test_portfolio_matrix is None or test_portfolio_matrix.empty:
+            self.logger.warning(
+                "No valid portfolio data available for testing. Skipping stage."
+            )
+            return results
+
+        train_symbols = sorted(
+            {
+                col[1]
+                for col in train_portfolio_matrix.columns
+                if isinstance(col, (tuple, list)) and len(col) > 1
+            }
+        )
+
+        test_symbols = sorted(
+            {
+                col[1]
+                for col in test_portfolio_matrix.columns
+                if isinstance(col, (tuple, list)) and len(col) > 1
+            }
+        )
+
         self.logger.info(
-            f"Starting portfolio testing for window {self.test_window_id} with {len(portfolio_matrix)} rows of data."
+            f"Starting portfolio testing for window {self.test_window_id} with symbols {test_symbols}."
         )
         for strategy_combinator in self.strategy_combinators:
             for strat_factory in strategy_combinator.all_strategy_combinations(
@@ -115,6 +147,7 @@ class PortfolioTestingStageCoordinator(BaseTestingStageCoordinator):
                     f"DEBUG: Strategy name: {strategy_name}, Strategy class: {strategy_class}"
                 )
                 optimized_params = self._get_optimized_params(
+                    symbols=train_symbols,
                     strategy_name=strategy_name,
                     strategy_class=strategy_class,
                 )
@@ -128,7 +161,7 @@ class PortfolioTestingStageCoordinator(BaseTestingStageCoordinator):
                 # Run backtest using the pre-configured executor
                 backtest_results = self.executor.run_backtest(
                     strategy,
-                    portfolio_matrix,
+                    test_portfolio_matrix,
                 )
                 self.logger.info(
                     f"Backtest completed for {strategy_name} with {len(backtest_results.get(PortfolioExecutionKeys.METRICS, {}).get(PortfolioExecutionMetricsKeys.PORTFOLIO_RETURNS, []))} returns."
@@ -137,7 +170,7 @@ class PortfolioTestingStageCoordinator(BaseTestingStageCoordinator):
                 metrics = self.evaluator.evaluate_from_dict(backtest_results)
                 test_opt_results = self._get_optimization_results(
                     strategy_name=strategy_name,
-                    symbol=None,
+                    symbol=self._get_symbols_dir_name(test_symbols),
                     start_date=self.test_start_date,
                     end_date=self.test_end_date,
                 )
@@ -159,16 +192,17 @@ class PortfolioTestingStageCoordinator(BaseTestingStageCoordinator):
                     f"DEBUG: Strategy name: {strategy_name}, Optimize params: {optimized_params}"
                 )
                 self.logger.debug(
-                    f"DEBUG: Portfolio matrix shape: {portfolio_matrix.shape}"
+                    f"DEBUG: Portfolio matrix shape: {test_portfolio_matrix.shape}"
                 )
                 self.logger.debug(f"DEBUG: Backtest results: {backtest_results}")
                 self.logger.debug(f"DEBUG: Metrics: {metrics}")
 
                 results = self._write_test_results(
-                    symbols=list(portfolio_matrix.columns),
+                    symbols=test_symbols,
                     metrics=metrics,
                     strategy_name=strategy_name,
                     backtest_results=backtest_results,
+                    optimized_params=optimized_params,
                     optimization_result=test_opt_results,
                     collective_results=results,
                 )
@@ -176,47 +210,35 @@ class PortfolioTestingStageCoordinator(BaseTestingStageCoordinator):
 
         return results
 
-    async def _get_input_matrix(
-        self, data: Optional[Dict[str, Callable[[], AsyncIterator[pd.DataFrame]]]]
+    async def _get_portfolio_matrix(
+        self,
+        start_data: datetime,
+        end_data: datetime,
     ) -> Optional[pd.DataFrame]:
-        """Get the input matrix for the portfolio optimization."""
+        """Load the portfolio matrix for the testing stage."""
         try:
-            if not data:
-                self.logger.warning("No data provided for portfolio optimization.")
+            watchlist = self.data_loader.get_watchlist()
+            if not watchlist:
+                self.logger.error("Watchlist is empty. Cannot load portfolio matrix.")
                 return None
-            # Aggregate all symbol data into a single DataFrame
-            self.logger.info(
-                f"Aggregating data for {len(data)} symbols for portfolio optimization."
+            portfolio_matrix = await self.portfolio_matrix_loader.get_portfolio_matrix(
+                symbols=watchlist,
+                start_date=start_data,
+                end_date=end_data,
             )
-            all_dfs = []
-            for symbol, df_iter_factory in data.items():
-                async for df in df_iter_factory():
-                    ## TODO: VALIDATE DATAFRAME
-                    df["symbol"] = symbol  # Optionally tag symbol
-                    all_dfs.append(df)
-            if not all_dfs:
-                self.logger.warning("No data for portfolio optimization window.")
-                return {}
-
-            portfolio_df = pd.concat(all_dfs, ignore_index=True)
-            self.logger.debug(
-                f"Combined portfolio DataFrame shape: {portfolio_df.shape}, columns: {list(portfolio_df.columns)}"
-            )
-            self.logger.debug(
-                f"Combined portfolio DataFrame index: {portfolio_df.index}"
-            )
-            # Prepare asset-matrix form for portfolio strategies
-            portfolio_matrix = self.asset_matrix_preparer.prepare(portfolio_df)
-            self.logger.info(
-                f"Asset-matrix DataFrame shape: {portfolio_matrix.shape}, columns: {portfolio_matrix.columns}"
-            )
+            if portfolio_matrix is None or portfolio_matrix.empty:
+                self.logger.warning(
+                    "No valid portfolio data available for optimization."
+                )
+                return None
             return portfolio_matrix
         except Exception as e:
-            self.logger.error(f"Error preparing portfolio matrix for optimization: {e}")
+            self.logger.error(f"Error loading portfolio matrix: {e}")
             return None
 
     def _get_optimized_params(
         self,
+        symbols: list[str],
         strategy_name: str,
         strategy_class: type,
     ) -> Optional[Dict[str, Any]]:
@@ -227,7 +249,7 @@ class PortfolioTestingStageCoordinator(BaseTestingStageCoordinator):
             )
             train_opt_results = self._get_optimization_results(
                 strategy_name=strategy_name,
-                symbol=None,
+                symbol=self._get_symbols_dir_name(symbols),
                 start_date=self.train_start_date,
                 end_date=self.train_end_date,
             )
@@ -315,10 +337,11 @@ class PortfolioTestingStageCoordinator(BaseTestingStageCoordinator):
 
     def _write_test_results(
         self,
-        symbols: Sequence[str],
+        symbols: list[str],
         metrics: Dict[str, float],
         strategy_name: str,
         backtest_results: Dict[str, Any],
+        optimized_params: Dict[str, Any],
         optimization_result: Dict[str, Any],
         collective_results: Dict[str, Dict[str, Dict[str, float]]],
     ) -> Dict[str, Dict[str, Dict[str, float]]]:
@@ -335,24 +358,29 @@ class PortfolioTestingStageCoordinator(BaseTestingStageCoordinator):
             ):
                 optimization_result[self.test_window_id] = {}
 
-            # Ensure the optimization section exists for params extraction
-            best_params = (
-                optimization_result[self.test_window_id]
-                .get("optimization", {})
-                .get("best_params", {})
-            )
+            # Ensure transactions are extracted correctly
+            if "transactions" not in backtest_results or not isinstance(
+                backtest_results["transactions"], list
+            ):
+                transactions = []
+            else:
+                transactions = backtest_results["transactions"]
+
+            for tx in transactions:
+                asset = tx.get("asset")
+                if isinstance(asset, (list, tuple)) and len(asset) > 1:
+                    tx["asset"] = asset[1]
+                else:
+                    tx["asset"] = asset  # fallback if asset is just a string
 
             # Build the test structure for this window
             test_optimization_json = {
                 self.test_window_id: {
+                    "strategy": strategy_name,
+                    "symbols": symbols,
                     "test": {
-                        "strategy": strategy_name,
-                        "params": best_params,
-                        "meta": {
-                            "symbols": symbols,
-                            "window_id": self.test_window_id,
-                            "transactions": backtest_results.get("transactions", []),
-                        },
+                        "params": optimized_params,
+                        "transactions": transactions,
                         "metrics": metrics,
                     },
                     "window": {
@@ -374,9 +402,9 @@ class PortfolioTestingStageCoordinator(BaseTestingStageCoordinator):
             # Save the updated optimization results to the file
             test_opt_results_path = self._get_optimization_result_path(
                 strategy_name=strategy_name,
+                symbol=self._get_symbols_dir_name(symbols),
                 start_date=self.test_start_date,
                 end_date=self.test_end_date,
-                symbol=None,
             )
             self.logger.info(
                 f"Saving test results for {strategy_name} to {test_opt_results_path}"
@@ -390,3 +418,9 @@ class PortfolioTestingStageCoordinator(BaseTestingStageCoordinator):
                 f"Error writing test results for {strategy_name} during {self.test_window_id}: {e}"
             )
         return collective_results
+
+    def _get_symbols_dir_name(
+        self,
+        symbols: Sequence[str],
+    ) -> str:
+        return "_".join(sorted(symbols)) if symbols else "empty"

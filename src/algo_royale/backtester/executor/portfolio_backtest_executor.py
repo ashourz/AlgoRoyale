@@ -11,12 +11,11 @@ from algo_royale.backtester.column_names.portfolio_transaction_keys import (
     PortfolioTransactionKeys,
 )
 from algo_royale.backtester.enum.backtest_stage import BacktestStage
-from algo_royale.backtester.executor.base_backtest_executor import BacktestExecutor
 from algo_royale.logging.loggable import Loggable
 from algo_royale.logging.logger_factory import mockLogger
 
 
-class PortfolioBacktestExecutor(BacktestExecutor):
+class PortfolioBacktestExecutor:
     """
     Executes a portfolio strategy over a DataFrame of returns/signals and produces portfolio results.
     Simulates cash constraints, partial fills, transaction costs, minimum lot size, and leverage.
@@ -38,6 +37,7 @@ class PortfolioBacktestExecutor(BacktestExecutor):
         min_lot: int = 1,
         leverage: float = 1.0,
         slippage: float = 0.0,
+        settlement_days: int = 1,
     ):
         self.logger = logger
         self.initial_balance = initial_balance
@@ -45,6 +45,7 @@ class PortfolioBacktestExecutor(BacktestExecutor):
         self.min_lot = max(1, int(min_lot))
         self.leverage = leverage
         self.slippage = slippage
+        self.settlement_days = int(settlement_days)
 
     def run_backtest(
         self,
@@ -118,6 +119,8 @@ class PortfolioBacktestExecutor(BacktestExecutor):
         transactions = []
         trade_id = 0
         trades_executed = 0
+        # Settlement logic: track pending settlements as list of dicts {amount, settle_step}
+        pending_settlements = []
 
         self.logger.debug(f"Data shape: {data.shape}, columns: {list(data.columns)}")
         self.logger.debug(
@@ -127,6 +130,23 @@ class PortfolioBacktestExecutor(BacktestExecutor):
         self.logger.debug(f"Weights index: {weights.index[:5]} ...")
 
         for t in range(n_steps):
+            # Release any settled cash
+            released_cash = 0.0
+            if self.settlement_days > 0:
+                # Find all settlements that are due
+                still_pending = []
+                for s in pending_settlements:
+                    if s["settle_step"] <= t:
+                        released_cash += s["amount"]
+                    else:
+                        still_pending.append(s)
+                if released_cash > 0:
+                    self.logger.debug(
+                        f"[{t}] Released ${released_cash} from settlement queue."
+                    )
+                pending_settlements = still_pending
+                cash += released_cash
+
             target_weights = weights.iloc[t].values
             prices = data.iloc[t].values
             timestamp = data.index[t] if hasattr(data, "index") else t
@@ -208,9 +228,14 @@ class PortfolioBacktestExecutor(BacktestExecutor):
                         )
                         continue
 
+                    # Only use settled cash for buys
+                    available_cash = cash
+                    if self.settlement_days > 0:
+                        available_cash = cash
                     if (
                         shares_to_buy > 0
-                        and cost <= cash + (self.leverage - 1) * total_portfolio_value
+                        and cost
+                        <= available_cash + (self.leverage - 1) * total_portfolio_value
                     ):
                         holdings[i] += shares_to_buy
                         cash -= cost
@@ -253,7 +278,19 @@ class PortfolioBacktestExecutor(BacktestExecutor):
                     proceeds = shares_to_sell * sell_price * (1 - self.transaction_cost)
                     if shares_to_sell > 0:
                         holdings[i] -= shares_to_sell
-                        cash += proceeds
+                        # Instead of immediately adding proceeds to cash, add to pending settlements
+                        if self.settlement_days > 0:
+                            pending_settlements.append(
+                                {
+                                    "amount": proceeds,
+                                    "settle_step": t + self.settlement_days,
+                                }
+                            )
+                            self.logger.debug(
+                                f"[{timestamp}] Sell: {shares_to_sell} of {asset_name} at {sell_price} (proceeds={proceeds}) - proceeds pending settlement at step {t + self.settlement_days}"
+                            )
+                        else:
+                            cash += proceeds
                         transactions.append(
                             {
                                 PortfolioTransactionKeys.TRADE_ID: trade_id,
@@ -269,9 +306,6 @@ class PortfolioBacktestExecutor(BacktestExecutor):
                                     holdings[i]
                                 ),
                             }
-                        )
-                        self.logger.debug(
-                            f"[{timestamp}] Sell: {shares_to_sell} of {asset_name} at {sell_price} (proceeds={proceeds})"
                         )
                         trade_id += 1
                         trades_executed += 1

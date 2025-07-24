@@ -21,10 +21,10 @@ class PortfolioCrossStrategySummary:
 
     def run(
         self,
-        portfolio_dir: Path,
+        symbol_dir: Path,
     ):
         strategy_results = []
-        for strategy_dir in sorted(portfolio_dir.iterdir()):
+        for strategy_dir in sorted(symbol_dir.iterdir()):
             if not strategy_dir.is_dir():
                 continue
             self.logger.debug(
@@ -40,9 +40,7 @@ class PortfolioCrossStrategySummary:
             strategy_results.append(eval_json)
 
         if not strategy_results:
-            self.logger.warning(
-                f"No strategy evaluation results found in {portfolio_dir}"
-            )
+            self.logger.warning(f"No strategy evaluation results found in {symbol_dir}")
             return None
 
         # Find best strategy by viability_score, then param_consistency
@@ -62,7 +60,7 @@ class PortfolioCrossStrategySummary:
             "window_params": best.get("window_params", []),
             "strategy": best.get("strategy"),
         }
-        out_path = portfolio_dir / self.output_filename
+        out_path = symbol_dir / self.output_filename
         with open(out_path, "w") as f:
             json.dump(summary, f, indent=2)
         self.logger.info(f"Wrote cross-strategy summary to {out_path}")

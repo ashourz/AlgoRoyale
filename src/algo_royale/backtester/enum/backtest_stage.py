@@ -30,6 +30,7 @@ class BacktestStageName(str):
     STRATEGY_EVALUATION = "strategy_evaluation"
     SYMBOL_EVALUATION = "symbol_evaluation"
     ##PORTFOLIO
+    PORTFOLIO_MATRIX_LOADER = "portfolio_matrix_loader"
     PORTFOLIO_STRATEGY = "portfolio_strategy"
     PORTFOLIO_BACKTEST_EXECUTOR = "portfolio_backtest_executor"
     PORTFOLIO_OPTIMIZATION = "portfolio_optimization"
@@ -147,6 +148,13 @@ class BacktestStage(Enum):
         output_validation_fn=BacktestStageDictValidation.SIGNAL_SYMBOL_EVALUATION,
     )
     ## PORTFOLIO
+    PORTFOLIO_MATRIX_LOADER = TabularStageDef(
+        value=BacktestStageName.PORTFOLIO_MATRIX_LOADER,
+        description="Loading and preparing portfolio matrix data",
+        input_stage_name=BacktestStageName.FEATURE_ENGINEERING,
+        input_columns=FeatureEngineeringColumns.get_all_column_values(),
+        output_columns=[],
+    )
     PORTFOLIO_STRATEGY = TabularStageDef(
         value=BacktestStageName.PORTFOLIO_STRATEGY,
         description="Defining portfolio strategies based on multiple signal strategies",

@@ -32,7 +32,9 @@ class MeanReversionStatefulLogic(StatefulLogic):
         self.reentry_cooldown = reentry_cooldown
         self.close_col = close_col
 
-    def __call_impl(self, i, df, signals, state, trend_mask, entry_mask, exit_mask):
+    def __call_impl(
+        self, i, df, entry_signal, exit_signal, state, trend_mask, filter_mask
+    ):
         if self.debug:
             print(f"Processing index {i} with state: {state}")
         if not state:
@@ -48,6 +50,9 @@ class MeanReversionStatefulLogic(StatefulLogic):
         )
         deviation = (price - ma) / ma
 
+        new_entry_signal = entry_signal
+        new_exit_signal = exit_signal
+
         if not state["in_position"]:
             if (i - state["last_exit_idx"]) > self.reentry_cooldown:
                 if deviation < -self.threshold and trend_mask.iloc[i]:
@@ -55,7 +60,7 @@ class MeanReversionStatefulLogic(StatefulLogic):
                         print(
                             f"Buy signal at index {i}: price={price}, ma={ma}, deviation={deviation}"
                         )
-                    signals.iloc[i] = SignalType.BUY.value
+                    new_entry_signal = SignalType.BUY.value
                     state["in_position"] = True
                     state["entry_price"] = price
                     state["trailing_stop"] = price * (1 - self.stop_pct)
@@ -73,13 +78,13 @@ class MeanReversionStatefulLogic(StatefulLogic):
                         f"Sell signal at index {i}: price={price}, entry_price={state['entry_price']}, "
                         f"trailing_stop={state['trailing_stop']}, deviation={deviation}"
                     )
-                signals.iloc[i] = SignalType.SELL.value
+                new_exit_signal = SignalType.SELL.value
                 state["in_position"] = False
                 state["entry_price"] = None
                 state["trailing_stop"] = None
                 state["last_exit_idx"] = i
 
-        return signals.iloc[i], state
+        return new_entry_signal, new_exit_signal, state
 
     @property
     def required_columns(self):

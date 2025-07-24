@@ -26,6 +26,10 @@ class PortfolioCrossWindowEvaluator:
         strategy_dir: Path,
     ):
         window_results = []
+        # First, iterate over window-level directories
+        if not strategy_dir.is_dir():
+            self.logger.error(f"Strategy directory does not exist: {strategy_dir}")
+            return None
         for window_dir in sorted(strategy_dir.iterdir()):
             if not window_dir.is_dir():
                 continue
@@ -47,16 +51,16 @@ class PortfolioCrossWindowEvaluator:
             self.logger.debug(
                 f"Loaded optimization results from {opt_path}, found {len(opt_json)} windows."
             )
-            # Expecting: {window_id: {"test": {...}, "window": {...}}}
+            # New format: {window_id: {"strategy": ..., "symbols": ..., "optimization": {...}, "window": {...}}}
             for window_id, window_obj in opt_json.items():
-                test = window_obj.get("test") or window_obj.get("optimization")
-                if not test:
-                    self.logger.warning(f"No test/optimization section in {opt_path}")
+                optimization = window_obj.get("optimization")
+                if not optimization:
+                    self.logger.warning(f"No optimization section in {opt_path}")
                     continue
-                metrics = test.get("metrics", {})
-                params = test.get("params", {})
+                metrics = optimization.get("metrics", {})
+                params = optimization.get("best_params", {})
                 window_params = {
-                    k: v for k, v in test.items() if k.endswith("_conditions")
+                    k: v for k, v in optimization.items() if k.endswith("_conditions")
                 }
                 window_result = {
                     "window_id": window_id,
