@@ -72,6 +72,9 @@ from algo_royale.backtester.stage_data.loader.stage_data_loader import StageData
 from algo_royale.backtester.stage_data.loader.symbol_strategy_data_loader import (
     SymbolStrategyDataLoader,
 )
+from algo_royale.backtester.stage_data.repo.portfolio_matrix_repository import (
+    PortfolioMatrixRepository,
+)
 from algo_royale.backtester.stage_data.stage_data_manager import StageDataManager
 from algo_royale.backtester.stage_data.writer.stage_data_writer import StageDataWriter
 from algo_royale.backtester.stage_data.writer.symbol_strategy_data_writer import (
@@ -328,6 +331,11 @@ class DIContainer(containers.DeclarativeContainer):
         TaggableLogger,
         base_logger=base_logger_backtest,
         logger_type=LoggerType.PORTFOLIO_MATRIX_LOADER,
+    )
+    logger_portfolio_matrix_repository = providers.Factory(
+        TaggableLogger,
+        base_logger=base_logger_backtest,
+        logger_type=LoggerType.PORTFOLIO_MATRIX_REPOSITORY,
     )
     logger_portfolio_strategy_optimizer = providers.Factory(
         TaggableLogger,
@@ -769,6 +777,15 @@ class DIContainer(containers.DeclarativeContainer):
     portfolio_strategy_optimizer_factory = providers.Singleton(
         PortfolioStrategyOptimizerFactoryImpl,
         logger=logger_portfolio_strategy_optimizer,
+    )
+
+    portfolio_matrix_repository = providers.Singleton(
+        PortfolioMatrixRepository,
+        cache_dir=providers.Object(
+            config().get("backtester.portfolio.paths", "portfolio_matrix_cache_dir")
+        ),
+        matrix_loader=portfolio_matrix_loader,
+        logger=logger_portfolio_matrix_repository,
     )
 
     portfolio_optimization_stage_coordinator = providers.Singleton(

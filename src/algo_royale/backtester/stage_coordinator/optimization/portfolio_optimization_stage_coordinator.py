@@ -19,11 +19,11 @@ from algo_royale.backtester.optimizer.portfolio.portfolio_strategy_optimizer_fac
 from algo_royale.backtester.stage_coordinator.optimization.base_optimization_stage_coordinator import (
     BaseOptimizationStageCoordinator,
 )
-from algo_royale.backtester.stage_data.loader.portfolio_matrix_loader import (
-    PortfolioMatrixLoader,
-)
 from algo_royale.backtester.stage_data.loader.symbol_strategy_data_loader import (
     SymbolStrategyDataLoader,
+)
+from algo_royale.backtester.stage_data.repo.portfolio_matrix_repository import (
+    PortfolioMatrixRepository,
 )
 from algo_royale.backtester.stage_data.stage_data_manager import StageDataManager
 from algo_royale.backtester.strategy_combinator.portfolio.base_portfolio_strategy_combinator import (
@@ -59,7 +59,7 @@ class PortfolioOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
         evaluator: PortfolioBacktestEvaluator,
         optimization_root: str,
         optimization_json_filename: str,
-        portfolio_matrix_loader: PortfolioMatrixLoader,
+        portfolio_matrix_repository: PortfolioMatrixRepository,
         portfolio_strategy_optimizer_factory: PortfolioStrategyOptimizerFactory,
         strategy_debug: bool = False,
         optimization_n_trials: int = 1,
@@ -76,7 +76,7 @@ class PortfolioOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
             ## Create the directory if it does not exist
             self.optimization_root.mkdir(parents=True, exist_ok=True)
         self.optimization_json_filename = optimization_json_filename
-        self.portfolio_matrix_loader = portfolio_matrix_loader
+        self.portfolio_matrix_repository = portfolio_matrix_repository
         self.portfolio_strategy_optimizer_factory = portfolio_strategy_optimizer_factory
         self.stage_data_manager = stage_data_manager
         self.evaluator = evaluator
@@ -208,10 +208,12 @@ class PortfolioOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
             if not watchlist:
                 self.logger.error("Watchlist is empty. Cannot load portfolio matrix.")
                 return None
-            portfolio_matrix = await self.portfolio_matrix_loader.get_portfolio_matrix(
-                symbols=watchlist,
-                start_date=self.start_date,
-                end_date=self.end_date,
+            portfolio_matrix = (
+                await self.portfolio_matrix_repository.get_or_create_matrix(
+                    symbols=watchlist,
+                    start_date=self.start_date,
+                    end_date=self.end_date,
+                )
             )
             if portfolio_matrix is None or portfolio_matrix.empty:
                 self.logger.warning(
