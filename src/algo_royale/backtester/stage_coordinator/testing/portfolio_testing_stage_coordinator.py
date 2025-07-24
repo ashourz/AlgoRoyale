@@ -19,11 +19,11 @@ from algo_royale.backtester.executor.portfolio_backtest_executor import (
 from algo_royale.backtester.stage_coordinator.testing.base_testing_stage_coordinator import (
     BaseTestingStageCoordinator,
 )
-from algo_royale.backtester.stage_data.loader.portfolio_matrix_loader import (
-    PortfolioMatrixLoader,
-)
 from algo_royale.backtester.stage_data.loader.symbol_strategy_data_loader import (
     SymbolStrategyDataLoader,
+)
+from algo_royale.backtester.stage_data.repo.portfolio_matrix_repository import (
+    PortfolioMatrixRepository,
 )
 from algo_royale.backtester.stage_data.stage_data_manager import StageDataManager
 from algo_royale.backtester.strategy_combinator.portfolio.base_portfolio_strategy_combinator import (
@@ -60,7 +60,7 @@ class PortfolioTestingStageCoordinator(BaseTestingStageCoordinator):
         evaluator: PortfolioBacktestEvaluator,
         optimization_root: str,
         optimization_json_filename: str,
-        portfolio_matrix_loader: PortfolioMatrixLoader,
+        portfolio_matrix_repository: PortfolioMatrixRepository,
         strategy_debug: bool = False,
     ):
         super().__init__(
@@ -74,7 +74,7 @@ class PortfolioTestingStageCoordinator(BaseTestingStageCoordinator):
             optimization_root=optimization_root,
         )
         self.strategy_debug = strategy_debug
-        self.portfolio_matrix_loader = portfolio_matrix_loader
+        self.portfolio_matrix_repository = portfolio_matrix_repository
         self.strategy_combinators = strategy_combinators
         self.executor = executor
 
@@ -221,10 +221,12 @@ class PortfolioTestingStageCoordinator(BaseTestingStageCoordinator):
             if not watchlist:
                 self.logger.error("Watchlist is empty. Cannot load portfolio matrix.")
                 return None
-            portfolio_matrix = await self.portfolio_matrix_loader.get_portfolio_matrix(
-                symbols=watchlist,
-                start_date=start_data,
-                end_date=end_data,
+            portfolio_matrix = (
+                await self.portfolio_matrix_repository.get_portfolio_matrix(
+                    symbols=watchlist,
+                    start_date=start_data,
+                    end_date=end_data,
+                )
             )
             if portfolio_matrix is None or portfolio_matrix.empty:
                 self.logger.warning(
