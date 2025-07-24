@@ -63,6 +63,8 @@ class PortfolioOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
         portfolio_strategy_optimizer_factory: PortfolioStrategyOptimizerFactory,
         strategy_debug: bool = False,
         optimization_n_trials: int = 1,
+        optimization_n_jobs: int = -1,
+        strategy_concurrency_limit: int = 2,
     ):
         super().__init__(
             stage=BacktestStage.PORTFOLIO_OPTIMIZATION,
@@ -84,6 +86,28 @@ class PortfolioOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
         self.strategy_debug = strategy_debug
         self.optimization_n_trials = optimization_n_trials
         self.strategy_combinators = strategy_combinators
+        self._adjust_parallelism_limits(optimization_n_jobs, strategy_concurrency_limit)
+
+    def _adjust_parallelism_limits(
+        self, optimization_n_jobs, strategy_concurrency_limit
+    ):
+        import os
+
+        total_cores = os.cpu_count() or 1
+        HARD_MAX_STRATEGY_CONCURRENCY = 2
+        if total_cores == 1:
+            self.strategy_concurrency_limit = 1
+            self.optimization_n_jobs = 1
+        else:
+            # Enforce a hard-coded max of 2 for strategy concurrency
+            self.strategy_concurrency_limit = min(
+                strategy_concurrency_limit, total_cores, HARD_MAX_STRATEGY_CONCURRENCY
+            )
+            max_jobs = max(1, total_cores // self.strategy_concurrency_limit)
+            if optimization_n_jobs == -1:
+                self.optimization_n_jobs = max_jobs
+            else:
+                self.optimization_n_jobs = min(optimization_n_jobs, max_jobs)
 
     async def _process_and_write(
         self,
@@ -102,6 +126,8 @@ class PortfolioOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
         Note:
             The optimization is run for all symbols at once (portfolio-level optimization), not per-symbol.
         """
+        import asyncio
+
         try:
             results = {}
             portfolio_matrix = await self._get_portfolio_matrix()
@@ -129,6 +155,13 @@ class PortfolioOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
                 f"Strategy combinators: {[c.__name__ for c in self.strategy_combinators]}"
             )
 
+            semaphore = asyncio.Semaphore(self.strategy_concurrency_limit)
+
+            async def sem_task(*args, **kwargs):
+                async with semaphore:
+                    return await self._optimize_and_write(*args, **kwargs)
+
+            tasks = []
             for strategy_combinator in self.strategy_combinators:
                 self.logger.info(
                     f"Using strategy combinator: {strategy_combinator.__name__}"
@@ -138,61 +171,82 @@ class PortfolioOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
                     debug=self.strategy_debug,
                 )
                 for strat_factory in combinations:
-                    try:
-                        strategy_class = (
-                            strat_factory.func
-                            if hasattr(strat_factory, "func")
-                            else strat_factory
-                        )
-                        strategy_name = (
-                            strategy_class.__name__
-                            if hasattr(strategy_class, "__name__")
-                            else str(strategy_class)
-                        )
-                        self.logger.info(
-                            f"Optimizing symbols: {symbols} strategy: {strategy_name} for window {self.window_id}"
-                        )
-                        optimizer = self.portfolio_strategy_optimizer_factory.create(
+                    strategy_class = (
+                        strat_factory.func
+                        if hasattr(strat_factory, "func")
+                        else strat_factory
+                    )
+                    strategy_name = (
+                        strategy_class.__name__
+                        if hasattr(strategy_class, "__name__")
+                        else str(strategy_class)
+                    )
+                    tasks.append(
+                        sem_task(
                             strategy_class=strategy_class,
-                            backtest_fn=lambda strat, df_: self._backtest_and_evaluate(
-                                strat, df_
-                            ),
-                            metric_name=PortfolioMetric.SHARPE_RATIO,
-                        )
-                        optimization_result = await optimizer.optimize(
-                            symbols=symbols,
-                            df=portfolio_matrix,
-                            n_trials=self.optimization_n_trials,
-                        )
-                        self.logger.info(
-                            f"Optimization result for {strategy_name} ({self.window_id}) written."
-                        )
-
-                        if not self._validate_optimization_results(optimization_result):
-                            self.logger.warning(
-                                f"Validation failed for {strategy_name} ({self.window_id}). Skipping."
-                            )
-                            continue
-
-                        results = self._write_results(
-                            symbols=symbols,
-                            start_date=self.start_date,
-                            end_date=self.end_date,
                             strategy_name=strategy_name,
-                            optimization_result=optimization_result,
-                            collective_results=results,
+                            symbols=symbols,
+                            portfolio_matrix=portfolio_matrix,
+                            results=results,
                         )
-                    except Exception as e:
-                        self.logger.error(
-                            f"Portfolio optimization failed for {strategy_name} ({self.window_id}): {e}"
-                        )
-                        continue
+                    )
+            await asyncio.gather(*tasks)
             return results
         except Exception as e:
             self.logger.error(
                 f"Error during portfolio optimization stage processing: {e}"
             )
             return {}
+
+    async def _optimize_and_write(
+        self,
+        strategy_class,
+        strategy_name,
+        symbols,
+        portfolio_matrix,
+        results,
+    ):
+        """
+        Helper to optimize a strategy and write results, for per-strategy parallelism.
+        """
+        try:
+            self.logger.info(
+                f"Optimizing symbols: {symbols} strategy: {strategy_name} for window {self.window_id}"
+            )
+            optimizer = self.portfolio_strategy_optimizer_factory.create(
+                strategy_class=strategy_class,
+                backtest_fn=lambda strat, df_: self._backtest_and_evaluate(strat, df_),
+                metric_name=PortfolioMetric.SHARPE_RATIO,
+            )
+            optimization_result = await optimizer.optimize(
+                symbols=symbols,
+                df=portfolio_matrix,
+                n_trials=self.optimization_n_trials,
+                n_jobs=self.optimization_n_jobs,
+            )
+            self.logger.info(
+                f"Optimization result for {strategy_name} ({self.window_id}) written."
+            )
+
+            if not self._validate_optimization_results(optimization_result):
+                self.logger.warning(
+                    f"Validation failed for {strategy_name} ({self.window_id}). Skipping."
+                )
+                return
+
+            self._write_results(
+                symbols=symbols,
+                start_date=self.start_date,
+                end_date=self.end_date,
+                strategy_name=strategy_name,
+                optimization_result=optimization_result,
+                collective_results=results,
+            )
+        except Exception as e:
+            self.logger.error(
+                f"Portfolio optimization failed for {strategy_name} ({self.window_id}): {e}"
+            )
+            return
 
     async def _get_portfolio_matrix(
         self,

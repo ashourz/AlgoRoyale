@@ -806,7 +806,7 @@ class DIContainer(containers.DeclarativeContainer):
                 "backtester.portfolio.filenames", "portfolio_optimization_json_filename"
             )
         ),
-        portfolio_matrix_loader=portfolio_matrix_loader,
+        portfolio_matrix_repository=portfolio_matrix_repository,
         portfolio_strategy_optimizer_factory=portfolio_strategy_optimizer_factory,
         strategy_debug=providers.Object(
             config().get_bool("logger.log", "base_portfolio_strategy_debug", False)

@@ -74,6 +74,7 @@ class PortfolioStrategyOptimizerImpl(PortfolioStrategyOptimizer):
         symbols: List[str],
         df: pd.DataFrame,
         n_trials: int = 1,
+        n_jobs: int = 1,
     ) -> Dict[str, Any]:
         """
         Run the optimization process for a portfolio (all symbols at once) and DataFrame.
@@ -183,7 +184,7 @@ class PortfolioStrategyOptimizerImpl(PortfolioStrategyOptimizer):
             )
             return score
 
-        study.optimize(objective, n_trials=n_trials)
+        study.optimize(objective, n_trials=n_trials, n_jobs=n_jobs)
 
         duration = round(time.time() - start_time, 2)
         self.logger.info(
