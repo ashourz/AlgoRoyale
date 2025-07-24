@@ -1,4 +1,6 @@
+import asyncio
 import json
+import os
 from datetime import datetime
 from pathlib import Path
 from typing import Any, AsyncIterator, Callable, Dict, Optional, Sequence
@@ -91,8 +93,7 @@ class PortfolioOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
     def _adjust_parallelism_limits(
         self, optimization_n_jobs, strategy_concurrency_limit
     ):
-        import os
-
+        """Adjusts the parallelism limits based on the number of CPU cores available."""
         total_cores = os.cpu_count() or 1
         HARD_MAX_STRATEGY_CONCURRENCY = 2
         if total_cores == 1:
@@ -126,8 +127,6 @@ class PortfolioOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
         Note:
             The optimization is run for all symbols at once (portfolio-level optimization), not per-symbol.
         """
-        import asyncio
-
         try:
             results = {}
             portfolio_matrix = await self._get_portfolio_matrix()
@@ -159,7 +158,7 @@ class PortfolioOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
 
             async def sem_task(*args, **kwargs):
                 async with semaphore:
-                    return await self._optimize_and_write(*args, **kwargs)
+                    return self._optimize_and_write(*args, **kwargs)
 
             tasks = []
             for strategy_combinator in self.strategy_combinators:
@@ -198,7 +197,7 @@ class PortfolioOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
             )
             return {}
 
-    async def _optimize_and_write(
+    def _optimize_and_write(
         self,
         strategy_class,
         strategy_name,
@@ -218,7 +217,7 @@ class PortfolioOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
                 backtest_fn=lambda strat, df_: self._backtest_and_evaluate(strat, df_),
                 metric_name=PortfolioMetric.SHARPE_RATIO,
             )
-            optimization_result = await optimizer.optimize(
+            optimization_result = optimizer.optimize(
                 symbols=symbols,
                 df=portfolio_matrix,
                 n_trials=self.optimization_n_trials,

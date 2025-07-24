@@ -18,11 +18,12 @@ class PortfolioStrategyOptimizer(ABC):
     This class is intended to be subclassed and should not be instantiated directly.
     """
 
-    async def optimize(
+    def optimize(
         self,
         symbols: List[str],
         df: pd.DataFrame,
         n_trials: int = 1,
+        n_jobs: int = 1,
     ) -> Dict[str, Any]:
         """
         Run the optimization process for a portfolio (all symbols at once) and DataFrame.
@@ -30,9 +31,8 @@ class PortfolioStrategyOptimizer(ABC):
         Args:
             symbols (List[str]): List of symbols in the portfolio.
             df (pd.DataFrame): Portfolio matrix DataFrame (all symbols).
-            window_start_time (datetime): Start of the optimization window.
-            window_end_time (datetime): End of the optimization window.
             n_trials (int): Number of optimization trials.
+            n_jobs (int): Number of parallel jobs to run.
 
         Returns:
             Dict[str, Any]: Dictionary with the optimization results.
@@ -69,7 +69,7 @@ class PortfolioStrategyOptimizerImpl(PortfolioStrategyOptimizer):
         self.direction = direction
         self.logger = logger
 
-    async def optimize(
+    def optimize(
         self,
         symbols: List[str],
         df: pd.DataFrame,

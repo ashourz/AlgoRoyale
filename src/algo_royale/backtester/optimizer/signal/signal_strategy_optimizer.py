@@ -22,9 +22,8 @@ class SignalStrategyOptimizer(ABC):
         self,
         symbol: str,
         df: pd.DataFrame,
-        window_start_time: datetime,
-        window_end_time: datetime,
         n_trials: int = 50,
+        n_jobs: int = 1,
     ) -> Dict[str, Any]:
         """
         Run the optimization process for a given symbol and DataFrame.
@@ -66,9 +65,8 @@ class SignalStrategyOptimizerImpl(SignalStrategyOptimizer):
         self,
         symbol: str,
         df: pd.DataFrame,
-        window_start_time: datetime,
-        window_end_time: datetime,
         n_trials: int = 1,
+        n_jobs: int = 1,
     ) -> Dict[str, Any]:
         """
         Run the optimization process for a given symbol and DataFrame.
@@ -180,7 +178,7 @@ class SignalStrategyOptimizerImpl(SignalStrategyOptimizer):
                 logger.debug(f"[{symbol}] Trial result: {score}")
             return score
 
-        study.optimize(objective, n_trials=n_trials)
+        study.optimize(objective, n_trials=n_trials, n_jobs=n_jobs)
 
         duration = round(time.time() - start_time, 2)
         self.logger.info(

@@ -1,4 +1,6 @@
+import asyncio
 import json
+import os
 from datetime import datetime
 from pathlib import Path
 from typing import Any, AsyncIterator, Callable, Dict, Optional, Sequence
@@ -68,6 +70,8 @@ class StrategyOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
         signal_strategy_optimizer_factory: SignalStrategyOptimizerFactory,
         strategy_debug: bool = False,
         optimization_n_trials: int = 1,
+        optimization_n_jobs: int = -1,
+        strategy_concurrency_limit: int = 2,
     ):
         super().__init__(
             stage=BacktestStage.STRATEGY_OPTIMIZATION,
@@ -87,47 +91,86 @@ class StrategyOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
         self.stage_data_manager = stage_data_manager
         self.strategy_debug = strategy_debug
         self.optimization_n_trials = optimization_n_trials
+        self._adjust_parallelism_limits(optimization_n_jobs, strategy_concurrency_limit)
+
+    def _adjust_parallelism_limits(
+        self, optimization_n_jobs, strategy_concurrency_limit
+    ):
+        """Adjust the parallelism limits based on the number of CPU cores."""
+        total_cores = os.cpu_count() or 1
+        HARD_MAX_STRATEGY_CONCURRENCY = 2
+        if total_cores == 1:
+            self.strategy_concurrency_limit = 1
+            self.optimization_n_jobs = 1
+        else:
+            # Enforce a hard-coded max of 2 for strategy concurrency
+            self.strategy_concurrency_limit = min(
+                strategy_concurrency_limit, total_cores, HARD_MAX_STRATEGY_CONCURRENCY
+            )
+            max_jobs = max(1, total_cores // self.strategy_concurrency_limit)
+            if optimization_n_jobs == -1:
+                self.optimization_n_jobs = max_jobs
+            else:
+                self.optimization_n_jobs = min(optimization_n_jobs, max_jobs)
 
     async def _process_and_write(
         self,
-        data: Optional[Dict[str, Callable[[], AsyncIterator[pd.DataFrame]]]] = None,
+        data: Optional[Dict[str, Callable[[], AsyncIterator[Any]]]] = None,
     ) -> Dict[str, Dict[str, dict]]:
-        """Process the data for optimization and backtesting.
-        This method iterates over the data for each symbol, performing
-        optimization and backtesting as needed.
-        """
+        """Process the data for optimization and backtesting in parallel per symbol-strategy, with concurrency control."""
+        if not data:
+            return {}
 
-        results = {}
+        semaphore = asyncio.Semaphore(self.strategy_concurrency_limit)
+        tasks = []
         for symbol, df_iter_factory in data.items():
-            if symbol not in data:
-                self.logger.warning(f"No data for symbol: {symbol}")
-                continue
-
-            dfs = []
-            async for df in df_iter_factory():
-                dfs.append(df)
-            if not dfs:
-                self.logger.warning(
-                    f"No data for symbol: {symbol} in window for dates {self.start_date} to {self.end_date}"
-                )
-                continue
-            train_df = pd.concat(dfs, ignore_index=True)
-
             for strategy_combinator in self.strategy_combinators:
-                try:
-                    strategy_class = strategy_combinator.strategy_class
-                    strategy_name = strategy_class.__name__
+                tasks.append(
+                    self._optimize_and_write(
+                        symbol, df_iter_factory, strategy_combinator, semaphore
+                    )
+                )
+        all_results = await asyncio.gather(*tasks)
+        # Merge all results into a single dict
+        merged_results = {}
+        for result in all_results:
+            for symbol_key, strat_dict in result.items():
+                if symbol_key not in merged_results:
+                    merged_results[symbol_key] = {}
+                merged_results[symbol_key].update(strat_dict)
+        return merged_results
 
-                    if self._has_optimization_run(
-                        symbol=symbol,
-                        strategy_name=strategy_name,
-                        start_date=self.start_date,
-                        end_date=self.end_date,
-                    ):
-                        self.logger.info(
-                            f"Skipping optimization for {symbol} {strategy_name} as it has already been run."
-                        )
-                        skip_result_json = {
+    async def _optimize_and_write(
+        self,
+        symbol: str,
+        df_iter_factory: Callable[[], AsyncIterator[Any]],
+        strategy_combinator,
+        semaphore: Any,
+    ) -> dict:
+        async with semaphore:
+            try:
+                dfs = []
+                async for df in df_iter_factory():
+                    dfs.append(df)
+                if not dfs:
+                    self.logger.warning(
+                        f"No data for symbol: {symbol} in window for dates {self.start_date} to {self.end_date}"
+                    )
+                    return {}
+                train_df = pd.concat(dfs, ignore_index=True)
+                strategy_class = strategy_combinator.strategy_class
+                strategy_name = strategy_class.__name__
+                if self._has_optimization_run(
+                    symbol=symbol,
+                    strategy_name=strategy_name,
+                    start_date=self.start_date,
+                    end_date=self.end_date,
+                ):
+                    self.logger.info(
+                        f"Skipping optimization for {symbol} {strategy_name} as it has already been run."
+                    )
+                    skip_result_json = {
+                        symbol: {
                             strategy_name: {
                                 "optimization": {
                                     "symbol": symbol,
@@ -138,55 +181,50 @@ class StrategyOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
                                 }
                             }
                         }
-                        results = results | skip_result_json
-                        continue
-
-                    # Run optimization
-                    optimizer = self.signal_strategy_optimizer_factory.create(
-                        strategy_class=strategy_class,
-                        condition_types=strategy_combinator.get_condition_types(),
-                        backtest_fn=lambda strat, df_: self._backtest_and_evaluate(
-                            symbol, strat, df_
-                        ),
+                    }
+                    return skip_result_json
+                optimizer = self.signal_strategy_optimizer_factory.create(
+                    strategy_class=strategy_class,
+                    condition_types=strategy_combinator.get_condition_types(),
+                    backtest_fn=lambda strat, df_: self._backtest_and_evaluate(
+                        symbol, strat, df_
+                    ),
+                )
+                optimization_result = optimizer.optimize(
+                    symbol=symbol,
+                    df=train_df,
+                    n_trials=self.optimization_n_trials,
+                    n_jobs=self.optimization_n_jobs,
+                )
+                if (
+                    isinstance(optimization_result, dict)
+                    and "strategy" in optimization_result
+                ):
+                    valid = signal_strategy_optimization_validator(
+                        optimization_result, self.logger
                     )
-                    optimization_result = optimizer.optimize(
-                        symbol=symbol,
-                        df=train_df,
-                        window_start_time=self.start_date,
-                        window_end_time=self.end_date,
-                        n_trials=self.optimization_n_trials,
-                    )
-                    # Fix: Use the correct validator for single result dicts
-                    if (
-                        isinstance(optimization_result, dict)
-                        and "strategy" in optimization_result
-                    ):
-                        valid = signal_strategy_optimization_validator(
-                            optimization_result, self.logger
-                        )
-                    else:
-                        valid = self._validate_optimization_results(optimization_result)
-                    if not valid:
-                        self.logger.error(
-                            f"[{self.stage}] Optimization results validation failed for {symbol} {strategy_name}"
-                        )
-                        continue
-                    # Write the optimization results to JSON
-                    results = self._write_results(
-                        symbol=symbol,
-                        start_date=self.start_date,
-                        end_date=self.end_date,
-                        strategy_name=strategy_name,
-                        optimization_result=optimization_result,
-                        collective_results=results,
-                    )
-                except Exception as e:
+                else:
+                    valid = self._validate_optimization_results(optimization_result)
+                if not valid:
                     self.logger.error(
-                        f"Optimization failed for symbol {symbol}, strategy {strategy_name}: {e}"
+                        f"[{self.stage}] Optimization results validation failed for {symbol} {strategy_name}"
                     )
-                    continue
-
-        return results
+                    return {}
+                # Write and return the result for this symbol-strategy
+                result = self._write_results(
+                    symbol=symbol,
+                    start_date=self.start_date,
+                    end_date=self.end_date,
+                    strategy_name=strategy_name,
+                    optimization_result=optimization_result,
+                    collective_results={},
+                )
+                return result
+            except Exception as e:
+                self.logger.error(
+                    f"Optimization failed for symbol {symbol}, strategy {getattr(strategy_combinator, 'strategy_class', strategy_combinator)}: {e}"
+                )
+                return {}
 
     def _has_optimization_run(
         self, symbol: str, strategy_name: str, start_date: datetime, end_date: datetime
