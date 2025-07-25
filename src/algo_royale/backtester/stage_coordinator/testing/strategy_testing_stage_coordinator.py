@@ -206,7 +206,7 @@ class StrategyTestingStageCoordinator(BaseTestingStageCoordinator):
                 async def data_factory():
                     yield test_df
 
-                raw_results = await self.executor.run_backtest(
+                raw_results = await self.executor.run_backtest_async(
                     [strategy], {symbol: data_factory}
                 )
                 self.logger.debug(f"Raw results for {symbol}: {raw_results}")
@@ -316,7 +316,12 @@ class StrategyTestingStageCoordinator(BaseTestingStageCoordinator):
                 )
                 return False
             # Validate the structure of the test data
-            if not self.stage.output_validation_fn(test_data, self.logger):
+            self.logger.debug(
+                f"Validating test data for {symbol} {strategy_name} in window {self.test_window_id} | Data: {existing_optimization_json}"
+            )
+            if not self.stage.output_validation_fn(
+                existing_optimization_json, self.logger
+            ):
                 self.logger.error(
                     f"Test data validation failed for {symbol} {strategy_name} in window {self.test_window_id}"
                 )
