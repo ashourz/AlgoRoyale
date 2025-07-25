@@ -662,6 +662,9 @@ class DIContainer(containers.DeclarativeContainer):
         slippage=providers.Object(
             config().get_float("backtester.portfolio", "slippage", 0.0)
         ),
+        settlement_days=providers.Object(
+            config().get_int("backtester.portfolio", "settlement_days", 1)
+        ),
         logger=logger_portfolio_executor,
     )
 

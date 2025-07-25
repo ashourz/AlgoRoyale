@@ -27,6 +27,8 @@ class PortfolioBacktestExecutor:
         : min_lot: Minimum lot size for trades (e.g., 1 for fractional shares, 100 for round lots).
         : leverage: Leverage factor (1.0 for no leverage, >1.0 for margin trading).
         : slippage: Slippage factor as a fraction of the price (0.0 for no slippage).
+        : settlement_days: Number of days to wait for cash settlement after a trade (0 for immediate settlement).
+            This simulates the delay in cash availability after a trade, which is common in real-world
     """
 
     def __init__(
