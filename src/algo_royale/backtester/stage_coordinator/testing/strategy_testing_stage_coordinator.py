@@ -153,7 +153,7 @@ class StrategyTestingStageCoordinator(BaseTestingStageCoordinator):
             self.logger.debug(f"DataFrames for {symbol}: {dfs}")
             if not dfs:
                 self.logger.warning(
-                    f"No data for symbol: {symbol} in window {self.train_window_id}"
+                    f"No data for symbol: {symbol} in window {self.test_window_id}"
                 )
                 continue
             test_df = pd.concat(dfs, ignore_index=True)
@@ -176,7 +176,7 @@ class StrategyTestingStageCoordinator(BaseTestingStageCoordinator):
                             "test": {
                                 "symbol": symbol,
                                 "strategy": strategy_name,
-                                "window_id": self.window_id,
+                                "window_id": self.test_window_id,
                                 "status": "skipped",
                                 "reason": "Already run",
                             }
