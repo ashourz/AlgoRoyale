@@ -40,6 +40,7 @@ class PortfolioBacktestExecutor:
         leverage: float = 1.0,
         slippage: float = 0.0,
         settlement_days: int = 1,
+        book_closing_policy: str = "EOD",  # "none", "EOD", "EOW"
     ):
         self.logger = logger
         self.initial_balance = initial_balance
@@ -48,6 +49,7 @@ class PortfolioBacktestExecutor:
         self.leverage = leverage
         self.slippage = slippage
         self.settlement_days = int(settlement_days)
+        self.book_closing_policy = book_closing_policy
 
     def run_backtest(
         self,
@@ -339,6 +341,83 @@ class PortfolioBacktestExecutor:
                 )
             cash_history.append(cash)
             holdings_history.append(holdings.copy())
+
+            # Book closing logic
+            close_positions = False
+            if self.book_closing_policy == "EOD":
+                # For EOD, close positions at the end of each unique day
+                if hasattr(timestamp, "date"):
+                    # If next timestamp is a new day or last step
+                    if t == n_steps - 1:
+                        close_positions = True
+                    else:
+                        next_timestamp = data.index[t + 1] if t + 1 < n_steps else None
+                        if (
+                            next_timestamp is not None
+                            and next_timestamp.date() != timestamp.date()
+                        ):
+                            close_positions = True
+                else:
+                    # If timestamp is not datetime, close every step
+                    close_positions = True
+            elif self.book_closing_policy == "EOW":
+                # For EOW, close positions at the end of each unique week
+                if hasattr(timestamp, "isocalendar"):
+                    if t == n_steps - 1:
+                        close_positions = True
+                    else:
+                        next_timestamp = data.index[t + 1] if t + 1 < n_steps else None
+                        if (
+                            next_timestamp is not None
+                            and next_timestamp.isocalendar()[1]
+                            != timestamp.isocalendar()[1]
+                        ):
+                            close_positions = True
+                else:
+                    # If timestamp is not datetime, close every step
+                    close_positions = True
+            if close_positions:
+                for i in range(n_assets):
+                    if holdings[i] > 0 and np.isfinite(prices[i]) and prices[i] > 0:
+                        asset_name = (
+                            data.columns[i] if hasattr(data, "columns") else str(i)
+                        )
+                        sell_price = prices[i] * (1 - self.slippage)
+                        shares_to_sell = holdings[i] // self.min_lot * self.min_lot
+                        proceeds = (
+                            shares_to_sell * sell_price * (1 - self.transaction_cost)
+                        )
+                        holdings[i] -= shares_to_sell
+                        if self.settlement_days > 0:
+                            pending_settlements.append(
+                                {
+                                    "amount": proceeds,
+                                    "settle_step": t + self.settlement_days,
+                                }
+                            )
+                        else:
+                            cash += proceeds
+                        transactions.append(
+                            {
+                                PortfolioTransactionKeys.TRADE_ID: trade_id,
+                                PortfolioTransactionKeys.TIMESTAMP: str(timestamp),
+                                PortfolioTransactionKeys.STEP: t,
+                                PortfolioTransactionKeys.ASSET: asset_name,
+                                PortfolioTransactionKeys.ACTION: "book_close",
+                                PortfolioTransactionKeys.QUANTITY: int(shares_to_sell),
+                                PortfolioTransactionKeys.PRICE: float(sell_price),
+                                PortfolioTransactionKeys.PROCEEDS: float(proceeds),
+                                PortfolioTransactionKeys.CASH_AFTER: float(cash),
+                                PortfolioTransactionKeys.HOLDINGS_AFTER: float(
+                                    holdings[i]
+                                ),
+                            }
+                        )
+                        trade_id += 1
+                        trades_executed += 1
+                self.logger.info(
+                    f"[{timestamp}] Book closing policy '{self.book_closing_policy}' applied: all positions closed."
+                )
 
         if trades_executed == 0:
             self.logger.warning(

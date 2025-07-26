@@ -95,9 +95,6 @@ from algo_royale.backtester.strategy_combinator.signal.bollinger_bands_strategy_
 from algo_royale.backtester.strategy_combinator.signal.combo_strategy_combinator import (
     ComboStrategyCombinator,
 )
-from algo_royale.backtester.strategy_combinator.signal.macd_trailing_strategy_combinator import (
-    MACDTrailingStrategyCombinator,
-)
 from algo_royale.backtester.strategy_factory.signal.strategy_factory import (
     StrategyFactory,
 )
@@ -548,7 +545,7 @@ class DIContainer(containers.DeclarativeContainer):
     signal_strategy_combinators = [
         BollingerBandsStrategyCombinator,
         ComboStrategyCombinator,
-        MACDTrailingStrategyCombinator,
+        # MACDTrailingStrategyCombinator,
         # MeanReversionStrategyCombinator,
         # MomentumStrategyCombinator,
         # MovingAverageCrossoverStrategyCombinator,
@@ -664,6 +661,9 @@ class DIContainer(containers.DeclarativeContainer):
         ),
         settlement_days=providers.Object(
             config().get_int("backtester.portfolio", "settlement_days", 1)
+        ),
+        book_closing_policy=providers.Object(
+            config().get("backtester.portfolio", "book_closing_policy", "EOD")
         ),
         logger=logger_portfolio_executor,
     )
