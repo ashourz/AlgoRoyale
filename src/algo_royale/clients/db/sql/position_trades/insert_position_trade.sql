@@ -1,1 +1,2 @@
-INSERT INTO position_trades (position_id, trade_id, created_at) VALUES ($1, $2, $NOW())
+INSERT INTO position_trades (position_id, trade_id, created_at) VALUES ($1, $2, CURRENT_TIMESTAMP) RETURNING id;
+-- This SQL statement inserts a new position trade into the position_trades table with the provided position ID and trade ID, and returns the newly created position trade's ID.

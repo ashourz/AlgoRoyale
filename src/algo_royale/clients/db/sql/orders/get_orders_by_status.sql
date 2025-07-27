@@ -1,4 +1,5 @@
 SELECT *
 FROM orders
 WHERE status = $1
-ORDER BY created_at DESC;
+ORDER BY created_at DESC
+LIMIT $2 OFFSET $3;

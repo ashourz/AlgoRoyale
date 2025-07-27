@@ -30,13 +30,14 @@ CREATE TABLE
     orders (
         id SERIAL PRIMARY KEY,
         symbol TEXT NOT NULL,
+        market TEXT NOT NULL,
         order_type TEXT CHECK (order_type IN ('market', 'limit', 'stop')) NOT NULL,
         status TEXT CHECK (status IN ('pending', 'partially_filled', 'filled', 'cancelled')) NOT NULL,
-        direction TEXT CHECK (direction IN ('buy', 'sell')) NOT NULL,
+        action TEXT CHECK (action IN ('buy', 'sell')) NOT NULL,
         quantity INTEGER NOT NULL,
-        filled_quantity INTEGER DEFAULT 0,
         price NUMERIC(10, 4),
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         signal_id INTEGER REFERENCES trade_signals (id) ON DELETE CASCADE,
         user_id UUID,
         account_id TEXT
@@ -48,15 +49,16 @@ CREATE TABLE
     trades (
         id SERIAL PRIMARY KEY,
         symbol TEXT NOT NULL,
-        direction TEXT CHECK (direction IN ('long', 'short')) NOT NULL,
+        market TEXT NOT NULL,
+        order_type TEXT CHECK (order_type IN ('market', 'limit', 'stop')) NOT NULL,
+        action TEXT CHECK (action IN ('buy', 'sell')) NOT NULL,
+        settled BOOLEAN DEFAULT FALSE,
+        settlement_date TIMESTAMP,
         entry_price NUMERIC(10, 4),
         exit_price NUMERIC(10, 4),
         shares INTEGER,
         entry_time TIMESTAMP,
         exit_time TIMESTAMP,
-        strategy_phase TEXT CHECK (
-            strategy_phase IN ('breakout', 'momentum', 'mean_reversion')
-        ),
         realized_pnl NUMERIC(10, 4),
         notes TEXT,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -68,16 +70,19 @@ CREATE TABLE
 -- Positions table
 CREATE TABLE
     positions (
-        id SERIAL PRIMARY KEY,
+        id SERIAL PRIMARY KEY,  -- Unique identifier for the position
         symbol TEXT NOT NULL,
         quantity INTEGER NOT NULL,
         entry_price NUMERIC(10, 4),
         current_price NUMERIC(10, 4),
         unrealized_pnl NUMERIC(10, 4),
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        -- Assuming user_id and account_id are used for tracking positions per user/account
         user_id UUID,
         account_id TEXT
     );
+
 CREATE INDEX idx_positions_user_account ON positions (user_id, account_id)
 
 -- Position Trades table

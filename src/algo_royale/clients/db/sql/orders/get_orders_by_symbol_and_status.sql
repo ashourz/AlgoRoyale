@@ -1,4 +1,5 @@
 SELECT * FROM orders
 WHERE status = $1 AND symbol = $2
-ORDER BY created_at DESC;
+ORDER BY created_at DESC
+LIMIT $3 OFFSET $4;
 -- This query retrieves all orders for a specific symbol and status, ordered by creation time in descending
