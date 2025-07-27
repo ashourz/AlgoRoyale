@@ -3,47 +3,53 @@ from datetime import datetime
 from decimal import Decimal
 
 from algo_royale.clients.db.dao.trade_signal_dao import TradeSignalDAO
+from algo_royale.logging.loggable import Loggable
 
 
 class TradeSignalService:
-    def __init__(self, dao: TradeSignalDAO):
+    def __init__(
+        self, dao: TradeSignalDAO, logger: Loggable, user_id: str, account_id: str
+    ):
         self.dao = dao
+        self.logger = logger
+        self.user_id = user_id
+        self.account_id = account_id
 
-    def create_signal(
-        self, symbol: str, signal: str, price: Decimal, created_at: datetime
-    ) -> None:
-        """Insert a new trade signal."""
-        self.dao.upsert_signal(symbol, signal, price, created_at)
+    def fetch_all_signals(self, limit: int = 100, offset: int = 0) -> list:
+        """Fetch all trade signals.
+        Returns a list of all trade signals, limited by the specified limit and offset.
+        parameters:
+            limit (int): Maximum number of signals to return.
+            offset (int): Number of signals to skip before starting to return results.
+        """
+        return self.dao.fetch_all_signals(limit, offset)
 
-    def get_signals_by_symbol(self, symbol: str):
-        """Fetch trade signals by symbol."""
-        return self.dao.fetch_signals_by_symbol(symbol)
+    def fetch_signals_by_symbol(
+        self, symbol: str, limit: int = 100, offset: int = 0
+    ) -> list:
+        """Fetch trade signals by symbol.
+        Returns a list of signals for the given symbol, limited by the specified limit and offset.
+        parameters:
+            symbol (str): The stock symbol to filter signals by.
+            limit (int): Maximum number of signals to return.
+            offset (int): Number of signals to skip before starting to return results.
+        """
+        return self.dao.fetch_signals_by_symbol(symbol, limit, offset)
 
-    def get_signal_by_id(self, signal_id: int):
-        """Get signal details by ID."""
-        return self.dao.fetch_signal_by_id(signal_id)
-
-    def get_all_signals(self):
-        """Fetch all trade signals."""
-        return self.dao.fetch_all_signals()
-
-    def update_signal(
+    def upsert_signal(
         self,
-        signal_id: int,
         symbol: str,
         signal: str,
         price: Decimal,
         created_at: datetime,
-    ) -> None:
-        """Update an existing trade signal."""
-        self.dao.update_signal(signal_id, symbol, signal, price, created_at)
+    ) -> int:
+        """Insert or update a trade signal."""
+        return self.dao.upsert_signal(
+            symbol, signal, price, created_at, self.user_id, self.account_id
+        )
 
-    def delete_signal(self, signal_id: int) -> None:
-        """Delete a trade signal by its ID."""
-        self.dao.delete_signal(signal_id)
-
-    def get_signal_by_symbol_and_date(
-        self, symbol: str, start_date: datetime, end_date: datetime
-    ):
-        """Fetch trade signals by symbol and date."""
-        return self.dao.fetch_signals_by_symbol_and_date(symbol, start_date, end_date)
+    def delete_all_signals(self) -> int:
+        """Delete all trade signals.
+        Returns the number of deleted signals.
+        """
+        return self.dao.delete_all_signals()

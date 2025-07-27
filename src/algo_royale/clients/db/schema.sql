@@ -52,16 +52,12 @@ CREATE TABLE
         id SERIAL PRIMARY KEY,
         symbol TEXT NOT NULL,
         market TEXT NOT NULL,
-        order_type TEXT CHECK (order_type IN ('market', 'limit', 'stop')) NOT NULL,
         action TEXT CHECK (action IN ('buy', 'sell')) NOT NULL,
         settled BOOLEAN DEFAULT FALSE,
         settlement_date TIMESTAMP,
-        entry_price NUMERIC(10, 4),
-        exit_price NUMERIC(10, 4),
+        price NUMERIC(10, 4),
         shares INTEGER,
-        entry_time TIMESTAMP,
-        exit_time TIMESTAMP,
-        realized_pnl NUMERIC(10, 4),
+        executed_at TIMESTAMP,
         notes TEXT,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         order_id INTEGER REFERENCES orders (id) ON DELETE CASCADE,
@@ -75,9 +71,7 @@ CREATE TABLE
         id SERIAL PRIMARY KEY,  -- Unique identifier for the position
         symbol TEXT NOT NULL,
         quantity INTEGER NOT NULL,
-        entry_price NUMERIC(10, 4),
-        current_price NUMERIC(10, 4),
-        unrealized_pnl NUMERIC(10, 4),
+        price NUMERIC(10, 4),
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         -- Assuming user_id and account_id are used for tracking positions per user/account
@@ -91,6 +85,15 @@ CREATE TABLE
     position_trades (
         id SERIAL PRIMARY KEY,
         position_id INTEGER REFERENCES positions (id) ON DELETE CASCADE,
+        trade_id INTEGER REFERENCES trades (id) ON DELETE CASCADE,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    );
+
+-- Order Trades table
+CREATE TABLE
+    order_trades (
+        id SERIAL PRIMARY KEY,
+        order_id INTEGER REFERENCES orders (id) ON DELETE CASCADE,
         trade_id INTEGER REFERENCES trades (id) ON DELETE CASCADE,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     );
@@ -130,8 +133,9 @@ CREATE TABLE
 CREATE INDEX idx_trade_symbol ON trades (symbol);
 CREATE UNIQUE INDEX idx_trade_signals_symbol_unique ON trade_signals(symbol);
 CREATE INDEX idx_orders_user_account ON orders (user_id, account_id);
-CREATE INDEX idx_positions_user_account ON positions (user_id, account_id)
+CREATE UNIQUE INDEX idx_positions_symbol_user_account ON positions (symbol, user_id, account_id);
 CREATE UNIQUE INDEX idx_position_trades_unique ON position_trades(position_id, trade_id);
+CREATE UNIQUE INDEX idx_order_trades_unique ON order_trades(order_id, trade_id);
 
 
 CREATE INDEX idx_indicators_trade_id ON indicators (trade_id);

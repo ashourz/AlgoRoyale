@@ -1,0 +1,2 @@
+INSERT INTO order_trades (order_id, trade_id, created_at) VALUES ($1, $2, CURRENT_TIMESTAMP) RETURNING id;
+-- This SQL statement inserts a new order trade into the order_trades table with the provided order ID and trade ID, and returns the newly created order trade's ID.

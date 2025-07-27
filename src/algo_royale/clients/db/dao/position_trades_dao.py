@@ -38,15 +38,21 @@ class PositionTradesDAO(BaseDAO):
         Insert a new position trade into the database.
         :param position_id: The ID of the position associated with the trade.
         :param trade_id: The ID of the trade associated with the position.
-        :return: The ID of the newly inserted position trade.
+        :return: The ID of the newly inserted position trade, or -1 if the insertion failed.
         """
-        return self.insert("insert_position_trade.sql", (position_id, trade_id))
+        inserted_id = self.insert("insert_position_trade.sql", (position_id, trade_id))
+        if not inserted_id:
+            self.logger.error(
+                f"Failed to insert position trade for position {position_id} and trade {trade_id}."
+            )
+            return -1
+        return inserted_id
 
     def delete_all_position_trades(self) -> int:
         """
         Delete all position trades from the database.
         This is a utility method for cleanup purposes.
-        :return: The number of deleted position trades.
+        :return: The number of deleted position trades, or -1 if the deletion failed.
         """
-        deleted_ids = self.execute("delete_all_position_trades.sql")
-        return len(deleted_ids) if deleted_ids else 0
+        deleted_ids = self.delete("delete_all_position_trades.sql")
+        return len(deleted_ids) if deleted_ids else -1

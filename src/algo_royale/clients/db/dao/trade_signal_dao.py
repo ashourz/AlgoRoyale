@@ -47,13 +47,28 @@ class TradeSignalDAO(BaseDAO):
         user_id: str = None,
         account_id: str = None,
     ) -> int:
-        """Insert a new trade signal."""
-        return self.insert(
+        """Insert a new trade signal.
+        If a signal for the symbol already exists, it will be updated.
+        parameters:
+            symbol (str): The stock symbol to filter signals by.
+            signal (str): The trade signal (e.g., 'buy', 'sell').
+            price (Decimal): The price at which the signal was generated.
+            created_at (datetime): The timestamp when the signal was created.
+            user_id (str, optional): The ID of the user who created the signal.
+            account_id (str, optional): The ID of the account associated with the signal.
+        Returns the ID of the newly inserted or updated signal, or -1 if the operation failed."""
+        inserted_id = self.insert(
             "upsert_signal.sql",
             (symbol, signal, price, created_at, user_id, account_id),
         )
+        if not inserted_id:
+            self.logger.error(f"Failed to upsert signal for {symbol}.")
+            return -1
+        return inserted_id
 
     def delete_all_signals(self) -> int:
-        """Delete all trade signals."""
+        """Delete all trade signals.
+        Returns the number of deleted signals, or -1 if the deletion failed.
+        """
         deleted_ids = self.delete("delete_all_signals.sql")
-        return len(deleted_ids) if deleted_ids else 0
+        return len(deleted_ids) if deleted_ids else -1

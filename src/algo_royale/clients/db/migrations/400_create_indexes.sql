@@ -4,8 +4,9 @@
 CREATE INDEX idx_trade_symbol ON trades (symbol);
 CREATE UNIQUE INDEX idx_trade_signals_symbol_unique ON trade_signals(symbol);
 CREATE INDEX idx_orders_user_account ON orders (user_id, account_id);
-CREATE INDEX idx_positions_user_account ON positions (user_id, account_id)
+CREATE UNIQUE INDEX idx_positions_symbol_user_account ON positions (symbol, user_id, account_id);
 CREATE UNIQUE INDEX idx_position_trades_unique ON position_trades(position_id, trade_id);
+CREATE UNIQUE INDEX idx_order_trades_unique ON order_trades(order_id, trade_id);
 
 
 CREATE INDEX idx_indicators_trade_id ON indicators (trade_id);

@@ -1,75 +1,105 @@
 ## service\trade_service.py
 from datetime import datetime
 from decimal import Decimal
-from typing import Tuple
 
 from algo_royale.clients.db.dao.trade_dao import TradeDAO
+from algo_royale.logging.loggable import Loggable
 
 
 class TradeService:
-    def __init__(self, dao: TradeDAO):
+    def __init__(
+        self,
+        dao: TradeDAO,
+        logger: Loggable,
+        user_id: str,
+        account_id: str,
+    ):
         self.dao = dao
+        self.logger = logger
+        self.user_id = user_id
+        self.account_id = account_id
 
-    def create_trade(
+    def fetch_unsettled_trades(self, limit: int = 100, offset: int = 0) -> list:
+        """Fetch all unsettled trades with pagination.
+        :param limit: Maximum number of trades to fetch.
+        :param offset: Offset for pagination.
+        :return: List of unsettled trades.
+        """
+        return self.dao.fetch_unsettled_trades(limit, offset)
+
+    def insert_trade(
         self,
         symbol: str,
-        direction: str,
+        market: str,
+        action: str,
+        settlement_date: datetime,
         entry_price: Decimal,
+        exit_price: Decimal,
         shares: int,
-        strategy_phase: str,
         entry_time: datetime,
-        notes: str = "",
-    ) -> None:
-        """Create a new trade record."""
-        self.dao.insert_trade(
-            symbol, direction, entry_price, shares, strategy_phase, entry_time, notes
+        exit_time: datetime,
+        notes: str,
+        order_id: int,
+    ) -> int:
+        """Insert a new trade record.
+        :param symbol: The stock symbol of the trade.
+        :param market: The market where the trade occurred (e.g., 'NYSE', 'NASDAQ').
+        :param action: The action of the trade (e.g., 'buy', 'sell').
+        :param settlement_date: The settlement date of the trade.
+        :param entry_price: The entry price of the trade.
+        :param exit_price: The exit price of the trade.
+        :param shares: The number of shares traded.
+        :param entry_time: The time when the trade was entered.
+        :param exit_time: The time when the trade was exited.
+        :param notes: Additional notes about the trade.
+        :param order_id: The ID of the associated order.
+        :return: The ID of the newly inserted trade record.
+        """
+        return self.dao.insert_trade(
+            symbol,
+            market,
+            action,
+            settlement_date,
+            entry_price,
+            exit_price,
+            shares,
+            entry_time,
+            exit_time,
+            notes,
+            order_id,
+            self.user_id,
+            self.account_id,
         )
 
-    def get_trades(self, limit: int = 10, offset: int = 0) -> list[Tuple]:
-        """Get trade history with pagination."""
-        return self.dao.fetch_trades(limit, offset)
+    def fetch_trades_by_date_range(
+        self,
+        start_date: datetime,
+        end_date: datetime,
+        limit: int = 100,
+        offset: int = 0,
+    ) -> list:
+        """Fetch trades within a specific date range.
+        :param start_date: The start date of the range.
+        :param end_date: The end date of the range.
+        :param limit: The maximum number of trades to return.
+        :param offset: The number of trades to skip.
+        :return: A list of trades within the specified date range.
+        """
+        return self.dao.fetch_trades_by_date_range(start_date, end_date, limit, offset)
 
-    def update_trade(
-        self, trade_id: int, exit_price: Decimal, exit_time: datetime, pnl: Decimal
-    ) -> None:
-        """Update an existing trade record."""
-        self.dao.update_trade(trade_id, exit_price, exit_time, pnl)
+    def update_trade_as_settled(self, trade_id: int) -> int:
+        """Update a trade as settled."""
+        return self.dao.update_trade_as_settled(trade_id)
 
-    def get_trade_by_id(self, trade_id: int) -> Tuple:
-        """Get trade details by trade ID."""
-        return self.dao.fetch_trade_by_id(trade_id)
+    def delete_trade(self, trade_id: int) -> int:
+        """Delete a trade record.
+        :param trade_id: The ID of the trade to delete.
+        :return: Number of deleted records."""
+        return self.dao.delete_trade(trade_id)
 
-    def get_trades_by_symbol(
-        self, symbol: str, limit: int = 10, offset: int = 0
-    ) -> list[Tuple]:
-        """Get trades by stock symbol."""
-        return self.dao.fetch_trades_by_symbol(symbol, limit, offset)
-
-    def calculate_trade_pnl(
-        self, entry_price: Decimal, exit_price: Decimal, shares: int
-    ) -> Decimal:
-        """Calculate the profit or loss of a trade."""
-        return (exit_price - entry_price) * shares
-
-    def get_trade_history(self, limit: int = 10, offset: int = 0) -> list[Tuple]:
-        """Get trade history with pagination."""
-        return self.dao.fetch_trades(limit, offset)
-
-    def get_trades_by_date_range(
-        self, start_date: datetime, end_date: datetime
-    ) -> list[Tuple]:
-        """Get trades within a specific date range."""
-        return self.dao.fetch_trades_by_date_range(start_date, end_date)
-
-    def get_open_trades(self) -> list[Tuple]:
-        """Get all open trades."""
-        return self.dao.fetch_open_trades()
-
-    def get_trades_by_symbol_and_date(
-        self, symbol: str, start_date: datetime, end_date: datetime
-    ) -> list[Tuple]:
-        """Get trades by symbol and date range."""
-        return self.dao.fetch_trades_by_symbol_and_date(symbol, start_date, end_date)
-
-    def delete_trade(self, trade_id: int) -> None:
-        self.dao.delete_trade(trade_id)
+    def delete_all_trades(self) -> int:
+        """Delete all trade records.
+        This is a destructive operation and should be used with caution.
+        :return: Number of deleted records.
+        """
+        return self.dao.delete_all_trades()

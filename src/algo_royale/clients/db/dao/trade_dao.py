@@ -21,19 +21,27 @@ class TradeDAO(BaseDAO):
         """Fetch all unsettled trades with pagination."""
         return self.fetch("get_unsettled_trades.sql", (limit, offset))
 
+    def fetch_trades_by_date_range(
+        self,
+        start_date: datetime,
+        end_date: datetime,
+        limit: int = 100,
+        offset: int = 0,
+    ) -> list:
+        """Fetch trades within a specific date range."""
+        return self.fetch(
+            "get_trades_by_date_range.sql",
+            (start_date, end_date, limit, offset),
+        )
+
     def insert_trade(
         self,
         symbol: str,
         market: str,
-        order_type: str,
         action: str,
-        settlment_date: datetime,
-        entry_price: Decimal,
-        exit_price: Decimal,
+        price: Decimal,
         shares: int,
-        entry_time: datetime,
-        exit_time: datetime,
-        realized_pnl: Decimal,
+        executed_at: datetime,
         notes: str,
         order_id: int,
         user_id: int,
@@ -42,59 +50,63 @@ class TradeDAO(BaseDAO):
         """Insert a new trade record.
         :param symbol: The stock symbol of the trade.
         :param market: The market where the trade occurred (e.g., 'NYSE', 'NASDAQ').
-        :param order_type: The type of the order (e.g., 'market', 'limit').
         :param action: The action of the trade (e.g., 'buy', 'sell').
-        :param settlement_date: The settlement date of the trade.
-        :param entry_price: The entry price of the trade.
-        :param exit_price: The exit price of the trade.
+        :param price: The execution price of the trade.
         :param shares: The number of shares traded.
-        :param entry_time: The time when the trade was entered.
-        :param exit_time: The time when the trade was exited.
-        :param realized_pnl: The realized profit and loss from the trade.
+        :param executed_at: The time when the trade was executed.
         :param notes: Additional notes about the trade.
         :param order_id: The ID of the associated order.
         :param user_id: The ID of the user who made the trade.
         :param account_id: The ID of the account associated with the trade.
-        :return: The ID of the newly inserted trade.
+        :return: The ID of the newly inserted trade record, or -1 if the insertion failed.
         """
-        return self.insert(
+        returned_id = self.insert(
             "insert_trade.sql",
             (
                 symbol,
                 market,
-                order_type,
                 action,
-                settlment_date,
-                entry_price,
-                exit_price,
+                price,
                 shares,
-                entry_time,
-                exit_time,
-                realized_pnl,
+                executed_at,
                 notes,
                 order_id,
                 user_id,
                 account_id,
             ),
         )
+        if not returned_id:
+            self.logger.error(
+                f"Failed to insert trade for symbol {symbol} with action {action}."
+            )
+            return -1
+        return returned_id
 
     def update_trade_as_settled(self, trade_id: int) -> int:
         """Update a trade record as settled by its ID.
         :param trade_id: The ID of the trade to update.
-        :return: The ID of the updated trade.
+        :return: The ID of the updated trade record, or -1 if the update failed.
         """
-        return self.update("update_trade.sql", (trade_id,))
+        updated_id = self.update("update_trade.sql", (trade_id,))
+        if not updated_id:
+            self.logger.error(f"Failed to update trade {trade_id} as settled.")
+            return -1
+        return updated_id
 
     def delete_trade(self, trade_id: int) -> int:
         """Delete a trade record by its ID.
         :param trade_id: The ID of the trade to delete.
-        :return: The ID of the deleted trade.
+        :return: The ID of the deleted trade, or -1 if the deletion failed.
         """
-        return self.delete("delete_trade.sql", (trade_id,))
+        deleted_id = self.delete("delete_trade.sql", (trade_id,))
+        if not deleted_id:
+            self.logger.error(f"Failed to delete trade {trade_id}.")
+            return -1
+        return deleted_id
 
     def delete_all_trades(self) -> int:
         """Delete all trade records.
-        :return: The number of deleted trades.
+        :return: The number of deleted trades, or -1 if the deletion failed.
         """
         deleted_ids = self.delete("delete_all_trades.sql", ())
-        return len(deleted_ids) if deleted_ids else 0
+        return len(deleted_ids) if deleted_ids else -1

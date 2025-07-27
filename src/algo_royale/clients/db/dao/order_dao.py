@@ -5,6 +5,16 @@ class OrderDAO(BaseDAO):
     def __init__(self, connection, sql_dir, logger):
         super().__init__(connection=connection, sql_dir=sql_dir, logger=logger)
 
+    def get_order_by_id(self, order_id: int, user_id: str, account_id: str) -> dict:
+        """
+        Fetch an order by its ID, ensuring it belongs to the specified user and account.
+        :param order_id: The ID of the order to fetch.
+        :param user_id: The ID of the user who owns the order.
+        :param account_id: The ID of the account associated with the order.
+        :return: A dictionary representing the order, or None if not found.
+        """
+        return self.fetch("get_order_by_id.sql", (order_id, user_id, account_id))
+
     def fetch_orders_by_status(
         self, status: str, limit: int = 100, offset: int = 0
     ) -> list:
@@ -57,9 +67,9 @@ class OrderDAO(BaseDAO):
         :param signal_id: The ID of the signal associated with the order.
         :param user_id: The ID of the user who placed the order.
         :param account_id: The ID of the account associated with the order.
-        :return: The ID of the newly inserted order.
+        :return: The ID of the newly inserted order, or -1 if the insertion failed.
         """
-        return self.insert(
+        inserted_id = self.insert(
             "insert_order.sql",
             (
                 symbol,
@@ -74,6 +84,12 @@ class OrderDAO(BaseDAO):
                 account_id,
             ),
         )
+        if not inserted_id:
+            self.logger.error(
+                f"Failed to insert order for symbol {symbol} with action {action}."
+            )
+            return -1
+        return inserted_id
 
     def update_order_status(
         self,
@@ -84,29 +100,37 @@ class OrderDAO(BaseDAO):
         Update an existing order in the database.
         :param order_id: The ID of the order to update.
         :param status: The new status of the order.
-        :return: The ID of the updated order.
+        :return: The ID of the updated order, or -1 if the update failed.
         """
-        return self.insert(
+        updated_id = self.update(
             "update_order.sql",
             (
                 status,
                 order_id,
             ),
         )
+        if not updated_id:
+            self.logger.error(f"Failed to update order {order_id} to status {status}.")
+            return -1
+        return updated_id
 
     def delete_order(self, order_id: int) -> int:
         """
         Delete an order by its ID.
         :param order_id: The ID of the order to delete.
-        :return: The ID of the deleted order.
+        :return: The ID of the deleted order, or -1 if the deletion failed.
         """
-        return self.insert("delete_order.sql", (order_id,))
+        deleted_id = self.delete("delete_order.sql", (order_id,))
+        if not deleted_id:
+            self.logger.error(f"Failed to delete order {order_id}.")
+            return -1
+        return deleted_id
 
     def delete_all_orders(self) -> int:
         """
         Delete all orders from the database.
-        :return: The count of deleted orders.
+        :return: The count of deleted orders, or -1 if the deletion failed.
         """
-        deleted_ids = self.insert("delete_all_orders.sql", ())
-        return len(deleted_ids) if deleted_ids else 0
+        deleted_ids = self.delete("delete_all_orders.sql", ())
+        return len(deleted_ids) if deleted_ids else -1
         # Note: This method returns the count of deleted orders, which can be useful for logging
