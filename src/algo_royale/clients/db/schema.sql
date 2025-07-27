@@ -1,4 +1,8 @@
 -- db\schema.sql
+-- This file defines the schema for the Algo Royale database
+-- It includes the creation of tables, indexes, and other database objects
+-- This file is for reference only and should not be executed directly
+
 DROP TABLE IF EXISTS trades;
 DROP TABLE IF EXISTS trade_signals;
 DROP TABLE IF EXISTS indicators;
@@ -20,7 +24,6 @@ CREATE TABLE
         signal TEXT NOT NULL, -- BUY, SELL, HOLD, etc.
         price NUMERIC NOT NULL,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         user_id UUID,
         account_id TEXT
     );
@@ -42,7 +45,6 @@ CREATE TABLE
         user_id UUID,
         account_id TEXT
     );
-CREATE INDEX idx_orders_user_account ON orders (user_id, account_id);
 
 -- Trades table
 CREATE TABLE
@@ -83,7 +85,6 @@ CREATE TABLE
         account_id TEXT
     );
 
-CREATE INDEX idx_positions_user_account ON positions (user_id, account_id)
 
 -- Position Trades table
 CREATE TABLE
@@ -93,7 +94,6 @@ CREATE TABLE
         trade_id INTEGER REFERENCES trades (id) ON DELETE CASCADE,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     );
-CREATE UNIQUE INDEX idx_position_trades_unique ON position_trades(position_id, trade_id);
 
 -- Indicators table
 CREATE TABLE
@@ -125,23 +125,15 @@ CREATE TABLE
         published_at TIMESTAMP
     );
 
--- Stock Date table
-CREATE TABLE
-    stock_data (
-        id SERIAL PRIMARY KEY,
-        symbol TEXT,
-        timestamp TIMESTAMP,
-        open FLOAT,
-        high FLOAT,
-        low FLOAT,
-        close FLOAT,
-        volume INT
-    );
 
 -- Indexes for performance
 CREATE INDEX idx_trade_symbol ON trades (symbol);
-CREATE INDEX idx_trade_signals_symbol ON trade_signals (symbol);
+CREATE UNIQUE INDEX idx_trade_signals_symbol_unique ON trade_signals(symbol);
+CREATE INDEX idx_orders_user_account ON orders (user_id, account_id);
+CREATE INDEX idx_positions_user_account ON positions (user_id, account_id)
+CREATE UNIQUE INDEX idx_position_trades_unique ON position_trades(position_id, trade_id);
+
+
 CREATE INDEX idx_indicators_trade_id ON indicators (trade_id);
 CREATE INDEX idx_news_sentiment_trade_id ON news_sentiment (trade_id);
 CREATE INDEX idx_news_sentiment_symbol ON news_sentiment (symbol);
-CREATE INDEX idx_stock_data_symbol ON stock_data (symbol);

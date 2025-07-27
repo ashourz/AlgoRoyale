@@ -2,7 +2,12 @@
 
 -- Indexes for performance
 CREATE INDEX idx_trade_symbol ON trades (symbol);
-CREATE INDEX idx_trade_signals_symbol ON trade_signals (symbol);
+CREATE UNIQUE INDEX idx_trade_signals_symbol_unique ON trade_signals(symbol);
+CREATE INDEX idx_orders_user_account ON orders (user_id, account_id);
+CREATE INDEX idx_positions_user_account ON positions (user_id, account_id)
+CREATE UNIQUE INDEX idx_position_trades_unique ON position_trades(position_id, trade_id);
+
+
 CREATE INDEX idx_indicators_trade_id ON indicators (trade_id);
 CREATE INDEX idx_news_sentiment_trade_id ON news_sentiment (trade_id);
 CREATE INDEX idx_news_sentiment_symbol ON news_sentiment (symbol);

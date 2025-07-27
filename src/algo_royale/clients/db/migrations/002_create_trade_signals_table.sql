@@ -1,4 +1,3 @@
--- db\migrations\003_create_trade_signals_table.sql
 
 -- Trade Signals table
 CREATE TABLE
@@ -7,5 +6,8 @@ CREATE TABLE
         symbol TEXT NOT NULL,
         signal TEXT NOT NULL, -- BUY, SELL, HOLD, etc.
         price NUMERIC NOT NULL,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        user_id UUID,
+        account_id TEXT
     );

@@ -1,7 +1,6 @@
 ## db\dao\trade_signals_dao.py
 from datetime import datetime
 from decimal import Decimal
-from typing import Optional, Tuple
 
 import psycopg2
 
@@ -9,7 +8,6 @@ from algo_royale.clients.db.dao.base_dao import BaseDAO
 from algo_royale.logging.loggable import Loggable
 
 
-##TODO: update to match updated schema
 class TradeSignalDAO(BaseDAO):
     def __init__(
         self,
@@ -19,49 +17,43 @@ class TradeSignalDAO(BaseDAO):
     ):
         super().__init__(connection=connection, sql_dir=sql_dir, logger=logger)
 
-    def fetch_all_signals(self) -> list[Tuple[int, str, str, Decimal, datetime]]:
-        """Fetch all trade signals."""
-        return self.fetch("get_all_signals.sql", [])
-
-    def fetch_signal_by_id(
-        self, signal_id: int
-    ) -> Optional[Tuple[int, str, str, Decimal, datetime]]:
-        """Fetch a trade signal by its ID."""
-        return self.fetch("get_signal_by_id.sql", (signal_id,))
+    def fetch_all_signals(self, limit: int = 100, offset: int = 0) -> list:
+        """Fetch all trade signals.
+        Returns a list of all trade signals, limited by the specified limit and offset.
+        parameters:
+            limit (int): Maximum number of signals to return.
+            offset (int): Number of signals to skip before starting to return results.
+        """
+        return self.fetch("get_all_signals.sql", (limit, offset))
 
     def fetch_signals_by_symbol(
-        self, symbol: str
-    ) -> list[Tuple[int, str, str, Decimal, datetime]]:
-        """Fetch trade signals by symbol."""
-        return self.fetch("get_signals_by_symbol.sql", (symbol,))
+        self, symbol: str, limit: int = 100, offset: int = 0
+    ) -> list:
+        """Fetch trade signals by symbol.
+        Returns a list of signals for the given symbol, limited by the specified limit and offset.
+        parameters:
+            symbol (str): The stock symbol to filter signals by.
+            limit (int): Maximum number of signals to return.
+            offset (int): Number of signals to skip before starting to return results.
+        """
+        return self.fetch("get_signals_by_symbol.sql", (symbol, limit, offset))
 
-    def fetch_signals_by_symbol_and_date(
-        self, symbol: str, start_date: datetime, end_date: datetime
-    ) -> list[Tuple[int, str, str, Decimal, datetime]]:
-        """Fetch trade signals by symbol and date."""
-        return self.fetch(
-            "get_signals_by_symbol_and_date.sql", (symbol, start_date, end_date)
-        )
-
-    def insert_signal(
-        self, symbol: str, signal: str, price: Decimal, created_at: datetime
-    ) -> None:
-        """Insert a new trade signal."""
-        return self.insert("insert_signal.sql", (symbol, signal, price, created_at))
-
-    def update_signal(
+    def upsert_signal(
         self,
-        signal_id: int,
         symbol: str,
         signal: str,
         price: Decimal,
         created_at: datetime,
-    ) -> None:
-        """Update an existing trade signal."""
-        return self.update(
-            "update_signal.sql", (symbol, signal, price, created_at, signal_id)
+        user_id: str = None,
+        account_id: str = None,
+    ) -> int:
+        """Insert a new trade signal."""
+        return self.insert(
+            "upsert_signal.sql",
+            (symbol, signal, price, created_at, user_id, account_id),
         )
 
-    def delete_signal(self, signal_id: int) -> None:
-        """Delete a trade signal by its ID."""
-        return self.delete("delete_signal.sql", (signal_id,))
+    def delete_all_signals(self) -> int:
+        """Delete all trade signals."""
+        deleted_ids = self.delete("delete_all_signals.sql")
+        return len(deleted_ids) if deleted_ids else 0
