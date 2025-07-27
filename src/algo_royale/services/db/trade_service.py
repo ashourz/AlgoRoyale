@@ -25,6 +25,10 @@ class TradeService:
             symbol, direction, entry_price, shares, strategy_phase, entry_time, notes
         )
 
+    def get_trades(self, limit: int = 10, offset: int = 0) -> list[Tuple]:
+        """Get trade history with pagination."""
+        return self.dao.fetch_trades(limit, offset)
+
     def update_trade(
         self, trade_id: int, exit_price: Decimal, exit_time: datetime, pnl: Decimal
     ) -> None:

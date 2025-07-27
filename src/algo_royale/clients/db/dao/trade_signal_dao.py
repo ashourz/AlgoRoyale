@@ -9,6 +9,7 @@ from algo_royale.clients.db.dao.base_dao import BaseDAO
 from algo_royale.logging.loggable import Loggable
 
 
+##TODO: update to match updated schema
 class TradeSignalDAO(BaseDAO):
     def __init__(
         self,

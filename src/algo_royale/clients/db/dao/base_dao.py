@@ -1,8 +1,9 @@
-from algo_royale.logging.loggable import Loggable
 ## db\dao\base_dao.py
 import os
 
 import psycopg2
+
+from algo_royale.logging.loggable import Loggable
 
 
 class BaseDAO:

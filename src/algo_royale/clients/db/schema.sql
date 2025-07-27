@@ -11,6 +11,38 @@ CREATE TABLE schema_migrations (
     version VARCHAR(50) NOT NULL,
     applied_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
+-- Trade Signals table
+CREATE TABLE
+    trade_signals (
+        id SERIAL PRIMARY KEY,
+        symbol TEXT NOT NULL,
+        signal TEXT NOT NULL, -- BUY, SELL, HOLD, etc.
+        price NUMERIC NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        user_id UUID,
+        account_id TEXT
+    );
+
+-- Orders table
+CREATE TABLE
+    orders (
+        id SERIAL PRIMARY KEY,
+        symbol TEXT NOT NULL,
+        order_type TEXT CHECK (order_type IN ('market', 'limit', 'stop')) NOT NULL,
+        status TEXT CHECK (status IN ('pending', 'partially_filled', 'filled', 'cancelled')) NOT NULL,
+        direction TEXT CHECK (direction IN ('buy', 'sell')) NOT NULL,
+        quantity INTEGER NOT NULL,
+        filled_quantity INTEGER DEFAULT 0,
+        price NUMERIC(10, 4),
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        signal_id INTEGER REFERENCES trade_signals (id) ON DELETE CASCADE,
+        user_id UUID,
+        account_id TEXT
+    );
+CREATE INDEX idx_orders_user_account ON orders (user_id, account_id);
+
 -- Trades table
 CREATE TABLE
     trades (
@@ -25,19 +57,38 @@ CREATE TABLE
         strategy_phase TEXT CHECK (
             strategy_phase IN ('breakout', 'momentum', 'mean_reversion')
         ),
-        pnl NUMERIC(10, 4),
-        notes TEXT
+        realized_pnl NUMERIC(10, 4),
+        notes TEXT,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        order_id INTEGER REFERENCES orders (id) ON DELETE CASCADE,
+        user_id UUID,
+        account_id TEXT
     );
 
--- Trade Signals table
+-- Positions table
 CREATE TABLE
-    trade_signals (
+    positions (
         id SERIAL PRIMARY KEY,
         symbol TEXT NOT NULL,
-        signal TEXT NOT NULL, -- BUY, SELL, HOLD, etc.
-        price NUMERIC NOT NULL,
+        quantity INTEGER NOT NULL,
+        entry_price NUMERIC(10, 4),
+        current_price NUMERIC(10, 4),
+        unrealized_pnl NUMERIC(10, 4),
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        user_id UUID,
+        account_id TEXT
+    );
+CREATE INDEX idx_positions_user_account ON positions (user_id, account_id)
+
+-- Position Trades table
+CREATE TABLE
+    position_trades (
+        id SERIAL PRIMARY KEY,
+        position_id INTEGER REFERENCES positions (id) ON DELETE CASCADE,
+        trade_id INTEGER REFERENCES trades (id) ON DELETE CASCADE,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     );
+CREATE UNIQUE INDEX idx_position_trades_unique ON position_trades(position_id, trade_id);
 
 -- Indicators table
 CREATE TABLE

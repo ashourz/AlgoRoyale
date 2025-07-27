@@ -9,6 +9,7 @@ from algo_royale.clients.db.dao.base_dao import BaseDAO
 from algo_royale.logging.loggable import Loggable
 
 
+##TODO: update to match updated schema
 class TradeDAO(BaseDAO):
     def __init__(
         self,
@@ -105,38 +106,6 @@ class TradeDAO(BaseDAO):
                 strategy_phase,
                 pnl,
                 notes,
-            ),
-        )
-
-    def update_trade(
-        self,
-        trade_id: int,
-        symbol: str,
-        direction: str,
-        entry_price: Decimal,
-        exit_price: Decimal,
-        shares: int,
-        entry_time: datetime,
-        exit_time: datetime,
-        strategy_phase: str,
-        pnl: Decimal,
-        notes: str,
-    ) -> None:
-        """Update an existing trade record."""
-        return self.update(
-            "update_trade.sql",
-            (
-                symbol,
-                direction,
-                entry_price,
-                exit_price,
-                shares,
-                entry_time,
-                exit_time,
-                strategy_phase,
-                pnl,
-                notes,
-                trade_id,
             ),
         )
 

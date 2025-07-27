@@ -1,0 +1,1 @@
+INSERT INTO position_trades (position_id, trade_id, created_at) VALUES ($1, $2, $NOW())
