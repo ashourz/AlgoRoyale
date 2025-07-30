@@ -4,7 +4,7 @@ from algo_royale.backtester.strategy.signal.conditions.price_above_sma import (
 from algo_royale.backtester.strategy.signal.mean_revision_strategy import (
     MeanReversionStrategy,
 )
-from algo_royale.backtester.strategy.signal.stateful_logic.mean_reversion_stategul_logic import (
+from algo_royale.backtester.strategy.signal.stateful_logic.mean_reversion_stateful_logic import (
     MeanReversionStatefulLogic,
 )
 from algo_royale.backtester.strategy_combinator.signal.base_signal_strategy_combinator import (
