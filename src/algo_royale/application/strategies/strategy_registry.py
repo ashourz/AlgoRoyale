@@ -39,6 +39,15 @@ class StrategyRegistry:
         with open(filename, "w") as f:
             json.dump(report, f, indent=2)
 
+    def _update_report(self, symbol: str, strategies: Dict[str, Dict[str, float]]):
+        """
+        Update the report with the latest strategies for a given symbol.
+        """
+        if symbol not in self.state:
+            self.state[symbol] = {}
+        self.state[symbol].update(strategies)
+        self.logger.info(f"Updated strategies for {symbol}: {strategies}")
+
     def _get_all_viable_strategies(self) -> Dict[str, Dict[str, float]]:
         """Get all viable strategies across all symbols."""
         all_strategies = {}
