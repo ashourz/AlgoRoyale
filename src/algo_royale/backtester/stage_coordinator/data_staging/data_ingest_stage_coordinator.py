@@ -15,6 +15,7 @@ from algo_royale.backtester.stage_data.writer.symbol_strategy_data_writer import
 from algo_royale.logging.loggable import Loggable
 from algo_royale.models.alpaca_market_data.enums import DataFeed
 from algo_royale.services.market_data.alpaca_stock_service import AlpacaQuoteService
+from algo_royale.trader.symbols.watchlist_repo import WatchlistRepo
 
 
 class DataIngestStageCoordinator(StageCoordinator):
@@ -25,8 +26,7 @@ class DataIngestStageCoordinator(StageCoordinator):
         data_writer: Data writer for the stage.
         logger: Loggable instance.
         quote_service: AlpacaQuoteService instance for fetching market data.
-        load_watchlist: Callable to load the watchlist from a file or other source.
-        watchlist_path_string: Path to the watchlist file.
+        watchlist_repo: WatchlistRepo instance for managing the watchlist.
     """
 
     def __init__(
@@ -36,8 +36,7 @@ class DataIngestStageCoordinator(StageCoordinator):
         data_manager: StageDataManager,
         logger: Loggable,
         quote_service: AlpacaQuoteService,
-        load_watchlist: Callable[[str], list[str]],
-        watchlist_path_string: str,
+        watchlist_repo: WatchlistRepo,
     ):
         self.stage = BacktestStage.DATA_INGEST
         self.data_loader = data_loader
@@ -45,10 +44,7 @@ class DataIngestStageCoordinator(StageCoordinator):
         self.data_manager = data_manager
         self.logger = logger
         self.quote_service = quote_service
-        self.load_watchlist = load_watchlist
-        self.watchlist_path = watchlist_path_string
-        if not watchlist_path_string:
-            raise ValueError("watchlist_path_string must be provided")
+        self.watchlist_repo = watchlist_repo
 
     async def run(
         self,
@@ -103,7 +99,7 @@ class DataIngestStageCoordinator(StageCoordinator):
         """
         Load the watchlist from the specified path.
         """
-        watchlist = self.data_loader.get_watchlist()
+        watchlist = self.watchlist_repo.load_watchlist()
         if not watchlist or len(watchlist) == 0:
             raise ValueError(
                 f"Watchlist loaded from {self.watchlist_path} is empty. Cannot proceed with data ingestion."

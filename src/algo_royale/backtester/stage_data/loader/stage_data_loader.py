@@ -10,9 +10,9 @@ from algo_royale.backtester.enum.backtest_stage import BacktestStage
 from algo_royale.backtester.enum.data_extension import DataExtension
 from algo_royale.backtester.stage_data.stage_data_manager import (
     StageDataManager,
-    mockStageDataManager,
 )
 from algo_royale.logging.loggable import Loggable
+from algo_royale.trader.watchlist.watchlist_repo import WatchlistRepo
 
 
 class StageDataLoader:
@@ -20,22 +20,15 @@ class StageDataLoader:
         self,
         logger: Loggable,
         stage_data_manager: StageDataManager,
-        load_watchlist: Callable[[str], list[str]],
-        watchlist_path_string: str,
+        watchlist_repo: WatchlistRepo,
     ):
         try:
-            self.load_watchlist = load_watchlist
-            self.watchlist_path = watchlist_path_string
+            self.watchlist_repo = watchlist_repo
             self.stage_data_manager = stage_data_manager
 
             # Initialize logger
             self.logger = logger
             self.logger.info("BacktestDataLoader initialized")
-            if not self.watchlist_path:
-                raise RuntimeError("Watchlist path not specified in config")
-            watchlist = self.get_watchlist()
-            if not watchlist:
-                raise RuntimeError("Watchlist is empty")
         except KeyError as e:
             raise ValueError(f"Missing required configuration key: {e}")
         except Exception as e:
@@ -45,7 +38,7 @@ class StageDataLoader:
         """
         Load the watchlist from the specified path.
         """
-        return self.load_watchlist(self.watchlist_path)
+        return self.watchlist_repo.load_watchlist()
 
     async def load_all_stage_data(
         self,
@@ -357,21 +350,3 @@ class StageDataLoader:
                     error_message=f"Error reading {page_path}: {str(e)}",
                 )
                 continue
-
-
-def mockStageDataLoader(
-    data_dir: Path,
-    load_watchlist: Callable[[str], list[str]],
-    watchlist_path_string: str,
-) -> StageDataLoader:
-    """Creates a mock StageDataLoader for testing purposes."""
-    from algo_royale.logging.logger_factory import mockLogger
-
-    logger: Loggable = mockLogger()
-    stage_data_manager = mockStageDataManager(data_dir=data_dir)
-    return StageDataLoader(
-        logger=logger,
-        stage_data_manager=stage_data_manager,
-        load_watchlist=load_watchlist,
-        watchlist_path_string=watchlist_path_string,
-    )

@@ -8,6 +8,7 @@ from websockets.exceptions import ConnectionClosed
 
 from algo_royale.clients.alpaca.alpaca_base_client import AlpacaBaseClient
 from algo_royale.clients.alpaca.alpaca_client_config import TradingConfig
+from algo_royale.models.alpaca_market_data.alpaca_stream_quote import StreamQuote
 from algo_royale.models.alpaca_market_data.enums import DataFeed
 
 
@@ -146,7 +147,13 @@ class AlpacaStreamClient(AlpacaBaseClient):
                 for item in data if isinstance(data, list) else [data]:
                     msg_type = item.get("T")
                     if msg_type == "q" and on_quote:  # Quote message
-                        await on_quote(item)
+                        try:
+                            quote = StreamQuote.from_raw(item)
+                            await on_quote(quote)
+                        except Exception as e:
+                            self.logger.error(
+                                f"Failed to parse StreamQuote: {e}; raw: {item}"
+                            )
                     elif msg_type == "t" and on_trade:  # Trade message
                         await on_trade(item)
                     elif msg_type == "b" and on_bar:  # Bar message

@@ -1,11 +1,21 @@
-# src/algo_royale/services/alpaca_trading/alpaca_positions_service.py
+# src/algo_royale/services/alpaca_trading/positions_service.py
 
 from typing import Optional
-from algo_royale.models.alpaca_trading.alpaca_position import ClosedPositionList, PositionList
-from algo_royale.clients.alpaca.alpaca_trading.alpaca_positions_client import AlpacaPositionsClient
-from algo_royale.clients.alpaca.exceptions import MissingParameterError, ParameterConflictError
 
-class AlpacaPositionsService:
+from algo_royale.clients.alpaca.alpaca_trading.alpaca_positions_client import (
+    AlpacaPositionsClient,
+)
+from algo_royale.clients.alpaca.exceptions import (
+    MissingParameterError,
+    ParameterConflictError,
+)
+from algo_royale.models.alpaca_trading.alpaca_position import (
+    ClosedPositionList,
+    PositionList,
+)
+
+
+class PositionsService:
     """Service class to manage positions data and actions on Alpaca API."""
 
     def __init__(self):
@@ -20,7 +30,9 @@ class AlpacaPositionsService:
         """
         return await self.client.get_all_open_positions()
 
-    async def get_open_position_by_symbol_or_asset_id(self, symbol_or_asset_id: str) -> Optional[PositionList]:
+    async def get_open_position_by_symbol_or_asset_id(
+        self, symbol_or_asset_id: str
+    ) -> Optional[PositionList]:
         """
         Fetch an open position by symbol or asset ID.
 
@@ -31,14 +43,18 @@ class AlpacaPositionsService:
             PositionList: A single position or None if no position is found.
         """
         if not symbol_or_asset_id:
-            raise MissingParameterError("Missing required parameter: 'symbol_or_asset_id'.")
-        return await self.client.get_open_position_by_symbol_or_asset_id(symbol_or_asset_id)
+            raise MissingParameterError(
+                "Missing required parameter: 'symbol_or_asset_id'."
+            )
+        return await self.client.get_open_position_by_symbol_or_asset_id(
+            symbol_or_asset_id
+        )
 
     async def close_position_by_symbol_or_asset_id(
-        self, 
-        symbol_or_asset_id: str, 
-        qty: Optional[float] = None, 
-        percentage: Optional[float] = None
+        self,
+        symbol_or_asset_id: str,
+        qty: Optional[float] = None,
+        percentage: Optional[float] = None,
     ) -> Optional[ClosedPositionList]:
         """
         Close a position by its symbol or asset ID.
@@ -52,13 +68,21 @@ class AlpacaPositionsService:
             ClosedPositionList: The list of closed positions, or None if no data is found.
         """
         if not symbol_or_asset_id:
-            raise MissingParameterError("Missing required parameter: 'symbol_or_asset_id'.")
+            raise MissingParameterError(
+                "Missing required parameter: 'symbol_or_asset_id'."
+            )
         if qty and percentage:
-            raise ParameterConflictError("Specify either 'qty' or 'percentage' or neither, not both.")
-        
-        return await self.client.close_position_by_symbol_or_asset_id(symbol_or_asset_id, qty, percentage)
+            raise ParameterConflictError(
+                "Specify either 'qty' or 'percentage' or neither, not both."
+            )
 
-    async def close_all_positions(self, cancel_orders: Optional[bool] = None) -> Optional[ClosedPositionList]:
+        return await self.client.close_position_by_symbol_or_asset_id(
+            symbol_or_asset_id, qty, percentage
+        )
+
+    async def close_all_positions(
+        self, cancel_orders: Optional[bool] = None
+    ) -> Optional[ClosedPositionList]:
         """
         Close all open positions.
 

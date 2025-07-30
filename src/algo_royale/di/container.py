@@ -164,7 +164,6 @@ from algo_royale.backtester.strategy_factory.signal.strategy_factory import (
 from algo_royale.backtester.walkforward.walk_forward_coordinator import (
     WalkForwardCoordinator,
 )
-from algo_royale.backtester.watchlist.watchlist import load_watchlist, save_watchlist
 from algo_royale.clients.alpaca.alpaca_client_config import TradingConfig
 from algo_royale.clients.alpaca.alpaca_market_data.alpaca_corporate_action_client import (
     AlpacaCorporateActionClient,
@@ -207,7 +206,6 @@ from algo_royale.clients.alpaca.alpaca_trading.alpaca_watchlist_client import (
 )
 from algo_royale.clients.db.dao.indicator_dao import IndicatorDAO
 from algo_royale.clients.db.dao.news_sentiment_dao import NewsSentimentDAO
-from algo_royale.clients.db.dao.stock_data_dao import StockDataDAO
 from algo_royale.clients.db.dao.trade_dao import TradeDAO
 from algo_royale.clients.db.dao.trade_signal_dao import TradeSignalDAO
 from algo_royale.clients.db.database import Database
@@ -220,10 +218,10 @@ from algo_royale.logging.logger_factory import (
 )
 from algo_royale.services.db.indicator_service import IndicatorService
 from algo_royale.services.db.news_sentiment_service import NewsSentimentService
-from algo_royale.services.db.stock_data_service import StockDataService
 from algo_royale.services.db.trade_service import TradeService
 from algo_royale.services.db.trade_signal_service import TradeSignalService
 from algo_royale.services.market_data.alpaca_stock_service import AlpacaQuoteService
+from algo_royale.trader.watchlist import watchlist_repo
 from algo_royale.utils.path_utils import get_data_dir
 from algo_royale.visualization.dashboard import BacktestDashboard
 
@@ -419,13 +417,6 @@ class DIContainer(containers.DeclarativeContainer):
         logger=logger_trading,
     )
 
-    stock_data_dao = providers.Singleton(
-        StockDataDAO,
-        connection=db_connection,
-        sql_dir=dao_sql_dir,
-        logger=logger_trading,
-    )
-
     trade_dao = providers.Singleton(
         TradeDAO,
         connection=db_connection,
@@ -445,8 +436,6 @@ class DIContainer(containers.DeclarativeContainer):
     news_sentiment_service = providers.Singleton(
         NewsSentimentService, dao=news_sentiment_dao
     )
-
-    stock_data_Service = providers.Singleton(StockDataService, dao=stock_data_dao)
 
     trade_service = providers.Singleton(TradeService, dao=trade_dao)
 
@@ -523,15 +512,16 @@ class DIContainer(containers.DeclarativeContainer):
     watchlist_path_string = providers.Object(
         config().get("backtester.paths", "watchlist_path")
     )
-    load_watchlist_func = providers.Object(load_watchlist)
-    save_watchlist_func = providers.Object(save_watchlist)
+
+    watchlist_repo = providers.Singleton(
+        watchlist_repo.WatchlistRepo, watchlist_path=watchlist_path_string
+    )
 
     stage_data_loader = providers.Singleton(
         StageDataLoader,
         logger=logger_stage_data_loader,
         stage_data_manager=stage_data_manager,
-        load_watchlist=load_watchlist_func,
-        watchlist_path_string=watchlist_path_string,
+        watchlist_repo=watchlist_repo,
     )
 
     stage_data_writer = providers.Singleton(
@@ -576,8 +566,7 @@ class DIContainer(containers.DeclarativeContainer):
         data_manager=stage_data_manager,
         logger=logger_backtest_data_ingest,
         quote_service=alpaca_quote_service,
-        load_watchlist=load_watchlist_func,
-        watchlist_path_string=watchlist_path_string,
+        watchlist_repo=watchlist_repo,
     )
 
     feature_engineering_stage_coordinator = providers.Singleton(
