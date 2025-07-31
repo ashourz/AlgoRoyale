@@ -11,19 +11,10 @@ class BufferedADXBelowThresholdCondition(BaseBufferedCondition):
         logger: Loggable,
         adx_col: SignalStrategyColumns = SignalStrategyColumns.ADX,
         threshold: float = 25,
-        buffer_size: int = 1,  # For ADX, 1 is usually enough, but you can increase if needed
     ):
-        super().__init__(logger=logger, buffer_size=buffer_size)
-        self.threshold = threshold
+        super().__init__(logger=logger, buffer_size=1)
         self.adx_col = adx_col
-
-    def update(self, adx_value: float) -> bool:
-        self.adx_values.append(adx_value)
-        if len(self.adx_values) > self.window:
-            self.adx_values.pop(0)
-        return len(self.adx_values) == self.window and all(
-            adx < self.threshold for adx in self.adx_values
-        )
+        self.threshold = threshold
 
     def _evaluate_condition(self) -> bool:
         """
