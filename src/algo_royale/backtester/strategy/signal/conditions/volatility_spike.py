@@ -86,8 +86,9 @@ class VolatilitySpikeCondition(StrategyCondition):
         }
 
     @classmethod
-    def optuna_suggest(cls, trial: Trial, prefix=""):
+    def optuna_suggest(cls, logger: Loggable, trial: Trial, prefix=""):
         return cls(
+            logger=logger,
             range_col=trial.suggest_categorical(
                 prefix + "range_col",
                 [

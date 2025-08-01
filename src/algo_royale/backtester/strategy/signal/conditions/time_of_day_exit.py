@@ -43,8 +43,9 @@ class TimeOfDayExitCondition(StrategyCondition):
         }
 
     @classmethod
-    def optuna_suggest(cls, trial: Trial, prefix=""):
+    def optuna_suggest(cls, logger: Loggable, trial: Trial, prefix=""):
         return cls(
+            logger=logger,
             sell_start_hour=trial.suggest_int(f"{prefix}sell_start_hour", 8, 11),
             sell_end_hour=trial.suggest_int(f"{prefix}sell_end_hour", 12, 16),
             hour_col=trial.suggest_categorical(

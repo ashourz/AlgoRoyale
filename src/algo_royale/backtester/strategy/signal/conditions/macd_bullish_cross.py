@@ -90,8 +90,9 @@ class MACDBullishCrossCondition(StrategyCondition):
         }
 
     @classmethod
-    def optuna_suggest(cls, trial: Trial, prefix: str = ""):
+    def optuna_suggest(cls, logger: Loggable, trial: Trial, prefix: str = ""):
         return cls(
+            logger=logger,
             macd_col=trial.suggest_categorical(
                 f"{prefix}macd_col",
                 [SignalStrategyColumns.MACD],

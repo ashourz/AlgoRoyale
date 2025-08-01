@@ -94,8 +94,9 @@ class VolumeSurgeCondition(StrategyCondition):
         }
 
     @classmethod
-    def optuna_suggest(cls, trial: Trial, prefix=""):
+    def optuna_suggest(cls, logger: Loggable, trial: Trial, prefix=""):
         return cls(
+            logger=logger,
             volume_col=trial.suggest_categorical(
                 prefix + "volume_col",
                 [SignalStrategyColumns.VOLUME],

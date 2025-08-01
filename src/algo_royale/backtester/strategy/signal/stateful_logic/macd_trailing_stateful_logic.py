@@ -1,10 +1,12 @@
 import pandas as pd
+from optuna import Trial
 
 from algo_royale.backtester.column_names.strategy_columns import SignalStrategyColumns
 from algo_royale.backtester.enum.signal_type import SignalType
 from algo_royale.backtester.strategy.signal.stateful_logic.base_stateful_logic import (
     StatefulLogic,
 )
+from algo_royale.logging.loggable import Loggable
 
 
 class MACDTrailingStatefulLogic(StatefulLogic):
@@ -23,12 +25,12 @@ class MACDTrailingStatefulLogic(StatefulLogic):
 
     def __init__(
         self,
+        logger: Loggable,
         close_col: SignalStrategyColumns = SignalStrategyColumns.CLOSE_PRICE,
         fast: int = 12,
         slow: int = 26,
         signal: int = 9,
         stop_pct: float = 0.02,
-        debug: bool = False,
     ):
         super().__init__(
             close_col=close_col,
@@ -36,7 +38,7 @@ class MACDTrailingStatefulLogic(StatefulLogic):
             slow=slow,
             signal=signal,
             stop_pct=stop_pct,
-            debug=debug,
+            logger=logger,
         )
         self.close_col = close_col
         self.fast = fast
@@ -119,7 +121,7 @@ class MACDTrailingStatefulLogic(StatefulLogic):
         }
 
     @classmethod
-    def optuna_suggest(cls, trial, prefix=""):
+    def optuna_suggest(cls, logger: Loggable, trial: Trial, prefix: str = ""):
         """
         Suggests hyperparameters for this stateful logic using Optuna.
         """

@@ -2,6 +2,7 @@ import numpy as np
 import pandas as pd
 from optuna import Trial
 
+from algo_royale.logging.loggable import Loggable
 from src.algo_royale.backtester.strategy.portfolio.base_portfolio_strategy import (
     BasePortfolioStrategy,
 )
@@ -19,9 +20,9 @@ class MomentumPortfolioStrategy(BasePortfolioStrategy):
         window: int, rolling window size for momentum estimation (default: 20)
     """
 
-    def __init__(self, window: int = 20, debug: bool = False):
+    def __init__(self, logger: Loggable, window: int = 20):
         self.window = window
-        super().__init__(debug=debug)
+        super().__init__(logger=logger)
 
     @property
     def required_columns(self):
@@ -34,8 +35,8 @@ class MomentumPortfolioStrategy(BasePortfolioStrategy):
         return f"{self.__class__.__name__}(window={self.window})"
 
     @classmethod
-    def optuna_suggest(cls, trial: Trial, prefix: str = ""):
-        return cls(window=trial.suggest_int(f"{prefix}window", 5, 60))
+    def optuna_suggest(cls, logger: Loggable, trial: Trial, prefix: str = ""):
+        return cls(logger=logger, window=trial.suggest_int(f"{prefix}window", 5, 60))
 
     def allocate(self, signals: pd.DataFrame, returns: pd.DataFrame) -> pd.DataFrame:
         # --- Ensure all values are numeric before any math ---

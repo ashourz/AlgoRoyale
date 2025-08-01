@@ -44,8 +44,9 @@ class WickReversalExitCondition(StrategyCondition):
         }
 
     @classmethod
-    def optuna_suggest(cls, trial: Trial, prefix=""):
+    def optuna_suggest(cls, logger: Loggable, trial: Trial, prefix=""):
         return cls(
+            logger=logger,
             wick_body_ratio=trial.suggest_float(f"{prefix}wick_body_ratio", 1.2, 4.0),
             upper_wick_col=trial.suggest_categorical(
                 f"{prefix}upper_wick_col", [SignalStrategyColumns.UPPER_WICK]

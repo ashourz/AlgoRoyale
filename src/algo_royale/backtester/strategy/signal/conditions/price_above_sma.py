@@ -75,7 +75,11 @@ class PriceAboveSMACondition(StrategyCondition):
     def _apply(self, df: pd.DataFrame) -> pd.Series:
         return df.apply(
             lambda row: price_crosses_above_sma(
-                row, df.shift(1).loc[row.name], self.sma_col, self.close_col, self.debug
+                row,
+                df.shift(1).loc[row.name],
+                self.sma_col,
+                self.close_col,
+                self.logger,
             ),
             axis=1,
         )
@@ -102,8 +106,9 @@ class PriceAboveSMACondition(StrategyCondition):
         }
 
     @classmethod
-    def optuna_suggest(cls, trial: Trial, prefix=""):
+    def optuna_suggest(cls, logger: Loggable, trial: Trial, prefix=""):
         return cls(
+            logger=logger,
             close_col=trial.suggest_categorical(
                 f"{prefix}close_col",
                 [SignalStrategyColumns.CLOSE_PRICE, SignalStrategyColumns.OPEN_PRICE],

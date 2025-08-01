@@ -50,8 +50,9 @@ class VWAPReversionExitCondition(StrategyCondition):
         }
 
     @classmethod
-    def optuna_suggest(cls, trial: Trial, prefix=""):
+    def optuna_suggest(cls, logger: Loggable, trial: Trial, prefix=""):
         return cls(
+            logger=logger,
             deviation_threshold=trial.suggest_float(
                 f"{prefix}deviation_threshold", 0.005, 0.02
             ),

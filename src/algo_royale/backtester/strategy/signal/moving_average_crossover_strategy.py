@@ -9,6 +9,7 @@ from algo_royale.backtester.strategy.signal.conditions.moving_average_crossover_
 from algo_royale.backtester.strategy.signal.conditions.moving_average_crossover_exit import (
     MovingAverageCrossoverExitCondition,
 )
+from algo_royale.logging.loggable import Loggable
 
 
 class MovingAverageCrossoverStrategy(BaseSignalStrategy):
@@ -29,6 +30,7 @@ class MovingAverageCrossoverStrategy(BaseSignalStrategy):
 
     def __init__(
         self,
+        logger: Loggable,
         entry_conditions: list[MovingAverageCrossoverEntryCondition] = [
             MovingAverageCrossoverEntryCondition(
                 close_col=SignalStrategyColumns.CLOSE_PRICE,
@@ -51,7 +53,6 @@ class MovingAverageCrossoverStrategy(BaseSignalStrategy):
                 ma_type=MA_Type.EMA,
             )
         ],
-        debug: bool = False,
     ):
         """Initialize the Moving Average Crossover Strategy with entry and exit conditions.
         Parameters:
@@ -62,5 +63,5 @@ class MovingAverageCrossoverStrategy(BaseSignalStrategy):
         super().__init__(
             entry_conditions=entry_conditions,
             exit_conditions=exit_conditions,
-            debug=debug,
+            logger=logger,
         )

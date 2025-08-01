@@ -1,7 +1,7 @@
 import inspect
 import json
 from datetime import datetime
-from typing import Any, AsyncIterator, Callable, Dict, Optional, Sequence
+from typing import Any, AsyncIterator, Callable, Dict, Optional
 
 import pandas as pd
 
@@ -19,8 +19,8 @@ from algo_royale.backtester.stage_data.loader.symbol_strategy_data_loader import
     SymbolStrategyDataLoader,
 )
 from algo_royale.backtester.stage_data.stage_data_manager import StageDataManager
-from algo_royale.backtester.strategy_combinator.signal.base_signal_strategy_combinator import (
-    SignalStrategyCombinator,
+from algo_royale.backtester.strategy_factory.signal.signal_strategy_combinator_factory import (
+    SignalStrategyCombinatorFactory,
 )
 from algo_royale.backtester.strategy_factory.signal.strategy_factory import (
     StrategyFactory,
@@ -41,7 +41,7 @@ class StrategyTestingStageCoordinator(BaseTestingStageCoordinator):
         strategy_evaluator (BacktestEvaluator): Evaluator for assessing strategy backtest results.
         strategy_factory (StrategyFactory): Factory for creating strategies.
         logger (Logger): Logger for logging information and errors.
-        strategy_combinators (Sequence[type[SignalStrategyCombinator]]): List of strategy combinators.
+        strategy_combinator_factory (SignalStrategyCombinatorFactory): Factory to create strategy combinators.
         optimization_root (str): Root directory for saving optimization results.
         optimization_json_filename (str): Name of the JSON file to save optimization results.
     """
@@ -54,10 +54,9 @@ class StrategyTestingStageCoordinator(BaseTestingStageCoordinator):
         strategy_evaluator: BacktestEvaluator,
         strategy_factory: StrategyFactory,
         logger: Loggable,
-        strategy_combinators: Sequence[type[SignalStrategyCombinator]],
+        strategy_combinator_factory: SignalStrategyCombinatorFactory,
         optimization_root: str,
         optimization_json_filename: str,
-        strategy_debug: bool = False,
     ):
         super().__init__(
             data_loader=data_loader,
@@ -65,12 +64,11 @@ class StrategyTestingStageCoordinator(BaseTestingStageCoordinator):
             stage=BacktestStage.STRATEGY_TESTING,
             logger=logger,
             evaluator=strategy_evaluator,
-            strategy_combinators=strategy_combinators,
             optimization_root=optimization_root,
             optimization_json_filename=optimization_json_filename,
         )
         self.strategy_factory = strategy_factory
-        self.strategy_debug = strategy_debug
+        self.strategy_combinator_factory = strategy_combinator_factory
         self.executor = strategy_executor
 
     def _get_train_optimization_results(
@@ -158,7 +156,9 @@ class StrategyTestingStageCoordinator(BaseTestingStageCoordinator):
                 continue
             test_df = pd.concat(dfs, ignore_index=True)
             self.logger.debug(f"Test DataFrame for {symbol}: {test_df}")
-            for strategy_combinator in self.strategy_combinators:
+            for (
+                strategy_combinator
+            ) in self.strategy_combinator_factory.all_combinators():
                 strategy_class = strategy_combinator.strategy_class
                 strategy_name = strategy_class.__name__
 
@@ -200,7 +200,7 @@ class StrategyTestingStageCoordinator(BaseTestingStageCoordinator):
                     )
                     continue
                 strategy = self.strategy_factory.build_strategy(
-                    strategy_class, optimized_params, debug=self.strategy_debug
+                    strategy_class, optimized_params
                 )
 
                 async def data_factory():

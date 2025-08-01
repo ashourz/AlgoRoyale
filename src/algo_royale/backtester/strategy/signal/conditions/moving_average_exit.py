@@ -73,8 +73,9 @@ class MovingAverageExitCondition(StrategyCondition):
         }
 
     @classmethod
-    def optuna_suggest(cls, trial: Trial, prefix: str = ""):
+    def optuna_suggest(cls, logger: Loggable, trial: Trial, prefix: str = ""):
         return cls(
+            logger=logger,
             close_col=trial.suggest_categorical(
                 f"{prefix}close_col",
                 [SignalStrategyColumns.CLOSE_PRICE, SignalStrategyColumns.OPEN_PRICE],

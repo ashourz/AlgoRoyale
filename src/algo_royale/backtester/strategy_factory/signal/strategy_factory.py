@@ -1,5 +1,3 @@
-from typing import Optional
-
 from algo_royale.backtester.maps.condition_class_map import CONDITION_CLASS_MAP
 from algo_royale.backtester.maps.stateful_logic_map import STATEFUL_LOGIC_CLASS_MAP
 from algo_royale.backtester.strategy.signal.base_signal_strategy import (
@@ -15,31 +13,25 @@ class StrategyFactory:
 
     Parameters:
         logger (Logger): Logger instance for logging messages.
+        strategy_logger (Logger): Logger instance for strategy-specific logging.
     """
 
-    def __init__(
-        self,
-        logger: Loggable,
-    ):
-        self._all_strategy_combinations: Optional[list[BaseSignalStrategy]] = None
+    def __init__(self, logger: Loggable, strategy_logger: Loggable):
         self.logger = logger
+        self.strategy_logger = strategy_logger
 
-    @staticmethod
-    def instantiate_conditions(cond_list, debug: bool = False):
+    def instantiate_conditions(self, cond_list, debug: bool = False):
         """Convert a list of dicts to a list of condition objects."""
         if not cond_list:
             return []
         return [
-            CONDITION_CLASS_MAP[cond_class](debug=debug, **params)
+            CONDITION_CLASS_MAP[cond_class](logger=self.strategy_logger, **params)
             for cond in cond_list
             for cond_class, params in cond.items()
         ]
 
-    ##TODO: remove debug parameter once all strategies are updated
-    @staticmethod
-    def instantiate_stateful_logic(logic, debug: bool = False):
-        """
-        Convert a dict to a stateful logic object, or return None.
+    def instantiate_stateful_logic(self, logic):
+        """Convert a dict to a stateful logic object, or return None.
         Accepts:
             - None: returns None
             - dict: {"ClassName": {"params": ...}}
@@ -50,13 +42,10 @@ class StrategyFactory:
             # There should only be one key
             class_name, params = next(iter(logic.items()))
             cls = STATEFUL_LOGIC_CLASS_MAP[class_name]
-            return cls(debug=debug, **params)
+            return cls(logger=self.strategy_logger, **params)
         raise ValueError(f"Unsupported logic format: {logic}")
 
-    @classmethod
-    def build_strategy(
-        cls, strategy_class, params: dict, debug: bool = False
-    ) -> BaseSignalStrategy:
+    def build_strategy(self, strategy_class, params: dict) -> BaseSignalStrategy:
         """
         Given a strategy class and params (with *_conditions as lists of dicts),
         returns an initialized strategy with all condition objects.
@@ -71,14 +60,12 @@ class StrategyFactory:
             "filter_conditions",
         ]:
             if key in params and isinstance(params[key], list):
-                params[key] = cls.instantiate_conditions(
-                    debug=debug, cond_list=params[key]
-                )
+                params[key] = self.instantiate_conditions(cond_list=params[key])
 
         # Convert stateful_logic dict to object, if present
         if "stateful_logic" in params and params["stateful_logic"] is not None:
-            params["stateful_logic"] = cls.instantiate_stateful_logic(
-                debug=debug, logic=params["stateful_logic"]
+            params["stateful_logic"] = self.instantiate_stateful_logic(
+                logic=params["stateful_logic"]
             )
 
-        return strategy_class(debug=debug, **params)
+        return strategy_class(logger=self.strategy_logger, **params)

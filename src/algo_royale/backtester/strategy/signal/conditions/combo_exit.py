@@ -72,8 +72,9 @@ class ComboExitCondition(StrategyCondition):
         }
 
     @classmethod
-    def optuna_suggest(cls, trial: Trial, prefix: str = ""):
+    def optuna_suggest(cls, logger: Loggable, trial: Trial, prefix: str = ""):
         return cls(
+            logger=logger,
             rsi_sell_thresh=trial.suggest_int(f"{prefix}rsi_sell_thresh", 55, 80),
             macd_sell_thresh=trial.suggest_float(
                 f"{prefix}macd_sell_thresh", -0.5, 0.1

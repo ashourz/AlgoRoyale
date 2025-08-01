@@ -8,6 +8,7 @@ from algo_royale.backtester.strategy.signal.conditions.vwap_reversion_entry impo
 from algo_royale.backtester.strategy.signal.conditions.vwap_reversion_exit import (
     VWAPReversionExitCondition,
 )
+from algo_royale.logging.loggable import Loggable
 
 
 class VWAPReversionStrategy(BaseSignalStrategy):
@@ -20,6 +21,7 @@ class VWAPReversionStrategy(BaseSignalStrategy):
 
     def __init__(
         self,
+        logger: Loggable,
         entry_conditions: list[VWAPReversionEntryCondition] = [
             VWAPReversionEntryCondition(
                 deviation_threshold=0.01,
@@ -34,7 +36,6 @@ class VWAPReversionStrategy(BaseSignalStrategy):
                 vwp_col=SignalStrategyColumns.VOLUME_WEIGHTED_PRICE,
             )
         ],
-        debug: bool = False,
     ):
         """Initialize the VWAP Reversion Strategy with entry and exit conditions.
         Parameters:
@@ -45,5 +46,5 @@ class VWAPReversionStrategy(BaseSignalStrategy):
         super().__init__(
             entry_conditions=entry_conditions,
             exit_conditions=exit_conditions,
-            debug=debug,
+            logger=logger,
         )

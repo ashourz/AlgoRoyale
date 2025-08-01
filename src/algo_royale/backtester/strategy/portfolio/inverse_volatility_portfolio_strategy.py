@@ -2,6 +2,7 @@ import numpy as np
 import pandas as pd
 from optuna import Trial
 
+from algo_royale.logging.loggable import Loggable
 from src.algo_royale.backtester.strategy.portfolio.base_portfolio_strategy import (
     BasePortfolioStrategy,
 )
@@ -20,9 +21,9 @@ class InverseVolatilityPortfolioStrategy(BasePortfolioStrategy):
         lookback: int, rolling window size for volatility estimation (default: 20)
     """
 
-    def __init__(self, lookback: int = 20, debug: bool = False):
+    def __init__(self, logger: Loggable, lookback: int = 20):
         self.lookback = lookback
-        super().__init__(debug=debug)
+        super().__init__(logger=logger)
 
     @property
     def required_columns(self):
@@ -35,8 +36,10 @@ class InverseVolatilityPortfolioStrategy(BasePortfolioStrategy):
         return f"{self.__class__.__name__}(lookback={self.lookback})"
 
     @classmethod
-    def optuna_suggest(cls, trial: Trial, prefix: str = ""):
-        return cls(lookback=trial.suggest_int(f"{prefix}lookback", 5, 60))
+    def optuna_suggest(cls, logger: Loggable, trial: Trial, prefix: str = ""):
+        return cls(
+            logger=logger, lookback=trial.suggest_int(f"{prefix}lookback", 5, 60)
+        )
 
     def allocate(self, signals: pd.DataFrame, returns: pd.DataFrame) -> pd.DataFrame:
         # --- Ensure all values are numeric before any math ---

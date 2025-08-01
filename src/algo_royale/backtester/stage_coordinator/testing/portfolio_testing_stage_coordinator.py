@@ -26,8 +26,8 @@ from algo_royale.backtester.stage_data.loader.symbol_strategy_data_loader import
     SymbolStrategyDataLoader,
 )
 from algo_royale.backtester.stage_data.stage_data_manager import StageDataManager
-from algo_royale.backtester.strategy_combinator.portfolio.base_portfolio_strategy_combinator import (
-    PortfolioStrategyCombinator,
+from algo_royale.backtester.strategy_factory.portfolio.portfolio_strategy_combinator_factory import (
+    PortfolioStrategyCombinatorFactory,
 )
 from algo_royale.logging.loggable import Loggable
 
@@ -41,13 +41,12 @@ class PortfolioTestingStageCoordinator(BaseTestingStageCoordinator):
         data_loader (SymbolStrategyDataLoader): Loader for stage data.
         stage_data_manager (StageDataManager): Manager for stage data directories.
         logger (Logger): Logger for logging information and errors.
-        strategy_combinators (Sequence[type[PortfolioStrategyCombinator]]): List of strategy combinators.
+        strategy_combinator_factory (PortfolioStrategyCombinatorFactory): Factory to create strategy combinators.
         executor (PortfolioBacktestExecutor): Executor for running portfolio backtests.
         evaluator (PortfolioBacktestEvaluator): Evaluator for assessing portfolio backtest results.
         optimization_root (str): Root directory for saving optimization results.
         optimization_json_filename (str): Name of the JSON file to save optimization results.
-        asset_matrix_preparer (AssetMatrixPreparer): Preparer for converting data to asset-matrix form.
-        strategy_debug (bool): Whether to enable debug mode for strategy combinators.
+        portfolio_matrix_loader (PortfolioMatrixLoader): Loader for portfolio matrices.
     """
 
     def __init__(
@@ -55,13 +54,12 @@ class PortfolioTestingStageCoordinator(BaseTestingStageCoordinator):
         data_loader: SymbolStrategyDataLoader,
         stage_data_manager: StageDataManager,
         logger: Loggable,
-        strategy_combinators: Sequence[type[PortfolioStrategyCombinator]],
+        strategy_combinator_factory: PortfolioStrategyCombinatorFactory,
         executor: PortfolioBacktestExecutor,
         evaluator: PortfolioBacktestEvaluator,
         optimization_root: str,
         optimization_json_filename: str,
         portfolio_matrix_loader: PortfolioMatrixLoader,
-        strategy_debug: bool = False,
     ):
         super().__init__(
             stage=BacktestStage.PORTFOLIO_TESTING,
@@ -69,13 +67,11 @@ class PortfolioTestingStageCoordinator(BaseTestingStageCoordinator):
             stage_data_manager=stage_data_manager,
             logger=logger,
             evaluator=evaluator,
-            strategy_combinators=strategy_combinators,
             optimization_json_filename=optimization_json_filename,
             optimization_root=optimization_root,
         )
-        self.strategy_debug = strategy_debug
         self.portfolio_matrix_loader = portfolio_matrix_loader
-        self.strategy_combinators = strategy_combinators
+        self.strategy_combinator_factory = strategy_combinator_factory
         self.executor = executor
 
     async def _process_and_write(
@@ -127,11 +123,8 @@ class PortfolioTestingStageCoordinator(BaseTestingStageCoordinator):
         self.logger.info(
             f"Starting portfolio testing for window {self.test_window_id} with symbols {test_symbols}."
         )
-        for strategy_combinator in self.strategy_combinators:
-            for strat_factory in strategy_combinator.all_strategy_combinations(
-                logger=self.logger,
-                debug=self.strategy_debug,
-            ):
+        for strategy_combinator in self.strategy_combinator_factory.all_combinators():
+            for strat_factory in strategy_combinator.all_strategy_combinations():
                 strategy_class = (
                     strat_factory.func
                     if hasattr(strat_factory, "func")

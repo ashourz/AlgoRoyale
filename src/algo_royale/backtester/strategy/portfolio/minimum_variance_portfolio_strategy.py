@@ -3,6 +3,7 @@ import pandas as pd
 from optuna import Trial
 from scipy.optimize import minimize
 
+from algo_royale.logging.loggable import Loggable
 from src.algo_royale.backtester.strategy.portfolio.base_portfolio_strategy import (
     BasePortfolioStrategy,
 )
@@ -21,9 +22,9 @@ class MinimumVariancePortfolioStrategy(BasePortfolioStrategy):
         lookback: int, window size for covariance estimation (default: 60)
     """
 
-    def __init__(self, lookback: int = 60, debug: bool = False):
+    def __init__(self, logger: Loggable, lookback: int = 60):
         self.lookback = lookback
-        super().__init__(debug=debug)
+        super().__init__(logger=logger)
 
     @property
     def required_columns(self):
@@ -36,8 +37,10 @@ class MinimumVariancePortfolioStrategy(BasePortfolioStrategy):
         return f"{self.__class__.__name__}(lookback={self.lookback})"
 
     @classmethod
-    def optuna_suggest(cls, trial: Trial, prefix: str = ""):
-        return cls(lookback=trial.suggest_int(f"{prefix}lookback", 10, 120))
+    def optuna_suggest(cls, logger: Loggable, trial: Trial, prefix: str = ""):
+        return cls(
+            logger=logger, lookback=trial.suggest_int(f"{prefix}lookback", 10, 120)
+        )
 
     def allocate(self, signals: pd.DataFrame, returns: pd.DataFrame) -> pd.DataFrame:
         # --- Ensure all values are numeric before any math ---

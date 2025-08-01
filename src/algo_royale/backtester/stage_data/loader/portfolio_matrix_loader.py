@@ -42,7 +42,6 @@ class PortfolioMatrixLoader:
         signal_summary_json_filename: str,
         symbol_signals_filename: str,
         logger: Loggable,
-        strategy_debug: bool = False,
     ):
         self.asset_matrix_preparer = asset_matrix_preparer
         self.stage_data_manager = stage_data_manager
@@ -57,7 +56,6 @@ class PortfolioMatrixLoader:
         self.symbol_signals_filename = symbol_signals_filename
         self.executor = strategy_backtest_executor
         self.logger = logger
-        self.strategy_debug = strategy_debug
         self.stage = BacktestStage.PORTFOLIO_MATRIX_LOADER
 
     async def get_portfolio_matrix(
@@ -389,9 +387,7 @@ class PortfolioMatrixLoader:
             )
             strategy = SYMBOL_STRATEGY_CLASS_MAP.get(strategy_name)
             return self.strategy_factory.build_strategy(
-                strategy_class=strategy,
-                params=strategy_params,
-                debug=self.strategy_debug,
+                strategy_class=strategy, params=strategy_params
             )
         except Exception as e:
             self.logger.error(

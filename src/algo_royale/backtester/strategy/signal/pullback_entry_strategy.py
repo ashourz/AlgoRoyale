@@ -8,18 +8,19 @@ from algo_royale.backtester.strategy.signal.conditions.pullback_entry import (
 from algo_royale.backtester.strategy.signal.conditions.pullback_exit import (
     PullbackExitCondition,
 )
+from algo_royale.logging.loggable import Loggable
 
 
 class PullbackEntryStrategy(BaseSignalStrategy):
     def __init__(
         self,
+        logger: Loggable,
         entry_conditions: list[PullbackEntryCondition] = [
             PullbackEntryCondition(
                 ma_col=SignalStrategyColumns.SMA_20,
                 close_col=SignalStrategyColumns.CLOSE_PRICE,
             )
         ],
-        debug: bool = False,
     ) -> None:
         """Initialize the Pullback Entry Strategy with entry and exit conditions.
         Parameters:
@@ -36,5 +37,5 @@ class PullbackEntryStrategy(BaseSignalStrategy):
         super().__init__(
             entry_conditions=self.entry_conditions,
             exit_conditions=self.exit_conditions,
-            debug=debug,
+            logger=logger,
         )

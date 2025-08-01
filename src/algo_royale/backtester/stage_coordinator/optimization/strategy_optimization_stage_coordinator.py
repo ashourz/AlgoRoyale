@@ -47,11 +47,10 @@ class StrategyOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
         stage_data_manager: StageDataManager instance for managing stage data.
         strategy_executor: StrategyBacktestExecutor instance for executing backtests.
         strategy_evaluator: BacktestEvaluator instance for evaluating backtest results.
-        strategy_combinators: List of strategy combinator classes to use.
+        strategy_combinator_factory: SignalStrategyCombinatorFactory instance for creating strategy combinators.
         optimization_root: Root directory for saving optimization results.
         optimization_json_filename: Name of the JSON file to save optimization results.
         signal_strategy_optimizer_factory: Factory for creating signal strategy optimizers.
-        strategy_debug: bool = False,
         optimization_n_trials: int = 1,
     """
 
@@ -62,11 +61,10 @@ class StrategyOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
         stage_data_manager: StageDataManager,
         strategy_executor: StrategyBacktestExecutor,
         strategy_evaluator: BacktestEvaluator,
-        strategy_combinators_factory: SignalStrategyCombinatorFactory,
+        strategy_combinator_factory: SignalStrategyCombinatorFactory,
         optimization_root: str,
         optimization_json_filename: str,
         signal_strategy_optimizer_factory: SignalStrategyOptimizerFactory,
-        strategy_debug: bool = False,
         optimization_n_trials: int = 1,
     ):
         super().__init__(
@@ -84,9 +82,8 @@ class StrategyOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
         self.executor = strategy_executor
         self.evaluator = strategy_evaluator
         self.stage_data_manager = stage_data_manager
-        self.strategy_debug = strategy_debug
         self.optimization_n_trials = optimization_n_trials
-        self.strategy_combinators_factory = strategy_combinators_factory
+        self.strategy_combinator_factory = strategy_combinator_factory
 
     async def _process_and_write(
         self,
@@ -115,7 +112,7 @@ class StrategyOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
 
             for (
                 strategy_combinator
-            ) in self.strategy_combinators_factory.all_combinators():
+            ) in self.strategy_combinator_factory.all_combinators():
                 try:
                     strategy_class = strategy_combinator.strategy_class
                     strategy_name = strategy_class.__name__

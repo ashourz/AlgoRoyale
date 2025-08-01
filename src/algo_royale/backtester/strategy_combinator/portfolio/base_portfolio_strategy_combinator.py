@@ -43,7 +43,9 @@ class PortfolioStrategyCombinator(BaseStrategyCombinator):
 
         if optuna_trial is not None and hasattr(self.strategy_class, "optuna_suggest"):
             try:
-                params = self.strategy_class.optuna_suggest(optuna_trial)
+                params = self.strategy_class.optuna_suggest(
+                    logger=self.strategy_logger, trial=optuna_trial
+                )
                 if isinstance(params, dict):
                     yield partial(
                         self.strategy_class, logger=self.strategy_logger, **params

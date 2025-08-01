@@ -5,6 +5,7 @@ from algo_royale.backtester.strategy.signal.conditions.time_of_day_entry import 
 from algo_royale.backtester.strategy.signal.conditions.time_of_day_exit import (
     TimeOfDayExitCondition,
 )
+from algo_royale.logging.loggable import Loggable
 from src.algo_royale.backtester.strategy.signal.base_signal_strategy import (
     BaseSignalStrategy,
 )
@@ -21,6 +22,7 @@ class TimeOfDayBiasStrategy(BaseSignalStrategy):
 
     def __init__(
         self,
+        logger: Loggable,
         entry_conditions: list[TimeOfDayEntryCondition] = [
             TimeOfDayEntryCondition(
                 buy_start_hour=10, buy_end_hour=14, hour_col=SignalStrategyColumns.HOUR
@@ -33,7 +35,6 @@ class TimeOfDayBiasStrategy(BaseSignalStrategy):
                 hour_col=SignalStrategyColumns.HOUR,
             )
         ],
-        debug: bool = False,
     ):
         """Initialize the Time of Day Bias Strategy with entry and exit conditions.
         Parameters:
@@ -43,5 +44,5 @@ class TimeOfDayBiasStrategy(BaseSignalStrategy):
         super().__init__(
             entry_conditions=entry_conditions,
             exit_conditions=exit_conditions,
-            debug=debug,
+            logger=logger,
         )

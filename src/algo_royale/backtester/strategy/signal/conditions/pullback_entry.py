@@ -54,8 +54,9 @@ class PullbackEntryCondition(StrategyCondition):
         }
 
     @classmethod
-    def optuna_suggest(cls, trial: Trial, prefix=""):
+    def optuna_suggest(cls, logger: Loggable, trial: Trial, prefix=""):
         return cls(
+            logger=logger,
             ma_col=trial.suggest_categorical(
                 f"{prefix}ma_col",
                 [

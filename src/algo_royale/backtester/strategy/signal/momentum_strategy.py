@@ -8,6 +8,7 @@ from algo_royale.backtester.strategy.signal.conditions.momentum_entry import (
 from algo_royale.backtester.strategy.signal.conditions.momentum_exit import (
     MomentumExitCondition,
 )
+from algo_royale.logging.loggable import Loggable
 
 
 class MomentumStrategy(BaseSignalStrategy):
@@ -30,6 +31,7 @@ class MomentumStrategy(BaseSignalStrategy):
 
     def __init__(
         self,
+        logger: Loggable,
         entry_conditions: list[MomentumEntryCondition] = [
             MomentumEntryCondition(
                 close_col=SignalStrategyColumns.CLOSE_PRICE,
@@ -48,7 +50,6 @@ class MomentumStrategy(BaseSignalStrategy):
                 confirmation_periods=1,
             )
         ],
-        debug: bool = False,
     ):
         """Initialize the Momentum Strategy with modular entry and exit conditions.
         Parameters:
@@ -58,5 +59,5 @@ class MomentumStrategy(BaseSignalStrategy):
         super().__init__(
             entry_conditions=entry_conditions,
             exit_conditions=exit_conditions,
-            debug=debug,
+            logger=logger,
         )

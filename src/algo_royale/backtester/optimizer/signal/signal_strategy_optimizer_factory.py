@@ -42,12 +42,13 @@ class SignalStrategyOptimizerFactoryImpl(SignalStrategyOptimizerFactory):
     This is used to create mock optimizers for testing purposes.
     """
 
-    def __init__(self, logger: Loggable):
+    def __init__(self, logger: Loggable, strategy_logger: Loggable):
         """
         Initialize the factory with a logger.
         :param logger: Loggable instance for logging.
         """
         self.logger = logger
+        self.strategy_logger = strategy_logger
 
     def create(
         self,
@@ -71,6 +72,7 @@ class SignalStrategyOptimizerFactoryImpl(SignalStrategyOptimizerFactory):
             condition_types=condition_types,
             backtest_fn=backtest_fn,
             logger=self.logger,
+            strategy_logger=self.strategy_logger,
             metric_name=metric_name,
             direction=direction,
         )

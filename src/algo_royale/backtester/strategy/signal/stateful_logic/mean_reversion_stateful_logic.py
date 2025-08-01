@@ -1,20 +1,23 @@
+from optuna import Trial
+
 from algo_royale.backtester.column_names.strategy_columns import SignalStrategyColumns
 from algo_royale.backtester.enum.signal_type import SignalType
 from algo_royale.backtester.strategy.signal.stateful_logic.base_stateful_logic import (
     StatefulLogic,
 )
+from algo_royale.logging.loggable import Loggable
 
 
 class MeanReversionStatefulLogic(StatefulLogic):
     def __init__(
         self,
+        logger: Loggable,
         window=20,
         threshold=0.02,
         stop_pct=0.02,
         profit_target_pct=0.04,
         reentry_cooldown=5,
         close_col: SignalStrategyColumns = SignalStrategyColumns.CLOSE_PRICE,
-        debug: bool = False,
     ):
         super().__init__(
             window=window,
@@ -23,7 +26,7 @@ class MeanReversionStatefulLogic(StatefulLogic):
             profit_target_pct=profit_target_pct,
             reentry_cooldown=reentry_cooldown,
             close_col=close_col,
-            debug=debug,
+            logger=logger,
         )
         self.window = window
         self.threshold = threshold
@@ -35,8 +38,8 @@ class MeanReversionStatefulLogic(StatefulLogic):
     def __call_impl(
         self, i, df, entry_signal, exit_signal, state, trend_mask, filter_mask
     ):
-        if self.debug:
-            print(f"Processing index {i} with state: {state}")
+        if self.logger:
+            self.logger.debug(f"Processing index {i} with state: {state}")
         if not state:
             state = {
                 "in_position": False,
@@ -56,8 +59,8 @@ class MeanReversionStatefulLogic(StatefulLogic):
         if not state["in_position"]:
             if (i - state["last_exit_idx"]) > self.reentry_cooldown:
                 if deviation < -self.threshold and trend_mask.iloc[i]:
-                    if self.debug:
-                        print(
+                    if self.logger:
+                        self.logger.debug(
                             f"Buy signal at index {i}: price={price}, ma={ma}, deviation={deviation}"
                         )
                     new_entry_signal = SignalType.BUY.value
@@ -73,8 +76,8 @@ class MeanReversionStatefulLogic(StatefulLogic):
             sell_signal = deviation > self.threshold or hit_stop or hit_profit
 
             if sell_signal:
-                if self.debug:
-                    print(
+                if self.logger:
+                    self.logger.debug(
                         f"Sell signal at index {i}: price={price}, entry_price={state['entry_price']}, "
                         f"trailing_stop={state['trailing_stop']}, deviation={deviation}"
                     )
@@ -104,7 +107,7 @@ class MeanReversionStatefulLogic(StatefulLogic):
         }
 
     @classmethod
-    def optuna_suggest(cls, trial, prefix=""):
+    def optuna_suggest(cls, logger: Loggable, trial: Trial, prefix: str = ""):
         """Override to provide Optuna suggestions for mean reversion strategy."""
         window = trial.suggest_int(f"{prefix}window", 5, 50)
         threshold = trial.suggest_float(f"{prefix}threshold", 0.005, 0.04)

@@ -50,8 +50,9 @@ class EMAAboveSMARollingCondition(StrategyCondition):
         }
 
     @classmethod
-    def optuna_suggest(cls, trial: Trial, prefix: str = ""):
+    def optuna_suggest(cls, logger: Loggable, trial: Trial, prefix: str = ""):
         return cls(
+            logger=logger,
             ema_col=trial.suggest_categorical(
                 f"{prefix}ema_col",
                 cls.available_param_grid()["ema_col"],

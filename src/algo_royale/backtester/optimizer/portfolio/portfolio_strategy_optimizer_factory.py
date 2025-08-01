@@ -1,6 +1,5 @@
 from abc import ABC
 from typing import Any, Callable, Dict, List, Type, Union
-from algo_royale.logging.loggable import Loggable
 
 import pandas as pd
 
@@ -13,6 +12,7 @@ from algo_royale.backtester.optimizer.portfolio.portfolio_strategy_optimizer imp
     PortfolioStrategyOptimizer,
     PortfolioStrategyOptimizerImpl,
 )
+from algo_royale.logging.loggable import Loggable
 
 
 class PortfolioStrategyOptimizerFactory(ABC):
@@ -49,12 +49,13 @@ class PortfolioStrategyOptimizerFactoryImpl(PortfolioStrategyOptimizerFactory):
     This is used to create mock optimizers for testing purposes.
     """
 
-    def __init__(self, logger: Loggable):
+    def __init__(self, logger: Loggable, strategy_logger: Loggable):
         """
         Initialize the factory with a logger.
         :param logger: Loggable instance for logging.
         """
         self.logger = logger
+        self.strategy_logger = strategy_logger
 
     def create(
         self,
@@ -80,6 +81,7 @@ class PortfolioStrategyOptimizerFactoryImpl(PortfolioStrategyOptimizerFactory):
             strategy_class=strategy_class,
             backtest_fn=backtest_fn,
             logger=self.logger,
+            strategy_logger=self.strategy_logger,
             metric_name=metric_name,
             direction=direction,
         )

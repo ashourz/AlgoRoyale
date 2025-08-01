@@ -1,7 +1,7 @@
 import json
 from datetime import datetime
 from pathlib import Path
-from typing import Dict, Mapping, Optional, Sequence
+from typing import Dict, Mapping, Optional
 
 from algo_royale.backtester.enum.backtest_stage import BacktestStage
 from algo_royale.backtester.evaluator.backtest.base_backtest_evaluator import (
@@ -12,9 +12,6 @@ from algo_royale.backtester.stage_data.loader.symbol_strategy_data_loader import
     SymbolStrategyDataLoader,
 )
 from algo_royale.backtester.stage_data.stage_data_manager import StageDataManager
-from algo_royale.backtester.strategy_combinator.base_strategy_combinator import (
-    BaseStrategyCombinator,
-)
 from algo_royale.logging.loggable import Loggable
 
 
@@ -30,8 +27,6 @@ class BaseTestingStageCoordinator(StageCoordinator):
         stage (BacktestStage): The stage of the backtest pipeline.
         logger (Logger): Logger for logging information and errors.
         evaluator (BacktestEvaluator): Evaluator for assessing backtest results.
-        strategy_combinators (Sequence[type[SignalStrategyCombinator]]): List of strategy
-            combinator classes to use for combining strategies.
         optimization_root (str): Root directory for saving optimization results.
         optimization_json_filename (str): Name of the JSON file to save optimization results.
     """
@@ -43,7 +38,6 @@ class BaseTestingStageCoordinator(StageCoordinator):
         stage: BacktestStage,
         logger: Loggable,
         evaluator: BacktestEvaluator,
-        strategy_combinators: Sequence[type[BaseStrategyCombinator]],
         optimization_root: str,
         optimization_json_filename: str,
     ):
@@ -52,7 +46,6 @@ class BaseTestingStageCoordinator(StageCoordinator):
         self.stage = stage
         self.data_loader = data_loader
         self.stage_data_manager = stage_data_manager
-        self.strategy_combinators = strategy_combinators
         self.evaluator = evaluator
         self.logger = logger
         self.optimization_root = Path(optimization_root)

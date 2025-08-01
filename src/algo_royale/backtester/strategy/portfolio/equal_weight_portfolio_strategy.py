@@ -1,6 +1,7 @@
 import pandas as pd
 from optuna import Trial
 
+from algo_royale.logging.loggable import Loggable
 from src.algo_royale.backtester.strategy.portfolio.base_portfolio_strategy import (
     BasePortfolioStrategy,
 )
@@ -36,8 +37,8 @@ class EqualWeightPortfolioStrategy(BasePortfolioStrategy):
         }, index=pd.date_range('2023-01-01', periods=3))
     """
 
-    def __init__(self, debug: bool = False):
-        super().__init__(debug=debug)
+    def __init__(self, logger: Loggable):
+        super().__init__(logger=logger)
 
     @property
     def required_columns(self):
@@ -50,8 +51,8 @@ class EqualWeightPortfolioStrategy(BasePortfolioStrategy):
         return f"{self.__class__.__name__}()"
 
     @classmethod
-    def optuna_suggest(cls, trial: Trial, prefix: str = ""):
-        return cls()
+    def optuna_suggest(cls, logger: Loggable, trial: Trial, prefix: str = ""):
+        return cls(logger=logger)
 
     def allocate(self, signals: pd.DataFrame, returns: pd.DataFrame) -> pd.DataFrame:
         """

@@ -5,6 +5,7 @@ from algo_royale.backtester.strategy.signal.conditions.volume_surge_entry import
 from algo_royale.backtester.strategy.signal.conditions.volume_surge_exit import (
     VolumeSurgeExitCondition,
 )
+from algo_royale.logging.loggable import Loggable
 from src.algo_royale.backtester.strategy.signal.base_signal_strategy import (
     BaseSignalStrategy,
 )
@@ -20,12 +21,12 @@ class VolumeSurgeStrategy(BaseSignalStrategy):
 
     def __init__(
         self,
+        logger: Loggable,
         entry_conditions: list[VolumeSurgeEntryCondition] = [
             VolumeSurgeEntryCondition(
                 vol_col=SignalStrategyColumns.VOLUME, threshold=2.0, ma_window=20
             )
         ],
-        debug: bool = False,
     ):
         """Initialize the Volume Surge Strategy with entry and exit conditions.
         Parameters:
@@ -44,5 +45,5 @@ class VolumeSurgeStrategy(BaseSignalStrategy):
         super().__init__(
             entry_conditions=self.entry_conditions,
             exit_conditions=self.exit_conditions,
-            debug=debug,
+            logger=logger,
         )

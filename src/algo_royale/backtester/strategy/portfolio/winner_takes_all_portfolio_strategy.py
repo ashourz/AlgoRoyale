@@ -1,6 +1,7 @@
 import pandas as pd
 from optuna import Trial
 
+from algo_royale.logging.loggable import Loggable
 from src.algo_royale.backtester.strategy.portfolio.base_portfolio_strategy import (
     BasePortfolioStrategy,
 )
@@ -22,13 +23,13 @@ class WinnerTakesAllPortfolioStrategy(BasePortfolioStrategy):
 
     def __init__(
         self,
+        logger: Loggable,
         use_signals: bool = True,
         move_to_cash_at_end_of_day: bool = False,
-        debug: bool = False,
     ):
         self.use_signals = use_signals
         self.move_to_cash_at_end_of_day = move_to_cash_at_end_of_day
-        super().__init__(debug=debug)
+        super().__init__(logger=logger)
 
     @property
     def required_columns(self):
@@ -41,8 +42,9 @@ class WinnerTakesAllPortfolioStrategy(BasePortfolioStrategy):
         return f"{self.__class__.__name__}(use_signals={self.use_signals}, move_to_cash_at_end_of_day={self.move_to_cash_at_end_of_day})"
 
     @classmethod
-    def optuna_suggest(cls, trial: Trial, prefix: str = ""):
+    def optuna_suggest(cls, logger: Loggable, trial: Trial, prefix: str = ""):
         return cls(
+            logger=logger,
             use_signals=trial.suggest_categorical(
                 f"{prefix}use_signals", [True, False]
             ),

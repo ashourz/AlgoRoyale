@@ -40,13 +40,12 @@ class PortfolioOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
         data_loader (StageDataLoader): Loader for stage data.
         stage_data_manager (StageDataManager): Manages stage data paths and directories.
         logger (Logger): Logger for debugging and information.
-        strategy_combinators (Sequence[type[PortfolioStrategyCombinator]]): List of strategy combinators to generate strategy combinations.
+        strategy_combinator_factory (PortfolioStrategyCombinatorFactory): Factory to create strategy combinators.
         executor (PortfolioBacktestExecutor): Executor to run backtests for portfolio strategies.
         evaluator (PortfolioBacktestEvaluator): Evaluator to assess backtest results.
         optimization_root (str): Root directory for optimization results.
         optimization_json_filename (str): Name of the JSON file to write optimization results.
         portfolio_strategy_optimizer_factory (PortfolioStrategyOptimizerFactory): Factory to create portfolio strategy optimizers.
-        strategy_debug (bool): Whether to enable debug mode for strategy combinators.
     """
 
     def __init__(
@@ -61,7 +60,6 @@ class PortfolioOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
         optimization_json_filename: str,
         portfolio_matrix_loader: PortfolioMatrixLoader,
         portfolio_strategy_optimizer_factory: PortfolioStrategyOptimizerFactory,
-        strategy_debug: bool = False,
         optimization_n_trials: int = 1,
     ):
         super().__init__(
@@ -80,7 +78,6 @@ class PortfolioOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
         self.stage_data_manager = stage_data_manager
         self.evaluator = evaluator
         self.executor = executor
-        self.strategy_debug = strategy_debug
         self.optimization_n_trials = optimization_n_trials
         self.strategy_combinator_factory = strategy_combinator_factory
 
@@ -123,9 +120,6 @@ class PortfolioOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
             )
             self.logger.debug(
                 f"Portfolio matrix shape: {portfolio_matrix.shape}, columns: {list(portfolio_matrix.columns)}"
-            )
-            self.logger.debug(
-                f"Strategy combinators: {[c.__name__ for c in self.strategy_combinators]}"
             )
 
             for (

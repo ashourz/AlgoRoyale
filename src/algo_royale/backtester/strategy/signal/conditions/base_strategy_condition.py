@@ -77,7 +77,7 @@ class StrategyCondition:
         return combos
 
     @classmethod
-    def optuna_suggest(cls, trial: Trial, prefix: str = ""):
+    def optuna_suggest(cls, logger: Loggable, trial: Trial, prefix: str = ""):
         """Should be overridden in subclasses to suggest parameters using an Optuna trial.
 
         Example:

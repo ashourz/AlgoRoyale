@@ -8,6 +8,7 @@ from algo_royale.backtester.strategy.signal.conditions.moving_average_entry impo
 from algo_royale.backtester.strategy.signal.conditions.moving_average_exit import (
     MovingAverageExitCondition,
 )
+from algo_royale.logging.loggable import Loggable
 
 
 class MovingAverageStrategy(BaseSignalStrategy):
@@ -18,6 +19,7 @@ class MovingAverageStrategy(BaseSignalStrategy):
 
     def __init__(
         self,
+        logger: Loggable,
         entry_conditions: list[MovingAverageEntryCondition] = [
             MovingAverageEntryCondition(
                 close_col=SignalStrategyColumns.CLOSE_PRICE,
@@ -32,7 +34,6 @@ class MovingAverageStrategy(BaseSignalStrategy):
                 long_window=200,
             )
         ],
-        debug: bool = False,
     ):
         """Initialize the Moving Average Strategy with entry and exit conditions.
         Parameters:
@@ -41,5 +42,5 @@ class MovingAverageStrategy(BaseSignalStrategy):
         super().__init__(
             entry_conditions=entry_conditions,
             exit_conditions=exit_conditions,
-            debug=debug,
+            logger=logger,
         )

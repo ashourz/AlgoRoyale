@@ -13,6 +13,7 @@ from algo_royale.backtester.strategy.signal.conditions.sma_trend import (
 from algo_royale.backtester.strategy.signal.stateful_logic.macd_trailing_stateful_logic import (
     MACDTrailingStatefulLogic,
 )
+from algo_royale.logging.loggable import Loggable
 
 
 class MACDTrailingStopStrategy(BaseSignalStrategy):
@@ -34,6 +35,7 @@ class MACDTrailingStopStrategy(BaseSignalStrategy):
 
     def __init__(
         self,
+        logger: Loggable,
         entry_conditions: Optional[list[StrategyCondition]] = None,
         trend_conditions=[
             SMATrendCondition(
@@ -48,7 +50,6 @@ class MACDTrailingStopStrategy(BaseSignalStrategy):
             stop_pct=0.02,
             close_col=SignalStrategyColumns.CLOSE_PRICE,
         ),
-        debug: bool = False,
     ):
         # Store the condition(s) as attributes
         self.entry_conditions = entry_conditions if entry_conditions else []
@@ -59,5 +60,5 @@ class MACDTrailingStopStrategy(BaseSignalStrategy):
             entry_conditions=self.entry_conditions,
             trend_conditions=self.trend_conditions,
             stateful_logic=self.stateful_logic,
-            debug=debug,
+            logger=logger,
         )

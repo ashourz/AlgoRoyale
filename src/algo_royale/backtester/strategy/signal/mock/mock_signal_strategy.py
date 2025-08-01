@@ -55,8 +55,6 @@ class MockSignalStrategy(BaseSignalStrategy):
         :return: The fixed signal value.
         """
         if self.signal_exception_message:
-            if self.debug:
-                print(f"Error generating signals: {self.signal_exception_message}")
             df = df.copy()
             df[SignalStrategyColumns.ENTRY_SIGNAL] = SignalType.HOLD.value
             df[SignalStrategyColumns.EXIT_SIGNAL] = SignalType.HOLD.value

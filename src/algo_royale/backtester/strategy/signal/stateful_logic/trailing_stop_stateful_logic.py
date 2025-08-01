@@ -1,8 +1,11 @@
+from optuna import Trial
+
 from algo_royale.backtester.column_names.strategy_columns import SignalStrategyColumns
 from algo_royale.backtester.enum.signal_type import SignalType
 from algo_royale.backtester.strategy.signal.stateful_logic.base_stateful_logic import (
     StatefulLogic,
 )
+from algo_royale.logging.loggable import Loggable
 
 
 class TrailingStopStatefulLogic(StatefulLogic):
@@ -13,11 +16,11 @@ class TrailingStopStatefulLogic(StatefulLogic):
 
     def __init__(
         self,
+        logger: Loggable,
         close_col=SignalStrategyColumns.CLOSE_PRICE,
         stop_pct=0.02,
-        debug: bool = False,
     ):
-        super().__init__(close_col=close_col, stop_pct=stop_pct, debug=debug)
+        super().__init__(logger=logger, close_col=close_col, stop_pct=stop_pct)
         self.close_col = close_col
         self.stop_pct = stop_pct
 
@@ -63,7 +66,7 @@ class TrailingStopStatefulLogic(StatefulLogic):
         }
 
     @classmethod
-    def optuna_suggest(cls, trial, prefix: str = ""):
+    def optuna_suggest(cls, logger: Loggable, trial: Trial, prefix: str = ""):
         return cls(
             close_col=trial.suggest_categorical(
                 f"{prefix}close_col", [SignalStrategyColumns.CLOSE_PRICE]

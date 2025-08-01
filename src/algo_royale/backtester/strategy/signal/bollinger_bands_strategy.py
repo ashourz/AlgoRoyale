@@ -10,6 +10,7 @@ from algo_royale.backtester.strategy.signal.conditions.bollinger_bands_exit impo
 from algo_royale.backtester.strategy.signal.conditions.sma_trend import (
     SMATrendCondition,
 )
+from algo_royale.logging.loggable import Loggable
 
 
 class BollingerBandsStrategy(BaseSignalStrategy):
@@ -30,7 +31,7 @@ class BollingerBandsStrategy(BaseSignalStrategy):
         entry_conditions: list[BollingerBandsEntryCondition],
         exit_conditions: list[BollingerBandsExitCondition],
         trend_conditions: list[SMATrendCondition],
-        debug: bool = False,
+        logger: Loggable,
     ):
         """Initialize the Bollinger Bands Strategy with entry and exit conditions.
         Parameters:
@@ -41,5 +42,5 @@ class BollingerBandsStrategy(BaseSignalStrategy):
             entry_conditions=entry_conditions,
             exit_conditions=exit_conditions,
             trend_conditions=trend_conditions,
-            debug=debug,
+            logger=logger,
         )

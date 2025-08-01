@@ -8,6 +8,7 @@ from algo_royale.backtester.strategy.signal.conditions.wick_reversal_entry impor
 from algo_royale.backtester.strategy.signal.conditions.wick_reversal_exit import (
     WickReversalExitCondition,
 )
+from algo_royale.logging.loggable import Loggable
 
 
 class WickReversalStrategy(BaseSignalStrategy):
@@ -20,6 +21,7 @@ class WickReversalStrategy(BaseSignalStrategy):
 
     def __init__(
         self,
+        logger: Loggable,
         entry_conditions: list[WickReversalEntryCondition] = [
             WickReversalEntryCondition(
                 wick_body_ratio=2.0,
@@ -34,10 +36,9 @@ class WickReversalStrategy(BaseSignalStrategy):
                 body_col=SignalStrategyColumns.BODY,
             )
         ],
-        debug: bool = False,
     ):
         super().__init__(
             entry_conditions=entry_conditions,
             exit_conditions=exit_conditions,
-            debug=debug,
+            logger=logger,
         )

@@ -8,6 +8,7 @@ from algo_royale.backtester.strategy.signal.conditions.ema_above_sma_rolling imp
 from algo_royale.backtester.strategy.signal.conditions.return_volatility_exit import (
     ReturnVolatilityExitCondition,
 )
+from algo_royale.logging.loggable import Loggable
 
 
 class TrendScraperStrategy(BaseSignalStrategy):
@@ -21,6 +22,7 @@ class TrendScraperStrategy(BaseSignalStrategy):
 
     def __init__(
         self,
+        logger: Loggable,
         trend_conditions: list[EMAAboveSMARollingCondition] = [
             EMAAboveSMARollingCondition(
                 ema_col=SignalStrategyColumns.EMA_20,
@@ -36,7 +38,6 @@ class TrendScraperStrategy(BaseSignalStrategy):
                 threshold=-0.005,
             )
         ],
-        debug: bool = False,
     ):
         """Initialize the Trend Scraper Strategy with trend and exit conditions.
         Parameters:
@@ -46,5 +47,5 @@ class TrendScraperStrategy(BaseSignalStrategy):
         super().__init__(
             trend_conditions=trend_conditions,
             exit_conditions=exit_conditions,
-            debug=debug,
+            logger=logger,
         )

@@ -88,8 +88,9 @@ class ADXAboveThresholdCondition(StrategyCondition):
         }
 
     @classmethod
-    def optuna_suggest(cls, trial: Trial, prefix: str = ""):
+    def optuna_suggest(cls, logger: Loggable, trial: Trial, prefix: str = ""):
         return cls(
+            logger=logger,
             adx_col=trial.suggest_categorical(
                 f"{prefix}adx_col", [SignalStrategyColumns.ADX]
             ),

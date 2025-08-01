@@ -91,8 +91,9 @@ class RSIBelowThresholdCondition(StrategyCondition):
         }
 
     @classmethod
-    def optuna_suggest(cls, trial: Trial, prefix=""):
+    def optuna_suggest(cls, logger: Loggable, trial: Trial, prefix=""):
         return cls(
+            logger=logger,
             rsi_col=SignalStrategyColumns.RSI,
             close_col=trial.suggest_categorical(
                 f"{prefix}close_col",

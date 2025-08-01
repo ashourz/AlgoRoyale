@@ -3,6 +3,7 @@ import pandas as pd
 from optuna import Trial
 from scipy.optimize import minimize
 
+from algo_royale.logging.loggable import Loggable
 from src.algo_royale.backtester.strategy.portfolio.base_portfolio_strategy import (
     BasePortfolioStrategy,
 )
@@ -23,11 +24,11 @@ class MaxSharpePortfolioStrategy(BasePortfolioStrategy):
     """
 
     def __init__(
-        self, lookback: int = 60, risk_free_rate: float = 0.0, debug: bool = False
+        self, logger: Loggable, lookback: int = 60, risk_free_rate: float = 0.0
     ):
         self.lookback = lookback
         self.risk_free_rate = risk_free_rate
-        super().__init__(debug=debug)
+        super().__init__(logger=logger)
 
     @property
     def required_columns(self):
@@ -40,8 +41,9 @@ class MaxSharpePortfolioStrategy(BasePortfolioStrategy):
         return f"{self.__class__.__name__}(lookback={self.lookback}, risk_free_rate={self.risk_free_rate})"
 
     @classmethod
-    def optuna_suggest(cls, trial: Trial, prefix: str = ""):
+    def optuna_suggest(cls, logger: Loggable, trial: Trial, prefix: str = ""):
         return cls(
+            logger=logger,
             lookback=trial.suggest_int(f"{prefix}lookback", 10, 120),
             risk_free_rate=trial.suggest_float(f"{prefix}risk_free_rate", 0.0, 0.05),
         )

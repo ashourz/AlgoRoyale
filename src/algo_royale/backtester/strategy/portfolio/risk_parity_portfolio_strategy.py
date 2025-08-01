@@ -2,6 +2,7 @@ import numpy as np
 import pandas as pd
 from optuna import Trial
 
+from algo_royale.logging.loggable import Loggable
 from src.algo_royale.backtester.strategy.portfolio.base_portfolio_strategy import (
     BasePortfolioStrategy,
 )
@@ -22,16 +23,12 @@ class RiskParityPortfolioStrategy(BasePortfolioStrategy):
     """
 
     def __init__(
-        self,
-        window: int = 20,
-        max_iter: int = 100,
-        tol: float = 1e-6,
-        debug: bool = False,
+        self, logger: Loggable, window: int = 20, max_iter: int = 100, tol: float = 1e-6
     ):
         self.window = window
         self.max_iter = max_iter
         self.tol = tol
-        super().__init__(debug=debug)
+        super().__init__(logger=logger)
 
     @property
     def required_columns(self):
@@ -44,8 +41,9 @@ class RiskParityPortfolioStrategy(BasePortfolioStrategy):
         return f"{self.__class__.__name__}(window={self.window}, max_iter={self.max_iter}, tol={self.tol})"
 
     @classmethod
-    def optuna_suggest(cls, trial: Trial, prefix: str = ""):
+    def optuna_suggest(cls, logger: Loggable, trial: Trial, prefix: str = ""):
         return cls(
+            logger=logger,
             window=trial.suggest_int(f"{prefix}window", 5, 60),
             max_iter=trial.suggest_int(f"{prefix}max_iter", 50, 500),
             tol=trial.suggest_float(f"{prefix}tol", 1e-8, 1e-3, log=True),

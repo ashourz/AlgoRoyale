@@ -64,8 +64,9 @@ class ReturnVolatilityExitCondition(StrategyCondition):
         }
 
     @classmethod
-    def optuna_suggest(cls, trial: Trial, prefix=""):
+    def optuna_suggest(cls, logger: Loggable, trial: Trial, prefix=""):
         return cls(
+            logger=logger,
             threshold=trial.suggest_float(f"{prefix}threshold", -0.1, -0.005),
             return_col=trial.suggest_categorical(
                 f"{prefix}return_col",

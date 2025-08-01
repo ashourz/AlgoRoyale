@@ -79,8 +79,9 @@ class VolatilityBreakoutEntryCondition(StrategyCondition):
         }
 
     @classmethod
-    def optuna_suggest(cls, trial: Trial, prefix=""):
+    def optuna_suggest(cls, logger: Loggable, trial: Trial, prefix=""):
         return cls(
+            logger=logger,
             threshold=trial.suggest_float(f"{prefix}threshold", 0.8, 2.5),
             sma_col=trial.suggest_categorical(
                 f"{prefix}sma_col",

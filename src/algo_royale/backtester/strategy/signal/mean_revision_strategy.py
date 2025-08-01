@@ -8,6 +8,7 @@ from algo_royale.backtester.strategy.signal.conditions.price_above_sma import (
 from algo_royale.backtester.strategy.signal.stateful_logic.mean_reversion_stateful_logic import (
     MeanReversionStatefulLogic,
 )
+from algo_royale.logging.loggable import Loggable
 
 
 class MeanReversionStrategy(BaseSignalStrategy):
@@ -30,6 +31,7 @@ class MeanReversionStrategy(BaseSignalStrategy):
 
     def __init__(
         self,
+        logger: Loggable,
         trend_conditions: list[PriceAboveSMACondition] = [
             PriceAboveSMACondition(
                 close_col=SignalStrategyColumns.CLOSE_PRICE,
@@ -44,7 +46,6 @@ class MeanReversionStrategy(BaseSignalStrategy):
             reentry_cooldown=5,
             close_col=SignalStrategyColumns.CLOSE_PRICE,
         ),
-        debug: bool = False,
     ):
         """Initialize the Mean Reversion Strategy with trend conditions and stateful logic.
         Parameters:
@@ -54,5 +55,5 @@ class MeanReversionStrategy(BaseSignalStrategy):
         super().__init__(
             trend_conditions=trend_conditions,
             stateful_logic=stateful_logic,
-            debug=debug,
+            logger=logger,
         )

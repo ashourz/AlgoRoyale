@@ -1,5 +1,4 @@
 from abc import abstractmethod
-from typing import Any, Dict
 
 import numpy as np
 import pandas as pd
@@ -9,6 +8,7 @@ from algo_royale.backtester.column_names.portfolio_strategy_columns import (
     PortfolioStrategyOutputColumns,
 )
 from algo_royale.backtester.strategy.base_strategy import BaseStrategy
+from algo_royale.logging.loggable import Loggable
 
 
 class BasePortfolioStrategy(BaseStrategy):
@@ -16,11 +16,8 @@ class BasePortfolioStrategy(BaseStrategy):
     Abstract base class for portfolio allocation strategies.
     """
 
-    def __init__(
-        self, optimization_options: Dict[str, Any] = None, debug: bool = False
-    ):
-        self.optimization_options = optimization_options or {}
-        self.debug = debug
+    def __init__(self, logger: Loggable):
+        self.logger = logger
 
     @property
     def required_columns(self):
@@ -47,7 +44,7 @@ class BasePortfolioStrategy(BaseStrategy):
         return f"{self.__class__.__name__}({','.join(params)})"
 
     @classmethod
-    def optuna_suggest(cls, trial: Trial, prefix: str = ""):
+    def optuna_suggest(cls, logger: Loggable, trial: Trial, prefix: str = ""):
         """
         Should be overridden in subclasses to suggest parameters using an Optuna trial.
         """

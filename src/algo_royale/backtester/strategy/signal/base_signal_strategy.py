@@ -14,6 +14,7 @@ from algo_royale.backtester.strategy.signal.conditions.base_strategy_condition i
 from algo_royale.backtester.strategy.signal.stateful_logic.base_stateful_logic import (
     StatefulLogic,
 )
+from algo_royale.logging.loggable import Loggable
 
 
 class BaseSignalStrategy(BaseStrategy):
@@ -34,19 +35,19 @@ class BaseSignalStrategy(BaseStrategy):
 
     def __init__(
         self,
+        logger: Loggable,
         filter_conditions: Optional[list[StrategyCondition]] = None,
         trend_conditions: Optional[list[StrategyCondition]] = None,
         entry_conditions: Optional[list[StrategyCondition]] = None,
         exit_conditions: Optional[list[StrategyCondition]] = None,
         stateful_logic: Optional[StatefulLogic] = None,
-        debug: bool = False,
     ):
+        self.logger = logger
         self.filter_conditions = filter_conditions or []
         self.trend_conditions = trend_conditions or []
         self.entry_conditions = entry_conditions or []
         self.exit_conditions = exit_conditions or []
         self.stateful_logic = stateful_logic
-        self.debug = debug
 
     @property
     def required_columns(self) -> list[str]:
@@ -67,8 +68,8 @@ class BaseSignalStrategy(BaseStrategy):
                     required.update(func.required_columns)
             return list(required)
         except Exception as e:
-            if self.debug:
-                print(f"Error in required_columns: {e}")
+            if self.logger:
+                self.logger.error(f"Error in required_columns: {e}")
             return []
 
     def _apply_filters(self, df: pd.DataFrame) -> pd.Series:
@@ -92,8 +93,8 @@ class BaseSignalStrategy(BaseStrategy):
             return pd.Series(True, index=df.index)
         mask = pd.Series(True, index=df.index)
         for func in self.trend_conditions:
-            if self.debug:
-                print(
+            if self.logger:
+                self.logger.debug(
                     f"trend_condition type: {type(func)}"
                 )  # Should always be a condition object, not a list
             mask &= func(df)
@@ -105,8 +106,8 @@ class BaseSignalStrategy(BaseStrategy):
         # Combine entry signals (example: take first non-hold, or customize as needed)
         entry_signals = pd.Series(SignalType.HOLD.value, index=df.index)
         for cond in self.entry_conditions:
-            if self.debug:
-                print(f"entry_condition type: {type(cond)}")
+            if self.logger:
+                self.logger.debug(f"entry_condition type: {type(cond)}")
             cond_signal = cond.apply(df)
             # If the condition returns boolean, map True to BUY, False to HOLD
             if cond_signal.dtype == bool:
@@ -116,8 +117,10 @@ class BaseSignalStrategy(BaseStrategy):
             entry_signals = cond_signal.where(
                 cond_signal != SignalType.HOLD.value, entry_signals
             )
-            if self.debug:
-                print(f"Intermediate entry_signals: {entry_signals.unique()}")
+            if self.logger:
+                self.logger.debug(
+                    f"Intermediate entry_signals: {entry_signals.unique()}"
+                )
         return entry_signals
 
     def _apply_exit(self, df: pd.DataFrame) -> pd.Series:
@@ -125,8 +128,8 @@ class BaseSignalStrategy(BaseStrategy):
             return pd.Series(SignalType.HOLD.value, index=df.index)
         exit_signals = pd.Series(SignalType.HOLD.value, index=df.index)
         for cond in self.exit_conditions:
-            if self.debug:
-                print(f"exit_condition type: {type(cond)}")
+            if self.logger:
+                self.logger.debug(f"exit_condition type: {type(cond)}")
             # Should always be a condition object, not a list
             cond_signal = cond.apply(df)
             # If the condition returns boolean, map True to SELL, False to HOLD
@@ -193,17 +196,18 @@ class BaseSignalStrategy(BaseStrategy):
                 df[SignalStrategyColumns.ENTRY_SIGNAL] = SignalType.HOLD.value
                 df[SignalStrategyColumns.EXIT_SIGNAL] = SignalType.HOLD.value
                 return df
-            if self.debug:
-                print(f"Generating signals for strategy: {self.get_description()}")
+            if self.logger:
+                self.logger.info(
+                    f"Generating signals for strategy: {self.get_description()}"
+                )
             filter_mask = self._apply_filters(df)
-            if self.debug:
-                print(f"Filter mask sum: {filter_mask.sum()} / {len(filter_mask)}")
+            self.logger.info(
+                f"Filter mask sum: {filter_mask.sum()} / {len(filter_mask)}"
+            )
             trend_mask = self._apply_trend(df)
-            if self.debug:
-                print(f"Trend mask sum: {trend_mask.sum()} / {len(trend_mask)}")
+            self.logger.info(f"Trend mask sum: {trend_mask.sum()} / {len(trend_mask)}")
             entry_signals = self._apply_entry(df)
-            if self.debug:
-                print(f"Entry signals unique: {entry_signals.unique()}")
+            self.logger.info(f"Entry signals unique: {entry_signals.unique()}")
             exit_signals = self._apply_exit(df)
 
             # Only allow entry signals where both filter and trend masks are True
@@ -236,8 +240,7 @@ class BaseSignalStrategy(BaseStrategy):
             df[SignalStrategyColumns.EXIT_SIGNAL] = exit_signals
             return df
         except Exception as e:
-            if self.debug:
-                print(f"Error generating signals: {e}")
+            self.logger.error(f"Error generating signals: {e}")
             df = df.copy()
             df[SignalStrategyColumns.ENTRY_SIGNAL] = SignalType.HOLD.value
             df[SignalStrategyColumns.EXIT_SIGNAL] = SignalType.HOLD.value

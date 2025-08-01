@@ -43,9 +43,10 @@ class PullbackExitCondition(StrategyCondition):
         return {"entry_condition": entry_conditions}
 
     @classmethod
-    def optuna_suggest(cls, trial: Trial, prefix=""):
+    def optuna_suggest(cls, logger: Loggable, trial: Trial, prefix=""):
         return cls(
+            logger=logger,
             entry_condition=PullbackEntryCondition.optuna_suggest(
-                trial, prefix=f"{prefix}entry_condition_"
-            )
+                logger=logger, trial=trial, prefix=f"{prefix}entry_condition_"
+            ),
         )

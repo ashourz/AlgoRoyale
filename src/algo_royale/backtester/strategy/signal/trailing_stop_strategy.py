@@ -8,6 +8,7 @@ from algo_royale.backtester.strategy.signal.conditions.boolean_column_entry impo
 from algo_royale.backtester.strategy.signal.conditions.trend_above_sma import (
     TrendAboveSMACondition,
 )
+from algo_royale.logging.loggable import Loggable
 
 
 class TrailingStopStrategy(BaseSignalStrategy):
@@ -22,6 +23,7 @@ class TrailingStopStrategy(BaseSignalStrategy):
 
     def __init__(
         self,
+        logger: Loggable,
         entry_conditions: list[BooleanColumnEntryCondition] = [
             BooleanColumnEntryCondition(entry_col=SignalStrategyColumns.ENTRY_SIGNAL)
         ],
@@ -31,10 +33,9 @@ class TrailingStopStrategy(BaseSignalStrategy):
                 sma_col=SignalStrategyColumns.SMA_200,
             )
         ],
-        debug: bool = False,
     ):
         super().__init__(
             entry_conditions=entry_conditions,
             trend_conditions=trend_conditions,
-            debug=debug,
+            logger=logger,
         )

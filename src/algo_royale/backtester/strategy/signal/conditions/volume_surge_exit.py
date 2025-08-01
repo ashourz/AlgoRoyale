@@ -48,9 +48,10 @@ class VolumeSurgeExitCondition(StrategyCondition):
         return {"entry_condition": entry_conditions}
 
     @classmethod
-    def optuna_suggest(cls, trial: Trial, prefix=""):
+    def optuna_suggest(cls, logger: Loggable, trial: Trial, prefix=""):
         return cls(
+            logger=logger,
             entry_condition=VolumeSurgeEntryCondition.optuna_suggest(
-                trial, prefix=f"{prefix}entry_"
-            )
+                logger=logger, trial=trial, prefix=f"{prefix}entry_"
+            ),
         )

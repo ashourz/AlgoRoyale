@@ -76,8 +76,9 @@ class RSIAboveThresholdCondition(StrategyCondition):
         }
 
     @classmethod
-    def optuna_suggest(cls, trial: Trial, prefix=""):
+    def optuna_suggest(cls, logger: Loggable, trial: Trial, prefix=""):
         return cls(
+            logger=logger,
             rsi_col=SignalStrategyColumns.RSI,
             threshold=trial.suggest_int(f"{prefix}threshold", 50, 85),
         )

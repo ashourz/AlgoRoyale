@@ -9,6 +9,9 @@ from algo_royale.backtester.optimizer.portfolio.optimization_direction import (
     OptimizationDirection,
 )
 from algo_royale.backtester.optimizer.portfolio.portfolio_metric import PortfolioMetric
+from algo_royale.backtester.strategy.portfolio.base_portfolio_strategy import (
+    BasePortfolioStrategy,
+)
 from algo_royale.logging.loggable import Loggable
 
 
@@ -43,9 +46,10 @@ class PortfolioStrategyOptimizer(ABC):
 class PortfolioStrategyOptimizerImpl(PortfolioStrategyOptimizer):
     def __init__(
         self,
-        strategy_class: Type,
+        strategy_class: Type[BasePortfolioStrategy],
         backtest_fn: Callable[[Any, pd.DataFrame], Any],
         logger: Loggable,
+        strategy_logger: Loggable,
         metric_name: Union[
             PortfolioMetric, List[PortfolioMetric]
         ] = PortfolioMetric.TOTAL_RETURN,
@@ -68,6 +72,7 @@ class PortfolioStrategyOptimizerImpl(PortfolioStrategyOptimizer):
         self.metric_name = metric_name
         self.direction = direction
         self.logger = logger
+        self.strategy_logger = strategy_logger
 
     async def optimize(
         self,
@@ -115,7 +120,9 @@ class PortfolioStrategyOptimizerImpl(PortfolioStrategyOptimizer):
         start_time = time.time()
 
         def objective(trial, logger=self.logger):
-            params = self.strategy_class.optuna_suggest(trial)
+            params = self.strategy_class.optuna_suggest(
+                logger=self.strategy_logger, trial=trial
+            )
             if isinstance(params, dict):
                 strategy = self.strategy_class(**params)
             else:

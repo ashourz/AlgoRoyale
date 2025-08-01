@@ -7,6 +7,7 @@ from algo_royale.backtester.strategy.signal.conditions.combo_entry import (
 from algo_royale.backtester.strategy.signal.conditions.combo_exit import (
     ComboExitCondition,
 )
+from algo_royale.logging.loggable import Loggable
 
 
 class ComboStrategy(BaseSignalStrategy):
@@ -25,10 +26,10 @@ class ComboStrategy(BaseSignalStrategy):
         self,
         entry_conditions: list[ComboEntryCondition],
         exit_conditions: list[ComboExitCondition],
-        debug: bool = False,
+        logger: Loggable,
     ):
         super().__init__(
             entry_conditions=entry_conditions,
             exit_conditions=exit_conditions,
-            debug=debug,
+            logger=logger,
         )

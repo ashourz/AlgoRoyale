@@ -1,5 +1,9 @@
 import itertools
 
+from optuna import Trial
+
+from algo_royale.logging.loggable import Loggable
+
 
 class StatefulLogic:
     """Base class for stateful logic in strategies.
@@ -8,10 +12,10 @@ class StatefulLogic:
     update signals and state based on the current row of data.
     """
 
-    def __init__(self, debug: bool = False, *args, **kwargs):
+    def __init__(self, logger: Loggable, *args, **kwargs):
         for k, v in kwargs.items():
             setattr(self, k, v)
-        self.debug = debug
+        self.logger = logger
 
     def __call__(
         self, i, df, entry_signal, exit_signal, state, trend_mask, filter_mask
@@ -87,3 +91,10 @@ class StatefulLogic:
                 params[k] = v
         param_str = ",".join(f"{k}={repr(v)}" for k, v in sorted(params.items()))
         return f"{self.__class__.__name__}({param_str})"
+
+    @classmethod
+    def optuna_suggest(cls, logger: Loggable, trial: Trial, prefix: str = ""):
+        """Should be overridden in subclasses to suggest parameters using an Optuna trial."""
+        raise NotImplementedError(
+            f"{cls.__name__}.optuna_suggest() must be implemented to use Optuna."
+        )
