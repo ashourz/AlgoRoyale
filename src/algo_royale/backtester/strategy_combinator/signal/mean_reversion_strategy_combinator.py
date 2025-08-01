@@ -20,10 +20,10 @@ class MeanReversionStrategyCombinator(SignalStrategyCombinator):
 
     def __init__(self):
         super().__init__(
+            strategy_class=MeanReversionStrategy,
             filter_condition_types=[],
             entry_condition_types=[],
             trend_condition_types=[PriceAboveSMACondition],
             exit_condition_types=[],
             stateful_logic_types=[MeanReversionStatefulLogic],
         )
-        self.strategy_class = MeanReversionStrategy

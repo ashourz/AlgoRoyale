@@ -24,10 +24,10 @@ class MACDTrailingStrategyCombinator(SignalStrategyCombinator):
 
     def __init__(self):
         super().__init__(
+            strategy_class=MACDTrailingStopStrategy,
             filter_condition_types=[],
             entry_condition_types=[VolumeSurgeEntryCondition],
             trend_condition_types=[SMATrendCondition],
             exit_condition_types=[],
             stateful_logic_types=[MACDTrailingStatefulLogic],
         )
-        self.strategy_class = MACDTrailingStopStrategy

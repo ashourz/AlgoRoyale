@@ -1,3 +1,5 @@
+from typing import Type
+
 from algo_royale.backtester.strategy_combinator.base_strategy_combinator import (
     BaseStrategyCombinator,
 )
@@ -12,12 +14,14 @@ class SignalStrategyCombinator(BaseStrategyCombinator):
 
     def __init__(
         self,
+        strategy_class: Type[BaseStrategyCombinator],
         filter_condition_types: list[type] = [None],
         entry_condition_types: list[type] = [None],
         trend_condition_types: list[type] = [None],
         exit_condition_types: list[type] = [None],
         stateful_logic_types: list[type] = [None],
     ):
+        self.strategy_class = strategy_class
         self.filter_condition_types = filter_condition_types
         self.entry_condition_types = entry_condition_types
         self.trend_condition_types = trend_condition_types

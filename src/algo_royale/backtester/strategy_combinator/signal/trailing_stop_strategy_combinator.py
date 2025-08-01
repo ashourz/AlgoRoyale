@@ -45,6 +45,7 @@ class TrailingStopStrategyCombinator(SignalStrategyCombinator):
 
     def __init__(self):
         super().__init__(
+            strategy_class=TrailingStopStrategy,
             filter_condition_types=[],
             entry_condition_types=[
                 BooleanColumnEntryCondition,
@@ -61,4 +62,3 @@ class TrailingStopStrategyCombinator(SignalStrategyCombinator):
             ],
             stateful_logic_types=[TrailingStopStatefulLogic],
         )
-        self.strategy_class = TrailingStopStrategy

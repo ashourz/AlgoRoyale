@@ -35,7 +35,10 @@ class SignalStrategyCombinatorFactory:
             if class_name in SIGNAL_STRATEGY_COMBINATOR_MAP:
                 combinator_class = SIGNAL_STRATEGY_COMBINATOR_MAP[class_name]
                 if issubclass(combinator_class, SignalStrategyCombinator):
-                    combinators.append(combinator_class)
+                    instance = combinator_class(
+                        logger=self.logger,
+                    )
+                    combinators.append(instance)
                 else:
                     self.logger.error(
                         f"Class {class_name} is not a subclass of SignalStrategyCombinator."

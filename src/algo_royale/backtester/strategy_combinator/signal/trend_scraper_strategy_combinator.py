@@ -20,10 +20,10 @@ class TrendScraperStrategyCombinator(SignalStrategyCombinator):
 
     def __init__(self):
         super().__init__(
+            strategy_class=TrendScraperStrategy,
             filter_condition_types=[],
             entry_condition_types=[],
             trend_condition_types=[EMAAboveSMARollingCondition],
             exit_condition_types=[ReturnVolatilityExitCondition],
             stateful_logic_types=[],
         )
-        self.strategy_class = TrendScraperStrategy

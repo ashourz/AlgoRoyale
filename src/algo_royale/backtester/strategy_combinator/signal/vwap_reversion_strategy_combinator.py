@@ -21,10 +21,10 @@ class VWAPReversionStrategyCombinator(SignalStrategyCombinator):
 
     def __init__(self):
         super().__init__(
+            strategy_class=VWAPReversionStrategy,
             filter_condition_types=[],
             entry_condition_types=[VWAPReversionEntryCondition],
             trend_condition_types=[],
             exit_condition_types=[VWAPReversionExitCondition],
             stateful_logic_types=[],
         )
-        self.strategy_class = VWAPReversionStrategy

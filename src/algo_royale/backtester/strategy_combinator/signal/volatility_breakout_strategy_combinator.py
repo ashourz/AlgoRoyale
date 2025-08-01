@@ -20,10 +20,10 @@ class VolatilityBreakoutStrategyCombinator(SignalStrategyCombinator):
 
     def __init__(self):
         super().__init__(
+            strategy_class=VolatilityBreakoutStrategy,
             filter_condition_types=[],
             entry_condition_types=[VolatilityBreakoutEntryCondition],
             trend_condition_types=[],
             exit_condition_types=[VolatilityBreakoutExitCondition],
             stateful_logic_types=[],
         )
-        self.strategy_class = VolatilityBreakoutStrategy

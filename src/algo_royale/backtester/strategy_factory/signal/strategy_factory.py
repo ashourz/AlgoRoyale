@@ -1,12 +1,9 @@
-from typing import Optional, Sequence
+from typing import Optional
 
 from algo_royale.backtester.maps.condition_class_map import CONDITION_CLASS_MAP
 from algo_royale.backtester.maps.stateful_logic_map import STATEFUL_LOGIC_CLASS_MAP
 from algo_royale.backtester.strategy.signal.base_signal_strategy import (
     BaseSignalStrategy,
-)
-from algo_royale.backtester.strategy_combinator.signal.base_signal_strategy_combinator import (
-    SignalStrategyCombinator,
 )
 from algo_royale.logging.loggable import Loggable
 
@@ -17,16 +14,13 @@ class StrategyFactory:
     and stateful logic based on configuration parameters.
 
     Parameters:
-        strategy_combinators (Optional[list[type[StrategyCombinator]]]): List of strategy combinators to use.
         logger (Logger): Logger instance for logging messages.
     """
 
     def __init__(
         self,
-        strategy_combinators: Sequence[type[SignalStrategyCombinator]],
         logger: Loggable,
     ):
-        self.strategy_combinators = strategy_combinators
         self._all_strategy_combinations: Optional[list[BaseSignalStrategy]] = None
         self.logger = logger
 
@@ -41,6 +35,7 @@ class StrategyFactory:
             for cond_class, params in cond.items()
         ]
 
+    ##TODO: remove debug parameter once all strategies are updated
     @staticmethod
     def instantiate_stateful_logic(logic, debug: bool = False):
         """

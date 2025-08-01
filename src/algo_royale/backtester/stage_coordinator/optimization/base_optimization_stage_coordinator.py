@@ -1,7 +1,7 @@
 import json
 from datetime import datetime
 from pathlib import Path
-from typing import AsyncIterator, Callable, Dict, Mapping, Optional, Sequence
+from typing import AsyncIterator, Callable, Dict, Mapping, Optional
 
 import pandas as pd
 
@@ -11,9 +11,6 @@ from algo_royale.backtester.stage_data.loader.symbol_strategy_data_loader import
     SymbolStrategyDataLoader,
 )
 from algo_royale.backtester.stage_data.stage_data_manager import StageDataManager
-from algo_royale.backtester.strategy_combinator.base_strategy_combinator import (
-    BaseStrategyCombinator,
-)
 from algo_royale.logging.loggable import Loggable
 
 
@@ -25,7 +22,6 @@ class BaseOptimizationStageCoordinator(StageCoordinator):
         stage: BacktestStage enum value indicating the stage of the backtest.
         data_loader: Data loader for the stage.
         stage_data_manager: StageDataManager for managing stage data.
-        strategy_combinators: List of strategy combinator classes to use.
         logger: Loggable instance.
     """
 
@@ -34,7 +30,6 @@ class BaseOptimizationStageCoordinator(StageCoordinator):
         stage: BacktestStage,
         data_loader: SymbolStrategyDataLoader,
         stage_data_manager: StageDataManager,
-        strategy_combinators: Sequence[type[BaseStrategyCombinator]],
         logger: Loggable,
     ):
         """Coordinator for the backtest stage."""
@@ -42,7 +37,6 @@ class BaseOptimizationStageCoordinator(StageCoordinator):
         self.stage = stage
         self.data_loader = data_loader
         self.stage_data_manager = stage_data_manager
-        self.strategy_combinators = strategy_combinators
         self.logger = logger
 
     async def run(

@@ -26,8 +26,8 @@ from algo_royale.backtester.stage_data.loader.symbol_strategy_data_loader import
     SymbolStrategyDataLoader,
 )
 from algo_royale.backtester.stage_data.stage_data_manager import StageDataManager
-from algo_royale.backtester.strategy_combinator.portfolio.base_portfolio_strategy_combinator import (
-    PortfolioStrategyCombinator,
+from algo_royale.backtester.strategy_factory.portfolio.portfolio_strategy_combinator_factory import (
+    PortfolioStrategyCombinatorFactory,
 )
 from algo_royale.logging.loggable import Loggable
 
@@ -54,7 +54,7 @@ class PortfolioOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
         data_loader: SymbolStrategyDataLoader,
         stage_data_manager: StageDataManager,
         logger: Loggable,
-        strategy_combinators: Sequence[type[PortfolioStrategyCombinator]],
+        strategy_combinator_factory: PortfolioStrategyCombinatorFactory,
         executor: PortfolioBacktestExecutor,
         evaluator: PortfolioBacktestEvaluator,
         optimization_root: str,
@@ -68,7 +68,6 @@ class PortfolioOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
             stage=BacktestStage.PORTFOLIO_OPTIMIZATION,
             data_loader=data_loader,
             stage_data_manager=stage_data_manager,
-            strategy_combinators=strategy_combinators,
             logger=logger,
         )
         self.optimization_root = Path(optimization_root)
@@ -83,7 +82,7 @@ class PortfolioOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
         self.executor = executor
         self.strategy_debug = strategy_debug
         self.optimization_n_trials = optimization_n_trials
-        self.strategy_combinators = strategy_combinators
+        self.strategy_combinator_factory = strategy_combinator_factory
 
     async def _process_and_write(
         self,
@@ -129,64 +128,52 @@ class PortfolioOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
                 f"Strategy combinators: {[c.__name__ for c in self.strategy_combinators]}"
             )
 
-            for strategy_combinator in self.strategy_combinators:
+            for (
+                strategy_combinator
+            ) in self.strategy_combinator_factory.all_combinators():
                 self.logger.info(
                     f"Using strategy combinator: {strategy_combinator.__name__}"
                 )
-                combinations = strategy_combinator.all_strategy_combinations(
-                    logger=self.logger,
-                    strategy_logger=self.strategy_logger,
-                )
-                for strat_factory in combinations:
-                    try:
-                        strategy_class = (
-                            strat_factory.func
-                            if hasattr(strat_factory, "func")
-                            else strat_factory
-                        )
-                        strategy_name = (
-                            strategy_class.__name__
-                            if hasattr(strategy_class, "__name__")
-                            else str(strategy_class)
-                        )
-                        self.logger.info(
-                            f"Optimizing symbols: {symbols} strategy: {strategy_name} for window {self.window_id}"
-                        )
-                        optimizer = self.portfolio_strategy_optimizer_factory.create(
-                            strategy_class=strategy_class,
-                            backtest_fn=lambda strat, df_: self._backtest_and_evaluate(
-                                strat, df_
-                            ),
-                            metric_name=PortfolioMetric.SHARPE_RATIO,
-                        )
-                        optimization_result = await optimizer.optimize(
-                            symbols=symbols,
-                            df=portfolio_matrix,
-                            n_trials=self.optimization_n_trials,
-                        )
-                        self.logger.info(
-                            f"Optimization result for {strategy_name} ({self.window_id}) written."
-                        )
+                try:
+                    strategy_class = strategy_combinator.strategy_class
+                    strategy_name = strategy_class.__name__
+                    self.logger.info(
+                        f"Optimizing symbols: {symbols} strategy: {strategy_name} for window {self.window_id}"
+                    )
+                    optimizer = self.portfolio_strategy_optimizer_factory.create(
+                        strategy_class=strategy_class,
+                        backtest_fn=lambda strat, df_: self._backtest_and_evaluate(
+                            strat, df_
+                        ),
+                        metric_name=PortfolioMetric.SHARPE_RATIO,
+                    )
+                    optimization_result = await optimizer.optimize(
+                        symbols=symbols,
+                        df=portfolio_matrix,
+                        n_trials=self.optimization_n_trials,
+                    )
+                    self.logger.info(
+                        f"Optimization result for {strategy_name} ({self.window_id}) written."
+                    )
 
-                        if not self._validate_optimization_results(optimization_result):
-                            self.logger.warning(
-                                f"Validation failed for {strategy_name} ({self.window_id}). Skipping."
-                            )
-                            continue
-
-                        results = self._write_results(
-                            symbols=symbols,
-                            start_date=self.start_date,
-                            end_date=self.end_date,
-                            strategy_name=strategy_name,
-                            optimization_result=optimization_result,
-                            collective_results=results,
-                        )
-                    except Exception as e:
-                        self.logger.error(
-                            f"Portfolio optimization failed for {strategy_name} ({self.window_id}): {e}"
+                    if not self._validate_optimization_results(optimization_result):
+                        self.logger.warning(
+                            f"Validation failed for {strategy_name} ({self.window_id}). Skipping."
                         )
                         continue
+
+                    results = self._write_results(
+                        symbols=symbols,
+                        start_date=self.start_date,
+                        end_date=self.end_date,
+                        strategy_name=strategy_name,
+                        optimization_result=optimization_result,
+                        collective_results=results,
+                    )
+                except Exception as e:
+                    self.logger.error(
+                        f"Portfolio optimization failed for {strategy_name} ({self.window_id}): {e}"
+                    )
             return results
         except Exception as e:
             self.logger.error(

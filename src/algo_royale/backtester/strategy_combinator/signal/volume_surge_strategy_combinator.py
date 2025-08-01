@@ -18,10 +18,10 @@ class VolumeSurgeStrategyCombinator(SignalStrategyCombinator):
 
     def __init__(self):
         super().__init__(
+            strategy_class=VolumeSurgeStrategy,
             filter_condition_types=[],
             entry_condition_types=[VolumeSurgeEntryCondition],
             trend_condition_types=[],
             exit_condition_types=[],
             stateful_logic_types=[],
         )
-        self.strategy_class = VolumeSurgeStrategy

@@ -20,10 +20,10 @@ class MovingAverageStrategyCombinator(SignalStrategyCombinator):
 
     def __init__(self):
         super().__init__(
+            strategy_class=MovingAverageStrategy,
             filter_condition_types=[],
             entry_condition_types=[MovingAverageEntryCondition],
             trend_condition_types=[],
             exit_condition_types=[MovingAverageExitCondition],
             stateful_logic_types=[],
         )
-        self.strategy_class = MovingAverageStrategy

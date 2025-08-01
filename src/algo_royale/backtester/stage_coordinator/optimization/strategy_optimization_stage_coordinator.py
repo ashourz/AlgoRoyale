@@ -1,7 +1,7 @@
 import json
 from datetime import datetime
 from pathlib import Path
-from typing import Any, AsyncIterator, Callable, Dict, Optional, Sequence
+from typing import Any, AsyncIterator, Callable, Dict, Optional
 
 import pandas as pd
 
@@ -28,8 +28,8 @@ from algo_royale.backtester.stage_data_validation.signal_strategy_optimization_r
 from algo_royale.backtester.strategy.signal.base_signal_strategy import (
     BaseSignalStrategy,
 )
-from algo_royale.backtester.strategy_combinator.signal.base_signal_strategy_combinator import (
-    SignalStrategyCombinator,
+from algo_royale.backtester.strategy_factory.signal.signal_strategy_combinator_factory import (
+    SignalStrategyCombinatorFactory,
 )
 from algo_royale.logging.loggable import Loggable
 
@@ -62,7 +62,7 @@ class StrategyOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
         stage_data_manager: StageDataManager,
         strategy_executor: StrategyBacktestExecutor,
         strategy_evaluator: BacktestEvaluator,
-        strategy_combinators: Sequence[type[SignalStrategyCombinator]],
+        strategy_combinators_factory: SignalStrategyCombinatorFactory,
         optimization_root: str,
         optimization_json_filename: str,
         signal_strategy_optimizer_factory: SignalStrategyOptimizerFactory,
@@ -73,7 +73,6 @@ class StrategyOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
             stage=BacktestStage.STRATEGY_OPTIMIZATION,
             data_loader=data_loader,
             stage_data_manager=stage_data_manager,
-            strategy_combinators=strategy_combinators,
             logger=logger,
         )
         self.optimization_root = Path(optimization_root)
@@ -87,6 +86,7 @@ class StrategyOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
         self.stage_data_manager = stage_data_manager
         self.strategy_debug = strategy_debug
         self.optimization_n_trials = optimization_n_trials
+        self.strategy_combinators_factory = strategy_combinators_factory
 
     async def _process_and_write(
         self,
@@ -113,7 +113,9 @@ class StrategyOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
                 continue
             train_df = pd.concat(dfs, ignore_index=True)
 
-            for strategy_combinator in self.strategy_combinators:
+            for (
+                strategy_combinator
+            ) in self.strategy_combinators_factory.all_combinators():
                 try:
                     strategy_class = strategy_combinator.strategy_class
                     strategy_name = strategy_class.__name__
