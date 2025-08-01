@@ -38,6 +38,7 @@ This will:
 import os
 
 from algo_royale.logging.logger_env import LoggerEnv
+from algo_royale.logging.logger_factory import LoggerFactory
 from src.app import app
 
 logger = LoggerFactory.get_base_logger(LoggerEnv.PROD)

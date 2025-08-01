@@ -5,6 +5,7 @@ from algo_royale.backtester.column_names.strategy_columns import SignalStrategyC
 from algo_royale.backtester.strategy.signal.conditions.base_strategy_condition import (
     StrategyCondition,
 )
+from algo_royale.logging.loggable import Loggable
 
 
 @staticmethod
@@ -56,10 +57,10 @@ class MACDBullishCrossCondition(StrategyCondition):
         macd_col: SignalStrategyColumns = SignalStrategyColumns.MACD,
         signal_col: SignalStrategyColumns = SignalStrategyColumns.MACD_SIGNAL,
         close_col: SignalStrategyColumns = SignalStrategyColumns.CLOSE_PRICE,
-        debug: bool = False,
+        logger: Loggable = None,
     ):
         super().__init__(
-            macd_col=macd_col, signal_col=signal_col, close_col=close_col, debug=debug
+            macd_col=macd_col, signal_col=signal_col, close_col=close_col, logger=logger
         )
         self.macd_col = macd_col
         self.signal_col = signal_col

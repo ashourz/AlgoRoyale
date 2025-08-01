@@ -5,6 +5,7 @@ from algo_royale.backtester.column_names.strategy_columns import SignalStrategyC
 from algo_royale.backtester.strategy.signal.conditions.base_strategy_condition import (
     StrategyCondition,
 )
+from algo_royale.logging.loggable import Loggable
 
 
 @staticmethod
@@ -49,12 +50,12 @@ class VolatilitySpikeCondition(StrategyCondition):
         self,
         range_col: SignalStrategyColumns = SignalStrategyColumns.RANGE,
         volatility_col: SignalStrategyColumns = SignalStrategyColumns.VOLATILITY_10,
-        debug: bool = False,
+        logger: Loggable = None,
     ):
         super().__init__(
             range_col=range_col,
             volatility_col=volatility_col,
-            debug=debug,
+            logger=logger,
         )
         self.range_col = range_col
         self.volatility_col = volatility_col

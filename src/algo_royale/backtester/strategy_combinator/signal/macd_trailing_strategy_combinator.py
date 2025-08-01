@@ -22,12 +22,12 @@ class MACDTrailingStrategyCombinator(SignalStrategyCombinator):
     It does not include any filter conditions or exit conditions.
     """
 
-    filter_condition_types = []  # No filter conditions for this strategy
-    allow_empty_filter = True  # Allow empty filter conditions
-    entry_condition_types = [VolumeSurgeEntryCondition]
-    allow_empty_entry = True  # Allow empty entry conditions
-    trend_condition_types = [SMATrendCondition]
-    exit_condition_types = []  # No exit conditions for this strategy
-    allow_empty_exit = True  # Allow empty exit conditions
-    stateful_logic_types = [MACDTrailingStatefulLogic]
-    strategy_class = MACDTrailingStopStrategy
+    def __init__(self):
+        super().__init__(
+            filter_condition_types=[],
+            entry_condition_types=[VolumeSurgeEntryCondition],
+            trend_condition_types=[SMATrendCondition],
+            exit_condition_types=[],
+            stateful_logic_types=[MACDTrailingStatefulLogic],
+        )
+        self.strategy_class = MACDTrailingStopStrategy

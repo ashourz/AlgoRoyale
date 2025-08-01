@@ -43,21 +43,22 @@ class TrailingStopStrategyCombinator(SignalStrategyCombinator):
     trend conditions based on price above a simple moving average (SMA),
     and does not include any filter conditions or exit conditions."""
 
-    filter_condition_types = []  # No filter conditions for this strategy
-    allow_empty_filter = True  # Allow empty filter conditions
-    entry_condition_types = [
-        BooleanColumnEntryCondition,
-        MomentumEntryCondition,
-        PullbackEntryCondition,
-        MovingAverageEntryCondition,
-    ]
-    trend_condition_types = [TrendAboveSMACondition, SMATrendCondition]
-    exit_condition_types = [
-        TrailingStopExitCondition,
-        MovingAverageExitCondition,
-        RSIExitCondition,
-        MomentumExitCondition,
-    ]
-    allow_empty_exit = True  # Allow empty exit conditions
-    stateful_logic_types = [TrailingStopStatefulLogic]
-    strategy_class = TrailingStopStrategy
+    def __init__(self):
+        super().__init__(
+            filter_condition_types=[],
+            entry_condition_types=[
+                BooleanColumnEntryCondition,
+                MomentumEntryCondition,
+                PullbackEntryCondition,
+                MovingAverageEntryCondition,
+            ],
+            trend_condition_types=[TrendAboveSMACondition, SMATrendCondition],
+            exit_condition_types=[
+                TrailingStopExitCondition,
+                MovingAverageExitCondition,
+                RSIExitCondition,
+                MomentumExitCondition,
+            ],
+            stateful_logic_types=[TrailingStopStatefulLogic],
+        )
+        self.strategy_class = TrailingStopStrategy

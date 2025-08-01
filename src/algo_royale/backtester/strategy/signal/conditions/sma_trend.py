@@ -5,6 +5,7 @@ from algo_royale.backtester.column_names.strategy_columns import SignalStrategyC
 from algo_royale.backtester.strategy.signal.conditions.base_strategy_condition import (
     StrategyCondition,
 )
+from algo_royale.logging.loggable import Loggable
 
 
 class SMATrendCondition(StrategyCondition):
@@ -20,10 +21,10 @@ class SMATrendCondition(StrategyCondition):
         self,
         sma_fast_col: SignalStrategyColumns = SignalStrategyColumns.SMA_50,
         sma_slow_col: SignalStrategyColumns = SignalStrategyColumns.SMA_200,
-        debug: bool = False,
+        logger: Loggable = None,
     ):
         super().__init__(
-            sma_fast_col=sma_fast_col, sma_slow_col=sma_slow_col, debug=debug
+            sma_fast_col=sma_fast_col, sma_slow_col=sma_slow_col, logger=logger
         )
         self.sma_fast_col = sma_fast_col
         self.sma_slow_col = sma_slow_col

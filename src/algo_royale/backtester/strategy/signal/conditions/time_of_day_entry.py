@@ -5,6 +5,7 @@ from algo_royale.backtester.column_names.strategy_columns import SignalStrategyC
 from algo_royale.backtester.strategy.signal.conditions.base_strategy_condition import (
     StrategyCondition,
 )
+from algo_royale.logging.loggable import Loggable
 
 
 class TimeOfDayEntryCondition(StrategyCondition):
@@ -13,13 +14,13 @@ class TimeOfDayEntryCondition(StrategyCondition):
         buy_start_hour=10,
         buy_end_hour=14,
         hour_col: SignalStrategyColumns = SignalStrategyColumns.HOUR,
-        debug: bool = False,
+        logger: Loggable = None,
     ):
         super().__init__(
             buy_start_hour=buy_start_hour,
             buy_end_hour=buy_end_hour,
             hour_col=hour_col,
-            debug=debug,
+            logger=logger,
         )
         self.buy_start_hour = buy_start_hour
         self.buy_end_hour = buy_end_hour

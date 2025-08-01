@@ -5,6 +5,7 @@ from algo_royale.backtester.column_names.strategy_columns import SignalStrategyC
 from algo_royale.backtester.strategy.signal.conditions.base_strategy_condition import (
     StrategyCondition,
 )
+from algo_royale.logging.loggable import Loggable
 
 
 class ComboEntryCondition(StrategyCondition):
@@ -24,7 +25,7 @@ class ComboEntryCondition(StrategyCondition):
         macd_col: SignalStrategyColumns = SignalStrategyColumns.MACD,
         volume_col: SignalStrategyColumns = SignalStrategyColumns.VOLUME,
         vol_ma_col: SignalStrategyColumns = SignalStrategyColumns.VOL_MA_20,
-        debug: bool = False,
+        logger: Loggable = None,
     ):
         super().__init__(
             rsi_col=rsi_col,
@@ -33,7 +34,7 @@ class ComboEntryCondition(StrategyCondition):
             vol_ma_col=vol_ma_col,
             rsi_buy_thresh=rsi_buy_thresh,
             macd_buy_thresh=macd_buy_thresh,
-            debug=debug,
+            logger=logger,
         )
         self.rsi_col = rsi_col
         self.macd_col = macd_col

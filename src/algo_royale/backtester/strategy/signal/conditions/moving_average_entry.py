@@ -5,6 +5,7 @@ from algo_royale.backtester.column_names.strategy_columns import SignalStrategyC
 from algo_royale.backtester.strategy.signal.conditions.base_strategy_condition import (
     StrategyCondition,
 )
+from algo_royale.logging.loggable import Loggable
 
 
 class MovingAverageEntryCondition(StrategyCondition):
@@ -25,13 +26,13 @@ class MovingAverageEntryCondition(StrategyCondition):
         close_col: SignalStrategyColumns = SignalStrategyColumns.CLOSE_PRICE,
         short_window: int = 50,
         long_window: int = 200,
-        debug: bool = False,
+        logger: Loggable = None,
     ):
         super().__init__(
             close_col=close_col,
             short_window=short_window,
             long_window=long_window,
-            debug=debug,
+            logger=logger,
         )
         self.close_col = close_col
         self.short_window = short_window

@@ -12,7 +12,7 @@ class WatchlistRepo:
                 f"Watchlist file not found at: {self.watchlist_path}"
             )
 
-    def load_watchlist(self):
+    def load_watchlist(self) -> list[str]:
         """Load symbols from the watchlist.txt file in the config folder."""
         if not os.path.exists(self.watchlist_path):
             raise FileNotFoundError(

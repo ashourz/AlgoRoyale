@@ -5,6 +5,7 @@ from algo_royale.backtester.column_names.strategy_columns import SignalStrategyC
 from algo_royale.backtester.strategy.signal.conditions.base_strategy_condition import (
     StrategyCondition,
 )
+from algo_royale.logging.loggable import Loggable
 
 
 class VolatilityBreakoutExitCondition(StrategyCondition):
@@ -20,7 +21,7 @@ class VolatilityBreakoutExitCondition(StrategyCondition):
         volatility_col: SignalStrategyColumns = SignalStrategyColumns.VOLATILITY_20,
         range_col: SignalStrategyColumns = SignalStrategyColumns.RANGE,
         close_col: SignalStrategyColumns = SignalStrategyColumns.CLOSE_PRICE,
-        debug: bool = False,
+        logger: Loggable = None,
     ):
         super().__init__(
             threshold=threshold,
@@ -28,7 +29,7 @@ class VolatilityBreakoutExitCondition(StrategyCondition):
             volatility_col=volatility_col,
             range_col=range_col,
             close_col=close_col,
-            debug=debug,
+            logger=logger,
         )
         self.threshold = threshold
         self.sma_col = sma_col

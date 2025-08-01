@@ -7,6 +7,7 @@ from algo_royale.backtester.strategy.portfolio.base_portfolio_strategy import (
 from algo_royale.backtester.strategy_combinator.base_strategy_combinator import (
     BaseStrategyCombinator,
 )
+from algo_royale.logging.loggable import Loggable
 
 
 class PortfolioStrategyCombinator(BaseStrategyCombinator):
@@ -15,43 +16,45 @@ class PortfolioStrategyCombinator(BaseStrategyCombinator):
     Subclass and set the class attribute `strategy_class` to a strategy class.
     """
 
-    # Single portfolio strategy class to enumerate
-    strategy_class: Type[BasePortfolioStrategy] = None
+    def __init__(
+        self,
+        strategy_class: Type[BasePortfolioStrategy],
+        logger: Loggable = None,
+        strategy_logger: Loggable = None,
+    ):
+        self.logger = logger
+        self.strategy_logger = strategy_logger
+        # Single portfolio strategy class to enumerate
+        self.strategy_class: Type[BasePortfolioStrategy] = strategy_class
 
-    @classmethod
     def all_strategy_combinations(
-        cls,
+        self,
         optuna_trial=None,
-        logger=None,
-        debug: bool = False,
     ) -> Generator[Callable[[], BasePortfolioStrategy], None, None]:
         """
         Yield a callable that instantiates the single strategy, optionally with optuna params.
         """
-        if cls.strategy_class is None:
-            if logger:
-                logger.error(f"{cls.__name__} has no strategy_class attribute set.")
+        if self.strategy_class is None:
+            if self.logger:
+                self.logger.error(
+                    f"{self.__class__.__name__} has no strategy_class attribute set."
+                )
             return
 
-        if optuna_trial is not None and hasattr(cls.strategy_class, "optuna_suggest"):
+        if optuna_trial is not None and hasattr(self.strategy_class, "optuna_suggest"):
             try:
-                params = cls.strategy_class.optuna_suggest(optuna_trial)
+                params = self.strategy_class.optuna_suggest(optuna_trial)
                 if isinstance(params, dict):
-                    yield partial(cls.strategy_class, debug=debug, **params)
+                    yield partial(
+                        self.strategy_class, logger=self.strategy_logger, **params
+                    )
                 else:
                     # If optuna_suggest returns a class or callable, yield a lambda
                     yield lambda: params
             except Exception as e:
-                if logger:
-                    logger.error(
-                        f"Error creating portfolio strategy {cls.strategy_class}: {e}"
+                if self.logger:
+                    self.logger.error(
+                        f"Error creating portfolio strategy {self.strategy_class}: {e}"
                     )
         else:
-            yield cls.strategy_class
-
-    @classmethod
-    def get_strategy_classes(cls):
-        """Return the portfolio strategy classes for this combinator class."""
-        if cls.strategy_class is None:
-            return []
-        return [cls.strategy_class]
+            yield self.strategy_class

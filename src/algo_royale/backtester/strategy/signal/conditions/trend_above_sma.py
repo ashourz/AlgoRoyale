@@ -5,6 +5,7 @@ from algo_royale.backtester.column_names.strategy_columns import SignalStrategyC
 from algo_royale.backtester.strategy.signal.conditions.base_strategy_condition import (
     StrategyCondition,
 )
+from algo_royale.logging.loggable import Loggable
 
 
 class TrendAboveSMACondition(StrategyCondition):
@@ -12,9 +13,9 @@ class TrendAboveSMACondition(StrategyCondition):
         self,
         price_col: SignalStrategyColumns = SignalStrategyColumns.CLOSE_PRICE,
         sma_col: SignalStrategyColumns = SignalStrategyColumns.SMA_20,
-        debug: bool = False,
+        logger: Loggable = None,
     ):
-        super().__init__(price_col=price_col, sma_col=sma_col, debug=debug)
+        super().__init__(price_col=price_col, sma_col=sma_col, logger=logger)
         self.price_col = price_col
         self.sma_col = sma_col
 

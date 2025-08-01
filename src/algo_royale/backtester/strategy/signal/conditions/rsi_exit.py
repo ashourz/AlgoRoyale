@@ -5,6 +5,7 @@ from algo_royale.backtester.column_names.strategy_columns import SignalStrategyC
 from algo_royale.backtester.strategy.signal.conditions.base_strategy_condition import (
     StrategyCondition,
 )
+from algo_royale.logging.loggable import Loggable
 
 
 class RSIExitCondition(StrategyCondition):
@@ -13,10 +14,10 @@ class RSIExitCondition(StrategyCondition):
         close_col=SignalStrategyColumns.CLOSE_PRICE,
         period=14,
         overbought=70,
-        debug: bool = False,
+        logger: Loggable = None,
     ):
         super().__init__(
-            close_col=close_col, period=period, overbought=overbought, debug=debug
+            close_col=close_col, period=period, overbought=overbought, logger=logger
         )
         self.close_col = close_col
         self.period = period

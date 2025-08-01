@@ -135,7 +135,7 @@ class PortfolioOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
                 )
                 combinations = strategy_combinator.all_strategy_combinations(
                     logger=self.logger,
-                    debug=self.strategy_debug,
+                    strategy_logger=self.strategy_logger,
                 )
                 for strat_factory in combinations:
                     try:

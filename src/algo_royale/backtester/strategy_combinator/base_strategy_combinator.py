@@ -12,10 +12,8 @@ class BaseStrategyCombinator(ABC):
 
     @abstractmethod
     def all_strategy_combinations(
-        cls,
+        self,
         optuna_trial=None,
-        logger=None,
-        debug: bool = False,
     ) -> Generator[Callable[[], BaseStrategy], None, None]:
         """
         Generate all possible strategy combinations (with parameterizations if optuna_trial is provided).
@@ -23,5 +21,5 @@ class BaseStrategyCombinator(ABC):
         If optuna_trial is provided, uses each strategy's optuna_suggest to generate parameterized strategies.
         """
         raise NotImplementedError(
-            f"{cls.__name__}.all_strategy_combinations() must be implemented."
+            f"{self.__class__.__name__}.all_strategy_combinations() must be implemented."
         )

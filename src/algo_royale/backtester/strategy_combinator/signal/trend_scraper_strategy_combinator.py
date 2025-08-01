@@ -18,12 +18,12 @@ class TrendScraperStrategyCombinator(SignalStrategyCombinator):
     It does not include any filter conditions or entry conditions, focusing solely on the trend and exit logic.
     """
 
-    filter_condition_types = []  # No filter conditions for this strategy
-    allow_empty_filter = True  # Allow empty filter conditions
-    entry_condition_types = []  # No entry conditions for this strategy
-    allow_empty_entry = True  # Allow empty entry conditions
-    trend_condition_types = [EMAAboveSMARollingCondition]
-    exit_condition_types = [ReturnVolatilityExitCondition]
-    stateful_logic_types = []  # No stateful logic for this strategy
-    allow_empty_stateful_logic = True  # Allow empty stateful logic
-    strategy_class = TrendScraperStrategy
+    def __init__(self):
+        super().__init__(
+            filter_condition_types=[],
+            entry_condition_types=[],
+            trend_condition_types=[EMAAboveSMARollingCondition],
+            exit_condition_types=[ReturnVolatilityExitCondition],
+            stateful_logic_types=[],
+        )
+        self.strategy_class = TrendScraperStrategy

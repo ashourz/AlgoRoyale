@@ -5,6 +5,7 @@ from algo_royale.backtester.column_names.strategy_columns import SignalStrategyC
 from algo_royale.backtester.strategy.signal.conditions.base_strategy_condition import (
     StrategyCondition,
 )
+from algo_royale.logging.loggable import Loggable
 
 
 class EMAAboveSMARollingCondition(StrategyCondition):
@@ -18,9 +19,9 @@ class EMAAboveSMARollingCondition(StrategyCondition):
         ema_col=SignalStrategyColumns.EMA_20,
         sma_col=SignalStrategyColumns.SMA_50,
         window: int = 3,
-        debug: bool = False,
+        logger: Loggable = None,
     ):
-        super().__init__(ema_col=ema_col, sma_col=sma_col, window=window, debug=debug)
+        super().__init__(ema_col=ema_col, sma_col=sma_col, window=window, logger=logger)
         self.ema_col = ema_col
         self.sma_col = sma_col
         self.window = window

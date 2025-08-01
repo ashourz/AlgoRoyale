@@ -5,6 +5,7 @@ from algo_royale.backtester.column_names.strategy_columns import SignalStrategyC
 from algo_royale.backtester.strategy.signal.conditions.base_strategy_condition import (
     StrategyCondition,
 )
+from algo_royale.logging.loggable import Loggable
 
 
 class BollingerBandsExitCondition(StrategyCondition):
@@ -13,10 +14,10 @@ class BollingerBandsExitCondition(StrategyCondition):
         close_col: SignalStrategyColumns = SignalStrategyColumns.CLOSE_PRICE,
         window=20,
         num_std=2,
-        debug: bool = False,
+        logger: Loggable = None,
     ):
         super().__init__(
-            close_col=close_col, window=window, num_std=num_std, debug=debug
+            close_col=close_col, window=window, num_std=num_std, logger=logger
         )
         self.close_col = close_col
         self.window = window

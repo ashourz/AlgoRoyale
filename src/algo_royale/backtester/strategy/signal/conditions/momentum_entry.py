@@ -5,6 +5,7 @@ from algo_royale.backtester.column_names.strategy_columns import SignalStrategyC
 from algo_royale.backtester.strategy.signal.conditions.base_strategy_condition import (
     StrategyCondition,
 )
+from algo_royale.logging.loggable import Loggable
 
 
 class MomentumEntryCondition(StrategyCondition):
@@ -15,7 +16,7 @@ class MomentumEntryCondition(StrategyCondition):
         threshold=0.0,
         smooth_window=None,
         confirmation_periods=1,
-        debug: bool = False,
+        logger: Loggable = None,
     ):
         super().__init__(
             close_col=close_col,
@@ -23,7 +24,7 @@ class MomentumEntryCondition(StrategyCondition):
             threshold=threshold,
             smooth_window=smooth_window,
             confirmation_periods=confirmation_periods,
-            debug=debug,
+            logger=logger,
         )
         self.close_col = close_col
         self.lookback = lookback

@@ -5,6 +5,7 @@ from algo_royale.backtester.column_names.strategy_columns import SignalStrategyC
 from algo_royale.backtester.strategy.signal.conditions.base_strategy_condition import (
     StrategyCondition,
 )
+from algo_royale.logging.loggable import Loggable
 
 
 class VWAPReversionEntryCondition(StrategyCondition):
@@ -13,13 +14,13 @@ class VWAPReversionEntryCondition(StrategyCondition):
         deviation_threshold=0.01,
         vwap_col: SignalStrategyColumns = SignalStrategyColumns.VWAP_20,
         vwp_col: SignalStrategyColumns = SignalStrategyColumns.VOLUME_WEIGHTED_PRICE,
-        debug: bool = False,
+        logger: Loggable = None,
     ):
         super().__init__(
             deviation_threshold=deviation_threshold,
             vwap_col=vwap_col,
             vwp_col=vwp_col,
-            debug=debug,
+            logger=logger,
         )
         self.deviation_threshold = deviation_threshold
         self.vwap_col = vwap_col

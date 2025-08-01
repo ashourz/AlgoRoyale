@@ -5,6 +5,7 @@ from algo_royale.backtester.column_names.strategy_columns import SignalStrategyC
 from algo_royale.backtester.strategy.signal.conditions.base_strategy_condition import (
     StrategyCondition,
 )
+from algo_royale.logging.loggable import Loggable
 
 
 class PullbackEntryCondition(StrategyCondition):
@@ -12,9 +13,9 @@ class PullbackEntryCondition(StrategyCondition):
         self,
         ma_col: SignalStrategyColumns = SignalStrategyColumns.SMA_20,
         close_col: SignalStrategyColumns = SignalStrategyColumns.CLOSE_PRICE,
-        debug: bool = False,
+        logger: Loggable = None,
     ):
-        super().__init__(ma_col=ma_col, close_col=close_col, debug=debug)
+        super().__init__(ma_col=ma_col, close_col=close_col, logger=logger)
         self.ma_col = ma_col
         self.close_col = close_col
 

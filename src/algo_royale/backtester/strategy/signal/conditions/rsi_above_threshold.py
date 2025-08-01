@@ -5,6 +5,7 @@ from algo_royale.backtester.column_names.strategy_columns import SignalStrategyC
 from algo_royale.backtester.strategy.signal.conditions.base_strategy_condition import (
     StrategyCondition,
 )
+from algo_royale.logging.loggable import Loggable
 
 
 @staticmethod
@@ -51,9 +52,9 @@ class RSIAboveThresholdCondition(StrategyCondition):
         self,
         rsi_col: SignalStrategyColumns = SignalStrategyColumns.RSI,
         threshold: float = 70,
-        debug: bool = False,
+        logger: Loggable = None,
     ):
-        super().__init__(rsi_col=rsi_col, threshold=threshold, debug=debug)
+        super().__init__(rsi_col=rsi_col, threshold=threshold, logger=logger)
         self.rsi_col = rsi_col
         self.threshold = threshold
 

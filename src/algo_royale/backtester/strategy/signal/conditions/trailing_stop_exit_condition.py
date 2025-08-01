@@ -5,6 +5,7 @@ from algo_royale.backtester.column_names.strategy_columns import SignalStrategyC
 from algo_royale.backtester.strategy.signal.conditions.base_strategy_condition import (
     StrategyCondition,
 )
+from algo_royale.logging.loggable import Loggable
 
 
 class TrailingStopExitCondition(StrategyCondition):
@@ -17,9 +18,9 @@ class TrailingStopExitCondition(StrategyCondition):
         self,
         close_col: SignalStrategyColumns = SignalStrategyColumns.CLOSE_PRICE,
         stop_pct=0.02,
-        debug: bool = False,
+        logger: Loggable = None,
     ):
-        super().__init__(close_col=close_col, stop_pct=stop_pct, debug=debug)
+        super().__init__(close_col=close_col, stop_pct=stop_pct, logger=logger)
         self.close_col = close_col
         self.stop_pct = stop_pct
 

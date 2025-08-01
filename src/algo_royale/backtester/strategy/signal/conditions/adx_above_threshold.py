@@ -5,6 +5,7 @@ from algo_royale.backtester.column_names.strategy_columns import SignalStrategyC
 from algo_royale.backtester.strategy.signal.conditions.base_strategy_condition import (
     StrategyCondition,
 )
+from algo_royale.logging.loggable import Loggable
 
 
 @staticmethod
@@ -54,10 +55,10 @@ class ADXAboveThresholdCondition(StrategyCondition):
         adx_col: SignalStrategyColumns = SignalStrategyColumns.ADX,
         close_col: SignalStrategyColumns = SignalStrategyColumns.CLOSE_PRICE,
         threshold: float = 25,
-        debug: bool = False,
+        logger: Loggable = None,
     ):
         super().__init__(
-            adx_col=adx_col, close_col=close_col, threshold=threshold, debug=debug
+            adx_col=adx_col, close_col=close_col, threshold=threshold, logger=logger
         )
         self.adx_col = adx_col
         self.close_col = close_col

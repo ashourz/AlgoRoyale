@@ -5,18 +5,19 @@ from algo_royale.backtester.column_names.strategy_columns import SignalStrategyC
 from algo_royale.backtester.strategy.signal.conditions.base_strategy_condition import (
     StrategyCondition,
 )
+from algo_royale.logging.loggable import Loggable
 
 
 class BooleanColumnEntryCondition(StrategyCondition):
     def __init__(
         self,
         entry_col: SignalStrategyColumns = SignalStrategyColumns.ENTRY_SIGNAL,
-        debug: bool = False,
+        logger: Loggable = None,
     ):
         """
         Condition based on a boolean column.
         """
-        super().__init__(entry_col=entry_col, debug=debug)
+        super().__init__(entry_col=entry_col, logger=logger)
         self.entry_col = entry_col
 
     @property

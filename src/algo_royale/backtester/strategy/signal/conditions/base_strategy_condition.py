@@ -11,23 +11,25 @@ class StrategyCondition:
     Base class for all strategy filters.
     """
 
-    def __init__(self, debug: bool = False, *args, **kwargs):
+    def __init__(self, logger: Loggable = None, *args, **kwargs):
         for k, v in kwargs.items():
             setattr(self, k, v)
-        self.debug = debug  # Set to True for verbose debug output
+        self.logger = logger
 
     def apply(self, df: pd.DataFrame) -> pd.Series:
         # Check for missing columns
-        if self.debug:
-            print(f"Applying {self.__class__.__name__} with params: {self.__dict__}")
+        if self.logger:
+            self.logger.debug(
+                f"Applying {self.__class__.__name__} with params: {self.__dict__}"
+            )
         missing = [col for col in self.required_columns if col not in df.columns]
-        if self.debug:
-            print(f"Missing columns: {missing}")
+        if self.logger:
+            self.logger.debug(f"Missing columns: {missing}")
         if missing:
             # Return all False (or np.nan) if required columns are missing
             return pd.Series([False] * len(df), index=df.index)
-        if self.debug:
-            print(f"Required columns present: {self.required_columns}")
+        if self.logger:
+            self.logger.debug(f"Required columns present: {self.required_columns}")
         # Delegate to subclass logic
         return self._apply(df)
 

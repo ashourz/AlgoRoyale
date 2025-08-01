@@ -5,6 +5,7 @@ from algo_royale.backtester.column_names.strategy_columns import SignalStrategyC
 from algo_royale.backtester.strategy.signal.conditions.base_strategy_condition import (
     StrategyCondition,
 )
+from algo_royale.logging.loggable import Loggable
 
 
 @staticmethod
@@ -13,7 +14,7 @@ def price_crosses_above_sma(
     prev_row,
     sma_col: SignalStrategyColumns = SignalStrategyColumns.SMA_20,
     close_col: SignalStrategyColumns = SignalStrategyColumns.CLOSE_PRICE,
-    debug: bool = False,
+    logger: Loggable = None,
 ):
     """
     Returns True if the price crosses above the SMA between the previous and current rows.
@@ -33,8 +34,8 @@ def price_crosses_above_sma(
         and current_row[close_col] > current_row[sma_col]
     )
     if crossed:
-        if debug:
-            print(
+        if logger:
+            logger.debug(
                 f"Cross above detected at index {current_row.name}: "
                 f"prev_close={prev_row[close_col]}, prev_sma={prev_row[sma_col]}, "
                 f"curr_close={current_row[close_col]}, curr_sma={current_row[sma_col]}"
@@ -65,9 +66,9 @@ class PriceAboveSMACondition(StrategyCondition):
         self,
         close_col: SignalStrategyColumns = SignalStrategyColumns.CLOSE_PRICE,
         sma_col: SignalStrategyColumns = SignalStrategyColumns.SMA_20,
-        debug: bool = False,
+        logger: Loggable = None,
     ):
-        super().__init__(close_col=close_col, sma_col=sma_col, debug=debug)
+        super().__init__(close_col=close_col, sma_col=sma_col, logger=logger)
         self.close_col = close_col
         self.sma_col = sma_col
 

@@ -5,6 +5,7 @@ from algo_royale.backtester.column_names.strategy_columns import SignalStrategyC
 from algo_royale.backtester.strategy.signal.conditions.base_strategy_condition import (
     StrategyCondition,
 )
+from algo_royale.logging.loggable import Loggable
 
 
 @staticmethod
@@ -58,9 +59,9 @@ class PriceCrossesBelowSMACondition(StrategyCondition):
         self,
         close_col: SignalStrategyColumns = SignalStrategyColumns.CLOSE_PRICE,
         sma_col: SignalStrategyColumns = SignalStrategyColumns.SMA_20,
-        debug: bool = False,
+        logger: Loggable = None,
     ):
-        super().__init__(close_col=close_col, sma_col=sma_col, debug=debug)
+        super().__init__(close_col=close_col, sma_col=sma_col, logger=logger)
         self.close_col = close_col
         self.sma_col = sma_col
 

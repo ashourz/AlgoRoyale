@@ -5,6 +5,7 @@ from algo_royale.backtester.column_names.strategy_columns import SignalStrategyC
 from algo_royale.backtester.strategy.signal.conditions.base_strategy_condition import (
     StrategyCondition,
 )
+from algo_royale.logging.loggable import Loggable
 
 
 class ReturnVolatilityExitCondition(StrategyCondition):
@@ -22,14 +23,14 @@ class ReturnVolatilityExitCondition(StrategyCondition):
         return_col=SignalStrategyColumns.PCT_RETURN,  # or LOG_RETURN
         range_col: SignalStrategyColumns = SignalStrategyColumns.RANGE,
         volatility_col: SignalStrategyColumns = SignalStrategyColumns.VOLATILITY_20,
-        debug: bool = False,
+        logger: Loggable = None,
     ):
         super().__init__(
             return_col=return_col,
             range_col=range_col,
             volatility_col=volatility_col,
             threshold=threshold,
-            debug=debug,
+            logger=logger,
         )
         self.return_col = return_col
         self.range_col = range_col

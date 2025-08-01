@@ -5,6 +5,7 @@ from algo_royale.backtester.column_names.strategy_columns import SignalStrategyC
 from algo_royale.backtester.strategy.signal.conditions.base_strategy_condition import (
     StrategyCondition,
 )
+from algo_royale.logging.loggable import Loggable
 
 
 @staticmethod
@@ -54,13 +55,13 @@ class VolumeSurgeCondition(StrategyCondition):
         volume_col: SignalStrategyColumns = SignalStrategyColumns.VOLUME,
         vol_ma_col: SignalStrategyColumns = SignalStrategyColumns.VOL_MA_20,
         threshold: float = 2.0,
-        debug: bool = False,
+        logger: Loggable = None,
     ):
         super().__init__(
             volume_col=volume_col,
             vol_ma_col=vol_ma_col,
             threshold=threshold,
-            debug=debug,
+            logger=logger,
         )
         self.volume_col = volume_col
         self.vol_ma_col = vol_ma_col

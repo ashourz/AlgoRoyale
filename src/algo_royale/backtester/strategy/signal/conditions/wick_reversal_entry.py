@@ -5,6 +5,7 @@ from algo_royale.backtester.column_names.strategy_columns import SignalStrategyC
 from algo_royale.backtester.strategy.signal.conditions.base_strategy_condition import (
     StrategyCondition,
 )
+from algo_royale.logging.loggable import Loggable
 
 
 class WickReversalEntryCondition(StrategyCondition):
@@ -13,13 +14,13 @@ class WickReversalEntryCondition(StrategyCondition):
         wick_body_ratio=2.0,
         lower_wick_col: SignalStrategyColumns = SignalStrategyColumns.LOWER_WICK,
         body_col: SignalStrategyColumns = SignalStrategyColumns.BODY,
-        debug: bool = False,
+        logger: Loggable = None,
     ):
         super().__init__(
             wick_body_ratio=wick_body_ratio,
             lower_wick_col=lower_wick_col,
             body_col=body_col,
-            debug=debug,
+            logger=logger,
         )
         self.wick_body_ratio = wick_body_ratio
         self.lower_wick_col = lower_wick_col

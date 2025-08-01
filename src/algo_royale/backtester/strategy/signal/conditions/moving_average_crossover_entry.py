@@ -6,6 +6,7 @@ from algo_royale.backtester.enum.ma_type import MA_Type
 from algo_royale.backtester.strategy.signal.conditions.base_strategy_condition import (
     StrategyCondition,
 )
+from algo_royale.logging.loggable import Loggable
 
 
 class MovingAverageCrossoverEntryCondition(StrategyCondition):
@@ -35,7 +36,7 @@ class MovingAverageCrossoverEntryCondition(StrategyCondition):
         trend_window: int = 200,
         volume_ma_window=20,
         ma_type: MA_Type = MA_Type.EMA,
-        debug: bool = False,
+        logger: Loggable = None,
     ):
         super().__init__(
             close_col=close_col,
@@ -45,7 +46,7 @@ class MovingAverageCrossoverEntryCondition(StrategyCondition):
             trend_window=trend_window,
             volume_ma_window=volume_ma_window,
             ma_type=ma_type,
-            debug=debug,
+            logger=logger,
         )
         self.close_col = close_col
         self.volume_col = volume_col

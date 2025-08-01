@@ -18,12 +18,12 @@ class MeanReversionStrategyCombinator(SignalStrategyCombinator):
     It does not include any filter conditions, entry conditions, or exit conditions.
     """
 
-    filter_condition_types = []  # No filter conditions for this strategy
-    allow_empty_filter = True  # Allow empty filter conditions
-    entry_condition_types = []  # No specific entry conditions, will use trend conditions
-    allow_empty_entry = True  # Allow empty entry conditions
-    trend_condition_types = [PriceAboveSMACondition]
-    exit_condition_types = []  # No exit conditions for this strategy
-    allow_empty_exit = True  # Allow empty exit conditions
-    stateful_logic_types = [MeanReversionStatefulLogic]
-    strategy_class = MeanReversionStrategy
+    def __init__(self):
+        super().__init__(
+            filter_condition_types=[],
+            entry_condition_types=[],
+            trend_condition_types=[PriceAboveSMACondition],
+            exit_condition_types=[],
+            stateful_logic_types=[MeanReversionStatefulLogic],
+        )
+        self.strategy_class = MeanReversionStrategy

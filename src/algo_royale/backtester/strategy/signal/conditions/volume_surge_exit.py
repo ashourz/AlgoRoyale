@@ -9,11 +9,16 @@ from algo_royale.backtester.strategy.signal.conditions.base_strategy_condition i
 from algo_royale.backtester.strategy.signal.conditions.volume_surge_entry import (
     VolumeSurgeEntryCondition,
 )
+from algo_royale.logging.loggable import Loggable
 
 
 class VolumeSurgeExitCondition(StrategyCondition):
-    def __init__(self, entry_condition: VolumeSurgeEntryCondition, debug: bool = False):
-        super().__init__(entry_condition=entry_condition, debug=debug)
+    def __init__(
+        self,
+        entry_condition: VolumeSurgeEntryCondition,
+        logger: Loggable = None,
+    ):
+        super().__init__(entry_condition=entry_condition, logger=logger)
         self.entry_condition = entry_condition
 
     @property

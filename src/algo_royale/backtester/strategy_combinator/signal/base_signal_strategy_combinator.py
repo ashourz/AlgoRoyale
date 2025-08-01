@@ -10,27 +10,28 @@ class SignalStrategyCombinator(BaseStrategyCombinator):
     all_possible_conditions().
     """
 
-    filter_condition_types = [None]
-    allow_empty_filter = False
-    entry_condition_types = [None]
-    allow_empty_entry = False
-    trend_condition_types = [None]
-    allow_empty_trend = False
-    exit_condition_types = [None]
-    allow_empty_exit = False
-    stateful_logic_types = [None]
-    allow_empty_stateful_logic = False
-    strategy_class = None
+    def __init__(
+        self,
+        filter_condition_types: list[type] = [None],
+        entry_condition_types: list[type] = [None],
+        trend_condition_types: list[type] = [None],
+        exit_condition_types: list[type] = [None],
+        stateful_logic_types: list[type] = [None],
+    ):
+        self.filter_condition_types = filter_condition_types
+        self.entry_condition_types = entry_condition_types
+        self.trend_condition_types = trend_condition_types
+        self.exit_condition_types = exit_condition_types
+        self.stateful_logic_types = stateful_logic_types
 
-    @classmethod
-    def get_condition_types(cls):
+    def get_condition_types(self):
         """Return the condition types for this combinator class."""
         return {
-            "filter": cls.filter_condition_types or [],
-            "entry": cls.entry_condition_types or [],
-            "trend": cls.trend_condition_types or [],
-            "exit": cls.exit_condition_types or [],
-            "stateful_logic": cls.stateful_logic_types[0]
-            if cls.stateful_logic_types
+            "filter": self.filter_condition_types or [],
+            "entry": self.entry_condition_types or [],
+            "trend": self.trend_condition_types or [],
+            "exit": self.exit_condition_types or [],
+            "stateful_logic": self.stateful_logic_types[0]
+            if self.stateful_logic_types
             else None,
         }
