@@ -339,6 +339,10 @@ class StageDataLoader:
                 df = await asyncio.to_thread(
                     pd.read_csv, page_path, parse_dates=["timestamp"]
                 )
+                self.logger.debug(f"Loaded {len(df)} rows from {page_path}")
+                if df.empty:
+                    self.logger.warning(f"Empty DataFrame for {page_path}, skipping.")
+                    continue
                 yield df
             except Exception as e:
                 self.logger.error(f"Error reading {page_path}: {str(e)}")
@@ -350,3 +354,9 @@ class StageDataLoader:
                     error_message=f"Error reading {page_path}: {str(e)}",
                 )
                 continue
+            except asyncio.CancelledError:
+                self.logger.error(
+                    f"Data streaming cancelled for {symbol_dir}. Cleaning up."
+                )
+                # Optionally, write a cancellation marker or error file here
+                break

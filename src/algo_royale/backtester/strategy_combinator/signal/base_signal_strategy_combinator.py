@@ -1,11 +1,11 @@
 from typing import Type
 
-from algo_royale.backtester.strategy_combinator.base_strategy_combinator import (
-    BaseStrategyCombinator,
+from algo_royale.backtester.strategy.signal.base_signal_strategy import (
+    BaseSignalStrategy,
 )
 
 
-class SignalStrategyCombinator(BaseStrategyCombinator):
+class SignalStrategyCombinator:
     """
     Base class to generate all combinations of entry, trend, exit conditions and stateful logic.
     Subclass and set the class attributes below to lists of types/classes that implement
@@ -14,7 +14,7 @@ class SignalStrategyCombinator(BaseStrategyCombinator):
 
     def __init__(
         self,
-        strategy_class: Type[BaseStrategyCombinator],
+        strategy_class: Type[BaseSignalStrategy],
         filter_condition_types: list[type] = [None],
         entry_condition_types: list[type] = [None],
         trend_condition_types: list[type] = [None],

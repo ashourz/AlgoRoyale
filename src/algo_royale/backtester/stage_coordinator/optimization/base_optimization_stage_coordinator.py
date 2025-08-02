@@ -4,6 +4,7 @@ from pathlib import Path
 from typing import AsyncIterator, Callable, Dict, Mapping, Optional
 
 import pandas as pd
+from pyparsing import abstractmethod
 
 from algo_royale.backtester.enum.backtest_stage import BacktestStage
 from algo_royale.backtester.stage_coordinator.stage_coordinator import StageCoordinator
@@ -83,6 +84,19 @@ class BaseOptimizationStageCoordinator(StageCoordinator):
 
         self.logger.info(f"stage:{self.stage} completed and files saved.")
         return True
+
+    @abstractmethod
+    async def _process_and_write(
+        self,
+        data: Optional[Dict[str, Callable[[], AsyncIterator[pd.DataFrame]]]] = None,
+    ) -> Dict[str, Dict[str, dict]]:
+        """
+        Process the data and write the results.
+        This method should be overridden by subclasses to implement specific processing logic.
+        """
+        raise NotImplementedError(
+            f"{self.__class__.__name__}._process_and_write() must be implemented."
+        )
 
     async def _load_input_data(
         self,

@@ -124,7 +124,7 @@ class PortfolioStrategyOptimizerImpl(PortfolioStrategyOptimizer):
                 logger=self.strategy_logger, trial=trial
             )
             if isinstance(params, dict):
-                strategy = self.strategy_class(**params)
+                strategy = self.strategy_class(logger=self.strategy_logger, **params)
             else:
                 strategy = params
             logger.debug(
@@ -190,7 +190,67 @@ class PortfolioStrategyOptimizerImpl(PortfolioStrategyOptimizer):
             )
             return score
 
-        study.optimize(objective, n_trials=n_trials)
+        try:
+            self.logger.debug(
+                f"[PortfolioStrategyOptimizer] Starting optimization with {n_trials} trials"
+            )
+            study.optimize(objective, n_trials=n_trials)
+        except KeyboardInterrupt as e:
+            self.logger.warning(
+                f"[PortfolioStrategyOptimizer] Optimization interrupted after {n_trials} trials."
+            )
+            study.stop()
+            return {
+                "strategy": self.strategy_class.__name__,
+                "best_value": None,
+                "best_params": None,
+                "meta": {
+                    "run_time_sec": round(time.time() - start_time, 2),
+                    "n_trials": n_trials,
+                    "symbols": symbols,
+                    "direction": self.direction.value,
+                    "multi_objective": is_multi,
+                },
+                "metrics": {},
+                "error": str(e),
+            }
+        except optuna.exceptions.OptunaError as e:
+            self.logger.error(
+                f"[PortfolioStrategyOptimizer] Optuna error during optimization: {e}"
+            )
+            study.stop()
+            return {
+                "strategy": self.strategy_class.__name__,
+                "best_value": None,
+                "best_params": None,
+                "meta": {
+                    "run_time_sec": round(time.time() - start_time, 2),
+                    "n_trials": n_trials,
+                    "symbols": symbols,
+                    "direction": self.direction.value,
+                    "multi_objective": is_multi,
+                },
+                "metrics": {},
+                "error": str(e),
+            }
+        except Exception as e:
+            self.logger.error(
+                f"[PortfolioStrategyOptimizer] Error during optimization: {e}"
+            )
+            return {
+                "strategy": self.strategy_class.__name__,
+                "best_value": None,
+                "best_params": None,
+                "meta": {
+                    "run_time_sec": round(time.time() - start_time, 2),
+                    "n_trials": n_trials,
+                    "symbols": symbols,
+                    "direction": self.direction.value,
+                    "multi_objective": is_multi,
+                },
+                "metrics": {},
+                "error": str(e),
+            }
 
         duration = round(time.time() - start_time, 2)
         self.logger.info(

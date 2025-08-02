@@ -130,7 +130,7 @@ class SignalStrategyOptimizerImpl(SignalStrategyOptimizer):
                 )
                 for i, cond_cls in enumerate(self.condition_types.get("filter", []))
             ]
-            state_logic = self.condition_types.get("stateful_logic")[0]
+            state_logic = self.condition_types.get("stateful_logic")
             if isinstance(state_logic, StatefulLogic):
                 state_logic = state_logic.optuna_suggest(
                     logger=self.strategy_logger,
@@ -155,7 +155,9 @@ class SignalStrategyOptimizerImpl(SignalStrategyOptimizer):
                 k: v for k, v in init_kwargs.items() if k in valid_params
             }
 
-            strategy = self.strategy_class(**strategy_kwargs)
+            strategy = self.strategy_class(
+                logger=self.strategy_logger, **strategy_kwargs
+            )
             logger.debug(
                 f"[{symbol}] Strategy class: {self.strategy_class.__name__} | Params: {strategy_kwargs}"
             )

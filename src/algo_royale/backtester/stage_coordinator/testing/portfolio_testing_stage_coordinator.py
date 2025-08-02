@@ -54,6 +54,7 @@ class PortfolioTestingStageCoordinator(BaseTestingStageCoordinator):
         data_loader: SymbolStrategyDataLoader,
         stage_data_manager: StageDataManager,
         logger: Loggable,
+        strategy_logger:Loggable,
         strategy_combinator_factory: PortfolioStrategyCombinatorFactory,
         executor: PortfolioBacktestExecutor,
         evaluator: PortfolioBacktestEvaluator,
@@ -70,9 +71,11 @@ class PortfolioTestingStageCoordinator(BaseTestingStageCoordinator):
             optimization_json_filename=optimization_json_filename,
             optimization_root=optimization_root,
         )
+        
         self.portfolio_matrix_loader = portfolio_matrix_loader
         self.strategy_combinator_factory = strategy_combinator_factory
         self.executor = executor
+        self.strategy_logger = strategy_logger
 
     async def _process_and_write(
         self,
@@ -124,82 +127,77 @@ class PortfolioTestingStageCoordinator(BaseTestingStageCoordinator):
             f"Starting portfolio testing for window {self.test_window_id} with symbols {test_symbols}."
         )
         for strategy_combinator in self.strategy_combinator_factory.all_combinators():
-            for strat_factory in strategy_combinator.all_strategy_combinations():
-                strategy_class = (
-                    strat_factory.func
-                    if hasattr(strat_factory, "func")
-                    else strat_factory
+            strategy_class = strategy_combinator.strategy_class
+            strategy_name = (
+                strategy_class.__name__
+                if hasattr(strategy_class, "__name__")
+                else str(strategy_class)
+            )
+            # Retrieve optimized parameters for the strategy
+            self.logger.debug(
+                f"DEBUG: Strategy name: {strategy_name}, Strategy class: {strategy_class}"
+            )
+            optimized_params = self._get_optimized_params(
+                symbols=train_symbols,
+                strategy_name=strategy_name,
+                strategy_class=strategy_class,
+            )
+            if optimized_params is None:
+                self.logger.warning(
+                    f"No optimized parameters found for {strategy_name} during {self.train_window_id}. Skipping."
                 )
-                strategy_name = (
-                    strategy_class.__name__
-                    if hasattr(strategy_class, "__name__")
-                    else str(strategy_class)
+                continue
+            # Instantiate strategy with filtered_params
+            strategy = strategy_class(logger=self.strategy_logger, **optimized_params)
+            # Run backtest using the pre-configured executor
+            backtest_results = self.executor.run_backtest(
+                strategy,
+                test_portfolio_matrix,
+            )
+            self.logger.info(
+                f"Backtest completed for {strategy_name} with {len(backtest_results.get(PortfolioExecutionKeys.METRICS, {}).get(PortfolioExecutionMetricsKeys.PORTFOLIO_RETURNS, []))} returns."
+            )
+            # Evaluate metrics (now includes all new metrics)
+            metrics = self.evaluator.evaluate_from_dict(backtest_results)
+            test_opt_results = self._get_optimization_results(
+                strategy_name=strategy_name,
+                symbol=self._get_symbols_dir_name(test_symbols),
+                start_date=self.test_start_date,
+                end_date=self.test_end_date,
+            )
+            # Validate optimization results
+            if not self._validate_optimization_results(test_opt_results):
+                self.logger.warning(
+                    f"Validation failed for optimization results of {strategy_name} during {self.test_window_id}. Skipping writing results."
                 )
-                # Retrieve optimized parameters for the strategy
                 self.logger.debug(
-                    f"DEBUG: Strategy name: {strategy_name}, Strategy class: {strategy_class}"
+                    f"DEBUG: Skipping strategy {strategy_name} due to validation failure."
                 )
-                optimized_params = self._get_optimized_params(
-                    symbols=train_symbols,
-                    strategy_name=strategy_name,
-                    strategy_class=strategy_class,
+                self.logger.debug(
+                    f"DEBUG: Optimization results: {test_opt_results}"
                 )
-                if optimized_params is None:
-                    self.logger.warning(
-                        f"No optimized parameters found for {strategy_name} during {self.train_window_id}. Skipping."
-                    )
-                    continue
-                # Instantiate strategy with filtered_params
-                strategy = strategy_class(**optimized_params)
-                # Run backtest using the pre-configured executor
-                backtest_results = self.executor.run_backtest(
-                    strategy,
-                    test_portfolio_matrix,
-                )
-                self.logger.info(
-                    f"Backtest completed for {strategy_name} with {len(backtest_results.get(PortfolioExecutionKeys.METRICS, {}).get(PortfolioExecutionMetricsKeys.PORTFOLIO_RETURNS, []))} returns."
-                )
-                # Evaluate metrics (now includes all new metrics)
-                metrics = self.evaluator.evaluate_from_dict(backtest_results)
-                test_opt_results = self._get_optimization_results(
-                    strategy_name=strategy_name,
-                    symbol=self._get_symbols_dir_name(test_symbols),
-                    start_date=self.test_start_date,
-                    end_date=self.test_end_date,
-                )
-                # Validate optimization results
-                if not self._validate_optimization_results(test_opt_results):
-                    self.logger.warning(
-                        f"Validation failed for optimization results of {strategy_name} during {self.test_window_id}. Skipping writing results."
-                    )
-                    self.logger.debug(
-                        f"DEBUG: Skipping strategy {strategy_name} due to validation failure."
-                    )
-                    self.logger.debug(
-                        f"DEBUG: Optimization results: {test_opt_results}"
-                    )
-                    continue
+                continue
 
-                # Debug logs to trace the flow and values
-                self.logger.debug(
-                    f"DEBUG: Strategy name: {strategy_name}, Optimize params: {optimized_params}"
-                )
-                self.logger.debug(
-                    f"DEBUG: Portfolio matrix shape: {test_portfolio_matrix.shape}"
-                )
-                self.logger.debug(f"DEBUG: Backtest results: {backtest_results}")
-                self.logger.debug(f"DEBUG: Metrics: {metrics}")
+            # Debug logs to trace the flow and values
+            self.logger.debug(
+                f"DEBUG: Strategy name: {strategy_name}, Optimize params: {optimized_params}"
+            )
+            self.logger.debug(
+                f"DEBUG: Portfolio matrix shape: {test_portfolio_matrix.shape}"
+            )
+            self.logger.debug(f"DEBUG: Backtest results: {backtest_results}")
+            self.logger.debug(f"DEBUG: Metrics: {metrics}")
 
-                results = self._write_test_results(
-                    symbols=test_symbols,
-                    metrics=metrics,
-                    strategy_name=strategy_name,
-                    backtest_results=backtest_results,
-                    optimized_params=optimized_params,
-                    optimization_result=test_opt_results,
-                    collective_results=results,
-                )
-                self.logger.debug(f"DEBUG: Results before writing: {results}")
+            results = self._write_test_results(
+                symbols=test_symbols,
+                metrics=metrics,
+                strategy_name=strategy_name,
+                backtest_results=backtest_results,
+                optimized_params=optimized_params,
+                optimization_result=test_opt_results,
+                collective_results=results,
+            )
+            self.logger.debug(f"DEBUG: Results before writing: {results}")
 
         return results
 

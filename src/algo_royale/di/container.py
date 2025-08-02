@@ -718,6 +718,7 @@ class DIContainer(containers.DeclarativeContainer):
         executor=portfolio_executor,
         evaluator=portfolio_evaluator,
         logger=logger_backtest_portfolio_testing,
+        strategy_logger=logger_portfolio_strategy,
         strategy_combinator_factory=portfolio_strategy_combinator_factory,
         optimization_root=providers.Object(
             config().get(

@@ -4,13 +4,10 @@ from typing import Callable, Generator, Type
 from algo_royale.backtester.strategy.portfolio.base_portfolio_strategy import (
     BasePortfolioStrategy,
 )
-from algo_royale.backtester.strategy_combinator.base_strategy_combinator import (
-    BaseStrategyCombinator,
-)
 from algo_royale.logging.loggable import Loggable
 
 
-class PortfolioStrategyCombinator(BaseStrategyCombinator):
+class PortfolioStrategyCombinator:
     """
     Base class to generate all combinations of portfolio strategy classes.
     Subclass and set the class attribute `strategy_class` to a strategy class.

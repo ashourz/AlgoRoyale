@@ -35,9 +35,7 @@ class SignalStrategyCombinatorFactory:
             if class_name in SIGNAL_STRATEGY_COMBINATOR_MAP:
                 combinator_class = SIGNAL_STRATEGY_COMBINATOR_MAP[class_name]
                 if issubclass(combinator_class, SignalStrategyCombinator):
-                    instance = combinator_class(
-                        logger=self.logger,
-                    )
+                    instance = combinator_class()
                     combinators.append(instance)
                 else:
                     self.logger.error(
