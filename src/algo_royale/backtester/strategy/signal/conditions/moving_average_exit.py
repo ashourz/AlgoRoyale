@@ -36,6 +36,14 @@ class MovingAverageExitCondition(StrategyCondition):
     def required_columns(self):
         return [self.close_col]
 
+    @property
+    def window_size(self) -> int:
+        """Override to specify the window size for moving average crossover logic."""
+        return max(
+            self.short_window if self.short_window is not None else 1,
+            self.long_window if self.long_window is not None else 1,
+        )
+
     def _apply(self, df: pd.DataFrame) -> pd.Series:
         short_ma = (
             df[self.close_col]

@@ -27,6 +27,10 @@ class BollingerBandsExitCondition(StrategyCondition):
     def required_columns(self):
         return [self.close_col]
 
+    @property
+    def window_size(self) -> int:
+        return self.window if self.window is not None else 1
+
     def _apply(self, df: pd.DataFrame) -> pd.Series:
         rolling_mean = df[self.close_col].rolling(window=self.window).mean()
         rolling_std = df[self.close_col].rolling(window=self.window).std()

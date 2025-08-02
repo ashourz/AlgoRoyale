@@ -33,6 +33,22 @@ class SMATrendCondition(StrategyCondition):
     def required_columns(self):
         return [self.sma_fast_col, self.sma_slow_col]
 
+    @property
+    def window_size(self) -> int:
+        try:
+            # Extract period from column names, e.g., 'SMA_50' -> 50
+            fast_period = int(str(self.sma_fast_col).split("_")[-1])
+            slow_period = int(str(self.sma_slow_col).split("_")[-1])
+            # Return the maximum of the two periods
+            return max(fast_period, slow_period)
+        except (ValueError, IndexError):
+            # If parsing fails, default to 0
+            self.logger.error(
+                f"Failed to parse SMA periods from columns: {self.sma_fast_col}, {self.sma_slow_col}. "
+                "Defaulting to 0."
+            )
+            return 0
+
     def _apply(self, df: pd.DataFrame) -> pd.Series:
         return df[self.sma_fast_col] > df[self.sma_slow_col]
 

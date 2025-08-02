@@ -36,6 +36,15 @@ class MomentumExitCondition(StrategyCondition):
     def required_columns(self):
         return [self.close_col]
 
+    @property
+    def window_size(self) -> int:
+        """Override to specify the window size for momentum exit logic."""
+        return max(
+            self.lookback if self.lookback is not None else 1,
+            self.smooth_window if self.smooth_window is not None else 1,
+            self.confirmation_periods if self.confirmation_periods is not None else 1,
+        )
+
     def _apply(self, df: pd.DataFrame) -> pd.Series:
         momentum = df[self.close_col].pct_change(periods=self.lookback)
         if self.smooth_window:

@@ -103,6 +103,11 @@ class MACDTrailingStatefulLogic(StatefulLogic):
         """
         return [self.close_col]
 
+    @property
+    def window_size(self) -> int:
+        """Override to specify the window size for mean reversion logic."""
+        return max(self.fast, self.slow, self.signal)
+
     @classmethod
     def available_param_grid(cls) -> dict:
         """

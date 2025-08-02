@@ -27,6 +27,11 @@ class RSIEntryCondition(StrategyCondition):
     def required_columns(self):
         return [self.close_col]
 
+    @property
+    def window_size(self) -> int:
+        """Override to specify the window size for RSI calculation."""
+        return self.period
+
     def _apply(self, df: pd.DataFrame) -> pd.Series:
         delta = df[self.close_col].diff()
         gain = delta.clip(lower=0)

@@ -30,6 +30,10 @@ class EMAAboveSMARollingCondition(StrategyCondition):
     def required_columns(self):
         return [self.ema_col, self.sma_col]
 
+    @property
+    def window_size(self) -> int:
+        return self.window if self.window is not None else 1
+
     def _apply(self, df: pd.DataFrame) -> pd.Series:
         trend = (df[self.ema_col] > df[self.sma_col]) & (
             df[self.ema_col] > df[self.ema_col].shift(1)

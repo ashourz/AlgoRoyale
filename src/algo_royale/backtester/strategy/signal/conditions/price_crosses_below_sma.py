@@ -77,6 +77,11 @@ class PriceCrossesBelowSMACondition(StrategyCondition):
     def required_columns(self):
         return [self.close_col, self.sma_col]
 
+    @property
+    def window_size(self) -> int:
+        """Override to specify the window size for price below SMA logic."""
+        return 2
+
     @classmethod
     def available_param_grid(cls) -> dict:
         return {

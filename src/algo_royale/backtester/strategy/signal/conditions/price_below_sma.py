@@ -9,24 +9,27 @@ from algo_royale.logging.loggable import Loggable
 
 
 @staticmethod
-def price_below_sma(
-    row,
+def price_crosses_below_sma(
+    current_row,
+    prev_row,
     sma_col: SignalStrategyColumns = SignalStrategyColumns.SMA_20,
-    close_col=SignalStrategyColumns.CLOSE_PRICE,
+    close_col: SignalStrategyColumns = SignalStrategyColumns.CLOSE_PRICE,
+    logger: Loggable = None,
 ):
     """
-    Returns True if the price is below the SMA (indicating downtrend),
-    else False.
-
-    Args:
-        row (pd.Series): A row of data.
-        sma_col (str): Column name for SMA.
-        close_col (str): Column name for close price.
-
-    Returns:
-        bool: True if price < SMA, else False.
+    Returns True if the price crosses below the SMA between the previous and current rows.
     """
-    return row[close_col] < row[sma_col]
+    crossed = (
+        prev_row[close_col] >= prev_row[sma_col]
+        and current_row[close_col] < current_row[sma_col]
+    )
+    if crossed and logger:
+        logger.debug(
+            f"Cross below detected at index {current_row.name}: "
+            f"prev_close={prev_row[close_col]}, prev_sma={prev_row[sma_col]}, "
+            f"curr_close={current_row[close_col]}, curr_sma={current_row[sma_col]}"
+        )
+    return crossed
 
 
 class PriceBelowSMACondition(StrategyCondition):
@@ -62,13 +65,24 @@ class PriceBelowSMACondition(StrategyCondition):
 
     def _apply(self, df: pd.DataFrame) -> pd.Series:
         return df.apply(
-            lambda row: price_below_sma(row, self.sma_col, self.close_col),
+            lambda row: price_crosses_below_sma(
+                row,
+                df.shift(1).loc[row.name],
+                self.sma_col,
+                self.close_col,
+                self.logger,
+            ),
             axis=1,
         )
 
     @property
     def required_columns(self):
         return [self.close_col, self.sma_col]
+
+    @property
+    def window_size(self) -> int:
+        """Override to specify the window size for price below SMA logic."""
+        return 2
 
     @classmethod
     def available_param_grid(cls) -> dict:

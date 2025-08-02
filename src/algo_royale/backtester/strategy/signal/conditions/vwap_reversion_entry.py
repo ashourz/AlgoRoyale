@@ -30,6 +30,18 @@ class VWAPReversionEntryCondition(StrategyCondition):
     def required_columns(self):
         return [self.vwap_col, self.vwp_col]
 
+    @property
+    def window_size(self) -> int:
+        """Override to specify the window size for VWAP calculation."""
+        try:
+            # Extract period from column names, e.g., 'VWAP_20' -> 20
+            return int(str(self.vwap_col).split("_")[-1])
+        except (ValueError, IndexError):
+            self.logger.error(
+                f"Failed to parse period from column: {self.vwap_col}. Defaulting to 0."
+            )
+            return 0
+
     def _apply(self, df: pd.DataFrame) -> pd.Series:
         deviation = (df[self.vwp_col] - df[self.vwap_col]) / df[self.vwap_col]
         return deviation < -self.deviation_threshold

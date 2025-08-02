@@ -3,6 +3,9 @@ from typing import Optional
 from algo_royale.backtester.column_names.strategy_columns import SignalStrategyColumns
 from algo_royale.backtester.enum.signal_type import SignalType
 from algo_royale.backtester.strategy.base_strategy import BaseStrategy
+from algo_royale.backtester.strategy.signal.base_signal_strategy import (
+    BaseSignalStrategy,
+)
 from algo_royale.backtester.strategy.signal.buffered_components.buffered_condition import (
     BufferedStrategyCondition,
 )
@@ -22,6 +25,7 @@ class BufferedSignalStrategy(BaseStrategy):
     def __init__(
         self,
         logger: Loggable,
+        strategy_type: type[BaseSignalStrategy],
         filter_conditions: Optional[list[BufferedStrategyCondition]] = None,
         trend_conditions: Optional[list[BufferedStrategyCondition]] = None,
         entry_conditions: Optional[list[BufferedStrategyCondition]] = None,
@@ -29,6 +33,7 @@ class BufferedSignalStrategy(BaseStrategy):
         stateful_logic: Optional[BufferedStatefulLogic] = None,
     ):
         self.logger = logger
+        self.strategy_type = strategy_type
         self.filter_conditions = filter_conditions or []
         self.trend_conditions = trend_conditions or []
         self.entry_conditions = entry_conditions or []

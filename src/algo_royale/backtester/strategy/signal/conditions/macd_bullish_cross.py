@@ -10,25 +10,26 @@ from algo_royale.logging.loggable import Loggable
 
 @staticmethod
 def macd_bullish_cross(
-    row,
+    current_row,
+    prev_row,
     macd_col: SignalStrategyColumns = SignalStrategyColumns.MACD,
     signal_col: SignalStrategyColumns = SignalStrategyColumns.MACD_SIGNAL,
-    close_col: SignalStrategyColumns = SignalStrategyColumns.CLOSE_PRICE,
+    logger: Loggable = None,
 ) -> bool:
     """
-    Returns True if MACD is above its signal line (bullish momentum).
-    Assumes you have columns 'macd' and 'macd_signal' in your DataFrame.
-
-    Args:
-        row (pd.Series): A row of data.
-        macd_col (str): Column name for MACD.
-        signal_col (str): Column name for MACD signal line.
-        close_col (str): Column name for close price (not used in logic but kept for uniformity).
-
-    Returns:
-        bool: True if MACD > signal line, else False.
+    Returns True if MACD crosses above its signal line between previous and current row.
     """
-    return row[macd_col] > row[signal_col]
+    crossed = (
+        prev_row[macd_col] <= prev_row[signal_col]
+        and current_row[macd_col] > current_row[signal_col]
+    )
+    if crossed and logger:
+        logger.debug(
+            f"MACD bullish cross at index {current_row.name}: "
+            + f"prev_macd={prev_row[macd_col]}, prev_signal={prev_row[signal_col]}, "
+            + f"curr_macd={current_row[macd_col]}, curr_signal={current_row[signal_col]}"
+        )
+    return crossed
 
 
 class MACDBullishCrossCondition(StrategyCondition):
@@ -69,7 +70,11 @@ class MACDBullishCrossCondition(StrategyCondition):
     def _apply(self, df: pd.DataFrame) -> pd.Series:
         return df.apply(
             lambda row: macd_bullish_cross(
-                row, self.macd_col, self.signal_col, self.close_col
+                row,
+                df.shift(1).loc[row.name],
+                self.macd_col,
+                self.signal_col,
+                self.logger,
             ),
             axis=1,
         )
@@ -77,6 +82,11 @@ class MACDBullishCrossCondition(StrategyCondition):
     @property
     def required_columns(self):
         return [self.macd_col, self.signal_col, self.close_col]
+
+    @property
+    def window_size(self) -> int:
+        """Override to specify the window size for MACD bullish cross logic."""
+        return 2
 
     @classmethod
     def available_param_grid(cls) -> dict:

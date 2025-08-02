@@ -1,7 +1,21 @@
+from typing import Optional
+
 from algo_royale.backtester.maps.condition_class_map import CONDITION_CLASS_MAP
 from algo_royale.backtester.maps.stateful_logic_map import STATEFUL_LOGIC_CLASS_MAP
 from algo_royale.backtester.strategy.signal.base_signal_strategy import (
     BaseSignalStrategy,
+)
+from algo_royale.backtester.strategy.signal.buffered_components.buffered_condition import (
+    BufferedStrategyCondition,
+)
+from algo_royale.backtester.strategy.signal.buffered_components.buffered_signal_strategy import (
+    BufferedSignalStrategy,
+)
+from algo_royale.backtester.strategy.signal.buffered_components.buffered_stateful_logic import (
+    BufferedStatefulLogic,
+)
+from algo_royale.backtester.strategy.signal.stateful_logic.base_stateful_logic import (
+    StatefulLogic,
 )
 from algo_royale.logging.loggable import Loggable
 
@@ -20,7 +34,7 @@ class StrategyFactory:
         self.logger = logger
         self.strategy_logger = strategy_logger
 
-    def instantiate_conditions(self, cond_list, debug: bool = False):
+    def instantiate_conditions(self, cond_list) -> list[BaseSignalStrategy]:
         """Convert a list of dicts to a list of condition objects."""
         if not cond_list:
             return []
@@ -30,22 +44,95 @@ class StrategyFactory:
             for cond_class, params in cond.items()
         ]
 
-    def instantiate_stateful_logic(self, logic):
+    def instantiate_buffered_conditions(
+        self, cond_list
+    ) -> list[BufferedStrategyCondition]:
+        """Convert a list of dicts to a list of BufferedStrategyCondition objects."""
+        try:
+            std_conditions = self.instantiate_conditions(cond_list)
+            if not std_conditions:
+                return []
+            # Wrap each condition in a BufferedSignalStrategy if not already wrapped
+            buffered_conditions = []
+            for i, cond in enumerate(std_conditions):
+                if not isinstance(cond, BufferedStrategyCondition):
+                    # Wrap each condition in a BufferedStrategyCondition
+                    buffered_conditions.append(
+                        BufferedStrategyCondition(
+                            condition=cond,
+                            window_size=cond.window_size,
+                            logger=self.strategy_logger,
+                        )
+                    )
+                else:
+                    # If already buffered, just append it
+                    buffered_conditions.append(cond)
+            return buffered_conditions
+        except Exception as e:
+            self.logger.error(
+                f"Error instantiating buffered conditions: {e}. "
+                + "Ensure all conditions have a valid window_size."
+            )
+            return []
+
+    def instantiate_stateful_logic(self, logic) -> Optional[StatefulLogic]:
         """Convert a dict to a stateful logic object, or return None.
         Accepts:
             - None: returns None
             - dict: {"ClassName": {"params": ...}}
         """
-        if not logic:
+        try:
+            if not logic:
+                return None
+            if isinstance(logic, dict):
+                # There should only be one key
+                class_name, params = next(iter(logic.items()))
+                cls = STATEFUL_LOGIC_CLASS_MAP[class_name]
+                return cls(logger=self.strategy_logger, **params)
+            else:
+                self.logger.error(
+                    f"Unsupported logic format: {logic}. Expected dict with class name as key."
+                )
+                return None
+        except Exception as e:
+            self.logger.error(
+                f"Error instantiating stateful logic: {e}. "
+                + "Ensure the logic is a valid dict with a single class name key."
+            )
             return None
-        if isinstance(logic, dict):
-            # There should only be one key
-            class_name, params = next(iter(logic.items()))
-            cls = STATEFUL_LOGIC_CLASS_MAP[class_name]
-            return cls(logger=self.strategy_logger, **params)
-        raise ValueError(f"Unsupported logic format: {logic}")
 
-    def build_strategy(self, strategy_class, params: dict) -> BaseSignalStrategy:
+    def instantiate_buffered_stateful_logic(
+        self, logic
+    ) -> Optional[BufferedStatefulLogic]:
+        """Convert a dict to a BufferedStatefulLogic object, or return None.
+        Accepts:
+            - None: returns None
+            - dict: {"ClassName": {"params": ...}}
+        """
+        try:
+            std_logic = self.instantiate_stateful_logic(logic)
+            if not std_logic:
+                return None
+            # Wrap the standard stateful logic in a BufferedStatefulLogic
+            if not isinstance(std_logic, BufferedStatefulLogic):
+                return BufferedStatefulLogic(
+                    stateful_logic=std_logic,
+                    window_size=std_logic.window_size,
+                    logger=self.strategy_logger,
+                )
+            else:
+                # If already buffered, just return it
+                return std_logic
+        except Exception as e:
+            self.logger.error(
+                f"Error instantiating buffered stateful logic: {e}. "
+                + "Ensure the logic is a valid dict with a single class name key."
+            )
+            return None
+
+    def build_strategy(
+        self, strategy_class: type[BaseSignalStrategy], params: dict
+    ) -> BaseSignalStrategy:
         """
         Given a strategy class and params (with *_conditions as lists of dicts),
         returns an initialized strategy with all condition objects.
@@ -60,7 +147,9 @@ class StrategyFactory:
             "filter_conditions",
         ]:
             if key in params and isinstance(params[key], list):
-                params[key] = self.instantiate_conditions(cond_list=params[key])
+                params[key] = self.instantiate_buffered_conditions(
+                    cond_list=params[key]
+                )
 
         # Convert stateful_logic dict to object, if present
         if "stateful_logic" in params and params["stateful_logic"] is not None:
@@ -69,3 +158,34 @@ class StrategyFactory:
             )
 
         return strategy_class(logger=self.strategy_logger, **params)
+
+    def build_buffered_strategy(
+        self, strategy_class: type[BaseSignalStrategy], params: dict
+    ) -> BufferedSignalStrategy:
+        """
+        Given a base strategy class and corresponding params (with *_conditions as lists of dicts),
+        returns an initialized buffered strategy with all condition objects.
+        """
+        params = dict(params)  # shallow copy
+
+        # Convert *_conditions lists of dicts to lists of condition objects
+        for key in [
+            "entry_conditions",
+            "exit_conditions",
+            "trend_conditions",
+            "filter_conditions",
+        ]:
+            if key in params and isinstance(params[key], list):
+                params[key] = self.instantiate_buffered_conditions(
+                    cond_list=params[key]
+                )
+
+        # Convert stateful_logic dict to object, if present
+        if "stateful_logic" in params and params["stateful_logic"] is not None:
+            params["stateful_logic"] = self.instantiate_buffered_stateful_logic(
+                logic=params["stateful_logic"]
+            )
+
+        return BufferedSignalStrategy(
+            strategy_type=strategy_class, logger=self.strategy_logger, **params
+        )

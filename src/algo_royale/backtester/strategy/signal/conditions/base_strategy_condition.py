@@ -45,6 +45,11 @@ class StrategyCondition:
         """Override in subclasses to add additional required columns."""
         return set()
 
+    @property
+    def window_size(self) -> int:
+        """Override in subclasses to specify the window size for buffered conditions."""
+        return 1
+
     @classmethod
     def available_param_grid(cls) -> dict:
         """

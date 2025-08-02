@@ -79,6 +79,18 @@ class VolumeSurgeCondition(StrategyCondition):
     def required_columns(self):
         return [self.volume_col, self.vol_ma_col]
 
+    @property
+    def window_size(self) -> int:
+        """Override to specify the window size for volume moving average calculation."""
+        try:
+            # Extract period from column names, e.g., 'VOL_MA_20' -> 20
+            return int(str(self.vol_ma_col).split("_")[-1])
+        except (ValueError, IndexError):
+            self.logger.error(
+                f"Failed to parse period from column: {self.vol_ma_col}. Defaulting to 0."
+            )
+            return 0
+
     @classmethod
     def available_param_grid(cls) -> dict:
         return {

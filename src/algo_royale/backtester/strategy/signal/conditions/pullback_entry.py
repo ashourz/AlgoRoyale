@@ -23,6 +23,11 @@ class PullbackEntryCondition(StrategyCondition):
     def required_columns(self):
         return [self.ma_col, self.close_col]
 
+    @property
+    def window_size(self) -> int:
+        """Override to specify the window size for pullback entry logic."""
+        return 2
+
     def _apply(self, df: pd.DataFrame) -> pd.Series:
         above_ma = df[self.close_col] > df[self.ma_col]
         below_ma_yesterday = df[self.close_col].shift(1) < df[self.ma_col].shift(1)

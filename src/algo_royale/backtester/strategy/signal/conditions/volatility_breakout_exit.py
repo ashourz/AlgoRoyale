@@ -46,6 +46,21 @@ class VolatilityBreakoutExitCondition(StrategyCondition):
             self.sma_col,
         ]
 
+    @property
+    def window_size(self) -> int:
+        """Override to specify the window size for volatility calculation."""
+        try:
+            # Extract period from column names, e.g., 'VOLATILITY_20' -> 20
+            volatility_window = int(str(self.volatility_col).split("_")[-1])
+            sma_window = int(str(self.sma_col).split("_")[-1])
+            return max(volatility_window, sma_window)
+        except (ValueError, IndexError):
+            self.logger.error(
+                f"Failed to parse periods from columns: {self.volatility_col}, {self.sma_col}. "
+                "Defaulting to 0."
+            )
+            return 0
+
     def _apply(self, df: pd.DataFrame) -> pd.Series:
         breakout = df[self.range_col] > self.threshold * df[self.volatility_col]
         downtrend = df[self.close_col] <= df[self.sma_col]

@@ -70,6 +70,18 @@ class VolatilitySpikeCondition(StrategyCondition):
     def required_columns(self):
         return [self.range_col, self.volatility_col]
 
+    @property
+    def window_size(self) -> int:
+        """Override to specify the window size for volatility calculation."""
+        try:
+            # Extract period from column names, e.g., 'VOLATILITY_10' -> 10
+            return int(str(self.volatility_col).split("_")[-1])
+        except (ValueError, IndexError):
+            self.logger.error(
+                f"Failed to parse volatility period from column: {self.volatility_col}. Defaulting to 0."
+            )
+            return 0
+
     @classmethod
     def available_param_grid(cls) -> dict:
         return {

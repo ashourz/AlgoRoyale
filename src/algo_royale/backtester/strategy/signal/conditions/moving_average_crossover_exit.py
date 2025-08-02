@@ -53,6 +53,16 @@ class MovingAverageCrossoverExitCondition(StrategyCondition):
             cols.append(self.volume_col)
         return set(cols)
 
+    @property
+    def window_size(self) -> int:
+        """Override to specify the window size for moving average crossover logic."""
+        return max(
+            self.short_window if self.short_window is not None else 1,
+            self.long_window if self.long_window is not None else 1,
+            self.trend_window if self.trend_window is not None else 1,
+            self.volume_ma_window if self.volume_ma_window is not None else 1,
+        )
+
     def _moving_average(self, series: pd.Series, window: int) -> pd.Series:
         if self.ma_type == MA_Type.EMA:
             return series.ewm(span=window, adjust=False).mean()

@@ -25,6 +25,11 @@ class VolumeSurgeExitCondition(StrategyCondition):
     def required_columns(self):
         return self.entry_condition.required_columns
 
+    @property
+    def window_size(self) -> int:
+        """Override to specify the window size for volume moving average calculation."""
+        return self.entry_condition.window_size
+
     def _apply(self, df: pd.DataFrame) -> pd.Series:
         entry_mask = self.entry_condition.apply(df)
         # Sell on the next bar after a surge

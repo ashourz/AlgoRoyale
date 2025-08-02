@@ -23,6 +23,18 @@ class TrendAboveSMACondition(StrategyCondition):
     def required_columns(self):
         return [self.price_col, self.sma_col]
 
+    @property
+    def window_size(self) -> int:
+        """Override to specify the window size for SMA calculation."""
+        try:
+            # Extract period from column names, e.g., 'SMA_20' -> 20
+            return int(str(self.sma_col).split("_")[-1])
+        except (ValueError, IndexError):
+            self.logger.error(
+                f"Failed to parse SMA period from column: {self.sma_col}. Defaulting to 0."
+            )
+            return 0
+
     def _apply(self, df: pd.DataFrame) -> pd.Series:
         return df[self.price_col] > df[self.sma_col]
 

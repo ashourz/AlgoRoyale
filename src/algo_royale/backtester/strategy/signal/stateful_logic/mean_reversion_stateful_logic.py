@@ -94,6 +94,11 @@ class MeanReversionStatefulLogic(StatefulLogic):
         """Override to specify required columns for mean reversion logic."""
         return {self.close_col}
 
+    @property
+    def window_size(self) -> int:
+        """Override to specify the window size for mean reversion logic."""
+        return self.window
+
     @classmethod
     def available_param_grid(cls) -> dict:
         """Override to provide parameter grid for mean reversion strategy."""
