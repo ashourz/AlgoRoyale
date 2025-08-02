@@ -185,7 +185,7 @@ class PortfolioMatrixLoader:
                     start_date,
                     end_date,
                 )
-                if df is None:
+                if df is None or df.empty:
                     self.logger.warning(
                         f"[PortfolioMatrixLoader] No data found for {symbol} in range {start_date} to {end_date}, skipping."
                     )

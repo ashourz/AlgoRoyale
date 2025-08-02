@@ -41,6 +41,7 @@ class MACDTrailingStopStrategy(BaseSignalStrategy):
             SMATrendCondition(
                 sma_fast_col=SignalStrategyColumns.SMA_50,
                 sma_slow_col=SignalStrategyColumns.SMA_200,
+                logger=None,
             )
         ],
         stateful_logic=MACDTrailingStatefulLogic(

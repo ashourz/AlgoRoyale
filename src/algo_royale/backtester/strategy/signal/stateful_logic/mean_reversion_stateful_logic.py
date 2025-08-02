@@ -1,3 +1,5 @@
+from typing import Optional
+
 from optuna import Trial
 
 from algo_royale.backtester.column_names.strategy_columns import SignalStrategyColumns
@@ -11,7 +13,7 @@ from algo_royale.logging.loggable import Loggable
 class MeanReversionStatefulLogic(StatefulLogic):
     def __init__(
         self,
-        logger: Loggable,
+        logger: Optional[Loggable] = None,
         window=20,
         threshold=0.02,
         stop_pct=0.02,
@@ -123,6 +125,7 @@ class MeanReversionStatefulLogic(StatefulLogic):
         reentry_cooldown = trial.suggest_int(f"{prefix}reentry_cooldown", 0, 30)
         close_col = SignalStrategyColumns.CLOSE_PRICE
         return cls(
+            logger=logger,
             window=window,
             threshold=threshold,
             stop_pct=stop_pct,

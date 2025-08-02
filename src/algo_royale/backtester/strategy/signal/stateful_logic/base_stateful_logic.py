@@ -1,4 +1,5 @@
 import itertools
+from typing import Optional
 
 from optuna import Trial
 
@@ -12,7 +13,7 @@ class StatefulLogic:
     update signals and state based on the current row of data.
     """
 
-    def __init__(self, logger: Loggable, *args, **kwargs):
+    def __init__(self, logger: Optional[Loggable] = None, *args, **kwargs):
         for k, v in kwargs.items():
             setattr(self, k, v)
         self.logger = logger

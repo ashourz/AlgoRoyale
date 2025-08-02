@@ -100,32 +100,32 @@ class SignalStrategyOptimizerImpl(SignalStrategyOptimizer):
         def objective(trial, logger=self.logger):
             entry_conds = [
                 cond_cls.optuna_suggest(
-                    self.strategy_logger,
-                    trial,
+                    logger=self.strategy_logger,
+                    trial=trial,
                     prefix=f"{symbol}_entry_{cond_cls.__name__}_",
                 )
                 for i, cond_cls in enumerate(self.condition_types.get("entry", []))
             ]
             trend_conds = [
                 cond_cls.optuna_suggest(
-                    self.strategy_logger,
-                    trial,
+                    logger=self.strategy_logger,
+                    trial=trial,
                     prefix=f"{symbol}_trend_{cond_cls.__name__}_",
                 )
                 for i, cond_cls in enumerate(self.condition_types.get("trend", []))
             ]
             exit_conds = [
                 cond_cls.optuna_suggest(
-                    self.strategy_logger,
-                    trial,
+                    logger=self.strategy_logger,
+                    trial=trial,
                     prefix=f"{symbol}_exit_{cond_cls.__name__}_",
                 )
                 for i, cond_cls in enumerate(self.condition_types.get("exit", []))
             ]
             filter_conds = [
                 cond_cls.optuna_suggest(
-                    self.strategy_logger,
-                    trial,
+                    logger=self.strategy_logger,
+                    trial=trial,
                     prefix=f"{symbol}_filter_{cond_cls.__name__}_",
                 )
                 for i, cond_cls in enumerate(self.condition_types.get("filter", []))
@@ -133,8 +133,8 @@ class SignalStrategyOptimizerImpl(SignalStrategyOptimizer):
             state_logic = self.condition_types.get("stateful_logic")[0]
             if isinstance(state_logic, StatefulLogic):
                 state_logic = state_logic.optuna_suggest(
-                    self.strategy_logger,
-                    trial,
+                    logger=self.strategy_logger,
+                    trial=trial,
                     prefix=f"{symbol}_logic_{state_logic.__name__}_",
                 )
 

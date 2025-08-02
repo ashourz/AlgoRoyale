@@ -15,7 +15,7 @@ class SignalStrategyCombinatorFactory:
     """
 
     def __init__(self, combinator_list_path: str, logger: Loggable):
-        self.logger = (logger,)
+        self.logger = logger
         self.combinator_list_path = combinator_list_path
         if not os.path.exists(combinator_list_path):
             self.logger.error(

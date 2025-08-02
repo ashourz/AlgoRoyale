@@ -1,3 +1,5 @@
+from typing import Optional
+
 from optuna import Trial
 
 from algo_royale.backtester.column_names.strategy_columns import SignalStrategyColumns
@@ -16,7 +18,7 @@ class TrailingStopStatefulLogic(StatefulLogic):
 
     def __init__(
         self,
-        logger: Loggable,
+        logger: Optional[Loggable] = None,
         close_col=SignalStrategyColumns.CLOSE_PRICE,
         stop_pct=0.02,
     ):
@@ -66,8 +68,11 @@ class TrailingStopStatefulLogic(StatefulLogic):
         }
 
     @classmethod
-    def optuna_suggest(cls, logger: Loggable, trial: Trial, prefix: str = ""):
+    def optuna_suggest(
+        cls, trial: Trial, prefix: str = "", logger: Optional[Loggable] = None
+    ):
         return cls(
+            logger=logger,
             close_col=trial.suggest_categorical(
                 f"{prefix}close_col", [SignalStrategyColumns.CLOSE_PRICE]
             ),

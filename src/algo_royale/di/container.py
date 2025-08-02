@@ -149,7 +149,7 @@ from algo_royale.services.db.news_sentiment_service import NewsSentimentService
 from algo_royale.services.db.trade_service import TradeService
 from algo_royale.services.db.trade_signal_service import TradeSignalService
 from algo_royale.services.market_data.alpaca_stock_service import AlpacaQuoteService
-from algo_royale.trader.watchlist import watchlist_repo
+from algo_royale.trader.symbols.watchlist_repo import WatchlistRepo
 from algo_royale.utils.path_utils import get_data_dir
 from algo_royale.visualization.dashboard import BacktestDashboard
 
@@ -462,7 +462,7 @@ class DIContainer(containers.DeclarativeContainer):
     )
 
     watchlist_repo = providers.Singleton(
-        watchlist_repo.WatchlistRepo, watchlist_path=watchlist_path_string
+        WatchlistRepo, watchlist_path=watchlist_path_string
     )
 
     stage_data_loader = providers.Singleton(

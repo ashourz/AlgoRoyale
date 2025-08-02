@@ -28,7 +28,7 @@ class SymbolStrategyManager:
         self.data_dir = Path(data_dir)
         self.stage_data_manager = stage_data_manager
         self.symbol_strategy_evaluation_filename = symbol_strategy_evaluation_filename
-        self.logger = (logger,)
+        self.logger = logger
 
     def get_optimized_strategy(self, symbol: str) -> Optional[Any]:
         """

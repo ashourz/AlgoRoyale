@@ -1,3 +1,5 @@
+from typing import Optional
+
 import pandas as pd
 from optuna import Trial
 
@@ -25,7 +27,7 @@ class MACDTrailingStatefulLogic(StatefulLogic):
 
     def __init__(
         self,
-        logger: Loggable,
+        logger: Optional[Loggable] = None,
         close_col: SignalStrategyColumns = SignalStrategyColumns.CLOSE_PRICE,
         fast: int = 12,
         slow: int = 26,
@@ -145,4 +147,5 @@ class MACDTrailingStatefulLogic(StatefulLogic):
             slow=slow,
             signal=signal,
             stop_pct=stop_pct,
+            logger=logger,
         )

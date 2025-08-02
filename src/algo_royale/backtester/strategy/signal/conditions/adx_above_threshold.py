@@ -1,3 +1,5 @@
+from typing import Optional
+
 import pandas as pd
 from optuna import Trial
 
@@ -55,7 +57,7 @@ class ADXAboveThresholdCondition(StrategyCondition):
         adx_col: SignalStrategyColumns = SignalStrategyColumns.ADX,
         close_col: SignalStrategyColumns = SignalStrategyColumns.CLOSE_PRICE,
         threshold: float = 25,
-        logger: Loggable = None,
+        logger: Optional[Loggable] = None,
     ):
         super().__init__(
             adx_col=adx_col, close_col=close_col, threshold=threshold, logger=logger
