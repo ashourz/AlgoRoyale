@@ -1,5 +1,3 @@
-# strategies/base_strategy.py
-
 import hashlib
 from typing import Optional
 
@@ -17,6 +15,7 @@ from algo_royale.backtester.strategy.signal.stateful_logic.base_stateful_logic i
 from algo_royale.logging.loggable import Loggable
 
 
+# strategies/base_strategy.py
 class BaseSignalStrategy(BaseStrategy):
     """
     Base class for trading strategies.

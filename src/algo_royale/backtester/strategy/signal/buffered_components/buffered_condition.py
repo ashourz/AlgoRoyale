@@ -2,16 +2,24 @@ from collections import deque
 
 import pandas as pd
 
+from algo_royale.backtester.strategy.signal.conditions.base_strategy_condition import (
+    StrategyCondition,
+)
 from algo_royale.logging.loggable import Loggable
 
 
-class GenericBufferedCondition:
+class BufferedStrategyCondition:
     """
     Generic buffered condition wrapper for any condition class that operates on a DataFrame window.
     Maintains its own buffer and applies the given condition to the window.
     """
 
-    def __init__(self, condition, window_size=1, logger: Loggable = None):
+    def __init__(
+        self,
+        condition: StrategyCondition,
+        window_size: int = 1,
+        logger: Loggable = None,
+    ):
         """
         :param condition: An instance of a condition class with an _apply(df) method.
         :param window_size: The number of rows to buffer (window size).

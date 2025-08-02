@@ -1,4 +1,4 @@
-from algo_royale.backtester.strategy.signal.buffered_conditions.buffered_condition import (
+from algo_royale.backtester.strategy.signal.buffered_components.buffered_condition import (
     BaseBufferedCondition,
 )
 from algo_royale.backtester.strategy.signal.conditions.combo_exit import (
