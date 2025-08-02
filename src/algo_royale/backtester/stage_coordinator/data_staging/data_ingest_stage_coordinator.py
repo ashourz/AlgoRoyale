@@ -5,7 +5,7 @@ import pandas as pd
 from alpaca.common.enums import SupportedCurrencies
 
 from algo_royale.backtester.column_names.data_ingest_columns import DataIngestColumns
-from algo_royale.backtester.enum.backtest_stage import BacktestStage
+from algo_royale.backtester.enums.backtest_stage import BacktestStage
 from algo_royale.backtester.stage_coordinator.stage_coordinator import StageCoordinator
 from algo_royale.backtester.stage_data.loader.stage_data_loader import StageDataLoader
 from algo_royale.backtester.stage_data.stage_data_manager import StageDataManager

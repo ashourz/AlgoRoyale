@@ -3,7 +3,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Dict, Mapping, Optional
 
-from algo_royale.backtester.enum.backtest_stage import BacktestStage
+from algo_royale.backtester.enums.backtest_stage import BacktestStage
 from algo_royale.backtester.evaluator.backtest.base_backtest_evaluator import (
     BacktestEvaluator,
 )

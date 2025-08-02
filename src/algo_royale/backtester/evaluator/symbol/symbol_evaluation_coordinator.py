@@ -1,7 +1,7 @@
 import json
 from pathlib import Path
 
-from algo_royale.backtester.enum.backtest_stage import BacktestStage
+from algo_royale.backtester.enums.backtest_stage import BacktestStage
 from algo_royale.logging.loggable import Loggable
 from algo_royale.logging.logger_factory import mockLogger
 

@@ -12,8 +12,8 @@ from algo_royale.backtester.column_names.strategy_columns import (
 from algo_royale.backtester.data_preparer.asset_matrix_preparer import (
     AssetMatrixPreparer,
 )
-from algo_royale.backtester.enum.backtest_stage import BacktestStage
-from algo_royale.backtester.enum.data_extension import DataExtension
+from algo_royale.backtester.enums.backtest_stage import BacktestStage
+from algo_royale.backtester.enums.data_extension import DataExtension
 from algo_royale.backtester.executor.strategy_backtest_executor import (
     StrategyBacktestExecutor,
 )

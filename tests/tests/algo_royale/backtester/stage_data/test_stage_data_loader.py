@@ -2,7 +2,7 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-from algo_royale.backtester.enum.backtest_stage import BacktestStage
+from algo_royale.backtester.enums.backtest_stage import BacktestStage
 
 
 @pytest.fixture

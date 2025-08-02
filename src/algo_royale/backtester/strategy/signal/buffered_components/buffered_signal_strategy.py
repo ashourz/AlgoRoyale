@@ -1,7 +1,7 @@
 from typing import Optional
 
 from algo_royale.backtester.column_names.strategy_columns import SignalStrategyColumns
-from algo_royale.backtester.enum.signal_type import SignalType
+from algo_royale.backtester.enums.signal_type import SignalType
 from algo_royale.backtester.strategy.base_strategy import BaseStrategy
 from algo_royale.backtester.strategy.signal.base_signal_strategy import (
     BaseSignalStrategy,

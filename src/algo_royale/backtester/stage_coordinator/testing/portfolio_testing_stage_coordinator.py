@@ -9,7 +9,7 @@ from algo_royale.backtester.column_names.portfolio_execution_keys import (
     PortfolioExecutionKeys,
     PortfolioExecutionMetricsKeys,
 )
-from algo_royale.backtester.enum.backtest_stage import BacktestStage
+from algo_royale.backtester.enums.backtest_stage import BacktestStage
 from algo_royale.backtester.evaluator.backtest.portfolio_backtest_evaluator import (
     PortfolioBacktestEvaluator,
 )
@@ -54,7 +54,7 @@ class PortfolioTestingStageCoordinator(BaseTestingStageCoordinator):
         data_loader: SymbolStrategyDataLoader,
         stage_data_manager: StageDataManager,
         logger: Loggable,
-        strategy_logger:Loggable,
+        strategy_logger: Loggable,
         strategy_combinator_factory: PortfolioStrategyCombinatorFactory,
         executor: PortfolioBacktestExecutor,
         evaluator: PortfolioBacktestEvaluator,
@@ -71,7 +71,7 @@ class PortfolioTestingStageCoordinator(BaseTestingStageCoordinator):
             optimization_json_filename=optimization_json_filename,
             optimization_root=optimization_root,
         )
-        
+
         self.portfolio_matrix_loader = portfolio_matrix_loader
         self.strategy_combinator_factory = strategy_combinator_factory
         self.executor = executor
@@ -173,9 +173,7 @@ class PortfolioTestingStageCoordinator(BaseTestingStageCoordinator):
                 self.logger.debug(
                     f"DEBUG: Skipping strategy {strategy_name} due to validation failure."
                 )
-                self.logger.debug(
-                    f"DEBUG: Optimization results: {test_opt_results}"
-                )
+                self.logger.debug(f"DEBUG: Optimization results: {test_opt_results}")
                 continue
 
             # Debug logs to trace the flow and values

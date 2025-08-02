@@ -3,7 +3,7 @@ from typing import AsyncIterator, Callable, Dict, Optional
 
 import pandas as pd
 
-from algo_royale.backtester.enum.backtest_stage import BacktestStage
+from algo_royale.backtester.enums.backtest_stage import BacktestStage
 from algo_royale.backtester.feature_engineering.feature_engineer import (
     FeatureEngineer,
 )

@@ -1,12 +1,12 @@
 import numpy as np
 import pandas as pd
-from algo_royale.logging.loggable import Loggable
 
 from algo_royale.backtester.column_names.strategy_columns import SignalStrategyColumns
-from algo_royale.backtester.enum.signal_type import SignalType
+from algo_royale.backtester.enums.signal_type import SignalType
 from algo_royale.backtester.evaluator.backtest.base_backtest_evaluator import (
     BacktestEvaluator,
 )
+from algo_royale.logging.loggable import Loggable
 
 
 class SignalBacktestEvaluator(BacktestEvaluator):

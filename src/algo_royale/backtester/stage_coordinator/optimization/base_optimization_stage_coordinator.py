@@ -6,7 +6,7 @@ from typing import AsyncIterator, Callable, Dict, Mapping, Optional
 import pandas as pd
 from pyparsing import abstractmethod
 
-from algo_royale.backtester.enum.backtest_stage import BacktestStage
+from algo_royale.backtester.enums.backtest_stage import BacktestStage
 from algo_royale.backtester.stage_coordinator.stage_coordinator import StageCoordinator
 from algo_royale.backtester.stage_data.loader.symbol_strategy_data_loader import (
     SymbolStrategyDataLoader,

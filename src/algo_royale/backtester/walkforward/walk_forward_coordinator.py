@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING
 
 from matplotlib.dates import relativedelta
 
-from algo_royale.backtester.enum.backtest_stage import BacktestStage
+from algo_royale.backtester.enums.backtest_stage import BacktestStage
 from algo_royale.backtester.stage_coordinator.data_staging.data_ingest_stage_coordinator import (
     DataIngestStageCoordinator,
 )

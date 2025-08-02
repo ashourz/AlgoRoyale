@@ -13,7 +13,7 @@ from algo_royale.backtester.column_names.portfolio_strategy_columns import (
 from algo_royale.backtester.column_names.strategy_columns import (
     SignalStrategyColumns,
 )
-from algo_royale.backtester.enum.backtest_stage_dict_validation import (
+from algo_royale.backtester.enums.backtest_stage_dict_validation import (
     BacktestStageDictValidation,
 )
 

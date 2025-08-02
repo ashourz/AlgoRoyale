@@ -6,8 +6,8 @@ from typing import AsyncIterator, Callable, Dict, Optional
 
 import pandas as pd
 
-from algo_royale.backtester.enum.backtest_stage import BacktestStage
-from algo_royale.backtester.enum.data_extension import DataExtension
+from algo_royale.backtester.enums.backtest_stage import BacktestStage
+from algo_royale.backtester.enums.data_extension import DataExtension
 from algo_royale.backtester.stage_data.stage_data_manager import (
     StageDataManager,
 )

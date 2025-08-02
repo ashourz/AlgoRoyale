@@ -3,7 +3,7 @@ from pathlib import Path
 
 import numpy as np
 
-from algo_royale.backtester.enum.backtest_stage import BacktestStage
+from algo_royale.backtester.enums.backtest_stage import BacktestStage
 from algo_royale.backtester.evaluator.strategy.strategy_evaluation_type import (
     StrategyEvaluationType,
 )

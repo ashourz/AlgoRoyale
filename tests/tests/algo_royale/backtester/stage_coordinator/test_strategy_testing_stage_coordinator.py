@@ -5,7 +5,7 @@ from unittest.mock import AsyncMock, MagicMock
 import pandas as pd
 import pytest
 
-from algo_royale.backtester.enum.backtest_stage import BacktestStage
+from algo_royale.backtester.enums.backtest_stage import BacktestStage
 from algo_royale.backtester.stage_coordinator.testing.strategy_testing_stage_coordinator import (
     StrategyTestingStageCoordinator,
 )
