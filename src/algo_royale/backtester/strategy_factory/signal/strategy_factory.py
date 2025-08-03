@@ -147,9 +147,7 @@ class StrategyFactory:
             "filter_conditions",
         ]:
             if key in params and isinstance(params[key], list):
-                params[key] = self.instantiate_buffered_conditions(
-                    cond_list=params[key]
-                )
+                params[key] = self.instantiate_conditions(cond_list=params[key])
 
         # Convert stateful_logic dict to object, if present
         if "stateful_logic" in params and params["stateful_logic"] is not None:
