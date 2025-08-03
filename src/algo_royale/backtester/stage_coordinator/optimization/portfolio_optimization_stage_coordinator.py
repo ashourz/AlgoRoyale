@@ -126,7 +126,7 @@ class PortfolioOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
                 strategy_combinator
             ) in self.strategy_combinator_factory.all_combinators():
                 self.logger.info(
-                    f"Using strategy combinator: {strategy_combinator.__name__}"
+                    f"Using strategy combinator: {strategy_combinator.__class__.__name__}"
                 )
                 try:
                     strategy_class = strategy_combinator.strategy_class

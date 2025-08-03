@@ -144,6 +144,9 @@ class BaseTestingStageCoordinator(StageCoordinator):
         with open(json_path, "r") as f:
             try:
                 opt_results = json.load(f)
+                self.logger.debug(
+                    f"Loaded optimization results for Symbol:{symbol} | Strategy:{strategy_name} start_date={start_date}, end_date={end_date} | Results: {opt_results}"
+                )
             except json.JSONDecodeError:
                 self.logger.warning(
                     f"Optimization result file {json_path} is not valid JSON. Returning empty dict."

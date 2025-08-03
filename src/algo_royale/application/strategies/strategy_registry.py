@@ -9,6 +9,9 @@ from typing import Dict
 
 from algo_royale.application.symbol.symbol_manager import SymbolManager
 from algo_royale.backtester.stage_data.stage_data_manager import StageDataManager
+from algo_royale.backtester.strategy_factory.signal.strategy_factory import (
+    StrategyFactory,
+)
 from algo_royale.logging.loggable import Loggable
 
 
@@ -19,11 +22,13 @@ class StrategyRegistry:
         stage_data_manager: StageDataManager,
         evaluation_json_filename: str,
         viable_strategies_json_filename: str,
+        signal_strategy_factory: StrategyFactory,
         logger: Loggable,
     ):
         self.symbol_manager = symbol_manager
         self.stage_data_manager = stage_data_manager
         self.evaluation_json_filename = evaluation_json_filename
+        self.signal_strategy_factory = signal_strategy_factory
         self.logger = logger
         self.state = {}
 
@@ -48,17 +53,54 @@ class StrategyRegistry:
         self.state[symbol].update(strategies)
         self.logger.info(f"Updated strategies for {symbol}: {strategies}")
 
-    def _get_all_viable_strategies(self) -> Dict[str, Dict[str, float]]:
-        """Get all viable strategies across all symbols."""
-        all_strategies = {}
+    def get_weighted_buffer_signal_strategy(self, symbol: str) -> Dict[str, float]:
+        """Get the weighted buffer signal strategy for a given symbol."""
+        self.logger.info(f"Getting weighted buffer signal strategy for {symbol}...")
+        all_buffered_strategies = self._get_all_buffered_strategies(symbol)
+        weighted_signals = {}
+        for strategy_name, buffers in all_buffered_strategies.items():
+            # Compute the weighted signal for each strategy
+            weighted_signal = sum(
+                buffer["signal"] * buffer["weight"] for buffer in buffers
+            )
+            weighted_signals[strategy_name] = weighted_signal
+        return weighted_signals
+
+    def _get_all_buffered_strategies(self, symbol: str) -> Dict[str, float]:
+        """Get all buffered strategies for a given symbol."""
+        self.logger.info(f"Getting all buffered strategies for {symbol}...")
+        all_buffered_strategies = {}
         try:
-            for symbol in self.symbol_manager.get_symbols():
-                strategies = self._get_viable_strategies(symbol)
-                if strategies:
-                    all_strategies[symbol] = strategies
+            strategy_params = self._get_all_viable_strategy_params(symbol)
+            for strategy_name, metrics in strategy_params.items():
+                viability_score = metrics.get("viability_score", 0)
+                params = metrics.get("params", {})
+                # Now you can use strategy_name, viability_score, and params
+                buffered_strategy = (
+                    self.signal_strategy_factory.build_buffered_strategy(
+                        strategy_class=strategy_name,
+                        params=params,
+                    )
+                )
+                all_buffered_strategies[buffered_strategy] = viability_score
+        except Exception as e:
+            self.logger.error(f"Error getting all strategies: {e}")
+        return all_buffered_strategies
+
+    def _get_all_viable_strategy_params(
+        self, symbol: str
+    ) -> Dict[str, Dict[str, float]]:
+        """Get all viable strategy parameters for a given symbol."""
+        self.logger.info(
+            f"Getting all viable strategy parameters for symbol {symbol}..."
+        )
+        try:
+            strategies = self._get_viable_strategies(symbol)
+            if strategies:
+                return strategies
         except Exception as e:
             self.logger.error(f"Error getting all viable strategies: {e}")
-        return all_strategies
+        return None
 
     def _get_viable_strategies(self, symbol: str) -> Dict[str, Dict[str, float]]:
         """Get optimization results for a given strategy and symbol."""
