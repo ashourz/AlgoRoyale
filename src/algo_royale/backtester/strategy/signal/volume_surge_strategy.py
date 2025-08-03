@@ -1,4 +1,7 @@
 from algo_royale.backtester.column_names.strategy_columns import SignalStrategyColumns
+from algo_royale.backtester.strategy.signal.base_signal_strategy import (
+    BaseSignalStrategy,
+)
 from algo_royale.backtester.strategy.signal.conditions.volume_surge_entry import (
     VolumeSurgeEntryCondition,
 )
@@ -6,9 +9,6 @@ from algo_royale.backtester.strategy.signal.conditions.volume_surge_exit import 
     VolumeSurgeExitCondition,
 )
 from algo_royale.logging.loggable import Loggable
-from src.algo_royale.backtester.strategy.signal.base_signal_strategy import (
-    BaseSignalStrategy,
-)
 
 
 class VolumeSurgeStrategy(BaseSignalStrategy):

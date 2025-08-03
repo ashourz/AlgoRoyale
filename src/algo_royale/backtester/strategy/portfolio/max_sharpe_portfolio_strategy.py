@@ -3,10 +3,10 @@ import pandas as pd
 from optuna import Trial
 from scipy.optimize import minimize
 
-from algo_royale.logging.loggable import Loggable
-from src.algo_royale.backtester.strategy.portfolio.base_portfolio_strategy import (
+from algo_royale.backtester.strategy.portfolio.base_portfolio_strategy import (
     BasePortfolioStrategy,
 )
+from algo_royale.logging.loggable import Loggable
 
 
 class MaxSharpePortfolioStrategy(BasePortfolioStrategy):
