@@ -206,7 +206,7 @@ class StrategyTestingStageCoordinator(BaseTestingStageCoordinator):
                 async def data_factory():
                     yield test_df
 
-                raw_results = await self.executor.run_backtest(
+                raw_results = await self.executor.run_backtest_async(
                     [strategy], {symbol: data_factory}
                 )
                 self.logger.debug(f"Raw results for {symbol}: {raw_results}")
