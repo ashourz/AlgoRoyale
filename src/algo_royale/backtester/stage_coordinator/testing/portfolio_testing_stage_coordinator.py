@@ -87,12 +87,12 @@ class PortfolioTestingStageCoordinator(BaseTestingStageCoordinator):
         """
         results = {}
         train_portfolio_matrix = await self._get_portfolio_matrix(
-            start_data=self.train_start_date,
-            end_data=self.train_end_date,
+            start_date=self.train_start_date,
+            end_date=self.train_end_date,
         )
         test_portfolio_matrix = await self._get_portfolio_matrix(
-            start_data=self.test_start_date,
-            end_data=self.test_end_date,
+            start_date=self.test_start_date,
+            end_date=self.test_end_date,
         )
         # If no valid portfolio data is available, log a warning and return empty results
         if train_portfolio_matrix is None or train_portfolio_matrix.empty:
@@ -201,8 +201,8 @@ class PortfolioTestingStageCoordinator(BaseTestingStageCoordinator):
 
     async def _get_portfolio_matrix(
         self,
-        start_data: datetime,
-        end_data: datetime,
+        start_date: datetime,
+        end_date: datetime,
     ) -> Optional[pd.DataFrame]:
         """Load the portfolio matrix for the testing stage."""
         try:
@@ -212,8 +212,8 @@ class PortfolioTestingStageCoordinator(BaseTestingStageCoordinator):
                 return None
             portfolio_matrix = await self.portfolio_matrix_loader.get_portfolio_matrix(
                 symbols=watchlist,
-                start_date=start_data,
-                end_date=end_data,
+                start_date=start_date,
+                end_date=end_date,
             )
             if portfolio_matrix is None or portfolio_matrix.empty:
                 self.logger.warning(

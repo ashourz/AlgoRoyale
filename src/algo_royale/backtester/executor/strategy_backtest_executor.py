@@ -256,7 +256,7 @@ class StrategyBacktestExecutor:
             null_rows = df[SignalStrategyExecutorColumns.CLOSE_PRICE].isnull()
             if not null_rows.empty:
                 self.logger.debug(
-                    f"Null close prices detected at indices: {null_rows.index.tolist()}. These rows will be skipped: {null_rows[SignalStrategyExecutorColumns.CLOSE_PRICE].tolist()}"
+                    f"Null close prices detected at indices: {null_rows.index.tolist()}. These rows will be skipped: {df[null_rows][SignalStrategyExecutorColumns.CLOSE_PRICE].tolist()}"
                 )
             extreme_rows = df[SignalStrategyExecutorColumns.CLOSE_PRICE] > 1e6
             if extreme_rows.any():

@@ -73,7 +73,21 @@ class BaseOptimizationStageCoordinator(StageCoordinator):
         if not data:
             self.logger.error(f"No data loaded from stage:{self.stage.input_stage}")
             return False
-
+        # Filter data by watchlist
+        # If a watchlist is defined, filter the data accordingly
+        watchlist = self.data_loader.get_watchlist()
+        if watchlist:
+            data = {
+                # Filter the data to only include keys in the watchlist
+                k: v
+                for k, v in data.items()
+                if k in watchlist or k.startswith("all_")
+            }
+            self.logger.info(
+                f"Filtered data for watchlist: {watchlist}. Remaining keys: {list(data.keys())}"
+            )
+        else:
+            self.logger.info("No watchlist defined, using all available data.")
         # Process the data
         self.logger.info(f"stage:{self.stage} starting data processing.")
         processed_data = await self._process_and_write(data)
