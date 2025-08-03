@@ -119,9 +119,6 @@ class StrategyBacktestExecutor:
         page_num: int,
     ) -> pd.DataFrame:
         """Process a single page of data with proper signal handling"""
-        self.logger.debug(
-            f"Processing page {page_num} for symbol: {symbol} with strategy"
-        )
         strategy_name = strategy.get_hash_id()
         self.logger.debug(
             f"Processing page {page_num} for symbol: {symbol} with strategy: {strategy_name}"
@@ -140,12 +137,11 @@ class StrategyBacktestExecutor:
             )
 
         try:
-            # Validate input data
-            self._validate_data_quality(page_df)
-
             # Filter extreme values
             page_df = self._filter_extreme_values(page_df)
-
+            self.logger.debug(
+                f"Page {page_num} for {symbol}-{strategy_name} after filtering extreme values: shape={page_df.shape}, columns={list(page_df.columns)}, head={page_df.head(2)}"
+            )
             # Ensure valid pages are processed and appended
             if page_df.empty:
                 self.logger.warning(
@@ -162,8 +158,17 @@ class StrategyBacktestExecutor:
 
             # Generate and validate signals
             try:
+                self.logger.debug(
+                    f"Generating signals for page {page_num} of {symbol}-{strategy_name}"
+                )
                 signals_df = strategy.generate_signals(page_df.copy())
+                self.logger.debug(
+                    f"Signals generated for page {page_num} of {symbol}-{strategy_name}: shape={signals_df.shape}, columns={list(signals_df.columns)}, head={signals_df.head(2)}"
+                )
                 self._validate_strategy_output(strategy, page_df, signals_df)
+                self.logger.debug(
+                    f"Page {page_num} for {symbol}-{strategy_name} signals validated successfully"
+                )
             except Exception as e:
                 self.logger.error(
                     f"Error generating signals for page {page_num} of {symbol}-{strategy_name}: {str(e)}"
@@ -200,52 +205,6 @@ class StrategyBacktestExecutor:
             return True
 
         return False
-
-    def _validate_data_quality(self, df: pd.DataFrame) -> None:
-        """
-        Validate the DataFrame for required columns, null values, invalid data, and extreme values.
-        Now also checks for suspiciously large/small values in price, quantity, and cost.
-        """
-        if df.empty:
-            raise ValueError("Empty DataFrame received")
-
-        essential_cols = [
-            SignalStrategyExecutorColumns.TIMESTAMP,
-            SignalStrategyExecutorColumns.CLOSE_PRICE,
-        ]
-        for col in essential_cols:
-            if col not in df.columns:
-                self.logger.error(f"Missing essential column: {col}")
-                raise ValueError(f"Missing essential column: {col}")
-            if df[col].isnull().any():
-                self.logger.error(f"Null values found in essential column: {col}")
-                raise ValueError(f"Null values found in essential column: {col}")
-
-        # Price validation
-        close_prices = df[SignalStrategyExecutorColumns.CLOSE_PRICE]
-        if (close_prices <= 0).any():
-            self.logger.debug(
-                "Invalid close prices (<= 0) detected in DataFrame. These will be skipped."
-            )
-            raise ValueError("Invalid close prices (<= 0) detected")
-        if (close_prices > 1e6).any():
-            self.logger.warning(
-                "Extreme close prices (> 1e6) detected. These will be skipped."
-            )
-            raise ValueError("Extreme close prices detected in DataFrame")
-        if (close_prices > 1e8).any():
-            self.logger.warning(
-                f"Suspiciously large close prices (> 1e8) detected: {close_prices[close_prices > 1e8].tolist()}"
-            )
-        if (close_prices < 0.01).any():
-            self.logger.debug(
-                f"Suspiciously small close prices (< 0.01) detected: {close_prices[close_prices < 0.01].tolist()}"
-            )
-
-        if not pd.api.types.is_datetime64_any_dtype(
-            df[SignalStrategyExecutorColumns.TIMESTAMP]
-        ):
-            raise ValueError("Timestamp column must be datetime type")
 
     def _validate_strategy_output(
         self, strategy: BaseSignalStrategy, df: pd.DataFrame, signals_df: pd.DataFrame
@@ -294,32 +253,39 @@ class StrategyBacktestExecutor:
         Filter out rows with extreme values in the DataFrame. Now also logs and skips suspiciously large/small values.
         """
         if SignalStrategyExecutorColumns.CLOSE_PRICE in df.columns:
+            null_rows = df[SignalStrategyExecutorColumns.CLOSE_PRICE].isnull()
+            if not null_rows.empty:
+                self.logger.debug(
+                    f"Null close prices detected at indices: {null_rows.index.tolist()}. These rows will be skipped: {null_rows[SignalStrategyExecutorColumns.CLOSE_PRICE].tolist()}"
+                )
             extreme_rows = df[SignalStrategyExecutorColumns.CLOSE_PRICE] > 1e6
             if extreme_rows.any():
                 self.logger.warning(
-                    f"Extreme close prices (> 1e6) detected. These rows will be skipped: {df[extreme_rows][SignalStrategyExecutorColumns.CLOSE_PRICE].tolist()}"
+                    f"Extreme close prices (> 1e6) detected at indices: {extreme_rows.index.tolist()}. These rows will be skipped: {df[extreme_rows][SignalStrategyExecutorColumns.CLOSE_PRICE].tolist()}"
                 )
 
             invalid_rows = df[SignalStrategyExecutorColumns.CLOSE_PRICE] <= 0
             if invalid_rows.any():
                 self.logger.debug(
-                    f"Invalid close prices (<= 0) detected. These rows will be skipped: {df[invalid_rows][SignalStrategyExecutorColumns.CLOSE_PRICE].tolist()}"
+                    f"Invalid close prices (<= 0) detected at indices: {invalid_rows.index.tolist()}. These rows will be skipped: {df[invalid_rows][SignalStrategyExecutorColumns.CLOSE_PRICE].tolist()}"
                 )
 
             # Additional sanity checks
             suspiciously_large = df[SignalStrategyExecutorColumns.CLOSE_PRICE] > 1e8
             if suspiciously_large.any():
                 self.logger.warning(
-                    f"Suspiciously large close prices (> 1e8) detected: {df[suspiciously_large][SignalStrategyExecutorColumns.CLOSE_PRICE].tolist()}"
+                    f"Suspiciously large close prices (> 1e8) detected at indices: {suspiciously_large.index.tolist()}. Values: {df[suspiciously_large][SignalStrategyExecutorColumns.CLOSE_PRICE].tolist()}"
                 )
             suspiciously_small = df[SignalStrategyExecutorColumns.CLOSE_PRICE] < 0.01
             if suspiciously_small.any():
                 self.logger.debug(
-                    f"Suspiciously small close prices (< 0.01) detected: {df[suspiciously_small][SignalStrategyExecutorColumns.CLOSE_PRICE].tolist()}"
+                    f"Suspiciously small close prices (< 0.01) detected at indices: {suspiciously_small.index.tolist()}. Values: {df[suspiciously_small][SignalStrategyExecutorColumns.CLOSE_PRICE].tolist()}"
                 )
 
             # Retain only valid rows
-            valid_rows = ~extreme_rows & ~invalid_rows
+            valid_rows = (
+                ~extreme_rows & ~invalid_rows & ~null_rows & ~suspiciously_small
+            )
             df = df[valid_rows]
 
         if df.empty:
