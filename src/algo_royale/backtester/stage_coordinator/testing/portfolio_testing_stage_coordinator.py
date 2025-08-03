@@ -311,6 +311,9 @@ class PortfolioTestingStageCoordinator(BaseTestingStageCoordinator):
     ) -> bool:
         """Validate the test results to ensure they contain the expected structure."""
         try:
+            self.logger.debug(
+                f"DEBUG: Validating test results for portfolio testing: {results}"
+            )
             validation_method = (
                 BacktestStage.STRATEGY_TESTING.value.output_validation_fn
             )

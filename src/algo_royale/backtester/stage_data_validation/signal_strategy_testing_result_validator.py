@@ -51,39 +51,52 @@ def window_section_validator(win, logger: Loggable) -> bool:
 def signal_strategy_testing_result_validator(d, logger: Loggable) -> bool:
     """
     Validate the structure of a signal strategy testing result dictionary,
-    as found in optimization_result.json (for the 'test' key only).
+    as found in optimization_result.json (single test result).
+    Expected keys: 'test', 'window', 'optimization'
     """
     if not isinstance(d, dict):
         logger.warning(f"Validation failed: Not a dict. Value: {d}")
         return False
 
-    if not d:  # Check for empty dict
-        logger.warning("Validation failed: Testing result dict is empty.")
+    required_keys = ["test", "window", "optimization"]
+    for key in required_keys:
+        if key not in d:
+            logger.warning(f"Validation failed: Missing key '{key}'. Value: {d}")
+            return False
+
+    # Validate 'test' section
+    if not signal_strategy_testing_validator(d["test"], logger):
+        logger.warning(f"Validation failed: 'test' section invalid. Value: {d['test']}")
         return False
 
-    for window_key, window_val in d.items():
-        logger.info(f"Validating window key: {window_key} | Value: {window_val}")
-        if not isinstance(window_val, dict):
+    # Validate 'window' section
+    if not window_section_validator(d["window"], logger):
+        logger.warning(
+            f"Validation failed: 'window' section invalid. Value: {d['window']}"
+        )
+        return False
+
+    # Validate 'optimization' section
+    optimization = d["optimization"]
+    if not isinstance(optimization, dict):
+        logger.warning(
+            f"Validation failed: 'optimization' not dict. Value: {optimization}"
+        )
+        return False
+    for opt_key in ["strategy", "best_value", "best_params", "meta", "metrics"]:
+        if opt_key not in optimization:
             logger.warning(
-                f"Validation failed: Window value not dict. Key: {window_key}, Value: {window_val}"
+                f"Validation failed: '{opt_key}' missing in optimization. Value: {optimization}"
             )
             return False
-        # Must have "test" and "window" keys
-        if "test" not in window_val or "window" not in window_val:
+
+    # Optionally, validate optimization['metrics'] structure
+    metrics = optimization["metrics"]
+    for k in ["total_return", "sharpe_ratio", "win_rate", "max_drawdown"]:
+        if k not in metrics:
             logger.warning(
-                f"Validation failed: 'test' or 'window' missing in window value. Key: {window_key}, Value: {window_val}"
+                f"Validation failed: '{k}' missing in optimization metrics. Value: {metrics}"
             )
             return False
-        # Validate "test" section
-        if not signal_strategy_testing_validator(window_val["test"], logger):
-            logger.warning(
-                f"Validation failed: 'test' section invalid. Key: {window_key}, Value: {window_val['test']}"
-            )
-            return False
-        # Validate "window" section
-        if not window_section_validator(window_val["window"], logger):
-            logger.warning(
-                f"Validation failed: 'window' section invalid. Key: {window_key}, Value: {window_val['window']}"
-            )
-            return False
+
     return True

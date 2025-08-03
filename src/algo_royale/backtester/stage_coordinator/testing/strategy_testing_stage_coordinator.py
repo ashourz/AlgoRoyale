@@ -354,6 +354,9 @@ class StrategyTestingStageCoordinator(BaseTestingStageCoordinator):
                 )
                 return None
             # validate the optimization results
+            self.logger.debug(
+                f"Validating optimization results for {symbol} {strategy_name} {self.train_window_id} | Results: {train_opt_results}"
+            )
             if not self._validate_optimization_results(train_opt_results):
                 self.logger.error(
                     f"[{self.stage}] Optimization results validation failed for {symbol} {strategy_name} {self.train_window_id}"
