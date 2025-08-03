@@ -234,8 +234,8 @@ class StrategyOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
             if not self.stage.output_validation_fn(
                 existing_optimization_json, self.logger
             ):
-                self.logger.error(
-                    f"Optimization data validation failed for {symbol} {strategy_name} in window {self.window_id}"
+                self.logger.info(
+                    f"Optimization data validation failed for {symbol} {strategy_name} in window {self.window_id}. Confirming that optimization has not been run."
                 )
                 return False
             self.logger.info(
@@ -289,9 +289,7 @@ class StrategyOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
     ) -> bool:
         """Validate the optimization results to ensure they contain the expected structure."""
         try:
-            validation_method = (
-                BacktestStage.STRATEGY_OPTIMIZATION.value.output_validation_fn
-            )
+            validation_method = self.stage.value.output_validation_fn
             if not validation_method:
                 self.logger.warning(
                     "No validation method defined for strategy optimization results. Skipping validation."

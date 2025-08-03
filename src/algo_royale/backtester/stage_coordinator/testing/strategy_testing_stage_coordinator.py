@@ -317,8 +317,8 @@ class StrategyTestingStageCoordinator(BaseTestingStageCoordinator):
                 return False
             # Validate the structure of the test data
             if not self.stage.output_validation_fn(test_data, self.logger):
-                self.logger.error(
-                    f"Test data validation failed for {symbol} {strategy_name} in window {self.test_window_id}"
+                self.logger.info(
+                    f"Test data validation failed for {symbol} {strategy_name} in window {self.test_window_id}. Confirming that optimization has not been run."
                 )
                 return False
             self.logger.info(
@@ -392,7 +392,7 @@ class StrategyTestingStageCoordinator(BaseTestingStageCoordinator):
     ) -> bool:
         """Validate the optimization results to ensure they contain the expected structure."""
         try:
-            validation_method = BacktestStage.STRATEGY_TESTING.value.input_validation_fn
+            validation_method = self.stage.value.input_validation_fn
             if not validation_method:
                 self.logger.warning(
                     "No validation method defined for strategy optimization results. Skipping validation."
@@ -411,9 +411,7 @@ class StrategyTestingStageCoordinator(BaseTestingStageCoordinator):
     ) -> bool:
         """Validate the test results to ensure they contain the expected structure."""
         try:
-            validation_method = (
-                BacktestStage.STRATEGY_TESTING.value.output_validation_fn
-            )
+            validation_method = self.stage.value.output_validation_fn
             if not validation_method:
                 self.logger.warning(
                     "No validation method defined for strategy test results. Skipping validation."
