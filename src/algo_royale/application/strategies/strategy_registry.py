@@ -9,6 +9,12 @@ from typing import Dict
 
 from algo_royale.application.symbol.symbol_manager import SymbolManager
 from algo_royale.backtester.stage_data.stage_data_manager import StageDataManager
+from algo_royale.backtester.strategy.signal.buffered_components.buffered_signal_strategy import (
+    BufferedSignalStrategy,
+)
+from algo_royale.backtester.strategy.signal.combined_weighted_signal_strategy import (
+    CombinedWeightedSignalStrategy,
+)
 from algo_royale.backtester.strategy_factory.signal.strategy_factory import (
     StrategyFactory,
 )
@@ -24,12 +30,16 @@ class StrategyRegistry:
         viable_strategies_json_filename: str,
         signal_strategy_factory: StrategyFactory,
         logger: Loggable,
+        combined_buy_threshold: float = 0.5,
+        combined_sell_threshold: float = 0.5,
     ):
         self.symbol_manager = symbol_manager
         self.stage_data_manager = stage_data_manager
         self.evaluation_json_filename = evaluation_json_filename
         self.signal_strategy_factory = signal_strategy_factory
         self.logger = logger
+        self.combined_buy_threshold = combined_buy_threshold
+        self.combined_sell_threshold = combined_sell_threshold
         self.state = {}
 
     def load_state(self):
@@ -57,16 +67,15 @@ class StrategyRegistry:
         """Get the weighted buffer signal strategy for a given symbol."""
         self.logger.info(f"Getting weighted buffer signal strategy for {symbol}...")
         all_buffered_strategies = self._get_all_buffered_strategies(symbol)
-        weighted_signals = {}
-        for strategy_name, buffers in all_buffered_strategies.items():
-            # Compute the weighted signal for each strategy
-            weighted_signal = sum(
-                buffer["signal"] * buffer["weight"] for buffer in buffers
-            )
-            weighted_signals[strategy_name] = weighted_signal
-        return weighted_signals
+        return CombinedWeightedSignalStrategy(
+            buffered_strategies=all_buffered_strategies,
+            buy_threshold=self.combined_buy_threshold,
+            sell_threshold=self.combined_sell_threshold,
+        )
 
-    def _get_all_buffered_strategies(self, symbol: str) -> Dict[str, float]:
+    def _get_all_buffered_strategies(
+        self, symbol: str
+    ) -> Dict[BufferedSignalStrategy, float]:
         """Get all buffered strategies for a given symbol."""
         self.logger.info(f"Getting all buffered strategies for {symbol}...")
         all_buffered_strategies = {}

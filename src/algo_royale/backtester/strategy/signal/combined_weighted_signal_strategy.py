@@ -14,7 +14,7 @@ class CombinedWeightedSignalStrategy:
         self,
         buffered_strategies: Dict[BufferedSignalStrategy, float],
         buy_threshold: float = 0.5,
-        sell_threshold: float = -0.5,
+        sell_threshold: float = 0.5,
     ):
         """
         buffered_strategies: dict of {BufferedSignalStrategy instance: viability_score}
