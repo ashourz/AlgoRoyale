@@ -27,7 +27,7 @@ class StrategyRegistry:
         symbol_manager: SymbolManager,
         stage_data_manager: StageDataManager,
         evaluation_json_filename: str,
-        viable_strategies_json_filename: str,
+        viable_strategies_path: str,
         signal_strategy_factory: StrategyFactory,
         logger: Loggable,
         combined_buy_threshold: float = 0.5,
@@ -36,23 +36,13 @@ class StrategyRegistry:
         self.symbol_manager = symbol_manager
         self.stage_data_manager = stage_data_manager
         self.evaluation_json_filename = evaluation_json_filename
+        self.viable_strategies_path = Path(viable_strategies_path)
         self.signal_strategy_factory = signal_strategy_factory
         self.logger = logger
         self.combined_buy_threshold = combined_buy_threshold
         self.combined_sell_threshold = combined_sell_threshold
         self.state = {}
-
-    def load_state(self):
-        with open(self.config_path) as f:
-            self.state = json.load(f)
-
-    def get_strategies(self, symbol):
-        return self.state.get(symbol, [])
-
-    def write_report(self, filename, timestamp):
-        report = {"timestamp": timestamp.isoformat(), "strategies": self.state}
-        with open(filename, "w") as f:
-            json.dump(report, f, indent=2)
+        self._load_existing_viable_strategy_params()
 
     def _update_report(self, symbol: str, strategies: Dict[str, Dict[str, float]]):
         """
@@ -63,15 +53,67 @@ class StrategyRegistry:
         self.state[symbol].update(strategies)
         self.logger.info(f"Updated strategies for {symbol}: {strategies}")
 
-    def get_weighted_buffer_signal_strategy(self, symbol: str) -> Dict[str, float]:
+    def get_weighted_buffer_signal_strategy(
+        self, symbol: str
+    ) -> CombinedWeightedSignalStrategy:
         """Get the weighted buffer signal strategy for a given symbol."""
-        self.logger.info(f"Getting weighted buffer signal strategy for {symbol}...")
-        all_buffered_strategies = self._get_all_buffered_strategies(symbol)
-        return CombinedWeightedSignalStrategy(
-            buffered_strategies=all_buffered_strategies,
-            buy_threshold=self.combined_buy_threshold,
-            sell_threshold=self.combined_sell_threshold,
-        )
+        try:
+            self.logger.info(f"Getting weighted buffer signal strategy for {symbol}...")
+            all_buffered_strategies = self.state.get(symbol, {})
+            if not all_buffered_strategies:
+                self.logger.info(
+                    f"No buffered strategies found for {symbol}. Retrieving existing viable strategies."
+                )
+                all_buffered_strategies = self._get_all_buffered_strategies(symbol)
+                self.state[symbol] = all_buffered_strategies
+                self._sync_viable_strategy_params()
+            return CombinedWeightedSignalStrategy(
+                buffered_strategies=all_buffered_strategies,
+                buy_threshold=self.combined_buy_threshold,
+                sell_threshold=self.combined_sell_threshold,
+            )
+        except Exception as e:
+            self.logger.error(
+                f"Error getting weighted buffer signal strategy for {symbol}: {e}"
+            )
+        return None
+
+    def _load_existing_viable_strategy_params(self):
+        """Get existing viable strategy parameters for a given symbol."""
+        self.logger.info("Retrieving viable strategy parameters...")
+        try:
+            if (
+                not self.viable_strategies_path.exists()
+                or self.viable_strategies_path.stat().st_size == 0
+            ):
+                self.logger.info(
+                    f"Viable strategies file {self.viable_strategies_path} does not exist or is empty. Initializing."
+                )
+                with open(self.viable_strategies_path, "w") as f:
+                    json.dump({}, f)
+                self.state = {}
+            with open(self.viable_strategies_path, "r") as f:
+                try:
+                    self.state = json.load(f)
+                except json.JSONDecodeError as e:
+                    self.logger.error(
+                        f"Error decoding JSON from {self.viable_strategies_path}: {e}"
+                    )
+                    self.state = {}
+        except Exception as e:
+            self.logger.error(f"Error getting existing strategies: {e}")
+
+    def _sync_viable_strategy_params(self):
+        """Sync the current state with the viable strategies file."""
+        self.logger.info("Syncing viable strategy parameters...")
+        try:
+            with open(self.viable_strategies_path, "w") as f:
+                json.dump(self.state, f, indent=2)
+            self.logger.info(
+                f"Viable strategies successfully synced to {self.viable_strategies_path}"
+            )
+        except Exception as e:
+            self.logger.error(f"Error syncing viable strategies: {e}")
 
     def _get_all_buffered_strategies(
         self, symbol: str
@@ -109,7 +151,7 @@ class StrategyRegistry:
                 return strategies
         except Exception as e:
             self.logger.error(f"Error getting all viable strategies: {e}")
-        return None
+        return {}
 
     def _get_viable_strategies(self, symbol: str) -> Dict[str, Dict[str, float]]:
         """Get optimization results for a given strategy and symbol."""
@@ -142,7 +184,7 @@ class StrategyRegistry:
                 self.logger.warning(
                     f"No evaluation results found for {symbol} in {symbol_dir}. Skipping."
                 )
-                return []
+                return {}
 
             # Filter only viable strategies
             for report in reports:
