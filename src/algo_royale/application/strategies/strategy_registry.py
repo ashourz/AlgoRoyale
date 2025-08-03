@@ -41,34 +41,27 @@ class StrategyRegistry:
         self.logger = logger
         self.combined_buy_threshold = combined_buy_threshold
         self.combined_sell_threshold = combined_sell_threshold
-        self.state = {}
+        self.symbol_strategy_map = {}
         self._load_existing_viable_strategy_params()
 
-    def _update_report(self, symbol: str, strategies: Dict[str, Dict[str, float]]):
-        """
-        Update the report with the latest strategies for a given symbol.
-        """
-        if symbol not in self.state:
-            self.state[symbol] = {}
-        self.state[symbol].update(strategies)
-        self.logger.info(f"Updated strategies for {symbol}: {strategies}")
-
-    def get_weighted_buffer_signal_strategy(
+    def get_combined_weighted_signal_strategy(
         self, symbol: str
     ) -> CombinedWeightedSignalStrategy:
         """Get the weighted buffer signal strategy for a given symbol."""
         try:
             self.logger.info(f"Getting weighted buffer signal strategy for {symbol}...")
-            all_buffered_strategies = self.state.get(symbol, {})
-            if not all_buffered_strategies:
+            weighted_buffered_strategies = self.symbol_strategy_map.get(symbol, {})
+            if not weighted_buffered_strategies:
                 self.logger.info(
                     f"No buffered strategies found for {symbol}. Retrieving existing viable strategies."
                 )
-                all_buffered_strategies = self._get_all_buffered_strategies(symbol)
-                self.state[symbol] = all_buffered_strategies
+                weighted_buffered_strategies = self._get_weighted_buffered_strategies(
+                    symbol
+                )
+                self.symbol_strategy_map[symbol] = weighted_buffered_strategies
                 self._sync_viable_strategy_params()
             return CombinedWeightedSignalStrategy(
-                buffered_strategies=all_buffered_strategies,
+                buffered_strategies=weighted_buffered_strategies,
                 buy_threshold=self.combined_buy_threshold,
                 sell_threshold=self.combined_sell_threshold,
             )
@@ -91,15 +84,15 @@ class StrategyRegistry:
                 )
                 with open(self.viable_strategies_path, "w") as f:
                     json.dump({}, f)
-                self.state = {}
+                self.symbol_strategy_map = {}
             with open(self.viable_strategies_path, "r") as f:
                 try:
-                    self.state = json.load(f)
+                    self.symbol_strategy_map = json.load(f)
                 except json.JSONDecodeError as e:
                     self.logger.error(
                         f"Error decoding JSON from {self.viable_strategies_path}: {e}"
                     )
-                    self.state = {}
+                    self.symbol_strategy_map = {}
         except Exception as e:
             self.logger.error(f"Error getting existing strategies: {e}")
 
@@ -108,14 +101,14 @@ class StrategyRegistry:
         self.logger.info("Syncing viable strategy parameters...")
         try:
             with open(self.viable_strategies_path, "w") as f:
-                json.dump(self.state, f, indent=2)
+                json.dump(self.symbol_strategy_map, f, indent=2)
             self.logger.info(
                 f"Viable strategies successfully synced to {self.viable_strategies_path}"
             )
         except Exception as e:
             self.logger.error(f"Error syncing viable strategies: {e}")
 
-    def _get_all_buffered_strategies(
+    def _get_weighted_buffered_strategies(
         self, symbol: str
     ) -> Dict[BufferedSignalStrategy, float]:
         """Get all buffered strategies for a given symbol."""
