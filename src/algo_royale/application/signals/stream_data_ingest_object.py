@@ -1,23 +1,29 @@
 import asyncio
+from typing import Union
 
+from algo_royale.application.signals.queued_async_update_object import (
+    QueuedAsyncUpdateObject,
+)
 from algo_royale.backtester.column_names.data_ingest_columns import DataIngestColumns
 from algo_royale.models.alpaca_market_data.alpaca_stream_bar import StreamBar
 from algo_royale.models.alpaca_market_data.alpaca_stream_quote import StreamQuote
 
 
-class StreamDataIngestObject:
+class StreamDataIngestObject(QueuedAsyncUpdateObject):
     """
     Represents a data ingest object for streaming data.
     This is used to process incoming market data and generate signals.
     """
 
-    def __init__(self, symbol: str):
+    # TODOO: ADD PUBSUB
+    def __init__(self, symbol: str, logger=None):
+        """
+        Initialize the StreamDataIngestObject.
+        """
         self.symbol = symbol
         self.latest_quote: StreamQuote = None
-        self.pending_quote = None
         self.latest_bar: StreamBar = None
-        self.pending_bar = None
-        self.lock = asyncio.Lock()
+        self.get_set_lock = asyncio.Lock()
         self.data: dict = {
             DataIngestColumns.PRICE: None,
             DataIngestColumns.TIMESTAMP: None,
@@ -29,24 +35,42 @@ class StreamDataIngestObject:
             DataIngestColumns.NUM_TRADES: None,
             DataIngestColumns.VOLUME_WEIGHTED_PRICE: None,
         }
+        self.is_updated = False
+        super().__init__(logger=logger)
 
-    async def async_get_data(self) -> dict:
+    async def get_data(self) -> dict:
         """
-        Returns the data dictionary containing the data for this symbol.
+        Get the current data state.
         """
-        try:
-            async with self.lock:
-                if not self.data:
-                    return None
-                # Confirm all columns are present
-                for column in DataIngestColumns:
-                    if column not in self.data:
-                        return None
-                return self.data
-        except Exception as e:
-            self.logger.error(
-                f"[StreamDataIngestObject: {self.symbol}] Error getting data: {e}"
-            )
+        async with self.get_set_lock:
+            # Return a copy to prevent external modifications
+            self.is_updated = False
+            return self.data.copy()
+
+    def _set_type_hierarchy(self, hierarchy: dict):
+        """
+        Set the type hierarchy mapping: type -> priority (int).
+        """
+        self.type_hierarchy = {
+            StreamBar: 2,
+            StreamQuote: 1,
+        }
+
+    async def _update(self, obj: Union[StreamQuote, StreamBar]):
+        """
+        Queue an update object by its type.
+        If a higher-priority type comes in, remove lower-priority pending updates.
+        """
+        async with self.get_set_lock:
+            if isinstance(obj, StreamQuote):
+                self._update_with_quote(obj)
+            elif isinstance(obj, StreamBar):
+                self._update_with_bar(obj)
+            else:
+                raise TypeError(
+                    f"[StreamDataIngestObject: {self.symbol}] Unsupported object type: {type(obj)}"
+                )
+            self.is_updated = True
 
     def _update_with_quote(self, quote: StreamQuote):
         """
@@ -59,37 +83,33 @@ class StreamDataIngestObject:
                 if quote.ask_price and quote.bid_price
                 else None
             )
-            if average_price is not None:
-                self.data[DataIngestColumns.PRICE] = average_price
+            current_high_price = self.data[DataIngestColumns.HIGH_PRICE]
+            current_low_price = self.data[DataIngestColumns.LOW_PRICE]
+            new_high_price = (
+                max(average_price, current_high_price)
+                if average_price
+                else current_high_price
+            )
+            new_low_price = (
+                min(quote.ask_price, current_low_price)
+                if average_price
+                else current_low_price
+            )
+
+            last_bar_open = self.latest_bar.open_price if self.latest_bar else None
+            last_bar_close = self.latest_bar.close_price if self.latest_bar else None
+            self.data[DataIngestColumns.OPEN_PRICE] = (
+                last_bar_close if last_bar_close else last_bar_open
+            )
+            self.data[DataIngestColumns.CLOSE_PRICE] = (
+                average_price if average_price else last_bar_close
+            )
+            self.data[DataIngestColumns.HIGH_PRICE] = new_high_price
+            self.data[DataIngestColumns.LOW_PRICE] = new_low_price
             self.data[DataIngestColumns.TIMESTAMP] = quote.timestamp
         except Exception as e:
             self.logger.error(
                 f"[StreamDataIngestObject: {self.symbol}] Error _updating with quote: {e}"
-            )
-
-    async def async_update_with_quote(self, quote: StreamQuote):
-        """
-        Update the data with a new market quote.
-        """
-        try:
-            if self.lock.locked():
-                self.pending_quote = quote
-            else:
-                async with self.lock:
-                    self._update_with_quote(quote)
-
-                    if self.pending_bar:
-                        self.pending_quote = None
-                        pending_bar = self.pending_bar
-                        self.pending_bar = None
-                        self._update_with_bar(pending_bar)
-                    elif self.pending_quote:
-                        pending_quote = self.pending_quote
-                        self.pending_quote = None
-                        self._update_with_quote(pending_quote)
-        except Exception as e:
-            self.logger.error(
-                f"[StreamDataIngestObject: {self.symbol}] Error updating with quote: {e}"
             )
 
     def _update_with_bar(self, bar: StreamBar):
@@ -111,23 +131,4 @@ class StreamDataIngestObject:
         except Exception as e:
             self.logger.error(
                 f"[StreamDataIngestObject: {self.symbol}] Error _updating with bar: {e}"
-            )
-
-    async def async_update_with_bar(self, bar: StreamBar):
-        """
-        Update the data with a new market bar.
-        """
-        try:
-            if self.lock.locked():
-                self.pending_bar = bar
-            else:
-                async with self.lock:
-                    self._update_with_bar(bar)
-                    if self.pending_bar:
-                        pending_bar = self.pending_bar
-                        self.pending_bar = None
-                        self._update_with_bar(pending_bar)
-        except Exception as e:
-            self.logger.error(
-                f"[StreamDataIngestObject: {self.symbol}] Error updating with bar: {e}"
             )

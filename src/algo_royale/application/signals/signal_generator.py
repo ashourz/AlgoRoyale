@@ -33,8 +33,13 @@ class SignalGenerator:
         self.stream_service = stream_service
         self.strategy_registry = strategy_registry
         self.is_live = is_live
+        # STREAMING
+        self.latest_quote: StreamQuote = None
+        self.latest_bar: StreamBar = None
         self.stream_data_ingest_object_map: dict[str, StreamDataIngestObject] = {}
+        # STRATEGIES
         self.symbol_strategy_map: dict[str, CombinedWeightedSignalStrategy] = {}
+        # SIGNALS
         self.pubsub_signal_map: dict[str, AsyncPubSub] = {}
         self.symbol_signal_lock_map: dict[str, asyncio.Lock] = {}
         self.symbol_pending_signal_map: dict[str, pd.DataFrame] = {}
