@@ -13,11 +13,11 @@ class StreamQuote(BaseModel):
         symbol (str): The ticker symbol of the asset.
         timestamp (datetime): Timestamp of the quote.
         ask_exchange (str): Exchange code for the ask.
-        ask_price (float): Ask price.
-        ask_size (int): Ask size.
+        ask_price (float): Ask price. Market buy orders will use this price. Limit buy orders will use this price or lower.
+        ask_size (int): Ask size. Market buy orders will use this size. Limit buy orders will use this size or lower.
         bid_exchange (str): Exchange code for the bid.
-        bid_price (float): Bid price.
-        bid_size (int): Bid size.
+        bid_price (float): Bid price. Market sell orders will use this price. Limit sell orders will use this price or higher.
+        bid_size (int): Bid size. Market sell orders will use this size. Limit sell orders will use this size or higher.
         conditions (list[str]): Quote condition codes.
         tape (str): Market tape identifier.
     """
