@@ -26,6 +26,8 @@ class AsyncSubscriber:
             pass  # graceful exit
 
     async def send(self, data: Any):
+        if self.queue.full():
+            self.queue.get_nowait()  # discard oldest item if full
         await self.queue.put(data)
 
     def cancel(self):

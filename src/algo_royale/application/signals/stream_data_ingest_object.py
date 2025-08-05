@@ -1,10 +1,11 @@
 import asyncio
-from typing import Union
+from typing import Any, Callable, Optional, Union
 
 from algo_royale.application.signals.queued_async_update_object import (
     QueuedAsyncUpdateObject,
 )
 from algo_royale.backtester.column_names.data_ingest_columns import DataIngestColumns
+from algo_royale.events.async_pubsub import AsyncPubSub, AsyncSubscriber
 from algo_royale.models.alpaca_market_data.alpaca_stream_bar import StreamBar
 from algo_royale.models.alpaca_market_data.alpaca_stream_quote import StreamQuote
 
@@ -15,7 +16,8 @@ class StreamDataIngestObject(QueuedAsyncUpdateObject):
     This is used to process incoming market data and generate signals.
     """
 
-    # TODOO: ADD PUBSUB
+    update_type = "UPDATE"
+
     def __init__(self, symbol: str, logger=None):
         """
         Initialize the StreamDataIngestObject.
@@ -35,17 +37,53 @@ class StreamDataIngestObject(QueuedAsyncUpdateObject):
             DataIngestColumns.NUM_TRADES: None,
             DataIngestColumns.VOLUME_WEIGHTED_PRICE: None,
         }
-        self.is_updated = False
+        self._pubsub = AsyncPubSub()
         super().__init__(logger=logger)
 
-    async def get_data(self) -> dict:
+    def subscribe(
+        self,
+        event_type: str,
+        callback: Callable[[Any], Any],
+        filter_fn: Optional[Callable[[Any], bool]] = None,
+        queue_size: int = 10,
+    ) -> AsyncSubscriber:
         """
-        Get the current data state.
+        Subscribe to an event type with a callback and optional filter function.
+        """
+        return self._pubsub.subscribe(
+            event_type=event_type,
+            callback=callback,
+            filter_fn=filter_fn,
+            queue_size=queue_size,
+        )
+
+    def unsubscribe(self, subscriber: AsyncSubscriber):
+        """
+        Unsubscribe a subscriber from the pubsub system.
+        """
+        self._pubsub.unsubscribe(subscriber)
+
+    async def shutdown(self):
+        """
+        Shutdown the pubsub system and cancel all tasks.
+        """
+        await self._pubsub.shutdown()
+
+    async def get_latest_quote(self) -> Optional[StreamQuote]:
+        """
+        Get the latest market quote.
         """
         async with self.get_set_lock:
-            # Return a copy to prevent external modifications
-            self.is_updated = False
-            return self.data.copy()
+            # Return a copy to avoid external modifications
+            return self.latest_quote.model_copy() if self.latest_quote else None
+
+    async def get_latest_bar(self) -> Optional[StreamBar]:
+        """
+        Get the latest market bar.
+        """
+        async with self.get_set_lock:
+            # Return a copy to avoid external modifications
+            return self.latest_bar.model_copy() if self.latest_bar else None
 
     def _set_type_hierarchy(self, hierarchy: dict):
         """
@@ -70,7 +108,6 @@ class StreamDataIngestObject(QueuedAsyncUpdateObject):
                 raise TypeError(
                     f"[StreamDataIngestObject: {self.symbol}] Unsupported object type: {type(obj)}"
                 )
-            self.is_updated = True
 
     def _update_with_quote(self, quote: StreamQuote):
         """
@@ -107,6 +144,8 @@ class StreamDataIngestObject(QueuedAsyncUpdateObject):
             self.data[DataIngestColumns.HIGH_PRICE] = new_high_price
             self.data[DataIngestColumns.LOW_PRICE] = new_low_price
             self.data[DataIngestColumns.TIMESTAMP] = quote.timestamp
+            self._pubsub.publish(event_type=self.update_type, data=self.data.copy())
+
         except Exception as e:
             self.logger.error(
                 f"[StreamDataIngestObject: {self.symbol}] Error _updating with quote: {e}"
@@ -128,6 +167,7 @@ class StreamDataIngestObject(QueuedAsyncUpdateObject):
             self.data[DataIngestColumns.VOLUME_WEIGHTED_PRICE] = (
                 bar.volume_weighted_price
             )
+            self._pubsub.publish(event_type=self.update_type, data=self.data.copy())
         except Exception as e:
             self.logger.error(
                 f"[StreamDataIngestObject: {self.symbol}] Error _updating with bar: {e}"

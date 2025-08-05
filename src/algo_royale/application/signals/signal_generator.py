@@ -58,6 +58,8 @@ class SignalGenerator:
             self._initialize_symbol_signal_lock()
             self.logger.info("Initializing symbol pending signal maps...")
             self._initialize_symbol_pending_signal_map()
+            self.logger.info("Subscribing to streams...")
+            self._subscribe_to_streams()
             self.logger.info("Starting signal generation...")
             feed = DataFeed.SIP if self.is_live else DataFeed.IEX
             symbols = await self.symbol_manager.get_symbols()
@@ -113,6 +115,31 @@ class SignalGenerator:
         else:
             self.logger.debug(f"Pending signal map already exists for symbol: {symbol}")
 
+    def _subscribe_to_streams(self):
+        """
+        Subscribe to the stream for a specific symbol.
+        This will allow the signal generator to receive real-time data updates.
+        """
+        try:
+            for symbol in self.symbol_manager.get_symbols():
+                self.logger.debug(f"Subscribing to stream for symbol: {symbol}")
+                stream_data_ingest_object = self.stream_data_ingest_object_map.get(
+                    symbol
+                )
+                if not stream_data_ingest_object:
+                    self.logger.error(
+                        f"No stream data ingest object for symbol: {symbol}"
+                    )
+                    return
+                stream_data_ingest_object.subscribe(
+                    event_type=StreamDataIngestObject.update_type,
+                    callback=lambda data: self._async_generate_signal(symbol=symbol),
+                    queue_size=1,
+                )
+                self.logger.info(f"Subscribed to stream for symbol: {symbol}")
+        except Exception as e:
+            self.logger.error(f"Error subscribing to stream for {symbol}: {e}")
+
     def _onQuote(self, raw_quote: Any):
         """
         Handle incoming market quotes and generate signals.
@@ -128,9 +155,6 @@ class SignalGenerator:
             )
             self.logger.debug(f"Updated stream data ingest object for {quote.symbol}")
 
-            signal = self._generate_signal(quote)
-            self.logger.info(f"Generated signal: {signal}")
-            # Here you would typically send the signal to a trading engine or strategy
         except Exception as e:
             self.logger.error(f"Error processing quote: {e}")
 
@@ -146,9 +170,6 @@ class SignalGenerator:
             self.logger.info(f"Received bar: {bar}")
             self.stream_data_ingest_object_map[bar.symbol].async_update_with_bar(bar)
             self.logger.debug(f"Updated stream data ingest object for {bar.symbol}")
-            # Generate signal based on the bar data
-            self._async_generate_signal(bar.symbol)
-
         except Exception as e:
             self.logger.error(f"Error processing bar: {e}")
 
