@@ -63,13 +63,13 @@ class StreamDataIngestObject(QueuedAsyncUpdateObject):
         """
         self._pubsub.unsubscribe(subscriber)
 
-    async def shutdown(self):
+    async def async_shutdown(self):
         """
         Shutdown the pubsub system and cancel all tasks.
         """
-        await self._pubsub.shutdown()
+        await self._pubsub.async_shutdown()
 
-    async def get_latest_quote(self) -> Optional[StreamQuote]:
+    async def async_get_latest_quote(self) -> Optional[StreamQuote]:
         """
         Get the latest market quote.
         """
@@ -77,7 +77,7 @@ class StreamDataIngestObject(QueuedAsyncUpdateObject):
             # Return a copy to avoid external modifications
             return self.latest_quote.model_copy() if self.latest_quote else None
 
-    async def get_latest_bar(self) -> Optional[StreamBar]:
+    async def async_get_latest_bar(self) -> Optional[StreamBar]:
         """
         Get the latest market bar.
         """
@@ -144,7 +144,9 @@ class StreamDataIngestObject(QueuedAsyncUpdateObject):
             self.data[DataIngestColumns.HIGH_PRICE] = new_high_price
             self.data[DataIngestColumns.LOW_PRICE] = new_low_price
             self.data[DataIngestColumns.TIMESTAMP] = quote.timestamp
-            self._pubsub.publish(event_type=self.update_type, data=self.data.copy())
+            self._pubsub.async_publish(
+                event_type=self.update_type, data=self.data.copy()
+            )
 
         except Exception as e:
             self.logger.error(
@@ -167,7 +169,9 @@ class StreamDataIngestObject(QueuedAsyncUpdateObject):
             self.data[DataIngestColumns.VOLUME_WEIGHTED_PRICE] = (
                 bar.volume_weighted_price
             )
-            self._pubsub.publish(event_type=self.update_type, data=self.data.copy())
+            self._pubsub.async_publish(
+                event_type=self.update_type, data=self.data.copy()
+            )
         except Exception as e:
             self.logger.error(
                 f"[StreamDataIngestObject: {self.symbol}] Error _updating with bar: {e}"

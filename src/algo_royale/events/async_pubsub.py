@@ -25,7 +25,7 @@ class AsyncSubscriber:
         except asyncio.CancelledError:
             pass  # graceful exit
 
-    async def send(self, data: Any):
+    async def async_send(self, data: Any):
         if self.queue.full():
             self.queue.get_nowait()  # discard oldest item if full
         await self.queue.put(data)
@@ -49,16 +49,16 @@ class AsyncPubSub:
         self.subscribers.setdefault(event_type, []).append(sub)
         return sub
 
-    async def publish(self, event_type: str, data: Any):
+    async def async_publish(self, event_type: str, data: Any):
         for sub in self.subscribers.get(event_type, []):
-            await sub.send(data)
+            await sub.async_send(data)
 
     def unsubscribe(self, subscriber: AsyncSubscriber):
         if subscriber.event_type in self.subscribers:
             self.subscribers[subscriber.event_type].remove(subscriber)
             subscriber.cancel()
 
-    async def shutdown(self):
+    async def async_shutdown(self):
         for subs in self.subscribers.values():
             for sub in subs:
                 sub.cancel()
