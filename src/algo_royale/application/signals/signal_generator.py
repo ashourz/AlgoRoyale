@@ -1,8 +1,6 @@
 import asyncio
 from typing import Any
 
-import pandas as pd
-
 from algo_royale.application.signals.stream_data_ingest_object import (
     StreamDataIngestObject,
 )
@@ -42,7 +40,6 @@ class SignalGenerator:
         # SIGNALS
         self.pubsub_signal_map: dict[str, AsyncPubSub] = {}
         self.symbol_signal_lock_map: dict[str, asyncio.Lock] = {}
-        self.symbol_pending_signal_map: dict[str, pd.DataFrame] = {}
         self.logger.info("SignalGenerator initialized.")
 
     async def start(self):
@@ -56,8 +53,6 @@ class SignalGenerator:
             self._initialize_stream_data_ingest_object()
             self.logger.info("Initializing symbol signal locks...")
             self._initialize_symbol_signal_lock()
-            self.logger.info("Initializing symbol pending signal maps...")
-            self._initialize_symbol_pending_signal_map()
             self.logger.info("Subscribing to streams...")
             self._subscribe_to_streams()
             self.logger.info("Starting signal generation...")
@@ -103,18 +98,6 @@ class SignalGenerator:
         else:
             self.logger.debug(f"Lock already exists for symbol: {symbol}")
 
-    def _initialize_symbol_pending_signal_map(self):
-        """
-        Initialize pending signal map for each symbol.
-        This is used to store signals that are being processed.
-        """
-        for symbol in self.symbol_manager.get_symbols():
-            if symbol not in self.symbol_pending_signal_map:
-                self.symbol_pending_signal_map[symbol] = pd.DataFrame()
-            self.logger.debug(f"Initialized pending signal map for symbol: {symbol}")
-        else:
-            self.logger.debug(f"Pending signal map already exists for symbol: {symbol}")
-
     def _subscribe_to_streams(self):
         """
         Subscribe to the stream for a specific symbol.
@@ -133,7 +116,9 @@ class SignalGenerator:
                     return
                 stream_data_ingest_object.subscribe(
                     event_type=StreamDataIngestObject.update_type,
-                    callback=lambda data: self._async_generate_signal(symbol=symbol),
+                    callback=lambda data: self._async_generate_signal(
+                        symbol=symbol, data=data
+                    ),
                     queue_size=1,
                 )
                 self.logger.info(f"Subscribed to stream for symbol: {symbol}")
@@ -173,8 +158,31 @@ class SignalGenerator:
         except Exception as e:
             self.logger.error(f"Error processing bar: {e}")
 
-    ##TODO: extract core logic from _async_generate_signal to a separate synchronous method
-    async def _async_generate_signal(self, symbol: str):
+    def _generate_signal(self, symbol: str, data: dict):
+        strategy = self.symbol_strategy_map[symbol]
+        # Validation
+        if strategy is None:
+            self.logger.error(f"No strategy found for symbol: {symbol}")
+            return
+        if not data:
+            self.logger.warning(f"No data provided for symbol: {symbol}")
+            return
+
+        self.logger.debug(f"Generating signals for {symbol} with data: {data}")
+        signals = strategy.generate_signals(data)
+        self.logger.debug(f"[{symbol}] Generated signals: {signals}")
+        if signals is None or signals.empty:
+            self.logger.warning(f"No signals generated for symbol: {symbol}")
+            return
+        else:
+            pubsub = self.pubsub_signal_map.get(symbol)
+            if pubsub is None:
+                self.logger.error(f"No pubsub found for symbol: {symbol}")
+                return
+            pubsub.publish(signals)
+            self.logger.info(f"Published signals for {symbol} to pubsub")
+
+    async def _async_generate_signal(self, symbol: str, data: dict):
         """
         Generate a trading signal based on the provided data and strategy.
 
@@ -182,48 +190,23 @@ class SignalGenerator:
         :return: None if no strategy is found, otherwise publishes the generated signals.
         """
         try:
+            if symbol not in self.symbol_strategy_map:
+                self.logger.warning(f"No strategy found for symbol: {symbol}")
+                return
+
             data_ingest_object = self.stream_data_ingest_object_map.get(symbol)
             if data_ingest_object is None:
                 self.logger.error(f"No data ingest object found for symbol: {symbol}")
                 return
-            if symbol not in self.symbol_strategy_map:
-                self.logger.warning(f"No strategy found for symbol: {symbol}")
-                return
+
             lock = self.symbol_signal_lock_map.get(symbol)
             if lock is None:
                 self.logger.error(f"No lock found for symbol: {symbol}")
                 return
-            if lock.locked():
-                self.logger.warning(f"Lock is already held for symbol: {symbol}")
-                self.symbol_pending_signal_map[
-                    symbol
-                ] = await data_ingest_object.async_get_data()
-            else:
-                async with lock:
-                    strategy = self.symbol_strategy_map[symbol]
-                    if strategy is None:
-                        self.logger.error(f"No strategy found for symbol: {symbol}")
-                        return
-                    # Convert data ingest object to DataFrame format expected by the strategy
-                    data_df = await data_ingest_object.async_get_data()
-                    self.logger.debug(f"Data for signal generation: {data_df}")
-                    if data_df is None or data_df.empty:
-                        self.logger.warning(f"No data available for symbol: {symbol}")
-                        return
-                    signals = strategy.generate_signals(data_df)
-                    self.logger.debug(f"[{symbol}] Generated signals: {signals}")
-                    if signals is None or signals.empty:
-                        self.logger.warning(
-                            f"No signals generated for symbol: {symbol}"
-                        )
-                        return
-                    else:
-                        pubsub = self.pubsub_signal_map.get(symbol)
-                        if pubsub is None:
-                            self.logger.error(f"No pubsub found for symbol: {symbol}")
-                            return
-                        pubsub.publish(signals)
-                        self.logger.info(f"Published signals for {symbol} to pubsub")
+
+            async with lock:
+                # generate signal
+                self._generate_signal(symbol, data)
         except Exception as e:
             self.logger.error(
                 f"Error generating signal for {data_ingest_object.symbol}: {e}"

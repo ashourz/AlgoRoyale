@@ -43,7 +43,7 @@ class StreamDataIngestObject(QueuedAsyncUpdateObject):
     def subscribe(
         self,
         event_type: str,
-        callback: Callable[[Any], Any],
+        callback: Callable[[dict, type], Any],  # callback receives (data, object_type)
         filter_fn: Optional[Callable[[Any], bool]] = None,
         queue_size: int = 10,
     ) -> AsyncSubscriber:
