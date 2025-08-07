@@ -157,6 +157,7 @@ class SignalGenerator:
             return
 
     ##TODO: THIS SUBSCRIPTION SHOULD RETURN SIGNAL DATA PAYLOAD FOR ALL AVAILABLE SYMBOLS AT ONCE
+    ##TODO multiple pubsubs should be replaced with a snapshot of all signals
     def subscribe_to_signals(
         self, symbol: str, callback: Callable[[dict], Any], queue_size=1
     ):
