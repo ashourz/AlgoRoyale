@@ -45,7 +45,7 @@ class SignalGenerator:
             self.logger.info("Initializing symbol signal locks...")
             self._initialize_symbol_signal_lock()
             self.logger.info("Subscribing to streams...")
-            self._subscribe_to_streams()
+            self._subscribe_to_market_streams()
             self.logger.info(f"Starting signal generation | symbols: {symbols}")
             self.stream_service.start_stream(symbols=symbols, on_quote=self._onQuote)
         except Exception as e:
@@ -79,9 +79,9 @@ class SignalGenerator:
         else:
             self.logger.debug(f"Lock already exists for symbol: {symbol}")
 
-    def _subscribe_to_streams(self, symbols: list[str]):
+    def _subscribe_to_market_streams(self, symbols: list[str]):
         """
-        Subscribe to the stream for a specific symbol.
+        Subscribe to the market stream for a specific symbol.
         This will allow the signal generator to receive real-time data updates.
         """
         try:
@@ -95,9 +95,9 @@ class SignalGenerator:
                     ),
                 )
                 self.symbol_async_subscriber_map[symbol] = async_subscriber
-                self.logger.info(f"Subscribed to stream for symbol: {symbol}")
+                self.logger.info(f"Subscribed to market stream for symbol: {symbol}")
         except Exception as e:
-            self.logger.error(f"Error subscribing to stream for {symbol}: {e}")
+            self.logger.error(f"Error subscribing to market stream for {symbol}: {e}")
 
     def _generate_signal(self, symbol: str, data: dict):
         strategy = self.symbol_strategy_map[symbol]
@@ -120,7 +120,7 @@ class SignalGenerator:
             if pubsub is None:
                 self.logger.error(f"No pubsub found for symbol: {symbol}")
                 return
-            pubsub.async_publish(event_type=self.signal_event_type, signals=signals)
+            pubsub.async_publish(event_type=self.signal_event_type, data=signals)
             self.logger.info(f"Published signals for {symbol} to pubsub")
 
     async def _async_generate_signal(self, symbol: str, data: dict):
