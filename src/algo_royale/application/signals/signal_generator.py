@@ -80,6 +80,60 @@ class SignalGenerator:
         else:
             self.logger.debug(f"Lock already exists for symbol: {symbol}")
 
+    def _get_symbol_signal_payload_lock_name(self, symbol: str) -> str:
+        """
+        Get the name of the lock for a specific symbol's signal payload.
+        """
+        return f"signal_lock_{symbol}"
+
+    def _get_symbol_signal_payload_lock(self, symbol: str) -> asyncio.Lock:
+        """
+        Get the lock for a specific symbol's signal payload.
+        If it doesn't exist, create a new lock.
+        """
+        lock_name = self._get_symbol_signal_payload_lock_name(symbol)
+        value = getattr(self, lock_name, None)
+        if not isinstance(value, asyncio.Lock):
+            self.logger.warning(
+                f"No lock found for symbol: {symbol}, creating new one."
+            )
+            lock = asyncio.Lock()
+            setattr(self, lock_name, lock)
+            return lock
+        return value
+
+    def _get_symbol_signal_payload_name(self, symbol: str) -> str:
+        """
+        Get the name of the pubsub queue for a specific symbol.
+        """
+        return f"signal_payload_{symbol}"
+
+    def _get_symbol_signal_payload(self, symbol: str) -> SignalDataPayload:
+        """
+        Get the signal payload for a specific symbol.
+        """
+        lock = self._get_symbol_signal_payload_lock(symbol)
+        if not lock.locked():
+        name = self._get_symbol_signal_payload_name(symbol)
+        value = getattr(self, name, None)
+        if not isinstance(value, SignalDataPayload):
+            self.logger.warning(f"No signal payload found for symbol: {symbol}")
+            return None
+        return value
+
+    def _set_symbol_signal_payload(self, symbol: str, payload: SignalDataPayload):
+        """
+        Set the signal payload for a specific symbol.
+        """
+        name = self._get_symbol_signal_payload_name(symbol)
+        if not hasattr(self, name):
+            self.logger.warning(f"Creating new signal payload for symbol: {symbol}")
+            setattr(self, name, payload)
+        else:
+            self.logger.debug(f"Updating existing signal payload for symbol: {symbol}")
+            setattr(self, name, payload)
+        self.logger.debug(f"Set signal payload for symbol: {symbol}")
+
     def _subscribe_to_market_streams(self, symbols: list[str]):
         """
         Subscribe to the market stream for a specific symbol.
