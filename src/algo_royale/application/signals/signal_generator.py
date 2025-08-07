@@ -2,6 +2,7 @@ import asyncio
 from typing import Any, Callable
 
 from algo_royale.application.market_data.market_data_streamer import MarketDataStreamer
+from algo_royale.application.signals.signals_data_payload import SignalDataPayload
 from algo_royale.application.strategies.strategy_registry import StrategyRegistry
 from algo_royale.application.symbol.symbol_manager import SymbolManager
 from algo_royale.backtester.strategy.signal.combined_weighted_signal_strategy import (
@@ -120,7 +121,8 @@ class SignalGenerator:
             if pubsub is None:
                 self.logger.error(f"No pubsub found for symbol: {symbol}")
                 return
-            pubsub.async_publish(event_type=self.signal_event_type, data=signals)
+            payload = SignalDataPayload(signals=signals, price_data=data)
+            pubsub.async_publish(event_type=self.signal_event_type, data=payload)
             self.logger.info(f"Published signals for {symbol} to pubsub")
 
     async def _async_generate_signal(self, symbol: str, data: dict):
@@ -154,6 +156,7 @@ class SignalGenerator:
             )
             return
 
+    ##TODO: THIS SUBSCRIPTION SHOULD RETURN SIGNAL DATA PAYLOAD FOR ALL AVAILABLE SYMBOLS AT ONCE
     def subscribe_to_signals(
         self, symbol: str, callback: Callable[[dict], Any], queue_size=1
     ):

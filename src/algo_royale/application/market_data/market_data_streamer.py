@@ -107,9 +107,7 @@ class MarketDataStreamer:
         try:
             if symbol in self.stream_data_ingest_object_map:
                 subscriber = self.stream_data_ingest_object_map[symbol].subscribe(
-                    event_type=StreamDataIngestObject.update_type,
                     callback=callback,
-                    queue_size=1,
                 )
                 self.logger.info(f"Subscribed to stream for symbol: {symbol}")
 

@@ -1,7 +1,7 @@
 import asyncio
 from typing import Any, Callable, Optional, Union
 
-from algo_royale.application.signals.queued_async_update_object import (
+from algo_royale.application.utils.queued_async_update_object import (
     QueuedAsyncUpdateObject,
 )
 from algo_royale.backtester.column_names.data_ingest_columns import DataIngestColumns
@@ -42,18 +42,15 @@ class StreamDataIngestObject(QueuedAsyncUpdateObject):
 
     def subscribe(
         self,
-        event_type: str,
         callback: Callable[[dict, type], Any],  # callback receives (data, object_type)
-        filter_fn: Optional[Callable[[Any], bool]] = None,
-        queue_size: int = 10,
+        queue_size: int = 1,
     ) -> AsyncSubscriber:
         """
         Subscribe to an event type with a callback and optional filter function.
         """
         return self._pubsub.subscribe(
-            event_type=event_type,
+            event_type=self.update_type,
             callback=callback,
-            filter_fn=filter_fn,
             queue_size=queue_size,
         )
 

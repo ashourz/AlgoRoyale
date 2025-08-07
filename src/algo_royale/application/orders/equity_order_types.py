@@ -2,7 +2,7 @@ from typing import Literal
 
 from pydantic import BaseModel, model_validator
 
-from algo_royale.application.orders.stream_enums import (
+from algo_royale.application.orders.equity_order_enums import (
     EquityOrderClass,
     EquityOrderSide,
     EquityOrderType,

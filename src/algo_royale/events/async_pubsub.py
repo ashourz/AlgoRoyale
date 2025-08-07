@@ -43,7 +43,7 @@ class AsyncPubSub:
         event_type: str,
         callback: Callable[[Any], Any],
         filter_fn: Optional[Callable[[Any], bool]] = None,
-        queue_size: int = 10,
+        queue_size: int = 1,
     ) -> AsyncSubscriber:
         sub = AsyncSubscriber(event_type, callback, filter_fn, queue_size)
         self.subscribers.setdefault(event_type, []).append(sub)
