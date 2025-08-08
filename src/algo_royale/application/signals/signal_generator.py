@@ -3,12 +3,15 @@ from typing import Any, Callable
 
 from algo_royale.application.market_data.market_data_streamer import MarketDataStreamer
 from algo_royale.application.signals.signals_data_payload import SignalDataPayload
+from algo_royale.application.signals.stream_signal_roster_object import (
+    StreamSignalRosterObject,
+)
 from algo_royale.application.strategies.strategy_registry import StrategyRegistry
 from algo_royale.application.symbol.symbol_manager import SymbolManager
 from algo_royale.backtester.strategy.signal.combined_weighted_signal_strategy import (
     CombinedWeightedSignalStrategy,
 )
-from algo_royale.events.async_pubsub import AsyncPubSub, AsyncSubscriber
+from algo_royale.events.async_pubsub import AsyncSubscriber
 from algo_royale.logging.loggable import Loggable
 
 
@@ -31,24 +34,28 @@ class SignalGenerator:
         # STRATEGIES
         self.symbol_strategy_map: dict[str, CombinedWeightedSignalStrategy] = {}
         # SIGNALS
-        self.pubsub_signal_map: dict[str, AsyncPubSub] = {}
         self.symbol_signal_lock_map: dict[str, asyncio.Lock] = {}
+        self.signal_roster: StreamSignalRosterObject | None = None
         self.logger.info("SignalGenerator initialized.")
 
-    async def start(self):
+    async def async_start(self):
         """
         Generate a trading signal based on the provided data and strategy.
         """
         try:
             symbols = await self.symbol_manager.async_get_symbols()
             self.logger.info("Loading symbol strategies...")
-            self._load_symbol_strategies()
+            self._load_symbol_strategies(symbols=symbols)
             self.logger.info("Initializing symbol signal locks...")
-            self._initialize_symbol_signal_lock()
+            self._initialize_symbol_signal_lock(symbols=symbols)
             self.logger.info("Subscribing to streams...")
-            self._subscribe_to_market_streams()
+            self._subscribe_to_market_streams(symbols=symbols)
+            self.logger.info("Creating signal roster object...")
+            self.signal_roster = StreamSignalRosterObject(
+                initial_symbols=symbols, logger=self.logger
+            )
             self.logger.info(f"Starting signal generation | symbols: {symbols}")
-            self.stream_service.start_stream(symbols=symbols, on_quote=self._onQuote)
+            await self.market_data_streamer.async_start()
         except Exception as e:
             self.logger.error(f"Error starting signal generation: {e}")
 
@@ -64,7 +71,6 @@ class SignalGenerator:
                         symbol=symbol
                     )
                 )
-
             self.logger.info("Symbol strategies loaded successfully.")
         except Exception as e:
             self.logger.error(f"Error loading symbol strategies: {e}")
@@ -80,60 +86,6 @@ class SignalGenerator:
         else:
             self.logger.debug(f"Lock already exists for symbol: {symbol}")
 
-    def _get_symbol_signal_payload_lock_name(self, symbol: str) -> str:
-        """
-        Get the name of the lock for a specific symbol's signal payload.
-        """
-        return f"signal_lock_{symbol}"
-
-    def _get_symbol_signal_payload_lock(self, symbol: str) -> asyncio.Lock:
-        """
-        Get the lock for a specific symbol's signal payload.
-        If it doesn't exist, create a new lock.
-        """
-        lock_name = self._get_symbol_signal_payload_lock_name(symbol)
-        value = getattr(self, lock_name, None)
-        if not isinstance(value, asyncio.Lock):
-            self.logger.warning(
-                f"No lock found for symbol: {symbol}, creating new one."
-            )
-            lock = asyncio.Lock()
-            setattr(self, lock_name, lock)
-            return lock
-        return value
-
-    def _get_symbol_signal_payload_name(self, symbol: str) -> str:
-        """
-        Get the name of the pubsub queue for a specific symbol.
-        """
-        return f"signal_payload_{symbol}"
-
-    def _get_symbol_signal_payload(self, symbol: str) -> SignalDataPayload:
-        """
-        Get the signal payload for a specific symbol.
-        """
-        lock = self._get_symbol_signal_payload_lock(symbol)
-        if not lock.locked():
-        name = self._get_symbol_signal_payload_name(symbol)
-        value = getattr(self, name, None)
-        if not isinstance(value, SignalDataPayload):
-            self.logger.warning(f"No signal payload found for symbol: {symbol}")
-            return None
-        return value
-
-    def _set_symbol_signal_payload(self, symbol: str, payload: SignalDataPayload):
-        """
-        Set the signal payload for a specific symbol.
-        """
-        name = self._get_symbol_signal_payload_name(symbol)
-        if not hasattr(self, name):
-            self.logger.warning(f"Creating new signal payload for symbol: {symbol}")
-            setattr(self, name, payload)
-        else:
-            self.logger.debug(f"Updating existing signal payload for symbol: {symbol}")
-            setattr(self, name, payload)
-        self.logger.debug(f"Set signal payload for symbol: {symbol}")
-
     def _subscribe_to_market_streams(self, symbols: list[str]):
         """
         Subscribe to the market stream for a specific symbol.
@@ -145,7 +97,7 @@ class SignalGenerator:
 
                 async_subscriber = self.market_data_streamer.subscribe_to_stream(
                     symbol=symbol,
-                    callback=lambda data: self._async_generate_signal(
+                    callback=lambda data, symbol=symbol: self._async_generate_signal(
                         symbol=symbol, data=data
                     ),
                 )
@@ -154,7 +106,31 @@ class SignalGenerator:
         except Exception as e:
             self.logger.error(f"Error subscribing to market stream for {symbol}: {e}")
 
-    def _generate_signal(self, symbol: str, data: dict):
+    async def _async_generate_signal(self, symbol: str, data: dict):
+        """
+        Generate a trading signal based on the provided data and strategy.
+
+        :param symbol: The symbol for which to generate the signal.
+        :return: None if no strategy is found, otherwise publishes the generated signals.
+        """
+        try:
+            if symbol not in self.symbol_strategy_map:
+                self.logger.warning(f"No strategy found for symbol: {symbol}")
+                return
+
+            lock = self.symbol_signal_lock_map.get(symbol)
+            if lock is None:
+                self.logger.error(f"No lock found for symbol: {symbol}")
+                return
+
+            async with lock:
+                # generate signal
+                await self._async_generate_signal_inner(symbol, data)
+        except Exception as e:
+            self.logger.error(f"Error generating signal for {symbol}: {e}")
+            return
+
+    async def _async_generate_signal_inner(self, symbol: str, data: dict):
         strategy = self.symbol_strategy_map[symbol]
         # Validation
         if strategy is None:
@@ -171,75 +147,35 @@ class SignalGenerator:
             self.logger.warning(f"No signals generated for symbol: {symbol}")
             return
         else:
-            pubsub = self.pubsub_signal_map.get(symbol)
-            if pubsub is None:
-                self.logger.error(f"No pubsub found for symbol: {symbol}")
-                return
             payload = SignalDataPayload(signals=signals, price_data=data)
-            pubsub.async_publish(event_type=self.signal_event_type, data=payload)
-            self.logger.info(f"Published signals for {symbol} to pubsub")
-
-    async def _async_generate_signal(self, symbol: str, data: dict):
-        """
-        Generate a trading signal based on the provided data and strategy.
-
-        :param symbol: The symbol for which to generate the signal.
-        :return: None if no strategy is found, otherwise publishes the generated signals.
-        """
-        try:
-            if symbol not in self.symbol_strategy_map:
-                self.logger.warning(f"No strategy found for symbol: {symbol}")
-                return
-
-            data_ingest_object = self.stream_data_ingest_object_map.get(symbol)
-            if data_ingest_object is None:
-                self.logger.error(f"No data ingest object found for symbol: {symbol}")
-                return
-
-            lock = self.symbol_signal_lock_map.get(symbol)
-            if lock is None:
-                self.logger.error(f"No lock found for symbol: {symbol}")
-                return
-
-            async with lock:
-                # generate signal
-                self._generate_signal(symbol, data)
-        except Exception as e:
-            self.logger.error(
-                f"Error generating signal for {data_ingest_object.symbol}: {e}"
+            await self.signal_roster.async_set_signal_data_payload(
+                symbol=symbol, payload=payload
             )
-            return
+            self.logger.info(
+                f"Signals generated and set for symbol: {symbol}, signals: {signals}"
+            )
 
-    ##TODO: THIS SUBSCRIPTION SHOULD RETURN SIGNAL DATA PAYLOAD FOR ALL AVAILABLE SYMBOLS AT ONCE
-    ##TODO multiple pubsubs should be replaced with a snapshot of all signals
     def subscribe_to_signals(
-        self, symbol: str, callback: Callable[[dict], Any], queue_size=1
-    ):
+        self, callback: Callable[[dict], Any], queue_size=1
+    ) -> AsyncSubscriber:
         """
         Subscribe to signals for a specific symbol.
 
         :param symbol: The symbol to subscribe to.
         :param callback: The callback function to call with the generated signals.
         """
-        pubsub = self.pubsub_signal_map.get(symbol)
-        if pubsub is None:
-            self.logger.error(f"No pubsub found for symbol: {symbol}")
-            return
-        pubsub.subscribe(
-            event_type=self.signal_event_type, callback=callback, queue_size=queue_size
+        return self.signal_roster.subscribe(
+            callback=callback,
+            queue_size=queue_size,
         )
 
-    def unsubscribe_from_signals(self, symbol: str, subscriber: AsyncSubscriber):
+    def unsubscribe_from_signals(self, subscriber: AsyncSubscriber):
         """
-        Unsubscribe from signals for a specific symbol.
+        Unsubscribe from signals for a specific subscriber.
 
-        :param symbol: The symbol to unsubscribe from.
+        :param subscriber: The subscriber to unsubscribe from.
         """
-        pubsub = self.pubsub_signal_map.get(symbol)
-        if pubsub is None:
-            self.logger.error(f"No pubsub found for symbol: {symbol}")
-            return
-        pubsub.unsubscribe(subscriber)
+        self.signal_roster.unsubscribe(subscriber=subscriber)
 
     def _unsubscribe_from_market_data(self):
         """
@@ -250,13 +186,15 @@ class SignalGenerator:
             self.logger.info(f"Unsubscribed from {symbol} market data stream")
         self.symbol_async_subscriber_map.clear()
 
-    def stop(self):
+    async def stop(self):
         """
         Stop the signal generation service.
         """
         try:
+            self.logger.info("Stopping signal generation service...")
+            await self.signal_roster.async_shutdown()
             self.logger.info("Stopping signal generation...")
-            self.stream_service.stop_stream()
+            await self.market_data_streamer.async_stop()
             self.logger.info("Signal generation stopped.")
             self.symbol_strategy_map.clear()
             self.logger.info("Symbol strategy map cleared.")

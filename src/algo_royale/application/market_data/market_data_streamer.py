@@ -32,7 +32,7 @@ class MarketDataStreamer:
         self.logger = logger
         self.is_live = is_live
 
-    async def start(self):
+    async def async_start(self):
         """
         Generate a trading signal based on the provided data and strategy.
         """
@@ -135,3 +135,17 @@ class MarketDataStreamer:
                     self.logger.error("Subscriber is None, cannot unsubscribe.")
         except Exception as e:
             self.logger.error(f"Error unsubscribing from stream for {symbol}: {e}")
+
+    async def async_stop(self):
+        """
+        Stop the market data streamer and clean up resources.
+        """
+        try:
+            self.logger.info("Stopping market data streamer...")
+            for symbol, ingest_object in self.stream_data_ingest_object_map.items():
+                await ingest_object.async_shutdown()
+                self.logger.info(f"Shutdown stream data ingest object for {symbol}")
+            self.stream_service.stop_stream()
+            self.logger.info("Market data streamer stopped successfully.")
+        except Exception as e:
+            self.logger.error(f"Error stopping market data streamer: {e}")
