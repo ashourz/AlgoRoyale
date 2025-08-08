@@ -114,7 +114,9 @@ class StreamSignalRosterObject:
 
     def subscribe(
         self,
-        callback: Callable[[dict, type], Any],  # callback receives (data, object_type)
+        callback: Callable[
+            [dict[str, SignalDataPayload], type], Any
+        ],  # callback receives (data, object_type)
         queue_size: int = 1,
     ) -> AsyncSubscriber:
         """Subscribe to updates with a callback."""

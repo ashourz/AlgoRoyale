@@ -156,7 +156,9 @@ class SignalGenerator:
             )
 
     def subscribe_to_signals(
-        self, callback: Callable[[dict], Any], queue_size=1
+        self,
+        callback: Callable[[dict[str, SignalDataPayload], type], Any],
+        queue_size=1,
     ) -> AsyncSubscriber:
         """
         Subscribe to signals for a specific symbol.
