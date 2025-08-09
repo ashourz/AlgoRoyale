@@ -2,8 +2,6 @@ import asyncio
 
 from algo_royale.application.signals.signal_generator import SignalGenerator
 from algo_royale.application.signals.signals_data_payload import SignalDataPayload
-from algo_royale.backtester.column_names.strategy_columns import SignalStrategyColumns
-from algo_royale.backtester.enums.signal_type import SignalType
 from algo_royale.events.async_pubsub import AsyncPubSub
 from algo_royale.logging.loggable import Loggable
 
@@ -67,30 +65,28 @@ class OrderGenerator:
             self.logger.error(f"Error generating order: {e}")
             return
 
-    ## TODO: Implement the order generation logic. Convert roster to portfolio strategy input
-
     def _generate_orders(self, roster: dict[str, SignalDataPayload]):
         """
-        Generate a trading order based on the provided signal DataFrame.
-
-        :param symbol: The symbol for which to generate the order.
-        :param signal: The trading signal DataFrame containing the order details.
+        Generate trading orders based on the provided signal roster.
         """
         try:
-            entry_signal = signal.get(
-                SignalStrategyColumns.ENTRY_SIGNAL, SignalType.HOLD.value
-            )
-            exit_signal = signal.get(
-                SignalStrategyColumns.EXIT_SIGNAL, SignalType.HOLD.value
-            )
-            if entry_signal == SignalType.BUY.value:
-                order_type = "BUY"
-            elif exit_signal == SignalType.SELL.value:
-                order_type = "SELL"
-            else:
-                self.logger.info(
-                    f"No actionable signal for {symbol}. Skipping order generation."
-                )
-                return
+            ## TODO: Implement the order generation logic. Convert roster to portfolio strategy input
+
+            return None
+            # entry_signal = signal.get(
+            #     SignalStrategyColumns.ENTRY_SIGNAL, SignalType.HOLD.value
+            # )
+            # exit_signal = signal.get(
+            #     SignalStrategyColumns.EXIT_SIGNAL, SignalType.HOLD.value
+            # )
+            # if entry_signal == SignalType.BUY.value:
+            #     order_type = "BUY"
+            # elif exit_signal == SignalType.SELL.value:
+            #     order_type = "SELL"
+            # else:
+            #     self.logger.info(
+            #         f"No actionable signal for {symbol}. Skipping order generation."
+            #     )
+            #     return
         except Exception as e:
-            self.logger.error(f"Error generating order for {symbol}: {e}")
+            self.logger.error(f"Error generating orders: {e}")
