@@ -88,6 +88,16 @@ class BasePortfolioStrategy(BaseStrategy):
         """
         pass
 
+    @property
+    def window_size(self) -> int:
+        """Override in subclasses to specify the window size for buffered portfolio strategies."""
+        return 1
+
+    @property
+    def min_valid_prices(self) -> float:
+        """Override in subclasses to specify the minimum valid price for assets."""
+        return 0.0
+
     def _mask_and_normalize_weights(
         self, weights: pd.DataFrame, prices: pd.DataFrame
     ) -> pd.DataFrame:

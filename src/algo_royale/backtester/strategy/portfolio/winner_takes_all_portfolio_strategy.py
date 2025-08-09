@@ -35,6 +35,11 @@ class WinnerTakesAllPortfolioStrategy(BasePortfolioStrategy):
     def required_columns(self):
         return set()
 
+    @property
+    def window_size(self) -> int:
+        """Override in subclasses to specify the window size for buffered portfolio strategies."""
+        return 1
+
     def get_description(self) -> str:
         return f"{self.__class__.__name__}(use_signals={self.use_signals}, move_to_cash_at_end_of_day={self.move_to_cash_at_end_of_day})"
 

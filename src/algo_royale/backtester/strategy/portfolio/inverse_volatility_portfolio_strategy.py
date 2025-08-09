@@ -29,6 +29,11 @@ class InverseVolatilityPortfolioStrategy(BasePortfolioStrategy):
     def required_columns(self):
         return set()
 
+    @property
+    def window_size(self) -> int:
+        """Override in subclasses to specify the window size for buffered portfolio strategies."""
+        return self.lookback
+
     def get_description(self) -> str:
         return f"{self.__class__.__name__}(lookback={self.lookback})"
 
