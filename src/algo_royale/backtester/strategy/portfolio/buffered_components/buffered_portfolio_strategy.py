@@ -37,6 +37,53 @@ class BufferedPortfolioStrategy(BaseStrategy):
     ) -> dict[str, pd.DataFrame] | None:
         """
         Update the buffered portfolio strategy with the latest roster of signals.
+
+        Returns:
+            dict: A dictionary with:
+                - "weights": DataFrame of portfolio weights (index: timestamp, columns: symbols, values: weights for each symbol at each timestamp).
+                - "data": DataFrame of the latest roster snapshot (one row per symbol, columns for signals and price data).
+
+        Example:
+            {
+                "weights": pd.DataFrame({
+                    "AAPL": [0.4],
+                    "MSFT": [0.3],
+                    "GOOG": [0.3]
+                }, index=[pd.Timestamp("2025-08-09T10:00:00")]),
+
+                "data": pd.DataFrame([
+                    {
+                        "SYMBOL": "AAPL",
+                        "ENTRY_SIGNAL": 1.0,
+                        "EXIT_SIGNAL": 0.0,
+                        "TIMESTAMP": "2025-08-09T10:00:00",
+                        "OPEN_PRICE": 190.0,
+                        "HIGH_PRICE": 192.0,
+                        "LOW_PRICE": 189.0,
+                        "CLOSE_PRICE": 190.5
+                    },
+                    {
+                        "SYMBOL": "MSFT",
+                        "ENTRY_SIGNAL": 0.5,
+                        "EXIT_SIGNAL": 0.0,
+                        "TIMESTAMP": "2025-08-09T10:00:00",
+                        "OPEN_PRICE": 320.0,
+                        "HIGH_PRICE": 322.0,
+                        "LOW_PRICE": 319.0,
+                        "CLOSE_PRICE": 320.1
+                    },
+                    {
+                        "SYMBOL": "GOOG",
+                        "ENTRY_SIGNAL": 0.8,
+                        "EXIT_SIGNAL": 0.0,
+                        "TIMESTAMP": "2025-08-09T10:00:00",
+                        "OPEN_PRICE": 2700.0,
+                        "HIGH_PRICE": 2710.0,
+                        "LOW_PRICE": 2695.0,
+                        "CLOSE_PRICE": 2700.0
+                    }
+                ])
+            }
         """
         try:
             self.buffer.append(roster)
