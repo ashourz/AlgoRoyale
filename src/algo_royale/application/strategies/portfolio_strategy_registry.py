@@ -4,6 +4,9 @@ from typing import Dict, Sequence
 
 from algo_royale.application.symbol.symbol_manager import SymbolManager
 from algo_royale.backtester.evaluator import symbol
+from algo_royale.backtester.maps.portfolio_strategy_class_map import (
+    PORTFOLIO_STRATEGY_CLASS_MAP,
+)
 from algo_royale.backtester.stage_data.stage_data_manager import StageDataManager
 from algo_royale.backtester.strategy.portfolio.buffered_components.buffered_portfolio_strategy import (
     BufferedPortfolioStrategy,
@@ -39,17 +42,20 @@ class PortfolioStrategyRegistry:
         """Get the weighted buffer portfolio strategy for a given symbols"""
         try:
             self.logger.info(f"Getting portfolio strategy for {symbols}...")
-            portfolio_strategy = self.portfolio_strategy_map.get(symbols, {})
-            if not portfolio_strategy:
-                self.logger.info(
-                    f"No buffered strategies found for {symbol}. Retrieving existing viable strategies."
-                )
-                portfolio_strategy = self._get_weighted_buffered_strategies(symbol)
-                self.portfolio_strategy_map[symbol] = portfolio_strategy
-                self._sync_viable_strategy_params()
-            return self.portfolio_strategy_factory.build_buffered_strategy(
-                strategy_class=portfolio_strategy_class, params=params
+            symbol_str = self._get_symbols_dir_name(symbols)
+            best_portfolio_strategy_map = self.portfolio_strategy_map.get(
+                symbol_str, {}
             )
+            if not best_portfolio_strategy_map:
+                self.logger.info(
+                    f"No buffered strategies found for {symbol_str}. Retrieving existing viable strategies."
+                )
+                best_portfolio_strategy_map = self._update_portfolio_strategy_map(
+                    symbols
+                )
+                self._sync_viable_strategy_params()
+
+            return self._get_buffered_portfolio_strategy(best_portfolio_strategy_map)
         except Exception as e:
             self.logger.error(
                 f"Error getting weighted buffer signal strategy for {symbol}: {e}"
@@ -72,7 +78,6 @@ class PortfolioStrategyRegistry:
                 self.portfolio_strategy_map = {}
             with open(self.viable_strategies_path, "r") as f:
                 try:
-                    ##TODO: this is incorrect
                     self.portfolio_strategy_map = json.load(f)
                 except json.JSONDecodeError as e:
                     self.logger.error(
@@ -94,38 +99,52 @@ class PortfolioStrategyRegistry:
         except Exception as e:
             self.logger.error(f"Error syncing viable portfolio strategies: {e}")
 
-    def _get_best_buffered_strategies(
-        self, symbol: str
-    ) -> Dict[BufferedPortfolioStrategy, float]:
-        """Get all buffered strategies for a given symbol."""
-        self.logger.info(f"Getting all buffered strategies for {symbol}...")
-        best_strategy: BufferedPortfolioStrategy | None = None
-        best_viability_score: float = 0
+    def _update_portfolio_strategy_map(self, symbols: list[str]) -> dict:
         try:
-            strategy_params = self._get_viable_strategies(symbol)
+            symbol_str = self._get_symbols_dir_name(symbols)
+            best_strategy_dict: dict = {}
+            strategy_params = self._get_viable_strategies(symbols)
             for strategy_name, metrics in strategy_params.items():
                 viability_score = metrics.get("viability_score", 0)
-                if viability_score > best_viability_score:
-                    best_viability_score = viability_score
-                    best_strategy = (
-                        self.portfolio_strategy_factory.build_buffered_strategy(
-                            strategy_class=strategy_name,
-                            params=metrics.get("params", {}),
-                        )
-                    )
-            if best_strategy:
+                if viability_score > best_strategy_dict.get("viability_score", 0):
+                    best_strategy_dict = {
+                        "name": strategy_name,
+                        "viability_score": viability_score,
+                        "params": metrics.get("params", {}),
+                    }
+            if best_strategy_dict:
                 self.logger.info(
-                    f"Best buffered strategy for {symbol}: {best_strategy}"
+                    f"Best buffered strategy for {symbol}: {best_strategy_dict['name']} with viability score {best_strategy_dict['viability_score']}"
                 )
-                return best_strategy
-            else:
-                self.logger.warning(f"No viable buffered strategy found for {symbol}")
-                return None
+                self.portfolio_strategy_map[symbol_str] = best_strategy_dict
+            return best_strategy_dict
         except Exception as e:
             self.logger.error(
-                f"Error getting best buffered strategies for {symbol}: {e}"
+                f"Error getting best buffered strategies for {symbols}: {e}"
             )
         return None
+
+    def _get_buffered_portfolio_strategy(
+        self, strategy_dict: dict
+    ) -> BufferedPortfolioStrategy | None:
+        """Get the buffered portfolio strategy for the given symbols."""
+        try:
+            if not strategy_dict:
+                return None
+            strategy_name = strategy_dict.get("name")
+            params = strategy_dict.get("params", {})
+            strategy_class = PORTFOLIO_STRATEGY_CLASS_MAP.get(strategy_name)
+            if not strategy_class:
+                self.logger.error(f"Unknown portfolio strategy: {strategy_name}")
+                return None
+            return self.portfolio_strategy_factory.build_buffered_strategy(
+                strategy_class=strategy_class, params=params
+            )
+        except Exception as e:
+            self.logger.error(
+                f"Error building buffered strategy for {strategy_dict}: {e}"
+            )
+            return None
 
     def _get_viable_strategies(self, symbols: list[str]) -> Dict[str, Dict[str, float]]:
         """Get optimization results for a given strategy and symbol."""

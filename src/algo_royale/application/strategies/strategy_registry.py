@@ -8,10 +8,8 @@ from pathlib import Path
 from typing import Dict
 
 from algo_royale.application.symbol.symbol_manager import SymbolManager
+from algo_royale.backtester.maps.strategy_class_map import SYMBOL_STRATEGY_CLASS_MAP
 from algo_royale.backtester.stage_data.stage_data_manager import StageDataManager
-from algo_royale.backtester.strategy.signal.buffered_components.buffered_signal_strategy import (
-    BufferedSignalStrategy,
-)
 from algo_royale.backtester.strategy.signal.combined_weighted_signal_strategy import (
     CombinedWeightedSignalStrategy,
 )
@@ -48,24 +46,19 @@ class StrategyRegistry:
 
     def get_combined_weighted_signal_strategy(
         self, symbol: str
-    ) -> CombinedWeightedSignalStrategy:
+    ) -> CombinedWeightedSignalStrategy | None:
         """Get the weighted buffer signal strategy for a given symbol."""
         try:
             self.logger.info(f"Getting weighted buffer signal strategy for {symbol}...")
-            weighted_buffered_strategies = self.symbol_strategy_map.get(symbol, {})
-            if not weighted_buffered_strategies:
+            viable_symbol_strategy_map = self.symbol_strategy_map.get(symbol, {})
+            if not viable_symbol_strategy_map:
                 self.logger.info(
                     f"No buffered strategies found for {symbol}. Retrieving existing viable strategies."
                 )
-                weighted_buffered_strategies = self._get_weighted_buffered_strategies(
-                    symbol
-                )
-                self.symbol_strategy_map[symbol] = weighted_buffered_strategies
+                viable_symbol_strategy_map = self._update_symbol_strategy_map(symbol)
                 self._sync_viable_strategy_params()
-            return CombinedWeightedSignalStrategy(
-                buffered_strategies=weighted_buffered_strategies,
-                buy_threshold=self.combined_buy_threshold,
-                sell_threshold=self.combined_sell_threshold,
+            return self._get_combined_weighted_signal_strategy(
+                viable_symbol_strategy_map
             )
         except Exception as e:
             self.logger.error(
@@ -89,7 +82,6 @@ class StrategyRegistry:
                 self.symbol_strategy_map = {}
             with open(self.viable_strategies_path, "r") as f:
                 try:
-                    ##TODO: this is incorrect
                     self.symbol_strategy_map = json.load(f)
                 except json.JSONDecodeError as e:
                     self.logger.error(
@@ -111,28 +103,56 @@ class StrategyRegistry:
         except Exception as e:
             self.logger.error(f"Error syncing viable strategies: {e}")
 
-    def _get_weighted_buffered_strategies(
-        self, symbol: str
-    ) -> Dict[BufferedSignalStrategy, float]:
-        """Get all buffered strategies for a given symbol."""
+    def _update_symbol_strategy_map(self, symbol: str) -> dict:
+        """Update the symbol strategy map with viable strategies."""
         self.logger.info(f"Getting all buffered strategies for {symbol}...")
-        all_buffered_strategies = {}
         try:
             strategy_params = self._get_viable_strategies(symbol)
+            self.symbol_strategy_map[symbol] = {}
             for strategy_name, metrics in strategy_params.items():
                 viability_score = metrics.get("viability_score", 0)
                 params = metrics.get("params", {})
-                # Now you can use strategy_name, viability_score, and params
+                self.symbol_strategy_map[symbol][strategy_name] = {
+                    "viability_score": viability_score,
+                    "params": params,
+                }
+            return self.symbol_strategy_map[symbol]
+        except Exception as e:
+            self.logger.error(f"Error getting all strategies: {e}")
+        return None
+
+    def _get_combined_weighted_signal_strategy(
+        self, viable_strategies: dict
+    ) -> CombinedWeightedSignalStrategy | None:
+        try:
+            all_buffered_strategies = {}
+            for strategy_name, metrics in viable_strategies.items():
+                viability_score = metrics.get("viability_score", 0)
+                params = metrics.get("params", {})
+                strategy_class = SYMBOL_STRATEGY_CLASS_MAP.get(strategy_name)
+                if not strategy_class:
+                    self.logger.error(f"Unknown strategy class for {strategy_name}")
+                    continue
                 buffered_strategy = (
                     self.signal_strategy_factory.build_buffered_strategy(
-                        strategy_class=strategy_name,
+                        strategy_class=strategy_class,
                         params=params,
                     )
                 )
                 all_buffered_strategies[buffered_strategy] = viability_score
+            if not all_buffered_strategies:
+                self.logger.warning(
+                    f"No buffered strategies found for {viable_strategies}"
+                )
+                return None
+            return CombinedWeightedSignalStrategy(
+                buffered_strategies=all_buffered_strategies,
+                buy_threshold=self.combined_buy_threshold,
+                sell_threshold=self.combined_sell_threshold,
+            )
         except Exception as e:
-            self.logger.error(f"Error getting all strategies: {e}")
-        return all_buffered_strategies
+            self.logger.error(f"Error getting combined weighted signal strategy: {e}")
+        return None
 
     def _get_viable_strategies(self, symbol: str) -> Dict[str, Dict[str, float]]:
         """Get optimization results for a given strategy and symbol."""
