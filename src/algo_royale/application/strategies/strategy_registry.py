@@ -44,6 +44,8 @@ class StrategyRegistry:
         self.symbol_strategy_map = {}
         self._load_existing_viable_strategy_params()
 
+    ## TODO: Get and Set of portfolio_strategy_map in file need to be reconsidered as we cannot save
+
     def get_combined_weighted_signal_strategy(
         self, symbol: str
     ) -> CombinedWeightedSignalStrategy:
@@ -87,6 +89,7 @@ class StrategyRegistry:
                 self.symbol_strategy_map = {}
             with open(self.viable_strategies_path, "r") as f:
                 try:
+                    ##TODO: this is incorrect
                     self.symbol_strategy_map = json.load(f)
                 except json.JSONDecodeError as e:
                     self.logger.error(
@@ -115,7 +118,7 @@ class StrategyRegistry:
         self.logger.info(f"Getting all buffered strategies for {symbol}...")
         all_buffered_strategies = {}
         try:
-            strategy_params = self._get_all_viable_strategy_params(symbol)
+            strategy_params = self._get_viable_strategies(symbol)
             for strategy_name, metrics in strategy_params.items():
                 viability_score = metrics.get("viability_score", 0)
                 params = metrics.get("params", {})
@@ -130,21 +133,6 @@ class StrategyRegistry:
         except Exception as e:
             self.logger.error(f"Error getting all strategies: {e}")
         return all_buffered_strategies
-
-    def _get_all_viable_strategy_params(
-        self, symbol: str
-    ) -> Dict[str, Dict[str, float]]:
-        """Get all viable strategy parameters for a given symbol."""
-        self.logger.info(
-            f"Getting all viable strategy parameters for symbol {symbol}..."
-        )
-        try:
-            strategies = self._get_viable_strategies(symbol)
-            if strategies:
-                return strategies
-        except Exception as e:
-            self.logger.error(f"Error getting all viable strategies: {e}")
-        return {}
 
     def _get_viable_strategies(self, symbol: str) -> Dict[str, Dict[str, float]]:
         """Get optimization results for a given strategy and symbol."""
