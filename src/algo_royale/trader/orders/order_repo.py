@@ -2,7 +2,7 @@ from logging import Logger
 
 
 class OrderRepo:
-    def __init__(self, logger: Logger):
+    def __init__(self, orders_service logger: Logger):
         self.account_service = account_service
         self.logger = logger
 

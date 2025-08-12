@@ -1,6 +1,10 @@
 import datetime
 from decimal import Decimal
+from logging import Logger
+from algo_royale.logging.loggable import Loggable
 from algo_royale.trader.cash.cash_repo import CashRepo
+from algo_royale.trader.orders.order_repo import OrderRepo
+from algo_royale.trader.symbols.positions_repo import PositionsRepo
 from algo_royale.trader.trades.trade_repo import TradeDirection, TradeEntry, TradeRepo
 
 
@@ -9,12 +13,16 @@ class Ledger:
         self, 
         cash_repo: CashRepo,
         orderRepo: OrderRepo,
-        tradeRepo: TradeRepo
+        tradeRepo: TradeRepo,
+        positionsRepo: PositionsRepo,
+        logger: Loggable
     ):
         self.entries = []
         self.cash_repo = cash_repo
         self.order_repo = orderRepo
         self.trade_repo = tradeRepo
+        self.positions_repo = positionsRepo
+        self.logger = logger
 
     def add_trade_entry(self, trade_entry: TradeEntry):
         """Add a trade entry to the ledger."""
