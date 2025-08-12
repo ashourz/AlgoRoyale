@@ -1,10 +1,7 @@
 import asyncio
 
 from algo_royale.application.orders.equity_order_enums import EquityOrderSide
-from algo_royale.application.orders.equity_order_types import (
-    EquityMarketNotionalOrder,
-    EquityMarketQtyOrder,
-)
+from algo_royale.application.orders.signal_order_payload import SignalOrderPayload
 from algo_royale.application.signals.signal_generator import SignalGenerator
 from algo_royale.application.signals.signals_data_payload import SignalDataPayload
 from algo_royale.application.strategies.portfolio_strategy_registry import (
@@ -16,7 +13,7 @@ from algo_royale.backtester.enums.signal_type import SignalType
 from algo_royale.backtester.strategy.portfolio.buffered_components.buffered_portfolio_strategy import (
     BufferedPortfolioStrategy,
 )
-from algo_royale.events.async_pubsub import AsyncPubSub
+from algo_royale.events.async_pubsub import AsyncPubSub, AsyncSubscriber
 from algo_royale.logging.loggable import Loggable
 
 
@@ -86,12 +83,12 @@ class OrderGenerator:
         try:
             async with self.order_lock:
                 # generate order
-                self._generate_orders(roster=roster)
+                await self._async_inner_generate_orders(roster=roster)
         except Exception as e:
             self.logger.error(f"Error generating order: {e}")
             return
 
-    def _generate_orders(self, roster: dict[str, SignalDataPayload]):
+    async def _async_inner_generate_orders(self, roster: dict[str, SignalDataPayload]):
         """
         Generate trading orders based on the provided signal roster.
         """
@@ -123,50 +120,112 @@ class OrderGenerator:
                 if entry_signal == SignalType.BUY.value:
                     # Generate buy order
                     if weight is not None:
-                        order = self._generate_buy_order(
+                        order = await self._async_generate_buy_order(
                             symbol, weight, signalDataPayload.price_data
                         )
                         orders.append(order)
                 # Handle exit signal
                 elif exit_signal == SignalType.SELL.value:
                     if weight is not None:
-                        order = self._generate_sell_order(
+                        order = await self._async_generate_sell_order(
                             symbol, weight, signalDataPayload.price_data
                         )
                         orders.append(order)
             if orders:
                 # Publish all generated orders
                 for order in orders:
-                    self._publish_order_event(order)
+                    await self._async_publish_order_event(order)
         except Exception as e:
             self.logger.error(f"Error generating orders: {e}")
 
-    def _generate_buy_order(self, symbol: str, weight: float, price_data: dict):
+    async def _async_generate_buy_order(
+        self, symbol: str, weight: float, price_data: dict
+    ):
         """
         Generate a buy order for the given symbol with the specified weight.
         """
-        funds_at_open = self.ledger.get_funds_at_open()
-        available_funds = self.ledger.get_available_funds()
-        notional_value = min(funds_at_open * weight, available_funds)
-        order = EquityMarketNotionalOrder(
+        order_payload = SignalOrderPayload(
             symbol=symbol,
-            action=EquityOrderSide.BUY,
-            notional=notional_value,
+            side=EquityOrderSide.BUY,
+            weight=weight,
+            price_data=price_data,
         )
-        self.logger.info(f"Generated buy order: {order}")
-        ##TODO: publish order event
-        self._publish_order_event(order)
+        self.logger.info(f"Generated buy order: {order_payload}")
+        await self._async_publish_order_event(order_payload)
+        self.logger.info(f"Published order event for {symbol}")
 
-    def _generate_sell_order(self, symbol: str, weight: float, price_data: dict):
+    async def _async_generate_sell_order(
+        self, symbol: str, weight: float, price_data: dict
+    ):
         """
         Generate a sell order for the given symbol with the specified weight.
         """
-        # Get current position
-        ##TODO: get this position from ledger
-        current_position = self.ledger.get_position(symbol)
-        order = EquityMarketQtyOrder(
-            symbol=symbol, action=EquityOrderSide.SELL, quantity=current_position
+        order_payload = SignalOrderPayload(
+            symbol=symbol,
+            side=EquityOrderSide.SELL,
+            weight=weight,
+            price_data=price_data,
         )
-        self.logger.info(f"Generated sell order: {order}")
-        ##TODO: publish order event
-        self._publish_order_event(order)
+        self.logger.info(f"Generated sell order: {order_payload}")
+        await self._async_publish_order_event(order_payload)
+        self.logger.info(f"Published order event for {symbol}")
+
+    def _get_order_pubsub(self, symbol: str) -> AsyncPubSub:
+        """
+        Get the pubsub instance for the specified symbol.
+        If it does not exist, create a new one.
+        """
+        if symbol not in self.pubsub_orders_map:
+            self.pubsub_orders_map[symbol] = AsyncPubSub(
+                event_type=self.order_event_type,
+                logger=self.logger,
+            )
+        return self.pubsub_orders_map[symbol]
+
+    async def _async_publish_order_event(self, order_payload: SignalOrderPayload):
+        """
+        Publish the generated order event to the appropriate pubsub channel.
+        """
+        symbol = order_payload.symbol
+        pubsub = self._get_order_pubsub(symbol)
+        if not pubsub:
+            self.logger.error(f"No pubsub found for symbol: {symbol}")
+            return
+        await pubsub.async_publish(
+            event_type=self.order_event_type, payload=order_payload
+        )
+        self.logger.info(f"Order event published for {symbol}: {order_payload}")
+
+    def subscribe_to_order_events(
+        self, symbols: list[str], callback: callable, queue_size=1
+    ) -> dict[str, AsyncSubscriber]:
+        """
+        Subscribe to order events for a specific symbol.
+        """
+        async_subscribers = {}
+        for symbol in symbols:
+            pubsub = self.pubsub_orders_map[symbol]
+            if not pubsub:
+                self.logger.error(f"No pubsub found for symbol: {symbol}")
+                continue
+            self.logger.info(f"Subscribing to order events for {symbol}")
+            async_subscribers[symbol] = pubsub.subscribe(
+                event_type=self.order_event_type,
+                callback=callback,
+                queue_size=queue_size,
+            )
+            self.logger.info(f"Subscribed to order events for {symbol}")
+        return async_subscribers
+
+    def unsubscribe_from_order_events(
+        self, symbol: str, async_subscriber: AsyncSubscriber
+    ):
+        """
+        Unsubscribe from order events for the specified symbols.
+        """
+        pubsub = self._get_order_pubsub(symbol)
+        if not pubsub:
+            self.logger.error(f"No pubsub found for symbol: {symbol}")
+            return
+        pubsub.unsubscribe(subscriber=async_subscriber)
+        self.logger.info(f"Unsubscribed from order events for {symbol}")
