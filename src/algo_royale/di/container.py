@@ -144,12 +144,12 @@ from algo_royale.logging.logger_factory import (
     LoggerFactory,
     LoggerType,
 )
+from algo_royale.repo.symbols.watchlist_repo import WatchlistRepo
 from algo_royale.services.db.indicator_service import IndicatorService
 from algo_royale.services.db.news_sentiment_service import NewsSentimentService
 from algo_royale.services.db.trade_service import TradeService
 from algo_royale.services.db.trade_signal_service import TradeSignalService
 from algo_royale.services.market_data.alpaca_stock_service import AlpacaQuoteService
-from algo_royale.trader.symbols.watchlist_repo import WatchlistRepo
 from algo_royale.utils.path_utils import get_data_dir
 from algo_royale.visualization.dashboard import BacktestDashboard
 

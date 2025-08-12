@@ -12,7 +12,7 @@ from algo_royale.backtester.stage_data.stage_data_manager import (
     StageDataManager,
 )
 from algo_royale.logging.loggable import Loggable
-from algo_royale.trader.symbols.watchlist_repo import WatchlistRepo
+from algo_royale.repo.symbols.watchlist_repo import WatchlistRepo
 
 
 class StageDataLoader:

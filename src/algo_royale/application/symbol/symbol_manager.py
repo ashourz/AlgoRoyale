@@ -1,8 +1,8 @@
 """Keeps track of which symbols to consider for trading"""
 
 from algo_royale.logging.loggable import Loggable
-from algo_royale.trader.symbols.positions_repo import PositionsRepo
-from algo_royale.trader.symbols.watchlist_repo import WatchlistRepo
+from algo_royale.repo.symbols.positions_repo import PositionsRepo
+from algo_royale.repo.symbols.watchlist_repo import WatchlistRepo
 
 
 class SymbolManager:

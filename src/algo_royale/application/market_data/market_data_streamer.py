@@ -5,7 +5,7 @@ from algo_royale.application.signals.stream_data_ingest_object import (
     StreamDataIngestObject,
 )
 from algo_royale.application.symbol.symbol_manager import SymbolManager
-from algo_royale.events.async_pubsub import AsyncSubscriber
+from algo_royale.application.utils.async_pubsub import AsyncSubscriber
 from algo_royale.models.alpaca_market_data.alpaca_stream_bar import StreamBar
 from algo_royale.models.alpaca_market_data.alpaca_stream_quote import StreamQuote
 from algo_royale.models.alpaca_market_data.enums import DataFeed

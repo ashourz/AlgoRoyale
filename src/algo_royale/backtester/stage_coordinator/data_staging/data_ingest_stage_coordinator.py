@@ -14,8 +14,8 @@ from algo_royale.backtester.stage_data.writer.symbol_strategy_data_writer import
 )
 from algo_royale.logging.loggable import Loggable
 from algo_royale.models.alpaca_market_data.enums import DataFeed
+from algo_royale.repo.symbols.watchlist_repo import WatchlistRepo
 from algo_royale.services.market_data.alpaca_stock_service import AlpacaQuoteService
-from algo_royale.trader.symbols.watchlist_repo import WatchlistRepo
 
 
 class DataIngestStageCoordinator(StageCoordinator):

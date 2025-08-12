@@ -1,6 +1,6 @@
 from algo_royale.application.orders.order_generator import OrderGenerator
 from algo_royale.logging.loggable import Loggable
-from algo_royale.trader.ledger.ledger import Ledger
+from algo_royale.repo.ledger.ledger import Ledger
 
 
 class OrderExecution:
