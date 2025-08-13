@@ -2,12 +2,12 @@
 from datetime import datetime
 from decimal import Decimal
 
-from algo_royale.clients.db.dao.indicator_dao import IndicatorDAO
+from algo_royale.clients.db.dao.indicator_dao import IndicatorRepo
 
 
-class IndicatorRepo:
-    def __init__(self, dao: IndicatorDAO):
-        self.dao = dao
+class IndicatorService:
+    def __init__(self, repo: IndicatorRepo):
+        self.repo = repo
 
     def create_indicator(
         self,
@@ -25,7 +25,7 @@ class IndicatorRepo:
         recorded_at: datetime,
     ) -> None:
         """Insert indicators for a specific trade."""
-        self.dao.insert_indicator(
+        self.repo.insert_indicator(
             trade_id,
             rsi,
             macd,
@@ -42,13 +42,13 @@ class IndicatorRepo:
 
     def get_indicators_by_trade_id(self, trade_id: int):
         """Fetch indicators for a trade by trade ID."""
-        return self.dao.fetch_indicators_by_trade_id(trade_id)
+        return self.repo.fetch_indicators_by_trade_id(trade_id)
 
     def get_indicators_by_trade_id_and_date(
         self, trade_id: int, start_date: datetime, end_date: datetime
     ):
         """Fetch indicators for a trade by trade ID and date range."""
-        return self.dao.fetch_indicators_by_trade_id_and_date(
+        return self.repo.fetch_indicators_by_trade_id_and_date(
             trade_id, start_date, end_date
         )
 
@@ -68,7 +68,7 @@ class IndicatorRepo:
         recorded_at: datetime,
     ) -> None:
         """Update existing indicators."""
-        self.dao.update_indicator(
+        self.repo.update_indicator(
             indicator_id,
             rsi,
             macd,
@@ -85,4 +85,4 @@ class IndicatorRepo:
 
     def delete_indicator(self, indicator_id: int) -> None:
         """Delete indicators by ID."""
-        self.dao.delete_indicator(indicator_id)
+        self.repo.delete_indicator(indicator_id)

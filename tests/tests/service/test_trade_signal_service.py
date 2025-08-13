@@ -6,7 +6,7 @@ from decimal import Decimal
 from unittest import TestCase
 from unittest.mock import patch
 
-from algo_royale.services.db.trade_signal_repo import TradeSignalRepo
+from algo_royale.repo.trade_signal_repo import TradeSignalRepo
 
 
 class TestTradeSignalService(TestCase):

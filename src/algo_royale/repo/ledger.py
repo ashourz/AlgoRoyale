@@ -2,7 +2,7 @@ import datetime
 from decimal import Decimal
 from logging import Logger
 from algo_royale.logging.loggable import Loggable
-from algo_royale.repo.cash_repo import AccountCashAdapter
+from algo_royale.adapters.account_cash_adapter import AccountCashAdapter
 from algo_royale.repo.order_repo import OrderRepo
 from algo_royale.repo.positions_repo import PositionsRepo
 from algo_royale.repo.trade_repo import TradeDirection, TradeEntry, TradeRepo

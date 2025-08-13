@@ -1,9 +1,10 @@
+## service\trade_service.py
+from abc import ABC
 from datetime import datetime
 from decimal import Decimal
 
-from pyparsing import ABC
-
-from algo_royale.services.db.trade_repo import TradeRepo
+from algo_royale.clients.db.dao.trade_dao import TradeDAO
+from algo_royale.logging.loggable import Loggable
 
 
 class TradeDirection(ABC):
@@ -36,22 +37,99 @@ class TradeEntry:
 
 
 class TradeRepo:
-    """A repository for managing trades."""
+    def __init__(
+        self,
+        dao: TradeDAO,
+        logger: Loggable,
+        user_id: str,
+        account_id: str,
+    ):
+        self.dao = dao
+        self.logger = logger
+        self.user_id = user_id
+        self.account_id = account_id
 
-    def __init__(self, trade_service: TradeRepo):
-        self.trade_service = trade_service
-        self.fetch_page_size = 10
+    def fetch_unsettled_trades(self, limit: int = 100, offset: int = 0) -> list:
+        """Fetch all unsettled trades with pagination.
+        :param limit: Maximum number of trades to fetch.
+        :param offset: Offset for pagination.
+        :return: List of unsettled trades.
+        """
+        return self.dao.fetch_unsettled_trades(limit, offset)
 
-    def get_trades(self, limit: int = None, offset: int = 0) -> list:
-        return self.trade_service.get_trades(
-            limit=self.fetch_page_size if limit is None else limit, offset=offset
+    def insert_trade(
+        self,
+        symbol: str,
+        market: str,
+        action: str,
+        settlement_date: datetime,
+        entry_price: Decimal,
+        exit_price: Decimal,
+        shares: int,
+        entry_time: datetime,
+        exit_time: datetime,
+        notes: str,
+        order_id: int,
+    ) -> int:
+        """Insert a new trade record.
+        :param symbol: The stock symbol of the trade.
+        :param market: The market where the trade occurred (e.g., 'NYSE', 'NASDAQ').
+        :param action: The action of the trade (e.g., 'buy', 'sell').
+        :param settlement_date: The settlement date of the trade.
+        :param entry_price: The entry price of the trade.
+        :param exit_price: The exit price of the trade.
+        :param shares: The number of shares traded.
+        :param entry_time: The time when the trade was entered.
+        :param exit_time: The time when the trade was exited.
+        :param notes: Additional notes about the trade.
+        :param order_id: The ID of the associated order.
+        :return: The ID of the newly inserted trade record.
+        """
+        return self.dao.insert_trade(
+            symbol,
+            market,
+            action,
+            settlement_date,
+            entry_price,
+            exit_price,
+            shares,
+            entry_time,
+            exit_time,
+            notes,
+            order_id,
+            self.user_id,
+            self.account_id,
         )
 
-    def add_trade(self, trade):
-        self.trade_service.create_trade(trade)
+    def fetch_trades_by_date_range(
+        self,
+        start_date: datetime,
+        end_date: datetime,
+        limit: int = 100,
+        offset: int = 0,
+    ) -> list:
+        """Fetch trades within a specific date range.
+        :param start_date: The start date of the range.
+        :param end_date: The end date of the range.
+        :param limit: The maximum number of trades to return.
+        :param offset: The number of trades to skip.
+        :return: A list of trades within the specified date range.
+        """
+        return self.dao.fetch_trades_by_date_range(start_date, end_date, limit, offset)
 
-    def update_trade(self, trade_id, updated_trade):
-        self.trade_service.update_trade(trade_id, updated_trade)
+    def update_trade_as_settled(self, trade_id: int) -> int:
+        """Update a trade as settled."""
+        return self.dao.update_trade_as_settled(trade_id)
 
-    def _get_trade_pnl(self, trade_entry: TradeEntry) -> Decimal:
-        """Calculate the profit or loss of a trade."""
+    def delete_trade(self, trade_id: int) -> int:
+        """Delete a trade record.
+        :param trade_id: The ID of the trade to delete.
+        :return: Number of deleted records."""
+        return self.dao.delete_trade(trade_id)
+
+    def delete_all_trades(self) -> int:
+        """Delete all trade records.
+        This is a destructive operation and should be used with caution.
+        :return: Number of deleted records.
+        """
+        return self.dao.delete_all_trades()

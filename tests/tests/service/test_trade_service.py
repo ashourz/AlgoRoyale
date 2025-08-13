@@ -5,7 +5,7 @@ from decimal import Decimal
 from unittest import TestCase
 from unittest.mock import patch
 
-from algo_royale.services.db.trade_repo import TradeRepo
+from algo_royale.repo.trade_repo import TradeRepo
 
 
 class TestTradeService(TestCase):

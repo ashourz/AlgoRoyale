@@ -1,9 +1,13 @@
 from flask import Blueprint, jsonify, request
 
-from algo_royale.services.order_service import OrderService
+from algo_royale.services.orders_service import OrderServices
 
 
-def create_order_blueprint(service: OrderService) -> Blueprint:
+def create_order_blueprint(service: OrderServices) -> Blueprint:
+    """Create a Flask blueprint for order routes.
+    :param service: An instance of OrderServices.
+    :return: A Flask blueprint with order routes.
+    """
     order_bp = Blueprint("order", __name__)
 
     @order_bp.route("/status/<string:status>", methods=["GET"])
@@ -36,3 +40,5 @@ def create_order_blueprint(service: OrderService) -> Blueprint:
             signal_id=data["signal_id"],
         )
         return jsonify({"order_id": order_id}), 201
+
+    return order_bp
