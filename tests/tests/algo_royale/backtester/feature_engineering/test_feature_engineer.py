@@ -3,7 +3,9 @@ from unittest.mock import MagicMock
 import pandas as pd
 import pytest
 
-from algo_royale.backtester.feature_engineering.feature_engineer import FeatureEngineer
+from algo_royale.backtester.feature_engineering.backtest_feature_engineer import (
+    BacktestFeatureEngineer,
+)
 
 
 @pytest.fixture
@@ -117,7 +119,7 @@ async def test_engineer_features_yields_engineered(mock_logger):
             }
         )
 
-    fe = FeatureEngineer(
+    fe = BacktestFeatureEngineer(
         feature_engineering_func=fake_feature_engineering,
         logger=mock_logger,
         max_lookback=0,
@@ -151,7 +153,7 @@ async def test_engineer_features_handles_exception(mock_logger):
             }
         )
 
-    fe = FeatureEngineer(
+    fe = BacktestFeatureEngineer(
         feature_engineering_func=bad_feature_engineering,
         logger=mock_logger,
     )

@@ -1,6 +1,8 @@
 import asyncio
 from typing import Any, Callable
 
+import pandas as pd
+
 from algo_royale.application.market_data.market_data_raw_streamer import (
     MarketDataRawStreamer,
 )
@@ -8,37 +10,39 @@ from algo_royale.application.signals.signals_data_payload import SignalDataPaylo
 from algo_royale.application.signals.stream_signal_roster_object import (
     StreamSignalRosterObject,
 )
-from algo_royale.application.strategies.strategy_registry import StrategyRegistry
 from algo_royale.application.symbol.symbol_manager import SymbolManager
 from algo_royale.application.utils.async_pubsub import AsyncSubscriber
-from algo_royale.backtester.strategy.signal.combined_weighted_signal_strategy import (
-    CombinedWeightedSignalStrategy,
+from algo_royale.backtester.column_names.feature_engineering_columns import (
+    FeatureEngineeringColumns,
 )
 from algo_royale.logging.loggable import Loggable
 
 
-class SignalGenerator:
-    signal_event_type = "SIGNAL_GENERATED"
+class MarketDataEnrichedStreamer:
+    signal_event_type = "DATA_ENRICHED"
 
     def __init__(
         self,
         symbol_manager: SymbolManager,
         market_data_streamer: MarketDataRawStreamer,
-        strategy_registry: StrategyRegistry,
+        feature_engineering_func: Callable[[pd.DataFrame], pd.DataFrame],
         logger: Loggable,
     ):
         self.logger = logger
         self.symbol_manager = symbol_manager
         self.market_data_streamer = market_data_streamer
-        self.strategy_registry = strategy_registry
+        self.feature_engineering_func = feature_engineering_func
         # MARKET DATA
         self.symbol_async_subscriber_map: dict[str, AsyncSubscriber] = {}
-        # STRATEGIES
-        self.symbol_strategy_map: dict[str, CombinedWeightedSignalStrategy] = {}
-        # SIGNALS
-        self.symbol_signal_lock_map: dict[str, asyncio.Lock] = {}
-        self.signal_roster: StreamSignalRosterObject | None = None
-        self.logger.info("SignalGenerator initialized.")
+        # FEATURE ENGINEERING
+        self.symbol_enrichment_lock_map: dict[str, asyncio.Lock] = {}
+        self.symbol_enrichment_buffer: dict[str, pd.DataFrame] = {}
+        self.enrichment_max_lookback = (
+            FeatureEngineeringColumns.get_max_lookback_from_columns()
+        )
+        self.logger.info(
+            f"MarketDataEnrichedStreamer initialized with max lookback: {self.enrichment_max_lookback}"
+        )
 
     async def async_start(self):
         """
@@ -46,44 +50,24 @@ class SignalGenerator:
         """
         try:
             symbols = await self.symbol_manager.async_get_symbols()
-            self.logger.info("Loading symbol strategies...")
-            self._load_symbol_strategies(symbols=symbols)
             self.logger.info("Initializing symbol signal locks...")
-            self._initialize_symbol_signal_lock(symbols=symbols)
+            self._initialize_symbol_enrichment_lock(symbols=symbols)
             self.logger.info("Subscribing to streams...")
             self._subscribe_to_market_streams(symbols=symbols)
             self.logger.info("Creating signal roster object...")
             self.signal_roster = StreamSignalRosterObject(
                 initial_symbols=symbols, logger=self.logger
             )
-            self.logger.info(f"Starting signal generation | symbols: {symbols}")
-            await self.market_data_streamer.async_start()
         except Exception as e:
             self.logger.error(f"Error starting signal generation: {e}")
 
-    def _load_symbol_strategies(self, symbols: list[str]):
+    def _initialize_symbol_enrichment_lock(self, symbols: list[str]):
         """
-        Load symbol strategies from the strategy registry.
-        """
-        try:
-            for symbol in symbols:
-                self.logger.debug(f"Loading strategies for symbol: {symbol}")
-                self.symbol_strategy_map[symbol] = (
-                    self.strategy_registry.get_combined_weighted_signal_strategy(
-                        symbol=symbol
-                    )
-                )
-            self.logger.info("Symbol strategies loaded successfully.")
-        except Exception as e:
-            self.logger.error(f"Error loading symbol strategies: {e}")
-
-    def _initialize_symbol_signal_lock(self, symbols: list[str]):
-        """
-        Initialize locks for each symbol to ensure thread-safe signal generation.
+        Initialize locks for each symbol to ensure thread-safe access to enrichment operations.
         """
         for symbol in symbols:
-            if symbol not in self.symbol_signal_lock_map:
-                self.symbol_signal_lock_map[symbol] = asyncio.Lock()
+            if symbol not in self.symbol_enrichment_lock_map:
+                self.symbol_enrichment_lock_map[symbol] = asyncio.Lock()
             self.logger.debug(f"Initialized lock for symbol: {symbol}")
         else:
             self.logger.debug(f"Lock already exists for symbol: {symbol}")
@@ -99,7 +83,7 @@ class SignalGenerator:
 
                 async_subscriber = self.market_data_streamer.subscribe_to_stream(
                     symbol=symbol,
-                    callback=lambda data, symbol=symbol: self._async_generate_signal(
+                    callback=lambda data, symbol=symbol: self._async_data_enrichment(
                         symbol=symbol, data=data
                     ),
                 )
@@ -108,7 +92,7 @@ class SignalGenerator:
         except Exception as e:
             self.logger.error(f"Error subscribing to market stream for {symbol}: {e}")
 
-    async def _async_generate_signal(self, symbol: str, data: dict):
+    async def _async_data_enrichment(self, symbol: str, data: dict):
         """
         Generate a trading signal based on the provided data and strategy.
 
@@ -120,28 +104,19 @@ class SignalGenerator:
                 self.logger.warning(f"No strategy found for symbol: {symbol}")
                 return
 
-            lock = self.symbol_signal_lock_map.get(symbol)
+            lock = self.symbol_enrichment_lock_map.get(symbol)
             if lock is None:
                 self.logger.error(f"No lock found for symbol: {symbol}")
                 return
 
             async with lock:
-                # generate signal
-                await self._async_generate_signal_inner(symbol, data)
+                # Enrich data
+                await self._async_data_enrichment_inner(symbol, data)
         except Exception as e:
             self.logger.error(f"Error generating signal for {symbol}: {e}")
             return
 
-    async def _async_generate_signal_inner(self, symbol: str, data: dict):
-        strategy = self.symbol_strategy_map[symbol]
-        # Validation
-        if strategy is None:
-            self.logger.error(f"No strategy found for symbol: {symbol}")
-            return
-        if not data:
-            self.logger.warning(f"No data provided for symbol: {symbol}")
-            return
-
+    async def _async_data_enrichment_inner(self, symbol: str, data: dict):
         self.logger.debug(f"Generating signals for {symbol} with data: {data}")
         signals = strategy.generate_signals(data)
         self.logger.debug(f"[{symbol}] Generated signals: {signals}")

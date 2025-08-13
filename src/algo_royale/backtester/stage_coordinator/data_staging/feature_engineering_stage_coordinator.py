@@ -4,8 +4,8 @@ from typing import AsyncIterator, Callable, Dict, Optional
 import pandas as pd
 
 from algo_royale.backtester.enums.backtest_stage import BacktestStage
-from algo_royale.backtester.feature_engineering.feature_engineer import (
-    FeatureEngineer,
+from algo_royale.backtester.feature_engineering.backtest_feature_engineer import (
+    BacktestFeatureEngineer,
 )
 from algo_royale.backtester.stage_coordinator.stage_coordinator import StageCoordinator
 from algo_royale.backtester.stage_data.loader.symbol_strategy_data_loader import (
@@ -38,7 +38,7 @@ class FeatureEngineeringStageCoordinator(StageCoordinator):
         data_writer: SymbolStrategyDataWriter,
         data_manager: StageDataManager,
         logger: Loggable,
-        feature_engineer: FeatureEngineer,
+        feature_engineer: BacktestFeatureEngineer,
     ):
         self.stage = BacktestStage.FEATURE_ENGINEERING
         self.data_loader = data_loader

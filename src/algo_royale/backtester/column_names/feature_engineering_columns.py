@@ -6,6 +6,20 @@ class FeatureEngineeringColumns(DataIngestColumns):
     """Column names used for feature engineering in the algorithmic trading framework.
     These columns are derived from the raw data and used for technical analysis and modeling."""
 
+    @classmethod
+    def get_max_lookback_from_columns(cls):
+        """
+        Returns the maximum lookback window required based on the last '_' separated value in feature engineering column names.
+        """
+        max_lookback = 1
+        for attr in dir(cls):
+            col = getattr(cls, attr)
+            if hasattr(col, "value"):
+                parts = col.value.split("_")
+                if parts[-1].isdigit():
+                    max_lookback = max(max_lookback, int(parts[-1]))
+        return max_lookback
+
     # Technical indicators
     PCT_RETURN = ColumnName(
         value="pct_return",

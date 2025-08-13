@@ -1,6 +1,7 @@
 from logging import Logger
 from typing import Any
 
+from algo_royale.adapters.market_data.stream_adapter import StreamAdapter
 from algo_royale.application.signals.stream_data_ingest_object import (
     StreamDataIngestObject,
 )
@@ -9,10 +10,9 @@ from algo_royale.application.utils.async_pubsub import AsyncSubscriber
 from algo_royale.models.alpaca_market_data.alpaca_stream_bar import StreamBar
 from algo_royale.models.alpaca_market_data.alpaca_stream_quote import StreamQuote
 from algo_royale.models.alpaca_market_data.enums import DataFeed
-from algo_royale.services.market_data.stream_adapter import StreamAdapter
 
 
-class MarketDataStreamer:
+class MarketDataRawStreamer:
     """
     MarketDataStreamer is responsible for managing the streaming of market data
     for various stock symbols. It initializes stream data ingest objects for each

@@ -36,7 +36,9 @@ from algo_royale.backtester.executor.portfolio_backtest_executor import (
 from algo_royale.backtester.executor.strategy_backtest_executor import (
     StrategyBacktestExecutor,
 )
-from algo_royale.backtester.feature_engineering.feature_engineer import FeatureEngineer
+from algo_royale.backtester.feature_engineering.backtest_feature_engineer import (
+    BacktestFeatureEngineer,
+)
 from algo_royale.backtester.feature_engineering.feature_engineering import (
     feature_engineering,
 )
@@ -483,7 +485,7 @@ class DIContainer(containers.DeclarativeContainer):
     )
 
     feature_engineer = providers.Singleton(
-        FeatureEngineer,
+        BacktestFeatureEngineer,
         feature_engineering_func=feature_engineering_func,
         logger=logger_backtest_feature_engineering,
     )
