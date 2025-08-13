@@ -22,7 +22,7 @@ from algo_royale.models.alpaca_trading.enums import (
 )
 
 
-class AlpacaOrdersService:
+class OrdersAdapter:
     """
     Service class to interact with Alpaca's API for orders management.
 

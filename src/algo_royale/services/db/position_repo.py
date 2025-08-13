@@ -2,7 +2,7 @@ from algo_royale.clients.db.dao.position_dao import PositionDAO
 from algo_royale.logging.loggable import Loggable
 
 
-class PositionService:
+class PositionRepo:
     def __init__(
         self,
         dao: PositionDAO,

@@ -2,7 +2,7 @@ from typing import Optional
 
 from algo_royale.logging.loggable import Loggable
 from algo_royale.models.alpaca_trading.alpaca_position import PositionList
-from algo_royale.services.trading.positions_service import PositionsService
+from algo_royale.services.trading.positions_adapter import PositionsAdapter
 
 
 class PositionsRepo:
@@ -10,7 +10,7 @@ class PositionsRepo:
     Repository for managing positions in trading.
     """
 
-    def __init__(self, positions_service: PositionsService, logger: Loggable):
+    def __init__(self, positions_service: PositionsAdapter, logger: Loggable):
         self.positions_service = positions_service
         self.logger = logger
         self.positions: Optional[PositionList] = None

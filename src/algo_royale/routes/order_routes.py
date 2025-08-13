@@ -1,6 +1,6 @@
 from flask import Blueprint, jsonify, request
 
-from algo_royale.services.db.order_service import OrderService
+from algo_royale.services.order_service import OrderService
 
 
 def create_order_blueprint(service: OrderService) -> Blueprint:

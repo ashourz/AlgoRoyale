@@ -1,13 +1,13 @@
 from decimal import Decimal
 from logging import Logger
 
-from algo_royale.services.trading.alpaca_account_service import AlpacaAccountService
+from algo_royale.services.trading.account_adapter import AccountAdapter
 
 
-class CashRepo:
+class AccountCashAdapter:
     """Repository class to manage cash-related operations using AlpacaAccountService."""
 
-    def __init__(self, account_service: AlpacaAccountService, logger: Logger):
+    def __init__(self, account_service: AccountAdapter, logger: Logger):
         self.account_service = account_service
         self.buying_power: Decimal = self._fetch_buying_power()
         self.total_cash: Decimal = self._fetch_total_cash()

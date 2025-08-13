@@ -1,9 +1,13 @@
 from typing import Optional
-from algo_royale.clients.alpaca.alpaca_trading.alpaca_clock_client import AlpacaClockClient
-from algo_royale.models.alpaca_trading.alpaca_clock import Clock
-from algo_royale.clients.alpaca.exceptions import ClockNotFoundError
 
-class AlpacaClockService:
+from algo_royale.clients.alpaca.alpaca_trading.alpaca_clock_client import (
+    AlpacaClockClient,
+)
+from algo_royale.clients.alpaca.exceptions import ClockNotFoundError
+from algo_royale.models.alpaca_trading.alpaca_clock import Clock
+
+
+class ClockAdapter:
     """Service class to interact with Alpaca's clock data, leveraging AlpacaClockClient."""
 
     def __init__(self, clock_client: AlpacaClockClient):
@@ -43,5 +47,5 @@ class AlpacaClockService:
 
         if not clock:
             raise ClockNotFoundError("Clock data could not be retrieved from Alpaca.")
-        
+
         return clock

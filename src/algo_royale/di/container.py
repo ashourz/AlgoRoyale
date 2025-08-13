@@ -144,12 +144,12 @@ from algo_royale.logging.logger_factory import (
     LoggerFactory,
     LoggerType,
 )
-from algo_royale.repo.symbols.watchlist_repo import WatchlistRepo
-from algo_royale.services.db.indicator_service import IndicatorService
-from algo_royale.services.db.news_sentiment_service import NewsSentimentService
-from algo_royale.services.db.trade_service import TradeService
-from algo_royale.services.db.trade_signal_service import TradeSignalService
-from algo_royale.services.market_data.alpaca_stock_service import AlpacaQuoteService
+from algo_royale.repo.watchlist_repo import WatchlistRepo
+from algo_royale.services.db.indicator_repo import IndicatorRepo
+from algo_royale.services.db.news_sentiment_repo import NewsSentimentRepo
+from algo_royale.services.db.trade_repo import TradeRepo
+from algo_royale.services.db.trade_signal_repo import TradeSignalRepo
+from algo_royale.services.market_data.quote_adapter import QuoteAdapter
 from algo_royale.utils.path_utils import get_data_dir
 from algo_royale.visualization.dashboard import BacktestDashboard
 
@@ -379,15 +379,15 @@ class DIContainer(containers.DeclarativeContainer):
         logger=logger_trading,
     )
 
-    indicator_service = providers.Singleton(IndicatorService, dao=indicator_dao)
+    indicator_service = providers.Singleton(IndicatorRepo, dao=indicator_dao)
 
     news_sentiment_service = providers.Singleton(
-        NewsSentimentService, dao=news_sentiment_dao
+        NewsSentimentRepo, dao=news_sentiment_dao
     )
 
-    trade_service = providers.Singleton(TradeService, dao=trade_dao)
+    trade_service = providers.Singleton(TradeRepo, dao=trade_dao)
 
-    trade_signal_service = providers.Singleton(TradeSignalService, dao=trade_signal_dao)
+    trade_signal_service = providers.Singleton(TradeSignalRepo, dao=trade_signal_dao)
 
     alpaca_corporate_action_client = providers.Factory(
         AlpacaCorporateActionClient, trading_config=trading_config
@@ -442,7 +442,7 @@ class DIContainer(containers.DeclarativeContainer):
     )
 
     alpaca_quote_service = providers.Singleton(
-        AlpacaQuoteService, alpaca_stock_client=alpaca_stock_client
+        QuoteAdapter, alpaca_stock_client=alpaca_stock_client
     )
 
     data_dir = get_data_dir()

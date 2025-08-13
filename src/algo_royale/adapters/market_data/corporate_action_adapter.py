@@ -14,7 +14,7 @@ from algo_royale.models.alpaca_market_data.alpaca_corporate_action import (
 from algo_royale.models.alpaca_market_data.enums import CorporateActions
 
 
-class AlpacaCorporateActionService:
+class CorporateActionAdapter:
     """
     Service class that wraps AlpacaCorporateActionClient to provide
     easier-to-use access to corporate actions, with additional business logic.

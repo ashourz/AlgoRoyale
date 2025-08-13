@@ -4,10 +4,10 @@ from datetime import datetime
 
 from flask import Blueprint, jsonify, request
 
-from algo_royale.services.db.trade_service import TradeService
+from algo_royale.services.db.trade_repo import TradeRepo
 
 
-def create_trade_blueprint(service: TradeService) -> Blueprint:
+def create_trade_blueprint(service: TradeRepo) -> Blueprint:
     trade_bp = Blueprint("trade", __name__)
 
     @trade_bp.route("/unsettled", methods=["GET"])

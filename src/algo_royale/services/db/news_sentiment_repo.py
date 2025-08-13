@@ -6,7 +6,7 @@ from typing import Tuple
 from algo_royale.clients.db.dao.news_sentiment_dao import NewsSentimentDAO
 
 
-class NewsSentimentService:
+class NewsSentimentRepo:
     def __init__(self, dao: NewsSentimentDAO):
         self.dao = dao
 

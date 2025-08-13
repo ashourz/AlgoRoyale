@@ -11,7 +11,7 @@ from algo_royale.clients.alpaca.alpaca_market_data.alpaca_news_client import (
 from algo_royale.models.alpaca_market_data.alpaca_news import NewsResponse
 
 
-class AlpacaNewsService:
+class NewsAdapter:
     """
     Service class to interact with Alpaca's NewsClient and
     provide higher-level business logic if needed.

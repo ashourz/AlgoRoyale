@@ -3,7 +3,7 @@ from decimal import Decimal
 
 from pyparsing import ABC
 
-from algo_royale.services.db.trade_service import TradeService
+from algo_royale.services.db.trade_repo import TradeRepo
 
 
 class TradeDirection(ABC):
@@ -38,7 +38,7 @@ class TradeEntry:
 class TradeRepo:
     """A repository for managing trades."""
 
-    def __init__(self, trade_service: TradeService):
+    def __init__(self, trade_service: TradeRepo):
         self.trade_service = trade_service
         self.fetch_page_size = 10
 

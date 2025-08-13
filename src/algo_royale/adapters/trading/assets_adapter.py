@@ -7,7 +7,7 @@ from algo_royale.clients.alpaca.exceptions import AssetNotFoundError
 from algo_royale.models.alpaca_trading.alpaca_asset import Asset
 
 
-class AlpacaAssetService:
+class AssetsAdapter:
     """Service class to interact with Alpaca's assets data, leveraging AlpacaAssetsClient."""
 
     def __init__(self, assets_client: AlpacaAssetsClient):

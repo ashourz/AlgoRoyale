@@ -11,7 +11,7 @@ from algo_royale.models.alpaca_trading.alpaca_watchlist import (
 )
 
 
-class AlpacaWatchlistService:
+class WatchlistAdapter:
     """Service class for interacting with Alpaca's watchlist data."""
 
     def __init__(self, client: AlpacaWatchlistClient):

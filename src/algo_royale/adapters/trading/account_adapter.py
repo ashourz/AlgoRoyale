@@ -21,7 +21,7 @@ from algo_royale.models.alpaca_trading.enums import (
 )
 
 
-class AlpacaAccountService:
+class AccountAdapter:
     """Service class to interact with Alpaca account data, leveraging the AlpacaAccountClient."""
 
     def __init__(self, account_client: AlpacaAccountClient):

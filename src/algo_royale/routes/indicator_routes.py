@@ -1,12 +1,15 @@
 # src/routes/indicator_routes.py
 
-from flask import Blueprint, request, jsonify
 from datetime import datetime
 from decimal import Decimal
-from algo_royale.services.db.indicator_service import IndicatorService
+
+from flask import Blueprint, jsonify, request
+
+from algo_royale.services.db.indicator_repo import IndicatorRepo
 
 indicator_bp = Blueprint("indicator", __name__)
-service = IndicatorService()
+service = IndicatorRepo()
+
 
 @indicator_bp.route("/", methods=["POST"])
 def insert_indicator():
@@ -23,19 +26,24 @@ def insert_indicator():
         price=Decimal(data["price"]),
         ema_short=Decimal(data["ema_short"]),
         ema_long=Decimal(data["ema_long"]),
-        recorded_at=datetime.fromisoformat(data["recorded_at"])
+        recorded_at=datetime.fromisoformat(data["recorded_at"]),
     )
     return jsonify({"message": "Indicator inserted"}), 201
+
 
 @indicator_bp.route("/<int:trade_id>", methods=["GET"])
 def fetch_by_trade_id(trade_id):
     indicators = service.fetch_by_trade_id(trade_id)
     return jsonify(indicators)
 
-@indicator_bp.route("/<int:trade_id>/<string:start_date>/<string:end_date>", methods=["GET"])
+
+@indicator_bp.route(
+    "/<int:trade_id>/<string:start_date>/<string:end_date>", methods=["GET"]
+)
 def fetch_by_trade_id_and_date(trade_id, start_date, end_date):
     indicators = service.fetch_by_trade_id_and_date(trade_id, start_date, end_date)
     return jsonify(indicators)
+
 
 @indicator_bp.route("/<int:indicator_id>", methods=["PUT"])
 def update_indicator(indicator_id):
@@ -52,9 +60,10 @@ def update_indicator(indicator_id):
         price=Decimal(data["price"]),
         ema_short=Decimal(data["ema_short"]),
         ema_long=Decimal(data["ema_long"]),
-        recorded_at=datetime.fromisoformat(data["recorded_at"])
+        recorded_at=datetime.fromisoformat(data["recorded_at"]),
     )
     return jsonify({"message": "Indicator updated"}), 200
+
 
 @indicator_bp.route("/<int:indicator_id>", methods=["DELETE"])
 def delete_indicator(indicator_id):

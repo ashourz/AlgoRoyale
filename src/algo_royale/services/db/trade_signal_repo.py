@@ -6,7 +6,7 @@ from algo_royale.clients.db.dao.trade_signal_dao import TradeSignalDAO
 from algo_royale.logging.loggable import Loggable
 
 
-class TradeSignalService:
+class TradeSignalRepo:
     def __init__(
         self, dao: TradeSignalDAO, logger: Loggable, user_id: str, account_id: str
     ):

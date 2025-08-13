@@ -3,10 +3,10 @@
 
 from flask import Blueprint, jsonify, request
 
-from algo_royale.services.db.trade_signal_service import TradeSignalService
+from algo_royale.services.db.trade_signal_repo import TradeSignalRepo
 
 trade_signal_bp = Blueprint("trade_signal", __name__)
-service = TradeSignalService()
+service = TradeSignalRepo()
 
 
 @trade_signal_bp.route("/all", methods=["GET"])

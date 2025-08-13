@@ -25,7 +25,7 @@ from algo_royale.models.alpaca_market_data.alpaca_trade import (
 from algo_royale.models.alpaca_market_data.enums import SnapshotFeed, Tape, TickType
 
 
-class AlpacaQuoteService:
+class QuoteAdapter:
     """
     Service class to interact with Alpaca's API for retrieving market data such as quotes, trades, auctions, and bars.
     This class abstracts the AlpacaStockClient and provides higher-level methods to fetch data.

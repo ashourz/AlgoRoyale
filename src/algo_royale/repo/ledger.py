@@ -2,16 +2,16 @@ import datetime
 from decimal import Decimal
 from logging import Logger
 from algo_royale.logging.loggable import Loggable
-from algo_royale.repo.cash.cash_repo import CashRepo
-from algo_royale.repo.orders.order_repo import OrderRepo
-from algo_royale.repo.symbols.positions_repo import PositionsRepo
-from algo_royale.repo.trades.trade_repo import TradeDirection, TradeEntry, TradeRepo
+from algo_royale.repo.cash_repo import AccountCashAdapter
+from algo_royale.repo.order_repo import OrderRepo
+from algo_royale.repo.positions_repo import PositionsRepo
+from algo_royale.repo.trade_repo import TradeDirection, TradeEntry, TradeRepo
 
 
 class Ledger:
     def __init__(
         self, 
-        cash_repo: CashRepo,
+        cash_repo: AccountCashAdapter,
         orderRepo: OrderRepo,
         tradeRepo: TradeRepo,
         positionsRepo: PositionsRepo,

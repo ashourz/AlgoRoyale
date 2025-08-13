@@ -1,9 +1,9 @@
 from flask import Blueprint, jsonify, request
 
-from algo_royale.services.db.position_service import PositionService
+from algo_royale.services.db.position_repo import PositionRepo
 
 
-def create_position_blueprint(service: PositionService) -> Blueprint:
+def create_position_blueprint(service: PositionRepo) -> Blueprint:
     position_bp = Blueprint("position", __name__)
 
     @position_bp.route("/positions", methods=["GET"])

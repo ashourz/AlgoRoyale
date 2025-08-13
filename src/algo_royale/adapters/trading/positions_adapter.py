@@ -15,7 +15,7 @@ from algo_royale.models.alpaca_trading.alpaca_position import (
 )
 
 
-class PositionsService:
+class PositionsAdapter:
     """Service class to manage positions data and actions on Alpaca API."""
 
     def __init__(self):

@@ -6,7 +6,7 @@ from algo_royale.clients.db.dao.trade_dao import TradeDAO
 from algo_royale.logging.loggable import Loggable
 
 
-class TradeService:
+class TradeRepo:
     def __init__(
         self,
         dao: TradeDAO,

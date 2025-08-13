@@ -9,7 +9,7 @@ from algo_royale.application.utils.async_pubsub import AsyncSubscriber
 from algo_royale.models.alpaca_market_data.alpaca_stream_bar import StreamBar
 from algo_royale.models.alpaca_market_data.alpaca_stream_quote import StreamQuote
 from algo_royale.models.alpaca_market_data.enums import DataFeed
-from algo_royale.services.market_data.stream_service import StreamService
+from algo_royale.services.market_data.stream_adapter import StreamAdapter
 
 
 class MarketDataStreamer:
@@ -22,7 +22,7 @@ class MarketDataStreamer:
     def __init__(
         self,
         symbol_manager: SymbolManager,
-        stream_service: StreamService,
+        stream_service: StreamAdapter,
         logger: Logger,
         is_live: bool = False,
     ):

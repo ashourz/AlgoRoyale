@@ -6,7 +6,7 @@ from decimal import Decimal
 from unittest import TestCase
 from unittest.mock import patch
 
-from algo_royale.services.db.trade_signal_service import TradeSignalService
+from algo_royale.services.db.trade_signal_repo import TradeSignalRepo
 
 
 class TestTradeSignalService(TestCase):
@@ -14,7 +14,7 @@ class TestTradeSignalService(TestCase):
     def setUp(self, MockTradeSignalsDAO):
         """Set up mock objects and test data."""
         self.mock_dao = MockTradeSignalsDAO.return_value
-        self.service = TradeSignalService(dao=self.mock_dao)
+        self.service = TradeSignalRepo(dao=self.mock_dao)
 
     def test_create_signal(self):
         """Test the create_signal method."""
