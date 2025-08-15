@@ -3,7 +3,7 @@ from typing import Optional
 from algo_royale.adapters.trading.positions_adapter import PositionsAdapter
 from algo_royale.logging.loggable import Loggable
 from algo_royale.models.alpaca_trading.alpaca_position import PositionList
-from algo_royale.services.db.position_repo import PositionRepo
+from algo_royale.repo.position_repo import PositionRepo
 
 
 class PositionsService:
@@ -29,7 +29,7 @@ class PositionsService:
             if self.positions:
                 self.logger.info(f"Open positions fetched: {self.positions}")
                 return self.positions
-            open_positions = await self.positions_adapter.get_all_open_positions()
+            open_positions = await self.adapter.get_all_open_positions()
             if open_positions:
                 self.positions = open_positions
                 self.logger.info(f"Open positions updated: {self.positions}")
@@ -44,9 +44,7 @@ class PositionsService:
         self, symbol: str, status: str, limit: int = 100, offset: int = 0
     ) -> list:
         """Fetch positions by symbol and status with pagination."""
-        return self.repo.fetch_positions_by_symbol_and_status(
-            symbol, status, limit, offset
-        )
+        return self.repo.fetch_positions_by_symbol(symbol, status, limit, offset)
 
     def fetch_positions_by_status(
         self, status: str, limit: int = 100, offset: int = 0

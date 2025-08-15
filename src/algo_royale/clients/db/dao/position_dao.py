@@ -18,8 +18,13 @@ class PositionDAO(BaseDAO):
         """
         return self.fetch("get_all_positions.sql", (user_id, account_id, limit, offset))
 
-    def fetch_position_by_symbol(
-        self, symbol: str, user_id: str, account_id: str
+    def fetch_positions_by_symbol(
+        self,
+        symbol: str,
+        user_id: str,
+        account_id: str,
+        limit: int = 100,
+        offset: int = 0,
     ) -> list:
         """
         Fetch positions by their symbol.
@@ -28,7 +33,28 @@ class PositionDAO(BaseDAO):
         :param account_id: The ID of the account whose positions to fetch.
         :return: List of positions with the specified symbol.
         """
-        return self.fetch("get_positions_by_symbol.sql", (symbol, user_id, account_id))
+        return self.fetch(
+            "get_positions_by_symbol.sql", (symbol, user_id, account_id, limit, offset)
+        )
+
+    def fetch_positions_by_status(
+        self,
+        status: str,
+        user_id: str,
+        account_id: str,
+        limit: int = 100,
+        offset: int = 0,
+    ) -> list:
+        """
+        Fetch positions by their status.
+        :param status: The status of the positions to fetch.
+        :param user_id: The ID of the user whose positions to fetch.
+        :param account_id: The ID of the account whose positions to fetch.
+        :return: List of positions with the specified status.
+        """
+        return self.fetch(
+            "get_positions_by_status.sql", (status, user_id, account_id, limit, offset)
+        )
 
     def upsert_position(
         self,

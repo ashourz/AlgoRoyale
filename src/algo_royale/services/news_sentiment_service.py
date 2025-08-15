@@ -3,7 +3,7 @@ from datetime import datetime
 from decimal import Decimal
 from typing import Tuple
 
-from algo_royale.services.db.news_sentiment_repo import NewsSentimentRepo
+from algo_royale.repo.news_sentiment_repo import NewsSentimentRepo
 
 
 class NewsSentimentService:

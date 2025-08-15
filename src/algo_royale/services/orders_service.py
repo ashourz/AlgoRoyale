@@ -81,7 +81,7 @@ class OrderServices:
                 f"Invalid fill parameters: quantity={fill_quantity}, price={fill_price}."
             )
             return False
-        current_position = self.position_repo.fetch_position_by_symbol(
+        current_position = self.position_repo.fetch_positions_by_symbol(
             symbol=order["symbol"],
             user_id=self.user_id,
             account_id=self.account_id,
