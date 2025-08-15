@@ -100,9 +100,9 @@ class SignalGenerator:
                 async_subscriber = (
                     self.enriched_data_streamer.subscribe_to_enriched_data(
                         symbol=symbol,
-                        callback=lambda data,
+                        callback=lambda enriched_data,
                         symbol=symbol: self._async_generate_signal(
-                            symbol=symbol, data=data
+                            symbol=symbol, enriched_data=enriched_data
                         ),
                     )
                 )
@@ -111,7 +111,7 @@ class SignalGenerator:
         except Exception as e:
             self.logger.error(f"Error subscribing to enriched stream for {symbol}: {e}")
 
-    async def _async_generate_signal(self, symbol: str, data: dict):
+    async def _async_generate_signal(self, symbol: str, enriched_data: dict):
         """
         Generate a trading signal based on the provided data and strategy.
 
@@ -130,29 +130,31 @@ class SignalGenerator:
 
             async with lock:
                 # generate signal
-                await self._async_generate_signal_inner(symbol, data)
+                await self._async_generate_signal_inner(symbol, enriched_data)
         except Exception as e:
             self.logger.error(f"Error generating signal for {symbol}: {e}")
 
-    async def _async_generate_signal_inner(self, symbol: str, data: dict):
+    async def _async_generate_signal_inner(self, symbol: str, enriched_data: dict):
         try:
             strategy = self.symbol_strategy_map[symbol]
             # Validation
             if strategy is None:
                 self.logger.error(f"No strategy found for symbol: {symbol}")
                 return
-            if not data:
+            if not enriched_data:
                 self.logger.warning(f"No data provided for symbol: {symbol}")
                 return
 
-            self.logger.debug(f"Generating signals for {symbol} with data: {data}")
-            signals = strategy.generate_signals(data)
+            self.logger.debug(
+                f"Generating signals for {symbol} with data: {enriched_data}"
+            )
+            signals = strategy.generate_signals(enriched_data)
             self.logger.debug(f"[{symbol}] Generated signals: {signals}")
             if signals is None or signals.empty:
                 self.logger.warning(f"No signals generated for symbol: {symbol}")
                 return
             else:
-                payload = SignalDataPayload(signals=signals, price_data=data)
+                payload = SignalDataPayload(signals=signals, price_data=enriched_data)
                 await self.signal_roster.async_set_signal_data_payload(
                     symbol=symbol, payload=payload
                 )

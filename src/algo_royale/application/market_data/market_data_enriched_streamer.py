@@ -162,7 +162,8 @@ class MarketDataEnrichedStreamer:
         """
         try:
             pubsub = self._get_enriched_data_pubsub(symbol)
-            await pubsub.async_publish(self.enrichment_event_type, enriched_data)
+            dict_data = enriched_data.to_dict()
+            await pubsub.async_publish(self.enrichment_event_type, dict_data)
             self.logger.info(f"Published enriched data for {symbol}")
         except Exception as e:
             self.logger.error(f"Error publishing enriched data for {symbol}: {e}")
