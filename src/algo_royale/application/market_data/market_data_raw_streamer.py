@@ -55,11 +55,16 @@ class MarketDataRawStreamer:
 
     def _initialize_stream_data_ingest_object(self, symbols: list[str]):
         """Initialize stream data ingest objects for each symbol."""
-        for symbol in symbols:
-            self.logger.debug(
-                f"Initializing StreamDataIngestObject for symbol: {symbol}"
-            )
-            self.stream_data_ingest_object_map[symbol] = StreamDataIngestObject(symbol)
+        try:
+            for symbol in symbols:
+                self.logger.debug(
+                    f"Initializing StreamDataIngestObject for symbol: {symbol}"
+                )
+                self.stream_data_ingest_object_map[symbol] = StreamDataIngestObject(
+                    symbol
+                )
+        except Exception as e:
+            self.logger.error(f"Error initializing stream data ingest objects: {e}")
 
     async def _onQuote(self, raw_quote: Any):
         """

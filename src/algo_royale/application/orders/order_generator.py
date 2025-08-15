@@ -60,8 +60,6 @@ class OrderGenerator:
             self.logger.info("Subscribing to streams...")
             self._subscribe_to_roster_stream()
             self.logger.info("Starting signal generation...")
-            await self.signal_generator.async_start()
-            self.logger.info("Starting order generation...")
         except Exception as e:
             self.logger.error(f"Error starting order generation: {e}")
 
@@ -107,7 +105,6 @@ class OrderGenerator:
                 self.logger.warning("No weights generated for the portfolio.")
                 return
 
-            orders = []
             for symbol, signalDataPayload in roster.items():
                 entry_signal = signalDataPayload.signals.get(
                     SignalStrategyColumns.ENTRY_SIGNAL
@@ -120,21 +117,15 @@ class OrderGenerator:
                 if entry_signal == SignalType.BUY.value:
                     # Generate buy order
                     if weight is not None:
-                        order = await self._async_generate_buy_order(
+                        await self._async_generate_buy_order(
                             symbol, weight, signalDataPayload.price_data
                         )
-                        orders.append(order)
                 # Handle exit signal
                 elif exit_signal == SignalType.SELL.value:
                     if weight is not None:
-                        order = await self._async_generate_sell_order(
+                        await self._async_generate_sell_order(
                             symbol, weight, signalDataPayload.price_data
                         )
-                        orders.append(order)
-            if orders:
-                # Publish all generated orders
-                for order in orders:
-                    await self._async_publish_order_event(order)
         except Exception as e:
             self.logger.error(f"Error generating orders: {e}")
 
@@ -144,15 +135,18 @@ class OrderGenerator:
         """
         Generate a buy order for the given symbol with the specified weight.
         """
-        order_payload = SignalOrderPayload(
-            symbol=symbol,
-            side=EquityOrderSide.BUY,
-            weight=weight,
-            price_data=price_data,
-        )
-        self.logger.info(f"Generated buy order: {order_payload}")
-        await self._async_publish_order_event(order_payload)
-        self.logger.info(f"Published order event for {symbol}")
+        try:
+            order_payload = SignalOrderPayload(
+                symbol=symbol,
+                side=EquityOrderSide.BUY,
+                weight=weight,
+                price_data=price_data,
+            )
+            self.logger.info(f"Generated buy order: {order_payload}")
+            await self._async_publish_order_event(order_payload)
+            self.logger.info(f"Published order event for {symbol}")
+        except Exception as e:
+            self.logger.error(f"Error generating buy order for {symbol}: {e}")
 
     async def _async_generate_sell_order(
         self, symbol: str, weight: float, price_data: dict
@@ -160,15 +154,18 @@ class OrderGenerator:
         """
         Generate a sell order for the given symbol with the specified weight.
         """
-        order_payload = SignalOrderPayload(
-            symbol=symbol,
-            side=EquityOrderSide.SELL,
-            weight=weight,
-            price_data=price_data,
-        )
-        self.logger.info(f"Generated sell order: {order_payload}")
-        await self._async_publish_order_event(order_payload)
-        self.logger.info(f"Published order event for {symbol}")
+        try:
+            order_payload = SignalOrderPayload(
+                symbol=symbol,
+                side=EquityOrderSide.SELL,
+                weight=weight,
+                price_data=price_data,
+            )
+            self.logger.info(f"Generated sell order: {order_payload}")
+            await self._async_publish_order_event(order_payload)
+            self.logger.info(f"Published order event for {symbol}")
+        except Exception as e:
+            self.logger.error(f"Error generating sell order for {symbol}: {e}")
 
     def _get_order_pubsub(self, symbol: str) -> AsyncPubSub:
         """
@@ -186,15 +183,18 @@ class OrderGenerator:
         """
         Publish the generated order event to the appropriate pubsub channel.
         """
-        symbol = order_payload.symbol
-        pubsub = self._get_order_pubsub(symbol)
-        if not pubsub:
-            self.logger.error(f"No pubsub found for symbol: {symbol}")
-            return
-        await pubsub.async_publish(
-            event_type=self.order_event_type, payload=order_payload
-        )
-        self.logger.info(f"Order event published for {symbol}: {order_payload}")
+        try:
+            symbol = order_payload.symbol
+            pubsub = self._get_order_pubsub(symbol)
+            if not pubsub:
+                self.logger.error(f"No pubsub found for symbol: {symbol}")
+                return
+            await pubsub.async_publish(
+                event_type=self.order_event_type, payload=order_payload
+            )
+            self.logger.info(f"Order event published for {symbol}: {order_payload}")
+        except Exception as e:
+            self.logger.error(f"Error publishing order event for {symbol}: {e}")
 
     def subscribe_to_order_events(
         self, symbols: list[str], callback: callable, queue_size=1
@@ -223,9 +223,27 @@ class OrderGenerator:
         """
         Unsubscribe from order events for the specified symbols.
         """
-        pubsub = self._get_order_pubsub(symbol)
-        if not pubsub:
-            self.logger.error(f"No pubsub found for symbol: {symbol}")
-            return
-        pubsub.unsubscribe(subscriber=async_subscriber)
-        self.logger.info(f"Unsubscribed from order events for {symbol}")
+        try:
+            pubsub = self._get_order_pubsub(symbol)
+            if not pubsub:
+                self.logger.error(f"No pubsub found for symbol: {symbol}")
+                return
+            pubsub.unsubscribe(subscriber=async_subscriber)
+            self.logger.info(f"Unsubscribed from order events for {symbol}")
+        except Exception as e:
+            self.logger.error(
+                f"Error unsubscribing from order events for {symbol}: {e}"
+            )
+
+    def async_stop(self):
+        """
+        Stop the order generation service.
+        """
+        try:
+            self.logger.info("Stopping order generation service...")
+            if self.signal_roster_subscriber:
+                self.signal_generator.unsubscribe_from_signals(
+                    subscriber=self.signal_roster_subscriber
+                )
+        except Exception as e:
+            self.logger.error(f"Error stopping order generation service: {e}")

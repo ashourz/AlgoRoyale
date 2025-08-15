@@ -101,7 +101,7 @@ class StreamSignalRosterObject:
         payloads = {}
         for symbol in symbols:
             payload = await self._async_get_signal_data_payload(symbol)
-            payloads[symbol] = payload
+            payloads[symbol] = payload.copy()
         return payloads
 
     async def _async_publish_roster_update(self):

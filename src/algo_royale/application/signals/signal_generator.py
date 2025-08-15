@@ -1,8 +1,8 @@
 import asyncio
 from typing import Any, Callable
 
-from algo_royale.application.market_data.market_data_raw_streamer import (
-    MarketDataRawStreamer,
+from algo_royale.application.market_data.market_data_enriched_streamer import (
+    MarketDataEnrichedStreamer,
 )
 from algo_royale.application.signals.signals_data_payload import SignalDataPayload
 from algo_royale.application.signals.stream_signal_roster_object import (
@@ -23,13 +23,13 @@ class SignalGenerator:
     def __init__(
         self,
         symbol_manager: SymbolManager,
-        market_data_streamer: MarketDataRawStreamer,
+        enriched_data_streamer: MarketDataEnrichedStreamer,
         strategy_registry: StrategyRegistry,
         logger: Loggable,
     ):
         self.logger = logger
         self.symbol_manager = symbol_manager
-        self.market_data_streamer = market_data_streamer
+        self.enriched_data_streamer = enriched_data_streamer
         self.strategy_registry = strategy_registry
         # MARKET DATA
         self.symbol_async_subscriber_map: dict[str, AsyncSubscriber] = {}
@@ -51,13 +51,11 @@ class SignalGenerator:
             self.logger.info("Initializing symbol signal locks...")
             self._initialize_symbol_signal_lock(symbols=symbols)
             self.logger.info("Subscribing to streams...")
-            self._subscribe_to_market_streams(symbols=symbols)
+            self._subscribe_to_enriched_streams(symbols=symbols)
             self.logger.info("Creating signal roster object...")
             self.signal_roster = StreamSignalRosterObject(
                 initial_symbols=symbols, logger=self.logger
             )
-            self.logger.info(f"Starting signal generation | symbols: {symbols}")
-            await self.market_data_streamer.async_start()
         except Exception as e:
             self.logger.error(f"Error starting signal generation: {e}")
 
@@ -88,25 +86,30 @@ class SignalGenerator:
         else:
             self.logger.debug(f"Lock already exists for symbol: {symbol}")
 
-    def _subscribe_to_market_streams(self, symbols: list[str]):
+    def _subscribe_to_enriched_streams(self, symbols: list[str]):
         """
-        Subscribe to the market stream for a specific symbol.
+        Subscribe to the enriched stream for a specific symbol.
         This will allow the signal generator to receive real-time data updates.
         """
         try:
             for symbol in symbols:
-                self.logger.debug(f"Subscribing to stream for symbol: {symbol}")
+                self.logger.debug(
+                    f"Subscribing to enriched stream for symbol: {symbol}"
+                )
 
-                async_subscriber = self.market_data_streamer.subscribe_to_stream(
-                    symbol=symbol,
-                    callback=lambda data, symbol=symbol: self._async_generate_signal(
-                        symbol=symbol, data=data
-                    ),
+                async_subscriber = (
+                    self.enriched_data_streamer.subscribe_to_enriched_data(
+                        symbol=symbol,
+                        callback=lambda data,
+                        symbol=symbol: self._async_generate_signal(
+                            symbol=symbol, data=data
+                        ),
+                    )
                 )
                 self.symbol_async_subscriber_map[symbol] = async_subscriber
-                self.logger.info(f"Subscribed to market stream for symbol: {symbol}")
+                self.logger.info(f"Subscribed to enriched stream for symbol: {symbol}")
         except Exception as e:
-            self.logger.error(f"Error subscribing to market stream for {symbol}: {e}")
+            self.logger.error(f"Error subscribing to enriched stream for {symbol}: {e}")
 
     async def _async_generate_signal(self, symbol: str, data: dict):
         """
@@ -130,32 +133,34 @@ class SignalGenerator:
                 await self._async_generate_signal_inner(symbol, data)
         except Exception as e:
             self.logger.error(f"Error generating signal for {symbol}: {e}")
-            return
 
     async def _async_generate_signal_inner(self, symbol: str, data: dict):
-        strategy = self.symbol_strategy_map[symbol]
-        # Validation
-        if strategy is None:
-            self.logger.error(f"No strategy found for symbol: {symbol}")
-            return
-        if not data:
-            self.logger.warning(f"No data provided for symbol: {symbol}")
-            return
+        try:
+            strategy = self.symbol_strategy_map[symbol]
+            # Validation
+            if strategy is None:
+                self.logger.error(f"No strategy found for symbol: {symbol}")
+                return
+            if not data:
+                self.logger.warning(f"No data provided for symbol: {symbol}")
+                return
 
-        self.logger.debug(f"Generating signals for {symbol} with data: {data}")
-        signals = strategy.generate_signals(data)
-        self.logger.debug(f"[{symbol}] Generated signals: {signals}")
-        if signals is None or signals.empty:
-            self.logger.warning(f"No signals generated for symbol: {symbol}")
-            return
-        else:
-            payload = SignalDataPayload(signals=signals, price_data=data)
-            await self.signal_roster.async_set_signal_data_payload(
-                symbol=symbol, payload=payload
-            )
-            self.logger.info(
-                f"Signals generated and set for symbol: {symbol}, signals: {signals}"
-            )
+            self.logger.debug(f"Generating signals for {symbol} with data: {data}")
+            signals = strategy.generate_signals(data)
+            self.logger.debug(f"[{symbol}] Generated signals: {signals}")
+            if signals is None or signals.empty:
+                self.logger.warning(f"No signals generated for symbol: {symbol}")
+                return
+            else:
+                payload = SignalDataPayload(signals=signals, price_data=data)
+                await self.signal_roster.async_set_signal_data_payload(
+                    symbol=symbol, payload=payload
+                )
+                self.logger.info(
+                    f"Signals generated and set for symbol: {symbol}, signals: {signals}"
+                )
+        except Exception as e:
+            self.logger.error(f"Error generating signals for {symbol}: {e}")
 
     def subscribe_to_signals(
         self,
@@ -179,30 +184,36 @@ class SignalGenerator:
 
         :param subscriber: The subscriber to unsubscribe from.
         """
-        self.signal_roster.unsubscribe(subscriber=subscriber)
+        try:
+            self.signal_roster.unsubscribe(subscriber=subscriber)
+        except Exception as e:
+            self.logger.error(f"Error unsubscribing from signals: {e}")
 
-    def _unsubscribe_from_market_data(self):
+    def _unsubscribe_from_enriched_data(self):
         """
-        Unsubscribe from all market data streams for all symbols.
+        Unsubscribe from all enriched data streams for all symbols.
         """
-        for symbol, async_subscriber in self.symbol_async_subscriber_map.items():
-            self.market_data_streamer.unsubscribe_from_stream(symbol, async_subscriber)
-            self.logger.info(f"Unsubscribed from {symbol} market data stream")
+        try:
+            for symbol, async_subscriber in self.symbol_async_subscriber_map.items():
+                self.enriched_data_streamer.unsubscribe_from_enriched_data(
+                    symbol, async_subscriber
+                )
+                self.logger.info(f"Unsubscribed from {symbol} enriched data stream")
+        except Exception as e:
+            self.logger.error(f"Error unsubscribing from enriched data streams: {e}")
         self.symbol_async_subscriber_map.clear()
 
-    async def stop(self):
+    async def async_stop(self):
         """
         Stop the signal generation service.
         """
         try:
             self.logger.info("Stopping signal generation service...")
             await self.signal_roster.async_shutdown()
-            self.logger.info("Stopping signal generation...")
-            await self.market_data_streamer.async_stop()
             self.logger.info("Signal generation stopped.")
             self.symbol_strategy_map.clear()
             self.logger.info("Symbol strategy map cleared.")
-            self._unsubscribe_from_market_data()
-            self.logger.info("Unsubscribed from all market data streams.")
+            self._unsubscribe_from_enriched_data()
+            self.logger.info("Unsubscribed from all enriched data streams.")
         except Exception as e:
             self.logger.error(f"Error stopping signal generation: {e}")
