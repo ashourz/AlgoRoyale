@@ -134,7 +134,7 @@ from algo_royale.clients.alpaca.alpaca_trading.alpaca_positions_client import (
 from algo_royale.clients.alpaca.alpaca_trading.alpaca_watchlist_client import (
     AlpacaWatchlistClient,
 )
-from algo_royale.clients.db.dao.indicator_dao import IndicatorRepo
+from algo_royale.clients.db.dao.indicator_dao import IndicatorDAO
 from algo_royale.clients.db.dao.news_sentiment_dao import NewsSentimentDAO
 from algo_royale.clients.db.dao.trade_dao import TradeDAO
 from algo_royale.clients.db.dao.trade_signal_dao import TradeSignalDAO
@@ -149,7 +149,6 @@ from algo_royale.logging.logger_factory import (
 from algo_royale.repo.trade_repo import TradeRepo
 from algo_royale.repo.trade_signal_repo import TradeSignalRepo
 from algo_royale.repo.watchlist_repo import WatchlistRepo
-from algo_royale.services.db.indicator_repo import IndicatorRepo
 from algo_royale.services.db.news_sentiment_repo import NewsSentimentRepo
 from algo_royale.services.market_data.quote_adapter import QuoteAdapter
 from algo_royale.utils.path_utils import get_data_dir
@@ -354,7 +353,7 @@ class DIContainer(containers.DeclarativeContainer):
     db_connection = providers.Callable(lambda db: db.connection_context(), db=database)
 
     indicator_dao = providers.Singleton(
-        IndicatorRepo,
+        IndicatorDAO,
         connection=db_connection,
         sql_dir=dao_sql_dir,
         logger=logger_trading,
@@ -381,7 +380,7 @@ class DIContainer(containers.DeclarativeContainer):
         logger=logger_trading,
     )
 
-    indicator_service = providers.Singleton(IndicatorRepo, dao=indicator_dao)
+    indicator_service = providers.Singleton(IndicatorDAO, dao=indicator_dao)
 
     news_sentiment_service = providers.Singleton(
         NewsSentimentRepo, dao=news_sentiment_dao

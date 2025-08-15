@@ -9,7 +9,7 @@ from algo_royale.clients.db.dao.base_dao import BaseDAO
 from algo_royale.logging.loggable import Loggable
 
 
-class IndicatorRepo(BaseDAO):
+class IndicatorDAO(BaseDAO):
     def __init__(
         self, connection: psycopg2.extensions.connection, sql_dir: str, logger: Loggable
     ):

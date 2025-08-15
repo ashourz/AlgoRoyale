@@ -2,11 +2,11 @@
 from datetime import datetime
 from decimal import Decimal
 
-from algo_royale.clients.db.dao.indicator_dao import IndicatorRepo
+from algo_royale.clients.db.dao.indicator_dao import IndicatorDAO
 
 
 class IndicatorService:
-    def __init__(self, repo: IndicatorRepo):
+    def __init__(self, repo: IndicatorDAO):
         self.repo = repo
 
     def create_indicator(
