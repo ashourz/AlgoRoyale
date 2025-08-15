@@ -24,19 +24,19 @@ class NewsSentimentRepo:
             trade_id, symbol, sentiment_score, headline, source, published_at
         )
 
-    def get_sentiment_by_trade_id(
+    def fetch_sentiment_by_trade_id(
         self, trade_id: int
     ) -> list[Tuple[int, int, str, Decimal, str, str, datetime]]:
         """Fetch sentiment data by trade ID."""
         return self.dao.fetch_sentiment_by_trade_id(trade_id)
 
-    def get_sentiment_by_symbol(
+    def fetch_sentiment_for_symbol(
         self, symbol: str
     ) -> list[Tuple[int, int, str, Decimal, str, str, datetime]]:
         """Fetch sentiment data by symbol."""
         return self.dao.fetch_sentiment_by_symbol(symbol)
 
-    def get_sentiment_by_symbol_and_date(
+    def fetch_sentiment_by_symbol_and_date(
         self, symbol: str, start_date: datetime, end_date: datetime
     ) -> list[Tuple[int, int, str, Decimal, str, str, datetime]]:
         """Fetch sentiment data by symbol and date range."""

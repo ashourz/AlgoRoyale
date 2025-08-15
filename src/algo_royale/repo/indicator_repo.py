@@ -40,11 +40,11 @@ class IndicatorRepo:
             recorded_at,
         )
 
-    def get_indicators_by_trade_id(self, trade_id: int):
+    def fetch_indicators_by_trade_id(self, trade_id: int):
         """Fetch indicators for a trade by trade ID."""
         return self.dao.fetch_indicators_by_trade_id(trade_id)
 
-    def get_indicators_by_trade_id_and_date(
+    def fetch_indicators_by_trade_id_and_date(
         self, trade_id: int, start_date: datetime, end_date: datetime
     ):
         """Fetch indicators for a trade by trade ID and date range."""

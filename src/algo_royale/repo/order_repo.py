@@ -28,8 +28,8 @@ class OrderRepo:
         self.dao = order_dao
         self.logger = logger
 
-    def get_order_by_id(self, order_id: int, user_id: str, account_id: str) -> dict:
-        return self.dao.get_order_by_id(order_id, user_id, account_id)
+    def fetch_order_by_id(self, order_id: int, user_id: str, account_id: str) -> dict:
+        return self.dao.fetch_order_by_id(order_id, user_id, account_id)
 
     def fetch_orders_by_status(
         self, status: OrderStatus, limit: int = 100, offset: int = 0

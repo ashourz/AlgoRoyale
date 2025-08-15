@@ -47,7 +47,7 @@ class OrderServices:
         :param account_id: The ID of the account associated with the order.
         :return: The number of rows affected by the fill operation.
         """
-        order = self.order_repo.get_order_by_id(
+        order = self.order_repo.fetch_order_by_id(
             order_id=order_id, user_id=self.user_id, account_id=self.account_id
         )
         if not order:

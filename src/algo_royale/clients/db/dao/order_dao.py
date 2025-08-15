@@ -5,7 +5,7 @@ class OrderDAO(BaseDAO):
     def __init__(self, connection, sql_dir, logger):
         super().__init__(connection=connection, sql_dir=sql_dir, logger=logger)
 
-    def get_order_by_id(self, order_id: int, user_id: str, account_id: str) -> dict:
+    def fetch_order_by_id(self, order_id: int, user_id: str, account_id: str) -> dict:
         """
         Fetch an order by its ID, ensuring it belongs to the specified user and account.
         :param order_id: The ID of the order to fetch.

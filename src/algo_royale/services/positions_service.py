@@ -40,13 +40,13 @@ class PositionsService:
             self.logger.error(f"Error fetching open positions: {e}")
         return self.positions
 
-    def fetch_positions_by_symbol_and_status(
+    def get_positions_by_symbol_and_status(
         self, symbol: str, status: str, limit: int = 100, offset: int = 0
     ) -> list:
         """Fetch positions by symbol and status with pagination."""
         return self.repo.fetch_positions_by_symbol(symbol, status, limit, offset)
 
-    def fetch_positions_by_status(
+    def get_positions_by_status(
         self, status: str, limit: int = 100, offset: int = 0
     ) -> list:
         """Fetch positions by their status with pagination."""

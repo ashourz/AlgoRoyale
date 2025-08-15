@@ -56,7 +56,7 @@ class TestIndicatorsService(TestCase):
 
         self.mock_dao.fetch_indicators_by_trade_id.return_value = expected
 
-        result = self.service.get_indicators_by_trade_id(trade_id)
+        result = self.service.fetch_indicators_by_trade_id(trade_id)
 
         self.mock_dao.fetch_indicators_by_trade_id.assert_called_once_with(trade_id)
         self.assertEqual(result, expected)

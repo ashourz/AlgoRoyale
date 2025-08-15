@@ -19,7 +19,7 @@ class TradesService:
         self.user_id = user_id
         self.account_id = account_id
 
-    def fetch_unsettled_trades(self, limit: int = 100, offset: int = 0) -> list:
+    def get_unsettled_trades(self, limit: int = 100, offset: int = 0) -> list:
         """Fetch all unsettled trades with pagination.
         :param limit: Maximum number of trades to fetch.
         :param offset: Offset for pagination.
@@ -71,7 +71,7 @@ class TradesService:
             self.account_id,
         )
 
-    def fetch_trades_by_date_range(
+    def get_trades_by_date_range(
         self,
         start_date: datetime,
         end_date: datetime,
