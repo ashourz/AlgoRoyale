@@ -1,27 +1,28 @@
 from datetime import datetime
 from decimal import Decimal
 
-from algo_royale.adapters.account_cash_adapter import AccountCashAdapter
 from algo_royale.logging.loggable import Loggable
-from algo_royale.repo.order_repo import OrderRepo
-from algo_royale.repo.position_repo import PositionRepo
-from algo_royale.repo.trade_repo import TradeDirection, TradeEntry, TradeRepo
+from algo_royale.repo.trade_repo import TradeDirection, TradeEntry
+from algo_royale.services.account_cash_service import AccountCashService
+from algo_royale.services.orders_service import OrderServices
+from algo_royale.services.positions_service import PositionsService
+from algo_royale.services.trades_service import TradesService
 
 
 class LedgerService:
     def __init__(
         self,
-        cash_repo: AccountCashAdapter,
-        orderRepo: OrderRepo,
-        tradeRepo: TradeRepo,
-        positionsRepo: PositionRepo,
+        cash_service: AccountCashService,
+        order_service: OrderServices,
+        trade_service: TradesService,
+        position_service: PositionsService,
         logger: Loggable,
     ):
         self.entries = []
-        self.cash_repo = cash_repo
-        self.order_repo = orderRepo
-        self.trade_repo = tradeRepo
-        self.positions_repo = positionsRepo
+        self.cash_service = cash_service
+        self.order_service = order_service
+        self.trade_service = trade_service
+        self.position_service = position_service
         self.logger = logger
 
     def add_order_entry(
