@@ -42,8 +42,6 @@ class StrategyRegistry:
         self.symbol_strategy_map = {}
         self._load_existing_viable_strategy_params()
 
-    ## TODO: Get and Set of portfolio_strategy_map in file need to be reconsidered as we cannot save
-
     def get_combined_weighted_signal_strategy(
         self, symbol: str
     ) -> CombinedWeightedSignalStrategy | None:

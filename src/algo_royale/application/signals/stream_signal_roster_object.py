@@ -10,7 +10,6 @@ from algo_royale.application.signals.signals_data_payload import SignalDataPaylo
 from algo_royale.application.utils.async_pubsub import AsyncPubSub, AsyncSubscriber
 
 
-##TODO: THIS PROB WONT BE NEEDED I DONT THINK ITS THE CORRECT STRUCTURE
 class StreamSignalRosterObject:
     """
     This class manages the roster of signals for a specific symbol.
