@@ -2,18 +2,30 @@ from datetime import datetime
 
 from algo_royale.logging.loggable import Loggable
 from algo_royale.repo.order_repo import OrderAction, OrderRepo, OrderStatus
+from algo_royale.repo.order_trades_repo import OrderTradesRepo
+from algo_royale.repo.position_repo import PositionRepo
+from algo_royale.repo.position_trades_repo import PositionTradesRepo
+from algo_royale.repo.trade_repo import TradeRepo
 
 
 class OrderServices:
     def __init__(
         self,
         order_repo: OrderRepo,
+        position_repo: PositionRepo,
+        trade_repo: TradeRepo,
+        order_trades_repo: OrderTradesRepo,
+        position_trades_repo: PositionTradesRepo,
         logger: Loggable,
         user_id: str,
         account_id: str,
         days_to_settle: int = 1,
     ):
         self.order_repo = order_repo
+        self.position_repo = position_repo
+        self.trade_repo = trade_repo
+        self.order_trades_repo = order_trades_repo
+        self.position_trades_repo = position_trades_repo
         self.user_id = user_id
         self.account_id = account_id
         self.days_to_settle = days_to_settle
