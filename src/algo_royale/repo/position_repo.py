@@ -15,13 +15,9 @@ class PositionRepo:
         self.user_id = user_id
         self.account_id = account_id
 
-    def fetch_positions_by_symbol_and_status(
-        self, symbol: str, status: str, limit: int = 100, offset: int = 0
-    ) -> list:
+    def fetch_position_by_symbol(self, symbol: str) -> list:
         """Fetch positions by symbol and status with pagination."""
-        return self.dao.fetch_positions_by_symbol_and_status(
-            symbol, status, limit, offset
-        )
+        return self.dao.fetch_position_by_symbol(symbol, self.user_id, self.account_id)
 
     def fetch_positions_by_status(
         self, status: str, limit: int = 100, offset: int = 0
@@ -29,7 +25,7 @@ class PositionRepo:
         """Fetch positions by their status with pagination."""
         return self.dao.fetch_positions_by_status(status, limit, offset)
 
-    def insert_position(
+    def upsert_position(
         self,
         symbol: str,
         quantity: int,
