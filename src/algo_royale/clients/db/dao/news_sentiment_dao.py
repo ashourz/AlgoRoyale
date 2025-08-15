@@ -22,20 +22,21 @@ class NewsSentimentDAO(BaseDAO):
         self, trade_id: int
     ) -> list[Tuple[int, int, str, Decimal, str, str, datetime]]:
         """Fetch sentiment data by trade ID."""
-        return self.fetch("get_sentiment_by_trade_id.sql", (trade_id,))
+        return self.fetch("fetch_news_sentiment_by_trade_id.sql", (trade_id,))
 
     def fetch_sentiment_by_symbol(
         self, symbol: str
     ) -> list[Tuple[int, int, str, Decimal, str, str, datetime]]:
         """Fetch sentiment data by symbol."""
-        return self.fetch("get_sentiment_by_symbol.sql", (symbol,))
+        return self.fetch("fetch_news_sentiment_by_symbol.sql", (symbol,))
 
     def fetch_sentiment_by_symbol_and_date(
         self, symbol: str, start_date: datetime, end_date: datetime
     ) -> list[Tuple[int, int, str, Decimal, str, str, datetime]]:
         """Fetch sentiment data by symbol and date range."""
         return self.fetch(
-            "get_sentiment_by_symbol_and_date.sql", (symbol, start_date, end_date)
+            "fetch_news_sentiment_by_symbol_and_date.sql",
+            (symbol, start_date, end_date),
         )
 
     def insert_sentiment(
@@ -49,7 +50,7 @@ class NewsSentimentDAO(BaseDAO):
     ) -> None:
         """Insert a new sentiment record."""
         return self.insert(
-            "insert_sentiment.sql",
+            "insert_news_sentiment.sql",
             (trade_id, symbol, sentiment_score, headline, source, published_at),
         )
 
@@ -63,10 +64,10 @@ class NewsSentimentDAO(BaseDAO):
     ) -> None:
         """Update sentiment information."""
         return self.update(
-            "update_sentiment.sql",
+            "update_news_sentiment.sql",
             (sentiment_score, headline, source, published_at, sentiment_id),
         )
 
     def delete_sentiment(self, sentiment_id: int) -> None:
         """Delete a sentiment record."""
-        return self.delete("delete_sentiment.sql", (sentiment_id,))
+        return self.delete("delete_news_sentiment.sql", (sentiment_id,))
