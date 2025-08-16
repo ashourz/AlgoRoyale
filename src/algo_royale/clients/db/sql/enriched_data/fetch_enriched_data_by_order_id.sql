@@ -1,0 +1,1 @@
+SELECT * FROM enriched_data WHERE order_id = $1;

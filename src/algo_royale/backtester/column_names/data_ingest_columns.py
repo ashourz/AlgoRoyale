@@ -12,6 +12,5 @@ class DataIngestColumns(BaseColumnNames):
     HIGH_PRICE = ColumnName("high_price")
     LOW_PRICE = ColumnName("low_price")
     CLOSE_PRICE = ColumnName("close_price")
-    VOLUME = ColumnName("volume")
     NUM_TRADES = ColumnName("num_trades")
     VOLUME_WEIGHTED_PRICE = ColumnName("volume_weighted_price")

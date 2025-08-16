@@ -1,0 +1,1 @@
+SELECT * FROM data_stream_session WHERE start_time >= $1 AND end_time <= $2;

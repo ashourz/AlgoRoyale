@@ -11,7 +11,6 @@ CREATE TABLE
         price NUMERIC(10, 4),
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        signal_id INTEGER REFERENCES trade_signals (id) ON DELETE CASCADE,
         user_id UUID,
         account_id TEXT
     );

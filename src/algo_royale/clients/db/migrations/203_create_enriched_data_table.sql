@@ -1,55 +1,4 @@
--- db\schema.sql
--- This file defines the schema for the Algo Royale database
--- It includes the creation of tables, indexes, and other database objects
--- This file is for reference only and should not be executed directly
-
-DROP TABLE IF EXISTS orders;
-DROP TABLE IF EXISTS trades;
-DROP TABLE IF EXISTS enriched_data;
-DROP TABLE IF EXISTS data_stream_session;
-
--- DB Migrations
-CREATE TABLE schema_migrations (
-    id SERIAL PRIMARY KEY,
-    version VARCHAR(50) NOT NULL,
-    applied_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-
--- Orders table
-CREATE TABLE
-    orders (
-        id SERIAL PRIMARY KEY,
-        symbol TEXT NOT NULL,
-        market TEXT NOT NULL,
-        order_type TEXT CHECK (order_type IN ('market', 'limit', 'stop')) NOT NULL,
-        status TEXT CHECK (status IN ('pending', 'partially_filled', 'filled', 'cancelled')) NOT NULL,
-        action TEXT CHECK (action IN ('buy', 'sell')) NOT NULL,
-        quantity INTEGER NOT NULL,
-        price NUMERIC(10, 4),
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        user_id UUID,
-        account_id TEXT
-    );
-
--- Trades table
-CREATE TABLE
-    trades (
-        id SERIAL PRIMARY KEY,
-        symbol TEXT NOT NULL,
-        market TEXT NOT NULL,
-        action TEXT CHECK (action IN ('buy', 'sell')) NOT NULL,
-        settled BOOLEAN DEFAULT FALSE,
-        settlement_date TIMESTAMP,
-        price NUMERIC(10, 4),
-        shares INTEGER,
-        executed_at TIMESTAMP,
-        notes TEXT,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        order_id INTEGER REFERENCES orders (id) ON DELETE CASCADE,
-        user_id UUID,
-        account_id TEXT
-    );
+-- db\migrations\002_create_trades_table.sql
 
 -- Enriched Data table
 CREATE TABLE
@@ -122,19 +71,3 @@ CREATE TABLE
         obv NUMERIC(10, 4)
         adl NUMERIC(10, 4),
     );
-
--- Data Stream Session table
-CREATE TABLE
-    data_stream_session (
-        id SERIAL PRIMARY KEY,
-        stream_type TEXT NOT NULL, -- e.g., 'portfolio', 'symbol', etc.
-        symbol TEXT NOT NULL,
-        strategy_name TEXT,
-        start_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        end_time TIMESTAMP DEFAULT NULL
-    );
-
-
--- Indexes for performance
-CREATE INDEX idx_trade_symbol ON trades (symbol);
-CREATE INDEX idx_orders_user_account ON orders (user_id, account_id);

@@ -5,13 +5,13 @@ class OrderDAO(BaseDAO):
     def __init__(self, connection, sql_dir, logger):
         super().__init__(connection=connection, sql_dir=sql_dir, logger=logger)
 
-    def fetch_order_by_id(self, order_id: int, user_id: str, account_id: str) -> dict:
+    def fetch_order_by_id(self, order_id: int, user_id: str, account_id: str) -> list:
         """
         Fetch an order by its ID, ensuring it belongs to the specified user and account.
         :param order_id: The ID of the order to fetch.
         :param user_id: The ID of the user who owns the order.
         :param account_id: The ID of the account associated with the order.
-        :return: A dictionary representing the order, or None if not found.
+        :return: A list representing the orders, or an empty list if not found.
         """
         return self.fetch("get_order_by_id.sql", (order_id, user_id, account_id))
 
@@ -51,7 +51,6 @@ class OrderDAO(BaseDAO):
         action: str,
         quantity: int,
         price: float,
-        signal_id: str,
         user_id: str,
         account_id: str,
     ) -> int:
@@ -64,7 +63,6 @@ class OrderDAO(BaseDAO):
         :param action: The action of the order (e.g., 'buy', 'sell').
         :param quantity: The quantity of the order.
         :param price: The price at which the order was placed.
-        :param signal_id: The ID of the signal associated with the order.
         :param user_id: The ID of the user who placed the order.
         :param account_id: The ID of the account associated with the order.
         :return: The ID of the newly inserted order, or -1 if the insertion failed.
@@ -79,7 +77,6 @@ class OrderDAO(BaseDAO):
                 action,
                 quantity,
                 price,
-                signal_id,
                 user_id,
                 account_id,
             ),
@@ -133,4 +130,3 @@ class OrderDAO(BaseDAO):
         """
         deleted_ids = self.delete("delete_all_orders.sql", ())
         return len(deleted_ids) if deleted_ids else -1
-        # Note: This method returns the count of deleted orders, which can be useful for logging

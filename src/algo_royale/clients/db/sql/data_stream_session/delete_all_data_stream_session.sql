@@ -1,0 +1,1 @@
+DELETE FROM data_stream_session RETURNING id;
