@@ -112,9 +112,13 @@ class TradeRepo:
         """
         return self.dao.fetch_trades_by_date_range(start_date, end_date, limit, offset)
 
-    def update_trade_as_settled(self, trade_id: int) -> int:
-        """Update a trade as settled."""
-        return self.dao.update_trade_as_settled(trade_id)
+    def fetch_trades_by_order_id(self, order_id: int) -> list[DBTrade]:
+        """Fetch trades by order ID."""
+        return self.dao.fetch_trades_by_order_id(order_id)
+
+    def update_settled_trades(self, settlement_datetime: datetime) -> int:
+        """Update all trades as settled."""
+        return self.dao.update_settled_trades(settlement_datetime)
 
     def delete_trade(self, trade_id: int) -> int:
         """Delete a trade record.

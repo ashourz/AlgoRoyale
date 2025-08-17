@@ -1,7 +1,7 @@
 from datetime import datetime
 
 from algo_royale.logging.loggable import Loggable
-from algo_royale.repo.order_repo import OrderAction, OrderRepo, OrderStatus
+from algo_royale.repo.order_repo import DBOrderStatus, OrderAction, OrderRepo
 
 
 class OrderServices:
@@ -93,12 +93,12 @@ class OrderServices:
                 f"Filled quantity {fill_quantity} exceeds remaining shares {remaining_shares_to_fill}. Correcting to remaining shares."
             )
             fill_quantity = remaining_shares_to_fill
-            order_status = OrderStatus.FILLED
+            order_status = DBOrderStatus.FILLED
         else:
             self.logger.debug(
                 f"Filling order {order_id} with quantity {fill_quantity} at price {fill_price}."
             )
-            order_status = OrderStatus.PARTIALLY_FILLED
+            order_status = DBOrderStatus.PARTIALLY_FILLED
 
         # Upsert Position
         upserted_position_id = self._insert_position(

@@ -5,11 +5,23 @@ from algo_royale.clients.db.dao.order_dao import OrderDAO
 from algo_royale.models.db.db_order import DBOrder
 
 
-class OrderStatus(ABC):
-    PENDING = "pending"
-    PARTIALLY_FILLED = "partially_filled"
-    FILLED = "filled"
+class DBOrderStatus(ABC):
+    NEW = "new"
+    FILL = "fill"
+    PARTIAL_FILL = "partial_fill"
     CANCELED = "canceled"
+    EXPIRED = "expired"
+    DONE_FOR_DAY = "done_for_day"
+    REPLACED = "replaced"
+    REJECTED = "rejected"
+    PENDING_NEW = "pending_new"
+    STOPPED = "stopped"
+    PENDING_CANCEL = "pending_cancel"
+    PENDING_REPLACE = "pending_replace"
+    CALCULATED = "calculated"
+    SUSPENDED = "suspended"
+    ORDER_REPLACE_REJECTED = "order_replace_rejected"
+    ORDER_CANCEL_REJECTED = "order_cancel_rejected"
 
 
 class OrderType(ABC):
@@ -35,7 +47,7 @@ class OrderRepo:
         return self.dao.fetch_order_by_id(order_id, user_id, account_id)
 
     def fetch_orders_by_status(
-        self, status: OrderStatus, limit: int = 100, offset: int = 0
+        self, status: DBOrderStatus, limit: int = 100, offset: int = 0
     ) -> list[DBOrder]:
         """Fetch all orders for a specific status with pagination.
         :param status: Status of the orders to fetch (e.g., 'open', 'closed').
@@ -46,7 +58,7 @@ class OrderRepo:
         return self.dao.fetch_orders_by_status(status, limit, offset)
 
     def fetch_orders_by_symbol_and_status(
-        self, symbol: str, status: OrderStatus, limit: int = 100, offset: int = 0
+        self, symbol: str, status: DBOrderStatus, limit: int = 100, offset: int = 0
     ) -> list[DBOrder]:
         """Fetch orders by symbol and status with pagination.
         :param symbol: The stock symbol of the orders to fetch.
@@ -62,7 +74,7 @@ class OrderRepo:
         symbol: str,
         market: str,
         order_type: OrderType,
-        status: OrderStatus,
+        status: DBOrderStatus,
         action: OrderAction,
         quantity: int,
         price: float,
@@ -94,7 +106,7 @@ class OrderRepo:
             self.account_id,
         )
 
-    def update_order_status(self, order_id: int, new_status: OrderStatus) -> int:
+    def update_order_status(self, order_id: int, new_status: DBOrderStatus) -> int:
         """Update the status of an existing order.
         :param order_id: The ID of the order to update.
         :param new_status: The new status to set for the order (e.g., 'open', 'closed').

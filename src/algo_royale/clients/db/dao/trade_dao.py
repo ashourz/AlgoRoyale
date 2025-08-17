@@ -39,6 +39,11 @@ class TradeDAO(BaseDAO):
         )
         return [DBTrade.from_tuple(row) for row in rows]
 
+    def fetch_trades_by_order_id(self, order_id: int) -> list[DBTrade]:
+        """Fetch trades by order ID."""
+        rows = self.fetch("get_trades_by_order_id.sql", (order_id,))
+        return [DBTrade.from_tuple(row) for row in rows]
+
     def insert_trade(
         self,
         symbol: str,
@@ -88,16 +93,15 @@ class TradeDAO(BaseDAO):
             return -1
         return returned_id
 
-    def update_trade_as_settled(self, trade_id: int) -> int:
-        """Update a trade record as settled by its ID.
-        :param trade_id: The ID of the trade to update.
-        :return: The ID of the updated trade record, or -1 if the update failed.
+    def update_settled_trades(self, settlement_datetime: datetime) -> int:
+        """Update all settled trades in the database.
+        :return: The number of updated trade records, or -1 if the update failed.
         """
-        updated_id = self.update("update_trade.sql", (trade_id,))
-        if not updated_id:
-            self.logger.error(f"Failed to update trade {trade_id} as settled.")
+        updated_ids = self.update("update_settled_trades.sql", (settlement_datetime,))
+        if not updated_ids:
+            self.logger.error("Failed to update settled trades.")
             return -1
-        return updated_id
+        return len(updated_ids)
 
     def delete_trade(self, trade_id: int) -> int:
         """Delete a trade record by its ID.
