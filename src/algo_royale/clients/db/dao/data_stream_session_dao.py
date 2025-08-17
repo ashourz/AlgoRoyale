@@ -1,6 +1,7 @@
 from datetime import datetime
 
 from algo_royale.clients.db.dao.base_dao import BaseDAO
+from algo_royale.models.db.db_data_stream_session import DBDataStreamSession
 
 
 class DataStreamSessionDAO(BaseDAO):
@@ -16,9 +17,10 @@ class DataStreamSessionDAO(BaseDAO):
         :param end_timestamp: The end timestamp to filter sessions.
         :return: A list of dictionaries containing the session data, or an empty list if not found.
         """
-        return self.fetch(
+        rows = self.fetch(
             "get_data_stream_session_by_timestamp.sql", (start_timestamp, end_timestamp)
         )
+        return [DBDataStreamSession.from_tuple(row) for row in rows] if rows else []
 
     def insert_data_stream_session(
         self, stream_type: str, symbol: str, strategy_name: str, start_time: datetime

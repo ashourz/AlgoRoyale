@@ -6,6 +6,7 @@ import psycopg2
 
 from algo_royale.clients.db.dao.base_dao import BaseDAO
 from algo_royale.logging.loggable import Loggable
+from algo_royale.models.db.db_trade import DBTrade
 
 
 class TradeDAO(BaseDAO):
@@ -17,9 +18,12 @@ class TradeDAO(BaseDAO):
     ):
         super().__init__(connection=connection, sql_dir=sql_dir, logger=logger)
 
-    def fetch_unsettled_trades(self, limit: int = 100, offset: int = 0) -> list:
+    def fetch_unsettled_trades(
+        self, limit: int = 100, offset: int = 0
+    ) -> list[DBTrade]:
         """Fetch all unsettled trades with pagination."""
-        return self.fetch("get_unsettled_trades.sql", (limit, offset))
+        rows = self.fetch("get_unsettled_trades.sql", (limit, offset))
+        return [DBTrade.from_tuple(row) for row in rows]
 
     def fetch_trades_by_date_range(
         self,
@@ -27,12 +31,13 @@ class TradeDAO(BaseDAO):
         end_date: datetime,
         limit: int = 100,
         offset: int = 0,
-    ) -> list:
+    ) -> list[DBTrade]:
         """Fetch trades within a specific date range."""
-        return self.fetch(
+        rows = self.fetch(
             "get_trades_by_date_range.sql",
             (start_date, end_date, limit, offset),
         )
+        return [DBTrade.from_tuple(row) for row in rows]
 
     def insert_trade(
         self,
@@ -40,9 +45,8 @@ class TradeDAO(BaseDAO):
         market: str,
         action: str,
         price: Decimal,
-        shares: int,
+        quantity: int,
         executed_at: datetime,
-        notes: str,
         order_id: int,
         user_id: int,
         account_id: int,
@@ -52,7 +56,7 @@ class TradeDAO(BaseDAO):
         :param market: The market where the trade occurred (e.g., 'NYSE', 'NASDAQ').
         :param action: The action of the trade (e.g., 'buy', 'sell').
         :param price: The execution price of the trade.
-        :param shares: The number of shares traded.
+        :param quantity: The number of shares traded.
         :param executed_at: The time when the trade was executed.
         :param notes: Additional notes about the trade.
         :param order_id: The ID of the associated order.
@@ -67,9 +71,8 @@ class TradeDAO(BaseDAO):
                 market,
                 action,
                 price,
-                shares,
+                quantity,
                 executed_at,
-                notes,
                 order_id,
                 user_id,
                 account_id,

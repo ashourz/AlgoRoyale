@@ -1,11 +1,14 @@
 from algo_royale.clients.db.dao.base_dao import BaseDAO
+from algo_royale.models.db.db_order import DBOrder
 
 
 class OrderDAO(BaseDAO):
     def __init__(self, connection, sql_dir, logger):
         super().__init__(connection=connection, sql_dir=sql_dir, logger=logger)
 
-    def fetch_order_by_id(self, order_id: int, user_id: str, account_id: str) -> list:
+    def fetch_order_by_id(
+        self, order_id: int, user_id: str, account_id: str
+    ) -> list[DBOrder]:
         """
         Fetch an order by its ID, ensuring it belongs to the specified user and account.
         :param order_id: The ID of the order to fetch.
@@ -13,11 +16,17 @@ class OrderDAO(BaseDAO):
         :param account_id: The ID of the account associated with the order.
         :return: A list representing the orders, or an empty list if not found.
         """
-        return self.fetch("get_order_by_id.sql", (order_id, user_id, account_id))
+        rows = self.fetch("get_order_by_id.sql", (order_id, user_id, account_id))
+        if not rows:
+            self.logger.warning(
+                f"Order with ID {order_id} not found for user {user_id}."
+            )
+            return []
+        return [DBOrder.from_tuple(row) for row in rows]
 
     def fetch_orders_by_status(
         self, status: str, limit: int = 100, offset: int = 0
-    ) -> list:
+    ) -> list[DBOrder]:
         """
         Fetch orders by their status.
         :param status: The status of the orders to fetch (e.g., 'open', 'closed').
@@ -25,11 +34,12 @@ class OrderDAO(BaseDAO):
         :param offset: The offset for pagination.
         :return: List of orders with the specified status.
         """
-        return self.fetch("get_orders_by_status.sql", (status, limit, offset))
+        rows = self.fetch("get_orders_by_status.sql", (status, limit, offset))
+        return [DBOrder.from_tuple(row) for row in rows]
 
     def fetch_orders_by_symbol_and_status(
         self, symbol: str, status: str, limit: int = 100, offset: int = 0
-    ) -> list:
+    ) -> list[DBOrder]:
         """
         Fetch orders by symbol and status.
         :param symbol: The stock symbol of the orders to fetch.
@@ -38,9 +48,10 @@ class OrderDAO(BaseDAO):
         :param offset: The offset for pagination.
         :return: List of orders matching the specified symbol and status.
         """
-        return self.fetch(
+        rows = self.fetch(
             "get_orders_by_symbol_and_status.sql", (symbol, status, limit, offset)
         )
+        return [DBOrder.from_tuple(row) for row in rows]
 
     def insert_order(
         self,

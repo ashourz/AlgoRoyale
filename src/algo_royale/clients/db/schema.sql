@@ -42,11 +42,11 @@ CREATE TABLE
         settled BOOLEAN DEFAULT FALSE,
         settlement_date TIMESTAMP,
         price NUMERIC(10, 4),
-        shares INTEGER,
+        quantity INTEGER,
         executed_at TIMESTAMP,
-        notes TEXT,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         order_id INTEGER REFERENCES orders (id) ON DELETE CASCADE,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         user_id UUID,
         account_id TEXT
     );
