@@ -1,35 +1,110 @@
 from datetime import datetime
 
+from algo_royale.adapters.trading.order_stream_adapter import OrderStreamAdapter
 from algo_royale.logging.loggable import Loggable
+from algo_royale.models.alpaca_trading.enums.order_stream_event import OrderStreamEvent
+from algo_royale.models.alpaca_trading.order_stream_data import OrderStreamData
 from algo_royale.repo.order_repo import OrderAction, OrderRepo, OrderStatus
-from algo_royale.repo.order_trades_repo import OrderTradesRepo
-from algo_royale.repo.position_repo import PositionRepo
-from algo_royale.repo.position_trades_repo import PositionTradesRepo
 from algo_royale.repo.trade_repo import TradeRepo
 
 
-class OrderServices:
+##TODO: add days to settle to config
+class OrderExecutionServices:
     def __init__(
         self,
         order_repo: OrderRepo,
-        position_repo: PositionRepo,
         trade_repo: TradeRepo,
-        order_trades_repo: OrderTradesRepo,
-        position_trades_repo: PositionTradesRepo,
+        order_stream_adapter: OrderStreamAdapter,
         logger: Loggable,
         user_id: str,
         account_id: str,
         days_to_settle: int = 1,
     ):
         self.order_repo = order_repo
-        self.position_repo = position_repo
         self.trade_repo = trade_repo
-        self.order_trades_repo = order_trades_repo
-        self.position_trades_repo = position_trades_repo
+        self.order_stream_adapter = order_stream_adapter
         self.user_id = user_id
         self.account_id = account_id
         self.days_to_settle = days_to_settle
         self.logger = logger
+        self.order_stream_subscriber = None
+
+    async def start_order_stream(self):
+        """Start the order stream adapter to listen for order events."""
+        try:
+            if self.order_stream_subscriber:
+                self.logger.warning("Order stream already started.")
+                return True
+            await self.order_stream_adapter.start()
+            self.logger.info("Order stream started.")
+            async_subscriber = self.order_stream_adapter.subscribe(
+                callback=self.handle_order_event
+            )
+            if not async_subscriber:
+                self.logger.error("Failed to subscribe to order stream.")
+                return False
+            self.order_stream_subscriber = async_subscriber
+            self.logger.info("Subscribed to order stream successfully.")
+            return True
+        except Exception as e:
+            self.logger.error(f"Error starting order stream: {e}")
+            return False
+
+    def _handle_order_event(self, data: OrderStreamData):
+        """Handle incoming order events from the order stream."""
+        self.logger.info(f"Handling order event: {data}")
+        # Process the order event data as needed
+        match data.event:
+            case OrderStreamEvent.NEW:
+                self.logger.info(f"New order received: {data.order.order_id}")
+                # Handle new order logic here
+            case OrderStreamEvent.FILL:
+                self.logger.info(f"Order filled: {data.order.order_id}")
+                # Handle order fill logic here
+            case OrderStreamEvent.PARTIAL_FILL:
+                self.logger.info(f"Order partially filled: {data.order.order_id}")
+                # Handle order partial fill logic here
+            case OrderStreamEvent.CANCELED:
+                self.logger.info(f"Order canceled: {data.order.order_id}")
+                # Handle order cancellation logic here
+            case OrderStreamEvent.EXPIRED:
+                self.logger.info(f"Order expired: {data.order.order_id}")
+                # Handle order expiration logic here
+            case OrderStreamEvent.DONE_FOR_DAY:
+                self.logger.info(f"Order done for day: {data.order.order_id}")
+                # Handle order done for day logic here
+            case OrderStreamEvent.REPLACED:
+                self.logger.info(f"Order replaced: {data.order.order_id}")
+                # Handle order replaced logic here
+            case OrderStreamEvent.REJECTED:
+                self.logger.error(f"Order rejected: {data.order.order_id}")
+                # Handle order rejection logic here
+            case OrderStreamEvent.PENDING_NEW:
+                self.logger.info(f"Order pending new: {data.order.order_id}")
+                # Handle order pending new logic here
+            case OrderStreamEvent.STOPPED:
+                self.logger.info(f"Order stopped: {data.order.order_id}")
+                # Handle order stopped logic here
+            case OrderStreamEvent.PENDING_CANCEL:
+                self.logger.info(f"Order pending cancel: {data.order.order_id}")
+                # Handle order pending cancel logic here
+            case OrderStreamEvent.PENDING_REPLACE:
+                self.logger.info(f"Order pending replace: {data.order.order_id}")
+                # Handle order pending replace logic here
+            case OrderStreamEvent.CALCULATED:
+                self.logger.info(f"Order calculated: {data.order.order_id}")
+                # Handle order calculated logic here
+            case OrderStreamEvent.SUSPENDED:
+                self.logger.info(f"Order suspended: {data.order.order_id}")
+                # Handle order suspended logic here
+            case OrderStreamEvent.ORDER_REPLACE_REJECTED:
+                self.logger.error(f"Order replace rejected: {data.order.order_id}")
+                # Handle order replace rejection logic here
+            case OrderStreamEvent.ORDER_CANCEL_REJECTED:
+                self.logger.error(f"Order cancel rejected: {data.order.order_id}")
+                # Handle order cancel rejection logic here
+            case _:
+                self.logger.warning(f"Unknown order event: {data.event}")
 
     def fill_order(
         self,

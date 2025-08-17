@@ -37,6 +37,7 @@ class OrderStreamAdapter:
             await self._start_stream(self._on_start_stream)
         except Exception as e:
             self.logger.error(f"Failed to start Order Stream: {e}")
+            raise e
 
     async def stop(self):
         """
@@ -47,6 +48,7 @@ class OrderStreamAdapter:
             self.logger.info("Order Stream stopped.")
         except Exception as e:
             self.logger.error(f"Failed to stop Order Stream: {e}")
+            raise e
 
     async def _start_stream(self, on_order_update):
         """
@@ -59,6 +61,7 @@ class OrderStreamAdapter:
             await self.order_stream_client.stream(on_order_update=on_order_update)
         except Exception as e:
             self.logger.error(f"Error starting order stream: {e}")
+            raise e
 
     async def _stop_stream(self):
         """
@@ -69,6 +72,7 @@ class OrderStreamAdapter:
             await self.order_stream_client.stop()
         except Exception as e:
             self.logger.error(f"Failed to stop Order Stream: {e}")
+            raise e
 
     async def _on_order_update(self, data):
         """
