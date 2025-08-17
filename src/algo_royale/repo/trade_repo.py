@@ -5,6 +5,7 @@ from decimal import Decimal
 
 from algo_royale.clients.db.dao.trade_dao import TradeDAO
 from algo_royale.logging.loggable import Loggable
+from algo_royale.models.db.db_trade import DBTrade
 
 
 class TradeDirection(ABC):
@@ -49,7 +50,9 @@ class TradeRepo:
         self.user_id = user_id
         self.account_id = account_id
 
-    def fetch_unsettled_trades(self, limit: int = 100, offset: int = 0) -> list:
+    def fetch_unsettled_trades(
+        self, limit: int = 100, offset: int = 0
+    ) -> list[DBTrade]:
         """Fetch all unsettled trades with pagination.
         :param limit: Maximum number of trades to fetch.
         :param offset: Offset for pagination.
@@ -63,12 +66,9 @@ class TradeRepo:
         market: str,
         action: str,
         settlement_date: datetime,
-        entry_price: Decimal,
-        exit_price: Decimal,
-        shares: int,
-        entry_time: datetime,
-        exit_time: datetime,
-        notes: str,
+        price: Decimal,
+        quantity: int,
+        executed_at: datetime,
         order_id: int,
     ) -> int:
         """Insert a new trade record.
@@ -78,10 +78,8 @@ class TradeRepo:
         :param settlement_date: The settlement date of the trade.
         :param entry_price: The entry price of the trade.
         :param exit_price: The exit price of the trade.
-        :param shares: The number of shares traded.
-        :param entry_time: The time when the trade was entered.
-        :param exit_time: The time when the trade was exited.
-        :param notes: Additional notes about the trade.
+        :param quantity: The number of shares traded.
+        :param executed_at: The time when the trade was entered.
         :param order_id: The ID of the associated order.
         :return: The ID of the newly inserted trade record.
         """
@@ -90,15 +88,12 @@ class TradeRepo:
             market,
             action,
             settlement_date,
-            entry_price,
-            exit_price,
-            shares,
-            entry_time,
-            exit_time,
-            notes,
-            order_id,
-            self.user_id,
-            self.account_id,
+            price,
+            quantity,
+            executed_at,
+            order_id=order_id,
+            user_id=self.user_id,
+            account_id=self.account_id,
         )
 
     def fetch_trades_by_date_range(
@@ -107,7 +102,7 @@ class TradeRepo:
         end_date: datetime,
         limit: int = 100,
         offset: int = 0,
-    ) -> list:
+    ) -> list[DBTrade]:
         """Fetch trades within a specific date range.
         :param start_date: The start date of the range.
         :param end_date: The end date of the range.

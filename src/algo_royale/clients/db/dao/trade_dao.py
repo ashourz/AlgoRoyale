@@ -44,6 +44,7 @@ class TradeDAO(BaseDAO):
         symbol: str,
         market: str,
         action: str,
+        settlement_date: datetime,
         price: Decimal,
         quantity: int,
         executed_at: datetime,
@@ -55,6 +56,7 @@ class TradeDAO(BaseDAO):
         :param symbol: The stock symbol of the trade.
         :param market: The market where the trade occurred (e.g., 'NYSE', 'NASDAQ').
         :param action: The action of the trade (e.g., 'buy', 'sell').
+        :param settlement_date: The date when the trade is settled.
         :param price: The execution price of the trade.
         :param quantity: The number of shares traded.
         :param executed_at: The time when the trade was executed.
@@ -70,6 +72,7 @@ class TradeDAO(BaseDAO):
                 symbol,
                 market,
                 action,
+                settlement_date,
                 price,
                 quantity,
                 executed_at,

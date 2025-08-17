@@ -31,7 +31,7 @@ class DBTrade(BaseModel):
     market: str
     action: str
     settled: bool = False
-    settlement_date: datetime = None
+    settlement_date: datetime
     price: float
     quantity: int
     executed_at: datetime

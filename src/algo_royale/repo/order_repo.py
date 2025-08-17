@@ -2,6 +2,7 @@ from abc import ABC
 from logging import Logger
 
 from algo_royale.clients.db.dao.order_dao import OrderDAO
+from algo_royale.models.db.db_order import DBOrder
 
 
 class OrderStatus(ABC):
@@ -28,12 +29,14 @@ class OrderRepo:
         self.dao = order_dao
         self.logger = logger
 
-    def fetch_order_by_id(self, order_id: int, user_id: str, account_id: str) -> dict:
+    def fetch_order_by_id(
+        self, order_id: int, user_id: str, account_id: str
+    ) -> list[DBOrder]:
         return self.dao.fetch_order_by_id(order_id, user_id, account_id)
 
     def fetch_orders_by_status(
         self, status: OrderStatus, limit: int = 100, offset: int = 0
-    ) -> list:
+    ) -> list[DBOrder]:
         """Fetch all orders for a specific status with pagination.
         :param status: Status of the orders to fetch (e.g., 'open', 'closed').
         :param limit: Maximum number of orders to fetch.
@@ -44,7 +47,7 @@ class OrderRepo:
 
     def fetch_orders_by_symbol_and_status(
         self, symbol: str, status: OrderStatus, limit: int = 100, offset: int = 0
-    ) -> list:
+    ) -> list[DBOrder]:
         """Fetch orders by symbol and status with pagination.
         :param symbol: The stock symbol of the orders to fetch.
         :param status: The status of the orders to fetch (e.g., 'open', 'closed').
