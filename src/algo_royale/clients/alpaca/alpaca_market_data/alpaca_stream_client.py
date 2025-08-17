@@ -206,9 +206,15 @@ class AlpacaStreamClient(AlpacaBaseClient):
         self.trade_symbols.difference_update(trades)
         self.bar_symbols.difference_update(bars)
 
-    def stop(self):
+    async def stop(self):
         """
         Stop the WebSocket stream gracefully.
         """
         self.logger.info("Stopping stream...")
         self.stop_stream = True
+        if self.websocket:
+            await self.websocket.close()
+            self.websocket = None
+            self.logger.info("Stream stopped.")
+        else:
+            self.logger.warning("No active stream to stop.")

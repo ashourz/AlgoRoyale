@@ -75,8 +75,8 @@ class StreamAdapter:
         """
         await self.stream_client.remove_symbols(quotes=quotes, trades=trades, bars=bars)
 
-    def stop_stream(self):
+    async def stop_stream(self):
         """
         Stop the Alpaca WebSocket stream.
         """
-        self.stream_client.stop()
+        await self.stream_client.stop()
