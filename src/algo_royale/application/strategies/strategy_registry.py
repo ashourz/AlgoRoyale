@@ -7,7 +7,6 @@ import json
 from pathlib import Path
 from typing import Dict
 
-from algo_royale.application.symbol.symbol_manager import SymbolManager
 from algo_royale.backtester.maps.strategy_class_map import SYMBOL_STRATEGY_CLASS_MAP
 from algo_royale.backtester.stage_data.stage_data_manager import StageDataManager
 from algo_royale.backtester.strategy.signal.combined_weighted_signal_strategy import (
@@ -17,12 +16,13 @@ from algo_royale.backtester.strategy_factory.signal.strategy_factory import (
     StrategyFactory,
 )
 from algo_royale.logging.loggable import Loggable
+from algo_royale.services.symbol_service import SymbolService
 
 
 class StrategyRegistry:
     def __init__(
         self,
-        symbol_manager: SymbolManager,
+        symbol_manager: SymbolService,
         stage_data_manager: StageDataManager,
         evaluation_json_filename: str,
         viable_strategies_path: str,

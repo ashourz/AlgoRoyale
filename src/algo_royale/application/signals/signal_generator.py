@@ -9,12 +9,12 @@ from algo_royale.application.signals.stream_signal_roster_object import (
     StreamSignalRosterObject,
 )
 from algo_royale.application.strategies.strategy_registry import StrategyRegistry
-from algo_royale.application.symbol.symbol_manager import SymbolManager
 from algo_royale.application.utils.async_pubsub import AsyncSubscriber
 from algo_royale.backtester.strategy.signal.combined_weighted_signal_strategy import (
     CombinedWeightedSignalStrategy,
 )
 from algo_royale.logging.loggable import Loggable
+from algo_royale.services.symbol_service import SymbolService
 
 
 class SignalGenerator:
@@ -22,7 +22,7 @@ class SignalGenerator:
 
     def __init__(
         self,
-        symbol_manager: SymbolManager,
+        symbol_manager: SymbolService,
         enriched_data_streamer: MarketDataEnrichedStreamer,
         strategy_registry: StrategyRegistry,
         logger: Loggable,

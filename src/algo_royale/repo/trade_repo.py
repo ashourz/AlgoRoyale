@@ -5,6 +5,7 @@ from decimal import Decimal
 
 from algo_royale.clients.db.dao.trade_dao import TradeDAO
 from algo_royale.logging.loggable import Loggable
+from algo_royale.models.db.db_position import DBPosition
 from algo_royale.models.db.db_trade import DBTrade
 
 
@@ -92,6 +93,15 @@ class TradeRepo:
             quantity,
             executed_at,
             order_id=order_id,
+            user_id=self.user_id,
+            account_id=self.account_id,
+        )
+
+    def fetch_open_positions(self) -> list[DBPosition]:
+        """Fetch all open positions.
+        :return: List of open positions.
+        """
+        return self.dao.fetch_open_positions(
             user_id=self.user_id,
             account_id=self.account_id,
         )

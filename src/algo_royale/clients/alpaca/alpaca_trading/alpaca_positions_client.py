@@ -34,7 +34,7 @@ class AlpacaPositionsClient(AlpacaBaseClient):
         """Subclasses must define a name for logging and ID purposes"""
         return self.trading_config.get_base_url()
 
-    async def get_all_open_positions(self) -> Optional[PositionList]:
+    async def fetch_all_open_positions(self) -> Optional[PositionList]:
         """
         Get all open positions.
 
@@ -46,7 +46,7 @@ class AlpacaPositionsClient(AlpacaBaseClient):
 
         return PositionList.from_raw(response)
 
-    async def get_open_position_by_symbol_or_asset_id(
+    async def fetch_open_position_by_symbol_or_asset_id(
         self, symbol_or_asset_id: str
     ) -> Optional[PositionList]:
         """

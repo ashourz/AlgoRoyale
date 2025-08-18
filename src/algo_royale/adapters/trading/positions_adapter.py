@@ -21,14 +21,14 @@ class PositionsAdapter:
     def __init__(self):
         self.client = AlpacaPositionsClient()
 
-    async def get_all_open_positions(self) -> Optional[PositionList]:
+    async def fetch_all_open_positions(self) -> Optional[PositionList]:
         """
         Fetch all open positions from Alpaca.
 
         Returns:
             PositionList: List of open positions, or None if no data is found.
         """
-        return await self.client.get_all_open_positions()
+        return await self.client.fetch_all_open_positions()
 
     async def get_open_position_by_symbol_or_asset_id(
         self, symbol_or_asset_id: str
@@ -46,7 +46,7 @@ class PositionsAdapter:
             raise MissingParameterError(
                 "Missing required parameter: 'symbol_or_asset_id'."
             )
-        return await self.client.get_open_position_by_symbol_or_asset_id(
+        return await self.client.fetch_open_position_by_symbol_or_asset_id(
             symbol_or_asset_id
         )
 

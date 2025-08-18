@@ -7,7 +7,6 @@ from algo_royale.application.signals.signals_data_payload import SignalDataPaylo
 from algo_royale.application.strategies.portfolio_strategy_registry import (
     PortfolioStrategyRegistry,
 )
-from algo_royale.application.symbol.symbol_manager import SymbolManager
 from algo_royale.application.utils.async_pubsub import AsyncPubSub, AsyncSubscriber
 from algo_royale.backtester.column_names.strategy_columns import SignalStrategyColumns
 from algo_royale.backtester.enums.signal_type import SignalType
@@ -15,6 +14,7 @@ from algo_royale.backtester.strategy.portfolio.buffered_components.buffered_port
     BufferedPortfolioStrategy,
 )
 from algo_royale.logging.loggable import Loggable
+from algo_royale.services.symbol_service import SymbolService
 
 
 class OrderGenerator:
@@ -22,7 +22,7 @@ class OrderGenerator:
 
     def __init__(
         self,
-        symbol_manager: SymbolManager,
+        symbol_manager: SymbolService,
         signal_generator: SignalGenerator,
         portfolio_strategy_registry: PortfolioStrategyRegistry,
         logger: Loggable,

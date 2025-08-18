@@ -1,17 +1,20 @@
 from algo_royale.adapters.trading.positions_adapter import PositionsAdapter
 from algo_royale.logging.loggable import Loggable
 from algo_royale.models.alpaca_trading.alpaca_position import Position
+from algo_royale.repo.trade_repo import TradeRepo
 
 
 class PositionsService:
     def __init__(
         self,
         adapter: PositionsAdapter,
+        trade_repo: TradeRepo,
         logger: Loggable,
         user_id: str,
         account_id: str,
     ):
         self.adapter = adapter
+        self.trade_repo = trade_repo
         self.logger = logger
         self.user_id = user_id
         self.account_id = account_id
@@ -61,8 +64,19 @@ class PositionsService:
         Update the current positions with a new list.
         """
         try:
-            positionList = await self.adapter.get_all_open_positions()
+            positionList = await self.adapter.fetch_all_open_positions()
             self.positions = positionList.positions if positionList else []
             self.logger.info(f"Positions updated: {len(self.positions)} found.")
         except Exception as e:
             self.logger.error(f"Error updating positions: {e}")
+
+    def _fetch_open_positions_from_repo(self) -> list[Position]:
+        """
+        Fetch open positions from the trade repository.
+        """
+        try:
+            db_positions = self.trade_repo.fetch_open_positions()
+            return [Position.from_db_position(pos) for pos in db_positions]
+        except Exception as e:
+            self.logger.error(f"Error fetching positions from repo: {e}")
+            return []

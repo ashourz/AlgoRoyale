@@ -9,10 +9,10 @@ from algo_royale.application.market_data.market_data_raw_streamer import (
 from algo_royale.application.market_data.queued_async_enriched_data_buffer import (
     QueuedAsyncEnrichedDataBuffer,
 )
-from algo_royale.application.symbol.symbol_manager import SymbolManager
 from algo_royale.application.utils.async_pubsub import AsyncPubSub, AsyncSubscriber
 from algo_royale.backtester.feature_engineering.feature_engineer import FeatureEngineer
 from algo_royale.logging.loggable import Loggable
+from algo_royale.services.symbol_service import SymbolService
 
 
 class MarketDataEnrichedStreamer:
@@ -20,7 +20,7 @@ class MarketDataEnrichedStreamer:
 
     def __init__(
         self,
-        symbol_manager: SymbolManager,
+        symbol_manager: SymbolService,
         feature_engineer: FeatureEngineer,
         market_data_streamer: MarketDataRawStreamer,
         logger: Loggable,

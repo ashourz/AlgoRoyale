@@ -2,7 +2,6 @@ import json
 from pathlib import Path
 from typing import Dict, Sequence
 
-from algo_royale.application.symbol.symbol_manager import SymbolManager
 from algo_royale.backtester.evaluator import symbol
 from algo_royale.backtester.maps.portfolio_strategy_class_map import (
     PORTFOLIO_STRATEGY_CLASS_MAP,
@@ -15,12 +14,13 @@ from algo_royale.backtester.strategy_factory.portfolio.portfolio_strategy_factor
     PortfolioStrategyFactory,
 )
 from algo_royale.logging.loggable import Loggable
+from algo_royale.services.symbol_service import SymbolService
 
 
 class PortfolioStrategyRegistry:
     def __init__(
         self,
-        symbol_manager: SymbolManager,
+        symbol_manager: SymbolService,
         stage_data_manager: StageDataManager,
         evaluation_json_filename: str,
         viable_strategies_path: str,

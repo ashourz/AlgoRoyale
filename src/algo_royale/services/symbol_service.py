@@ -5,7 +5,7 @@ from algo_royale.repo.watchlist_repo import WatchlistRepo
 from algo_royale.services.positions_service import PositionsService
 
 
-class SymbolManager:
+class SymbolService:
     def __init__(
         self,
         watchlist_repo: WatchlistRepo,

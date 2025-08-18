@@ -6,6 +6,7 @@ import psycopg2
 
 from algo_royale.clients.db.dao.base_dao import BaseDAO
 from algo_royale.logging.loggable import Loggable
+from algo_royale.models.db.db_position import DBPosition
 from algo_royale.models.db.db_trade import DBTrade
 
 
@@ -24,6 +25,13 @@ class TradeDAO(BaseDAO):
         """Fetch all unsettled trades with pagination."""
         rows = self.fetch("get_unsettled_trades.sql", (limit, offset))
         return [DBTrade.from_tuple(row) for row in rows]
+
+    def fetch_open_positions(self, user_id: int, account_id: int) -> list[DBPosition]:
+        """Fetch all open positions.
+        :return: List of open positions.
+        """
+        rows = self.fetch("fetch_open_positions.sql", (user_id, account_id))
+        return [DBPosition.from_tuple(row) for row in rows]
 
     def fetch_trades_by_date_range(
         self,
