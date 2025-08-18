@@ -46,6 +46,7 @@ class OrderExecutionServices:
                 self.logger.warning("Order stream subscriber already exists.")
                 return True
             self._update_settled_trades()
+            self._initialize_symbol_holds()
             await self.order_stream_adapter.start()
             self.logger.info("Order stream started.")
             async_subscriber = self.order_stream_adapter.subscribe(
@@ -93,7 +94,31 @@ class OrderExecutionServices:
 
     def _initialize_symbol_holds(self):
         """Initialize symbol holds for the user."""
-        ## TODO
+        self.logger.info("Initializing symbol holds...")
+        # Fetch orders in hold status
+        hold_status = [
+            OrderStreamEvent.NEW,
+            OrderStreamEvent.ORDER_CANCEL_REJECTED,
+            OrderStreamEvent.ORDER_REPLACE_REJECTED,
+            OrderStreamEvent.PARTIAL_FILL,
+            OrderStreamEvent.PENDING_NEW,
+            OrderStreamEvent.PENDING_CANCEL,
+            OrderStreamEvent.PENDING_REPLACE,
+            OrderStreamEvent.REPLACED,
+            OrderStreamEvent.STOPPED,
+            OrderStreamEvent.SUSPENDE,
+        ]
+        hold_orders: list[DBOrder] = []
+        for status in hold_status:
+            orders = self.order_repo.fetch_orders_by_status(status)
+            hold_orders.extend(orders)
+
+        hold_symbols = set()
+        for order in hold_orders:
+            hold_symbols.add(order.symbol)
+
+        for symbol in hold_symbols:
+            self._set_symbol_hold(symbol, True)
 
     async def _publish_order_event(self, data: OrderStreamData):
         """Publish an order event to the event bus."""
