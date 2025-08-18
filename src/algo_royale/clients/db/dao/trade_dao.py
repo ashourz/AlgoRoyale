@@ -56,7 +56,6 @@ class TradeDAO(BaseDAO):
     def insert_trade(
         self,
         symbol: str,
-        market: str,
         action: str,
         settlement_date: datetime,
         price: Decimal,
@@ -84,7 +83,6 @@ class TradeDAO(BaseDAO):
             "insert_trade.sql",
             (
                 symbol,
-                market,
                 action,
                 settlement_date,
                 price,

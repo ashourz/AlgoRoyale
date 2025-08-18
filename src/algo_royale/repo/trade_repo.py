@@ -45,7 +45,6 @@ class TradeRepo:
     def insert_trade(
         self,
         symbol: str,
-        market: str,
         action: str,
         settlement_date: datetime,
         price: Decimal,
@@ -67,7 +66,6 @@ class TradeRepo:
         """
         return self.dao.insert_trade(
             symbol,
-            market,
             action,
             settlement_date,
             price,
