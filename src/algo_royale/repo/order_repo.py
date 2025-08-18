@@ -1,5 +1,6 @@
 from abc import ABC
 from logging import Logger
+from uuid import UUID
 
 from algo_royale.clients.db.dao.order_dao import OrderDAO
 from algo_royale.models.db.db_order import DBOrder
@@ -42,7 +43,7 @@ class OrderRepo:
         self.logger = logger
 
     def fetch_order_by_id(
-        self, order_id: int, user_id: str, account_id: str
+        self, order_id: UUID, user_id: str, account_id: str
     ) -> list[DBOrder]:
         return self.dao.fetch_order_by_id(order_id, user_id, account_id)
 
@@ -78,7 +79,6 @@ class OrderRepo:
         action: OrderAction,
         quantity: int,
         price: float,
-        signal_id: str,
     ) -> int:
         """Insert a new order record.
         :param symbol: The stock symbol of the order.
@@ -101,12 +101,11 @@ class OrderRepo:
             action,
             quantity,
             price,
-            signal_id,
             self.user_id,
             self.account_id,
         )
 
-    def update_order_status(self, order_id: int, new_status: DBOrderStatus) -> int:
+    def update_order_status(self, order_id: UUID, new_status: DBOrderStatus) -> int:
         """Update the status of an existing order.
         :param order_id: The ID of the order to update.
         :param new_status: The new status to set for the order (e.g., 'open', 'closed').
@@ -114,7 +113,7 @@ class OrderRepo:
         """
         return self.dao.update_order_status(order_id, new_status)
 
-    def delete_order(self, order_id: int) -> int:
+    def delete_order(self, order_id: UUID) -> int:
         """Delete an order by its ID.
         :param order_id: The ID of the order to delete.
         :return: The number of rows affected by the deletion.

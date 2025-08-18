@@ -1,4 +1,5 @@
 from datetime import datetime
+from uuid import UUID
 
 from pydantic import BaseModel
 
@@ -8,9 +9,9 @@ class DBTrade(BaseModel):
     Represents a trade in the Algo Royale system.
 
     Attributes:
-        id (int): Unique identifier for the trade.
-        user_id (int): Identifier for the user who made the trade.
-        account_id (int): Identifier for the account associated with the trade.
+        id (UUID): Unique identifier for the trade.
+        user_id (str): Identifier for the user who made the trade.
+        account_id (str): Identifier for the account associated with the trade.
         symbol (str): Trading symbol of the asset.
         market (str): Market where the trade was executed.
         action (str): Action taken in the trade (e.g., 'buy', 'sell').
@@ -20,15 +21,14 @@ class DBTrade(BaseModel):
         quantity (int): Number of shares traded.
         executed_at (datetime): Timestamp when the trade was executed.
         created_at (datetime): Timestamp when the trade record was created.
-        order_id (int): ID of the associated order.
+        order_id (UUID): ID of the associated order.
         updated_at (datetime): Timestamp when the trade record was last updated.
     """
 
-    id: int
-    user_id: int
-    account_id: int
+    id: UUID
+    user_id: str
+    account_id: str
     symbol: str
-    market: str
     action: str
     settled: bool = False
     settlement_date: datetime
@@ -36,7 +36,7 @@ class DBTrade(BaseModel):
     quantity: int
     executed_at: datetime
     created_at: datetime
-    order_id: int
+    order_id: UUID
     updated_at: datetime
 
     @classmethod

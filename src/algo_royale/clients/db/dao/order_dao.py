@@ -1,3 +1,5 @@
+from uuid import UUID
+
 from algo_royale.clients.db.dao.base_dao import BaseDAO
 from algo_royale.models.db.db_order import DBOrder
 
@@ -7,7 +9,7 @@ class OrderDAO(BaseDAO):
         super().__init__(connection=connection, sql_dir=sql_dir, logger=logger)
 
     def fetch_order_by_id(
-        self, order_id: int, user_id: str, account_id: str
+        self, order_id: UUID, user_id: str, account_id: str
     ) -> list[DBOrder]:
         """
         Fetch an order by its ID, ensuring it belongs to the specified user and account.
@@ -101,7 +103,7 @@ class OrderDAO(BaseDAO):
 
     def update_order_status(
         self,
-        order_id: int,
+        order_id: UUID,
         status: str,
     ) -> int:
         """
@@ -122,7 +124,7 @@ class OrderDAO(BaseDAO):
             return -1
         return updated_id
 
-    def delete_order(self, order_id: int) -> int:
+    def delete_order(self, order_id: UUID) -> int:
         """
         Delete an order by its ID.
         :param order_id: The ID of the order to delete.

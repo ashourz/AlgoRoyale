@@ -1,4 +1,5 @@
 from datetime import datetime
+from uuid import UUID
 
 from pydantic import BaseModel
 
@@ -8,15 +9,15 @@ class DBDataStreamSession(BaseModel):
     Represents a data stream session in the Algo Royale system.
 
     Attributes:
-        id (int): Unique identifier for the session.
-        user_id (int): Identifier for the user associated with the session.
-        account_id (int): Identifier for the account associated with the session.
-        session_token (str): Token used to authenticate the session.
-        created_at (datetime): Timestamp when the session was created.
-        updated_at (datetime): Timestamp when the session was last updated.
+        id (UUID): Unique identifier for the session.
+        stream_type (str): Type of the data stream (e.g., "trade", "order").
+        symbol (str): Trading symbol for the data stream.
+        strategy_name (str): Name of the trading strategy.
+        start_time (datetime): Start time of the data stream session.
+        end_time (datetime): End time of the data stream session.
     """
 
-    id: int
+    id: UUID
     stream_type: str
     symbol: str
     strategy_name: str

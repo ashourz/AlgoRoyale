@@ -1,3 +1,5 @@
+from uuid import UUID
+
 from algo_royale.clients.db.dao.enriched_data_dao import EnrichedDataDAO
 from algo_royale.logging.loggable import Loggable
 from algo_royale.models.db.db_enriched_data import DBEnrichedData
@@ -12,7 +14,7 @@ class EnrichedTradeData:
         self.user_id = user_id
         self.account_id = account_id
 
-    def fetch_enriched_data_by_order_id(self, order_id: int) -> list[DBEnrichedData]:  # noqa: F821
+    def fetch_enriched_data_by_order_id(self, order_id: UUID) -> list[DBEnrichedData]:  # noqa: F821
         """
         Fetch enriched data for a specific order ID.
         :param order_id: The ID of the order to fetch enriched data for.
@@ -22,7 +24,7 @@ class EnrichedTradeData:
 
     def insert_enriched_data(
         self,
-        order_id: int,
+        order_id: UUID,
         enriched_data: dict,
     ) -> int:
         """

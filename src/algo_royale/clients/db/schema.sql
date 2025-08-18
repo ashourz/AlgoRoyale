@@ -18,44 +18,44 @@ CREATE TABLE schema_migrations (
 -- Orders table
 CREATE TABLE
     orders (
-        id SERIAL PRIMARY KEY,
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
         symbol TEXT NOT NULL,
         market TEXT NOT NULL,
-        order_type TEXT CHECK (order_type IN ('market', 'limit', 'stop')) NOT NULL,
-        status TEXT CHECK (status IN ('pending', 'partially_filled', 'filled', 'cancelled')) NOT NULL,
-        action TEXT CHECK (action IN ('buy', 'sell')) NOT NULL,
+        order_type TEXT NOT NULL,
+        status TEXT NOT NULL,
+        action TEXT NOT NULL,
         quantity INTEGER NOT NULL,
         price NUMERIC(10, 4),
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        user_id UUID,
+        user_id TEXT,
         account_id TEXT
     );
 
 -- Trades table
 CREATE TABLE
     trades (
-        id SERIAL PRIMARY KEY,
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
         symbol TEXT NOT NULL,
         market TEXT NOT NULL,
-        action TEXT CHECK (action IN ('buy', 'sell')) NOT NULL,
+        action TEXT NOT NULL,
         settled BOOLEAN DEFAULT FALSE,
         settlement_date TIMESTAMP,
         price NUMERIC(10, 4),
         quantity INTEGER,
         executed_at TIMESTAMP,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        order_id INTEGER REFERENCES orders (id) ON DELETE CASCADE,
+        order_id UUID REFERENCES orders (id) ON DELETE CASCADE,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        user_id UUID,
+        user_id TEXT,
         account_id TEXT
     );
 
 -- Enriched Data table
 CREATE TABLE
     enriched_data (
-        id SERIAL PRIMARY KEY,
-        order_id INTEGER REFERENCES orders (id) ON DELETE CASCADE,
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        order_id UUID REFERENCES orders (id) ON DELETE CASCADE,
         market_timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         symbol TEXT NOT NULL,
         market TEXT NOT NULL,
@@ -126,7 +126,7 @@ CREATE TABLE
 -- Data Stream Session table
 CREATE TABLE
     data_stream_session (
-        id SERIAL PRIMARY KEY,
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
         stream_type TEXT NOT NULL, -- e.g., 'portfolio', 'symbol', etc.
         symbol TEXT NOT NULL,
         strategy_name TEXT,

@@ -1,4 +1,5 @@
 from datetime import datetime
+from uuid import UUID
 
 from pydantic import BaseModel
 
@@ -22,9 +23,9 @@ class DBOrder(BaseModel):
         updated_at (datetime): Timestamp when the order was last updated.
     """
 
-    id: int
-    user_id: int
-    account_id: int
+    id: UUID
+    user_id: str
+    account_id: str
     symbol: str
     market: str
     order_type: str

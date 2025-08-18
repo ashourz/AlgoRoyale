@@ -1,10 +1,12 @@
 ## service\trade_service.py
-from datetime import datetime
+from datetime import datetime, timedelta
 from decimal import Decimal
 
 from algo_royale.adapters.trading.account_adapter import AccountAdapter
 from algo_royale.logging.loggable import Loggable
+from algo_royale.models.alpaca_trading.alpaca_account import AccountActivity
 from algo_royale.models.alpaca_trading.enums.enums import ActivityType
+from algo_royale.models.db.db_trade import DBTrade
 from algo_royale.repo.trade_repo import TradeEntry, TradeRepo
 
 
@@ -16,6 +18,7 @@ class TradesService:
         logger: Loggable,
         user_id: str,
         account_id: str,
+        days_to_settle: int = 1,
     ):
         self.repo = repo
         self.account_adapter = account_adapter
@@ -130,7 +133,7 @@ class TradesService:
 
     def _get_all_local_trades_by_date_range(
         self, start_date: datetime, end_date: datetime
-    ) -> list[TradeEntry]:
+    ) -> list[DBTrade]:
         """Fetch all local trades from the repository."""
         all_trades = []
         limit = 100
@@ -152,14 +155,86 @@ class TradesService:
     async def reconcile_trades(self, start_date: datetime, end_date: datetime):
         """Reconcile trades between the local database and the Alpaca API."""
         local_trades = self._get_all_local_trades_by_date_range(start_date, end_date)
-        alpaca_trades = (
+        account_activities = (
             await self.account_adapter.get_account_activities_by_activity_type(
                 activity_type=ActivityType.FILL, after=start_date, until=end_date
             )
         )
+        order_ids = []
 
-        # Compare and reconcile trades
+        for activity in account_activities.activities:
+            if activity.order_id is not None:
+                order_ids.append(activity.order_id)
+
         for trade in local_trades:
-            
+            order_ids.append(trade.order_id)
 
-   
+        for order_id in order_ids:
+            self.logger.info(f"Reconciliation for order ID: {order_id}")
+            order_activities = [
+                activity
+                for activity in account_activities.activities
+                if activity.order_id == order_id
+            ]
+            order_local_trades = [
+                trade for trade in local_trades if trade.order_id == order_id
+            ]
+
+            trade_times = []
+            for activity in order_activities:
+                if activity.transaction_time is not None:
+                    trade_times.append(activity.transaction_time)
+
+            for trade in order_local_trades:
+                trade_times.append(trade.executed_at)
+
+            for time in trade_times:
+                self.logger.info(f"Trade time: {time}")
+                activities = [
+                    activity
+                    for activity in order_activities
+                    if activity.transaction_time == time
+                ]
+                local_trades = [
+                    trade for trade in order_local_trades if trade.executed_at == time
+                ]
+
+                if not activities and not local_trades:
+                    self.logger.warning(
+                        f"No activities or local trades found for time: {time}"
+                    )
+                    continue
+
+    def _get_settlement_date(self, execution_time: datetime) -> datetime | None:
+        """Calculate the settlement date based on the execution time."""
+        if not execution_time:
+            self.logger.warning(
+                "Execution time is None, cannot calculate settlement date."
+            )
+            return None
+        settlement_date = execution_time + timedelta(days=self.days_to_settle)
+        ## Correct settlement date to start of day
+        settlement_date = settlement_date.replace(
+            hour=0, minute=0, second=0, microsecond=0
+        )
+        self.logger.debug(
+            f"Calculated settlement date: {settlement_date} for execution time: {execution_time}"
+        )
+        return settlement_date
+
+    def _account_activity_to_dbtrade(self, activity: AccountActivity) -> DBTrade:
+        now = datetime.now()
+        settlement_date = self._get_settlement_date(activity.transaction_time)
+        isSettled = True if settlement_date and settlement_date <= now else False
+        return DBTrade(
+            symbol=activity.symbol,
+            action=activity.side,
+            settled=isSettled,
+            settlement_date=settlement_date,
+            price=float(activity.price),
+            quantity=int(activity.qty),
+            executed_at=activity.transaction_time,
+            order_id=activity.order_id,
+            user_id=self.user_id,
+            account_id=self.account_id,
+        )

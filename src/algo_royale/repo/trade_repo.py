@@ -2,6 +2,7 @@
 from abc import ABC
 from datetime import datetime
 from decimal import Decimal
+from uuid import UUID
 
 from algo_royale.clients.db.dao.trade_dao import TradeDAO
 from algo_royale.logging.loggable import Loggable
@@ -16,26 +17,6 @@ class TradeDirection(ABC):
     @classmethod
     def choices(cls):
         return [(cls.BUY, "Buy"), (cls.SELL, "Sell")]
-
-
-class TradeEntry:
-    def __init__(
-        self,
-        trade_id: str,
-        symbol: str,
-        direction: TradeDirection,
-        execution_price: Decimal,
-        shares: int,
-        timestamp: datetime,
-        notes: str = "",
-    ):
-        self.trade_id = trade_id
-        self.symbol = symbol
-        self.direction = direction
-        self.execution_price = execution_price
-        self.shares = shares
-        self.timestamp = timestamp
-        self.notes = notes
 
 
 class TradeRepo:
@@ -70,7 +51,7 @@ class TradeRepo:
         price: Decimal,
         quantity: int,
         executed_at: datetime,
-        order_id: int,
+        order_id: UUID,
     ) -> int:
         """Insert a new trade record.
         :param symbol: The stock symbol of the trade.
@@ -122,7 +103,7 @@ class TradeRepo:
         """
         return self.dao.fetch_trades_by_date_range(start_date, end_date, limit, offset)
 
-    def fetch_trades_by_order_id(self, order_id: int) -> list[DBTrade]:
+    def fetch_trades_by_order_id(self, order_id: UUID) -> list[DBTrade]:
         """Fetch trades by order ID."""
         return self.dao.fetch_trades_by_order_id(order_id)
 
@@ -130,7 +111,7 @@ class TradeRepo:
         """Update all trades as settled."""
         return self.dao.update_settled_trades(settlement_datetime)
 
-    def delete_trade(self, trade_id: int) -> int:
+    def delete_trade(self, trade_id: UUID) -> int:
         """Delete a trade record.
         :param trade_id: The ID of the trade to delete.
         :return: Number of deleted records."""

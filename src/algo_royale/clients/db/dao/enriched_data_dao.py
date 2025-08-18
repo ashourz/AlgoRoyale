@@ -1,3 +1,5 @@
+from uuid import UUID
+
 from algo_royale.clients.db.dao.base_dao import BaseDAO
 from algo_royale.models.db.db_enriched_data import DBEnrichedData
 
@@ -6,7 +8,7 @@ class EnrichedDataDAO(BaseDAO):
     def __init__(self, connection, sql_dir, logger):
         super().__init__(connection=connection, sql_dir=sql_dir, logger=logger)
 
-    def fetch_enriched_data_by_order_id(self, order_id: int) -> list[DBEnrichedData]:
+    def fetch_enriched_data_by_order_id(self, order_id: UUID) -> list[DBEnrichedData]:
         """
         Fetch enriched data for a specific order ID.
         :param order_id: The ID of the order to fetch enriched data for.
@@ -20,7 +22,7 @@ class EnrichedDataDAO(BaseDAO):
 
     def insert_enriched_data(
         self,
-        order_id: int,
+        order_id: UUID,
         enriched_data: dict,
         user_id: str,
         account_id: str,

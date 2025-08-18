@@ -3,8 +3,8 @@
 -- Enriched Data table
 CREATE TABLE
     enriched_data (
-        id SERIAL PRIMARY KEY,
-        order_id INTEGER REFERENCES orders (id) ON DELETE CASCADE,
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        order_id UUID REFERENCES orders (id) ON DELETE CASCADE,
         market_timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         symbol TEXT NOT NULL,
         market TEXT NOT NULL,

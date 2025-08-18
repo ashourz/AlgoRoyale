@@ -3,18 +3,18 @@
 -- Trades table
 CREATE TABLE
     trades (
-        id SERIAL PRIMARY KEY,
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
         symbol TEXT NOT NULL,
         market TEXT NOT NULL,
-        action TEXT CHECK (action IN ('buy', 'sell')) NOT NULL,
+        action TEXT NOT NULL,
         settled BOOLEAN DEFAULT FALSE,
         settlement_date TIMESTAMP,
         price NUMERIC(10, 4),
         quantity INTEGER,
         executed_at TIMESTAMP,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        order_id INTEGER REFERENCES orders (id) ON DELETE CASCADE,
+        order_id UUID REFERENCES orders (id) ON DELETE CASCADE,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        user_id UUID,
+        user_id TEXT,
         account_id TEXT
     );

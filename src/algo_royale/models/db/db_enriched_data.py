@@ -1,3 +1,5 @@
+from uuid import UUID
+
 from pydantic import BaseModel
 
 
@@ -46,8 +48,8 @@ class DBEnrichedData(BaseModel):
         adl (float): Accumulation/Distribution Line.
     """
 
-    id: int
-    order_id: int
+    id: UUID
+    order_id: UUID
     market_timestamp: str
     symbol: str
     market: str

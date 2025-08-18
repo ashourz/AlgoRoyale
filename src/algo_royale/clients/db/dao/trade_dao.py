@@ -1,6 +1,7 @@
 # src/algo_royale/clients/db/dao/trade_dao.py
 from datetime import datetime
 from decimal import Decimal
+from uuid import UUID
 
 import psycopg2
 
@@ -26,7 +27,7 @@ class TradeDAO(BaseDAO):
         rows = self.fetch("get_unsettled_trades.sql", (limit, offset))
         return [DBTrade.from_tuple(row) for row in rows]
 
-    def fetch_open_positions(self, user_id: int, account_id: int) -> list[DBPosition]:
+    def fetch_open_positions(self, user_id: str, account_id: str) -> list[DBPosition]:
         """Fetch all open positions.
         :return: List of open positions.
         """
@@ -37,8 +38,8 @@ class TradeDAO(BaseDAO):
         self,
         start_date: datetime,
         end_date: datetime,
-        limit: int = 100,
-        offset: int = 0,
+        limit: str = 100,
+        offset: str = 0,
     ) -> list[DBTrade]:
         """Fetch trades within a specific date range."""
         rows = self.fetch(
@@ -47,7 +48,7 @@ class TradeDAO(BaseDAO):
         )
         return [DBTrade.from_tuple(row) for row in rows]
 
-    def fetch_trades_by_order_id(self, order_id: int) -> list[DBTrade]:
+    def fetch_trades_by_order_id(self, order_id: UUID) -> list[DBTrade]:
         """Fetch trades by order ID."""
         rows = self.fetch("get_trades_by_order_id.sql", (order_id,))
         return [DBTrade.from_tuple(row) for row in rows]
@@ -61,9 +62,9 @@ class TradeDAO(BaseDAO):
         price: Decimal,
         quantity: int,
         executed_at: datetime,
-        order_id: int,
-        user_id: int,
-        account_id: int,
+        order_id: UUID,
+        user_id: str,
+        account_id: str,
     ) -> int:
         """Insert a new trade record.
         :param symbol: The stock symbol of the trade.
@@ -111,7 +112,7 @@ class TradeDAO(BaseDAO):
             return -1
         return len(updated_ids)
 
-    def delete_trade(self, trade_id: int) -> int:
+    def delete_trade(self, trade_id: str) -> int:
         """Delete a trade record by its ID.
         :param trade_id: The ID of the trade to delete.
         :return: The ID of the deleted trade, or -1 if the deletion failed.
