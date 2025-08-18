@@ -1,20 +1,19 @@
 """Keeps track of which symbols to consider for trading"""
 
 from algo_royale.logging.loggable import Loggable
-from algo_royale.repo.positions_repo import PositionsRepo
 from algo_royale.repo.watchlist_repo import WatchlistRepo
+from algo_royale.services.positions_service import PositionsService
 
 
 class SymbolManager:
     def __init__(
         self,
         watchlist_repo: WatchlistRepo,
-        positions_repo: PositionsRepo,
+        positions_service: PositionsService,
         logger: Loggable,
     ):
         self.logger = logger
         self.watchlist_repo = watchlist_repo
-        self.positions_repo = positions_repo
 
     def _get_watchlist(self) -> list[str]:
         """
@@ -25,19 +24,6 @@ class SymbolManager:
             return self.watchlist_repo.load_watchlist()
         except Exception as e:
             self.logger.error(f"Error loading watchlist: {e}")
-            return []
-
-    async def _async_get_open_positions(self) -> list[str]:
-        """
-        Get the current open positions.
-        """
-        try:
-            self.logger.info("Fetching open positions...")
-            positions_list = await self.positions_repo.get_position_list()
-            positions = positions_list.positions if positions_list else []
-            return [position.symbol for position in positions]
-        except Exception as e:
-            self.logger.error(f"Error fetching open positions: {e}")
             return []
 
     async def async_get_symbols(self) -> list[str]:
