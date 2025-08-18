@@ -7,7 +7,7 @@ from typing import Optional
 from dateutil.parser import isoparse
 from pydantic import BaseModel
 
-from algo_royale.models.alpaca_trading.enums import (
+from algo_royale.models.alpaca_trading.enums.enums import (
     ActivityType,
     DTBPCheck,
     MarginMultiplier,

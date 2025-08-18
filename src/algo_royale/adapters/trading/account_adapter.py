@@ -10,7 +10,7 @@ from algo_royale.models.alpaca_trading.alpaca_account import (
     AccountActivities,
     AccountConfiguration,
 )
-from algo_royale.models.alpaca_trading.enums import (
+from algo_royale.models.alpaca_trading.enums.enums import (
     ActivityType,
     DTBPCheck,
     MarginMultiplier,

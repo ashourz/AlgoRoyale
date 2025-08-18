@@ -2,19 +2,23 @@
 from datetime import datetime
 from decimal import Decimal
 
+from algo_royale.adapters.trading.account_adapter import AccountAdapter
 from algo_royale.logging.loggable import Loggable
+from algo_royale.models.alpaca_trading.enums.enums import ActivityType
 from algo_royale.repo.trade_repo import TradeEntry, TradeRepo
 
 
 class TradesService:
     def __init__(
         self,
+        account_adapter: AccountAdapter,
         repo: TradeRepo,
         logger: Loggable,
         user_id: str,
         account_id: str,
     ):
         self.repo = repo
+        self.account_adapter = account_adapter
         self.logger = logger
         self.user_id = user_id
         self.account_id = account_id
@@ -123,3 +127,39 @@ class TradesService:
         """Calculate the profit or loss of a trade."""
         ## TODO: Not Yet Implemented
         raise NotImplementedError("This method is not yet implemented.")
+
+    def _get_all_local_trades_by_date_range(
+        self, start_date: datetime, end_date: datetime
+    ) -> list[TradeEntry]:
+        """Fetch all local trades from the repository."""
+        all_trades = []
+        limit = 100
+        fetch = True
+        offset = 0
+
+        while fetch:
+            trades = self.repo.fetch_trades_by_date_range(
+                start_date, end_date, limit, offset
+            )
+            if len(trades) < limit:
+                fetch = False
+            else:
+                all_trades.extend(trades)
+                offset += limit
+
+        return all_trades
+
+    async def reconcile_trades(self, start_date: datetime, end_date: datetime):
+        """Reconcile trades between the local database and the Alpaca API."""
+        local_trades = self._get_all_local_trades_by_date_range(start_date, end_date)
+        alpaca_trades = (
+            await self.account_adapter.get_account_activities_by_activity_type(
+                activity_type=ActivityType.FILL, after=start_date, until=end_date
+            )
+        )
+
+        # Compare and reconcile trades
+        for trade in local_trades:
+            
+
+   
