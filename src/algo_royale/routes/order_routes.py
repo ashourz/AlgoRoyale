@@ -1,9 +1,9 @@
 from flask import Blueprint, jsonify, request
 
-from algo_royale.services.orders_service import OrderServices
+from algo_royale.services.orders_service import OrderService
 
 
-def create_order_blueprint(service: OrderServices) -> Blueprint:
+def create_order_blueprint(service: OrderService) -> Blueprint:
     """Create a Flask blueprint for order routes.
     :param service: An instance of OrderServices.
     :return: A Flask blueprint with order routes.

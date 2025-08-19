@@ -2,6 +2,7 @@ from enum import Enum
 
 
 class SymbolHoldStatus(Enum):
-    HOLD = "hold"
-    OPEN = "open"
+    HOLD_ALL = "hold_all"
+    BUY_ONLY = "buy_only"
+    SELL_ONLY = "sell_only"
     CLOSED = "closed"

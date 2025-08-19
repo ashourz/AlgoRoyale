@@ -26,6 +26,10 @@ class OrderDAO(BaseDAO):
             return []
         return [DBOrder.from_tuple(row) for row in rows]
 
+    def fetch_all_orders_by_status(self, status: str) -> list[DBOrder]:
+        rows = self.fetch("get_all_orders_by_status.sql", (status,))
+        return [DBOrder.from_tuple(row) for row in rows]
+
     def fetch_orders_by_status(
         self, status: str, limit: int = 100, offset: int = 0
     ) -> list[DBOrder]:

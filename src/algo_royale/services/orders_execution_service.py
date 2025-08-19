@@ -1,34 +1,33 @@
 from datetime import datetime, timedelta
 
 from algo_royale.adapters.trading.order_stream_adapter import OrderStreamAdapter
-from algo_royale.application.orders.equity_order_enums import EquityOrderSide
 from algo_royale.application.utils.async_pubsub import AsyncPubSub
 from algo_royale.logging.loggable import Loggable
 from algo_royale.models.alpaca_trading.alpaca_order import Order
 from algo_royale.models.alpaca_trading.enums.order_stream_event import OrderStreamEvent
 from algo_royale.models.alpaca_trading.order_stream_data import OrderStreamData
 from algo_royale.models.db.db_order import DBOrder
-from algo_royale.repo.order_repo import OrderRepo
 from algo_royale.repo.trade_repo import TradeRepo
+from algo_royale.services.order_event_service import OrderEventService
+from algo_royale.services.orders_service import OrderService
+from algo_royale.services.symbol_hold_service import SymbolHoldService
 
 
 ##TODO: add days to settle to config
 class OrderExecutionServices:
     def __init__(
         self,
-        order_repo: OrderRepo,
+        order_service: OrderService,
         trade_repo: TradeRepo,
         order_stream_adapter: OrderStreamAdapter,
+        order_event_service: OrderEventService,
+        symbol_hold_service: SymbolHoldService,
         logger: Loggable,
-        user_id: str,
-        account_id: str,
         days_to_settle: int = 1,
     ):
-        self.order_repo = order_repo
+        self.order_service = order_service
         self.trade_repo = trade_repo
         self.order_stream_adapter = order_stream_adapter
-        self.user_id = user_id
-        self.account_id = account_id
         self.days_to_settle = days_to_settle
         self.logger = logger
         self._isStarted: bool = False
@@ -111,7 +110,7 @@ class OrderExecutionServices:
         ]
         hold_orders: list[DBOrder] = []
         for status in hold_status:
-            orders = self.order_repo.fetch_orders_by_status(status)
+            orders = self.order_service.fetch_orders_by_status(status)
             hold_orders.extend(orders)
 
         hold_symbols = set()
@@ -170,10 +169,7 @@ class OrderExecutionServices:
                 OrderStreamEvent.EXPIRED,
                 OrderStreamEvent.DONE_FOR_DAY,
             ]:
-                if data.order.side.lower() == EquityOrderSide.SELL.value.lower():
-                    self._set_symbol_hold(symbol, True)
-                else:
-                    self._set_symbol_hold(symbol, False)
+                self._set_symbol_hold(symbol, False)
             self.logger.info(
                 f"Updated hold status for {symbol}: {self._get_symbol_hold(symbol)}"
             )
@@ -186,7 +182,7 @@ class OrderExecutionServices:
         """
         try:
             status = event.db_status
-            self.order_repo.update_order_status(order_id, status)
+            self.order_service.update_order_status(order_id, status)
             self.logger.info(f"Order {order_id} status updated to {status}.")
         except Exception as e:
             self.logger.error(f"Error updating order status for {order_id}: {e}")
@@ -219,9 +215,7 @@ class OrderExecutionServices:
 
     def _get_existing_order(self, order_id: str) -> DBOrder:
         try:
-            orders = self.order_repo.fetch_order_by_id(
-                order_id, self.user_id, self.account_id
-            )
+            orders = self.order_service.fetch_order_by_id(order_id)
             if not orders:
                 self.logger.warning(f"No existing order found for ID: {order_id}")
                 return None

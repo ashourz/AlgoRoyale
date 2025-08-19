@@ -1,0 +1,155 @@
+from logging import Logger
+from typing import Any, Callable
+
+from algo_royale.application.symbols.enums import SymbolHoldStatus
+from algo_royale.application.symbols.symbol_hold_manager import SymbolHoldManager
+from algo_royale.application.utils.async_pubsub import AsyncSubscriber
+from algo_royale.models.alpaca_trading.enums.enums import OrderSide
+from algo_royale.models.alpaca_trading.enums.order_stream_event import OrderStreamEvent
+from algo_royale.models.alpaca_trading.order_stream_data import OrderStreamData
+from algo_royale.services.order_event_service import OrderEventService
+from algo_royale.services.orders_service import OrderService
+from algo_royale.services.positions_service import PositionsService
+from algo_royale.services.symbol_service import SymbolService
+
+
+class SymbolHoldService:
+    HOLD_ALL_EVENTS = [
+        OrderStreamEvent.NEW,
+        OrderStreamEvent.ORDER_CANCEL_REJECTED,
+        OrderStreamEvent.ORDER_REPLACE_REJECTED,
+        OrderStreamEvent.PARTIAL_FILL,
+        OrderStreamEvent.PENDING_NEW,
+        OrderStreamEvent.PENDING_CANCEL,
+        OrderStreamEvent.PENDING_REPLACE,
+        OrderStreamEvent.REPLACED,
+        OrderStreamEvent.STOPPED,
+        OrderStreamEvent.SUSPENDED,
+    ]
+
+    SELL_ONLY_OR_BUY_ONLY_EVENTS = {
+        OrderStreamEvent.REJECTED,
+        OrderStreamEvent.CANCELED,
+        OrderStreamEvent.EXPIRED,
+    }
+
+    def __init__(
+        self,
+        symbol_service: SymbolService,
+        symbol_hold_manager: SymbolHoldManager,
+        order_service: OrderService,
+        order_event_service: OrderEventService,
+        position_service: PositionsService,
+        logger: Logger,
+    ):
+        self.symbol_service = symbol_service
+        self.symbol_hold_manager = symbol_hold_manager
+        self.order_service = order_service
+        self.order_event_service = order_event_service
+        self.position_service = position_service
+        self._order_event_subscriber = None
+        self.logger = logger
+
+    async def start(self):
+        try:
+            if self._order_event_subscriber:
+                self.logger.warning("Order event subscriber already initialized.")
+                return
+            # Initialize symbol holds
+            symbols = await self.symbol_service.async_get_symbols()
+            await self._async_initialize_symbol_holds(symbols)
+            # Subscribe to order events to update symbol holds
+            async_subscriber = await self.order_event_service.async_subscribe(
+                callback=self._async_update_symbol_hold, queue_size=0
+            )
+            self._order_event_subscriber = async_subscriber
+        except Exception as e:
+            self.logger.error(f"Error starting symbol hold service: {e}")
+
+    async def stop(self):
+        try:
+            if not self._order_event_subscriber:
+                self.logger.warning("Order event subscriber not initialized.")
+                return
+            await self.order_event_service.async_unsubscribe(
+                self._order_event_subscriber
+            )
+        except Exception as e:
+            self.logger.error(f"Error stopping symbol hold service: {e}")
+
+    ##TODO: THIS NEEDS WORK
+    async def _async_initialize_symbol_holds(self, symbols):
+        """Initialize symbol holds for the user."""
+        self.logger.info("Initializing symbol holds...")
+        # Fetch orders in hold status
+        for status in self.HOLD_ALL_EVENTS:
+            orders = self.order_service.fetch_orders_by_status(status)
+            for order in orders:
+                await self._async_set_symbol_hold(
+                    order.symbol, SymbolHoldStatus.HOLD_ALL
+                )
+
+        for status in self.SELL_ONLY_OR_BUY_ONLY_EVENTS:
+            orders = self.order_service.fetch_orders_by_status(status)
+            for order in orders:
+                if self.position_service.get_positions_by_symbol(order.symbol):
+                    await self._async_set_symbol_hold(
+                        order.symbol, SymbolHoldStatus.SELL_ONLY
+                    )
+                else:
+                    await self._async_set_symbol_hold(
+                        order.symbol, SymbolHoldStatus.BUY_ONLY
+                    )
+
+    async def _async_update_symbol_hold(self, symbol: str, data: OrderStreamData):
+        """
+        Update the hold status for a symbol based on the order event.
+        """
+        try:
+            if data.event in self.HOLD_ALL_EVENTS:
+                await self._async_set_symbol_hold(symbol, SymbolHoldStatus.HOLD_ALL)
+            elif data.event in self.SELL_ONLY_OR_BUY_ONLY_EVENTS:
+                if self.position_service.get_positions_by_symbol(symbol):
+                    await self._async_set_symbol_hold(
+                        symbol, SymbolHoldStatus.SELL_ONLY
+                    )
+                else:
+                    await self._async_set_symbol_hold(symbol, SymbolHoldStatus.BUY_ONLY)
+            elif data.event == OrderStreamEvent.FILL:
+                if data.order.side == OrderSide.BUY:
+                    await self._async_set_symbol_hold(
+                        symbol, SymbolHoldStatus.SELL_ONLY
+                    )
+                elif data.order.side == OrderSide.SELL:
+                    await self._async_set_symbol_hold(symbol, SymbolHoldStatus.CLOSED)
+            elif data.event == OrderStreamEvent.DONE_FOR_DAY:
+                await self._async_set_symbol_hold(symbol, SymbolHoldStatus.CLOSED)
+
+            self.logger.info(
+                f"Updated hold status for {symbol}: {self._get_symbol_hold(symbol)}"
+            )
+        except Exception as e:
+            self.logger.error(f"Error updating hold status for {symbol}: {e}")
+
+    async def _async_set_symbol_hold(self, symbol: str, status: SymbolHoldStatus):
+        try:
+            await self.symbol_hold_manager.async_set_symbol_hold(symbol, status)
+        except Exception as e:
+            self.logger.error(f"Error setting symbol hold for {symbol}: {e}")
+
+    def subscribe(
+        self,
+        callback: Callable[[dict[str, SymbolHoldStatus], type], Any],
+        queue_size: int = 1,
+    ) -> AsyncSubscriber:
+        try:
+            return self.symbol_hold_manager.subscribe(callback, queue_size)
+        except Exception as e:
+            self.logger.error(f"Error subscribing to symbol holds: {e}")
+            return None
+
+    def unsubscribe(self, subscriber: AsyncSubscriber):
+        try:
+            self.symbol_hold_manager.unsubscribe(subscriber)
+        except Exception as e:
+            self.logger.error(f"Error unsubscribing from symbol holds: {e}")

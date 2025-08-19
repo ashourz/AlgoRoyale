@@ -4,7 +4,7 @@ from decimal import Decimal
 from algo_royale.logging.loggable import Loggable
 from algo_royale.repo.trade_repo import TradeDirection, TradeEntry
 from algo_royale.services.account_cash_service import AccountCashService
-from algo_royale.services.orders_service import OrderServices
+from algo_royale.services.orders_service import OrderService
 from algo_royale.services.positions_service import PositionsService
 from algo_royale.services.trades_service import TradesService
 
@@ -13,7 +13,7 @@ class LedgerService:
     def __init__(
         self,
         cash_service: AccountCashService,
-        order_service: OrderServices,
+        order_service: OrderService,
         trade_service: TradesService,
         position_service: PositionsService,
         logger: Loggable,
