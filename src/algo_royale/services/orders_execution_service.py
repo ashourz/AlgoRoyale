@@ -1,6 +1,7 @@
 from datetime import datetime, timedelta
 
 from algo_royale.adapters.trading.order_stream_adapter import OrderStreamAdapter
+from algo_royale.application.orders.equity_order_enums import EquityOrderSide
 from algo_royale.application.utils.async_pubsub import AsyncPubSub
 from algo_royale.logging.loggable import Loggable
 from algo_royale.models.alpaca_trading.alpaca_order import Order
@@ -169,7 +170,10 @@ class OrderExecutionServices:
                 OrderStreamEvent.EXPIRED,
                 OrderStreamEvent.DONE_FOR_DAY,
             ]:
-                self._set_symbol_hold(symbol, False)
+                if data.order.side.lower() == EquityOrderSide.SELL.value.lower():
+                    self._set_symbol_hold(symbol, True)
+                else:
+                    self._set_symbol_hold(symbol, False)
             self.logger.info(
                 f"Updated hold status for {symbol}: {self._get_symbol_hold(symbol)}"
             )

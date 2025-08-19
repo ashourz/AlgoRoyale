@@ -5,7 +5,7 @@ from typing import Optional
 
 from pydantic import BaseModel, Field
 
-from algo_royale.models.alpaca_trading.enums import (
+from algo_royale.models.alpaca_trading.enums.enums import (
     OrderClass,
     OrderSide,
     OrderStatus,

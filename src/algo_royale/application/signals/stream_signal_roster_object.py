@@ -21,10 +21,10 @@ class StreamSignalRosterObject:
         """
         Initialize the StreamSignalRosterObject.
         """
+        self.logger = logger
         self._pubsub = AsyncPubSub()
         self._queued_symbols_list = QueuedAsyncSymbolList(symbols=initial_symbols)
         self._initialize_signal_data(self, symbols=initial_symbols)
-        super().__init__(logger=logger)
 
     def _initialize_signal_data(self, symbols: list[str]):
         """
