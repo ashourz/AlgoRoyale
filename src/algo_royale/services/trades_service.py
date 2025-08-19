@@ -1,6 +1,7 @@
 ## service\trade_service.py
 from datetime import datetime, timedelta
 from decimal import Decimal
+from uuid import UUID
 
 from algo_royale.adapters.trading.account_adapter import AccountAdapter
 from algo_royale.logging.loggable import Loggable
@@ -25,6 +26,7 @@ class TradesService:
         self.logger = logger
         self.user_id = user_id
         self.account_id = account_id
+        self.days_to_settle = days_to_settle
 
     def get_unsettled_trades(self, limit: int = 100, offset: int = 0) -> list:
         """Fetch all unsettled trades with pagination.
@@ -37,45 +39,30 @@ class TradesService:
     def insert_trade(
         self,
         symbol: str,
-        market: str,
         action: str,
-        settlement_date: datetime,
-        entry_price: Decimal,
-        exit_price: Decimal,
-        shares: int,
-        entry_time: datetime,
-        exit_time: datetime,
-        notes: str,
-        order_id: int,
+        price: Decimal,
+        quantity: int,
+        executed_at: datetime,
+        order_id: UUID,
     ) -> int:
         """Insert a new trade record.
         :param symbol: The stock symbol of the trade.
-        :param market: The market where the trade occurred (e.g., 'NYSE', 'NASDAQ').
         :param action: The action of the trade (e.g., 'buy', 'sell').
-        :param settlement_date: The settlement date of the trade.
-        :param entry_price: The entry price of the trade.
-        :param exit_price: The exit price of the trade.
-        :param shares: The number of shares traded.
-        :param entry_time: The time when the trade was entered.
-        :param exit_time: The time when the trade was exited.
-        :param notes: Additional notes about the trade.
+        :param price: The price at which the trade was executed.
+        :param quantity: The number of shares traded.
+        :param executed_at: The time when the trade was executed.
         :param order_id: The ID of the associated order.
         :return: The ID of the newly inserted trade record.
         """
+        settlement_date = self._get_settlement_date(executed_at)
         return self.repo.insert_trade(
-            symbol,
-            market,
-            action,
-            settlement_date,
-            entry_price,
-            exit_price,
-            shares,
-            entry_time,
-            exit_time,
-            notes,
-            order_id,
-            self.user_id,
-            self.account_id,
+            symbol=symbol,
+            action=action,
+            settlement_date=settlement_date,
+            price=price,
+            quantity=quantity,
+            executed_at=executed_at,
+            order_id=order_id,
         )
 
     def get_trades_by_date_range(
@@ -93,10 +80,6 @@ class TradesService:
         :return: A list of trades within the specified date range.
         """
         return self.repo.fetch_trades_by_date_range(start_date, end_date, limit, offset)
-
-    def update_trade_as_settled(self, trade_id: int) -> int:
-        """Update a trade as settled."""
-        return self.repo.update_trade_as_settled(trade_id)
 
     def delete_trade(self, trade_id: int) -> int:
         """Delete a trade record.
