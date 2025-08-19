@@ -1,3 +1,5 @@
+from typing import Counter
+
 from algo_royale.adapters.trading.positions_adapter import PositionsAdapter
 from algo_royale.logging.loggable import Loggable
 from algo_royale.models.alpaca_trading.alpaca_position import Position
@@ -64,8 +66,9 @@ class PositionsService:
         Update the current positions with a new list.
         """
         try:
-            positionList = await self.adapter.fetch_all_open_positions()
-            self.positions = positionList.positions if positionList else []
+            positionList = self._fetch_open_positions_from_repo()
+            self.positions = positionList
+            await self.validate_positions()
             self.logger.info(f"Positions updated: {len(self.positions)} found.")
         except Exception as e:
             self.logger.error(f"Error updating positions: {e}")
@@ -80,3 +83,52 @@ class PositionsService:
         except Exception as e:
             self.logger.error(f"Error fetching positions from repo: {e}")
             return []
+
+    async def validate_positions(self) -> None:
+        """
+        Validate positions between Alpaca and local DB.
+        Log missing, duplicate, or excess positions.
+        """
+        try:
+            # Fetch positions from Alpaca and local DB
+            alpacaPositionsList = await self.adapter.fetch_all_open_positions()
+            alpaca_positions = (
+                alpacaPositionsList.positions if alpacaPositionsList else []
+            )
+            db_positions = (
+                self.positions.copy()
+            )  # Use the current positions from the service
+
+            # Build key sets for comparison (symbol, quantity, account_id)
+            def pos_key(pos):
+                return (pos.symbol, pos.quantity, pos.account_id)
+
+            alpaca_keys = Counter([pos_key(pos) for pos in alpaca_positions])
+            db_keys = Counter([pos_key(pos) for pos in db_positions])
+
+            # Log missing positions (in Alpaca but not in DB)
+            for key in alpaca_keys:
+                if key not in db_keys:
+                    self.logger.warning(f"Missing local position for Alpaca: {key}")
+
+            # Log excess positions (in DB but not in Alpaca)
+            for key in db_keys:
+                if key not in alpaca_keys:
+                    self.logger.warning(f"Excess local position not in Alpaca: {key}")
+
+            # Log duplicates in Alpaca
+            for key, count in alpaca_keys.items():
+                if count > 1:
+                    self.logger.warning(
+                        f"Duplicate position in Alpaca: {key} (count={count})"
+                    )
+
+            # Log duplicates in local DB
+            for key, count in db_keys.items():
+                if count > 1:
+                    self.logger.warning(
+                        f"Duplicate position in local DB: {key} (count={count})"
+                    )
+
+        except Exception as e:
+            self.logger.error(f"Error validating positions: {e}")

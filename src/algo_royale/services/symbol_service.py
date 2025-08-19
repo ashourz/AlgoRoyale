@@ -14,6 +14,7 @@ class SymbolService:
     ):
         self.logger = logger
         self.watchlist_repo = watchlist_repo
+        self.positions_service = positions_service
 
     def _get_watchlist(self) -> list[str]:
         """
@@ -34,8 +35,9 @@ class SymbolService:
             self.logger.info("Getting symbols...")
             # Get watchlist and open positions
             watchlist_symbols = self._get_watchlist()
-            open_positions = await self._async_get_open_positions()
-            symbols = list(set(watchlist_symbols + open_positions))
+            open_positions = await self.positions_service.get_positions()
+            open_position_symbols = [pos.symbol for pos in open_positions]
+            symbols = list(set(watchlist_symbols + open_position_symbols))
             self.logger.info(f"Got symbols: {symbols}")
             return symbols
         except Exception as e:
