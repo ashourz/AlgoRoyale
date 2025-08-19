@@ -136,18 +136,19 @@ class OrderExecutionServices:
         """Handle incoming order events from the order stream."""
         try:
             self.logger.info(f"Handling order event: {data}")
-            self._update_symbol_hold(data.order.symbol, data.event)
+            self._update_symbol_hold(data.order.symbol, data)
             self._update_order_status(data.order.order_id, data.event)
             if data.event in [OrderStreamEvent.FILL, OrderStreamEvent.PARTIAL_FILL]:
                 self._handle_fill_event(data.order)
         except Exception as e:
             self.logger.error(f"Error handling order event: {e}")
 
-    def _update_symbol_hold(self, symbol: str, event: OrderStreamEvent):
+    def _update_symbol_hold(self, symbol: str, data: OrderStreamData):
         """
         Update the hold status for a symbol based on the order event.
         """
         try:
+            event = data.event
             if event in [
                 OrderStreamEvent.NEW,
                 OrderStreamEvent.ORDER_CANCEL_REJECTED,
