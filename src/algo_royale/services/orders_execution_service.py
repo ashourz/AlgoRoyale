@@ -1,6 +1,5 @@
 from datetime import datetime
 
-from algo_royale.application.utils.async_pubsub import AsyncPubSub
 from algo_royale.logging.loggable import Loggable
 from algo_royale.models.alpaca_trading.alpaca_order import Order
 from algo_royale.models.alpaca_trading.enums.order_stream_event import OrderStreamEvent
@@ -25,8 +24,6 @@ class OrderExecutionServices:
         self.order_event_service = order_event_service
         self.logger = logger
         self.order_stream_subscriber = None
-        self._order_event_pubsub = AsyncPubSub()
-        self._order_event_subscriber = None
 
     async def start(self) -> bool:
         """Start the order stream adapter to listen for order events."""

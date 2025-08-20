@@ -47,7 +47,7 @@ class MarketDataEnrichedStreamer:
             self.logger.info("Creating enrichment buffers...")
             self._create_enrichment_buffers(symbols=symbols)
             self.logger.info("Subscribing to streams...")
-            self._subscribe_to_market_streams(symbols=symbols)
+            await self._async_subscribe_to_market_streams(symbols=symbols)
         except Exception as e:
             self.logger.error(f"Error starting signal generation: {e}")
 
@@ -83,7 +83,7 @@ class MarketDataEnrichedStreamer:
         except Exception as e:
             self.logger.error(f"Error creating enrichment buffers: {e}")
 
-    def _subscribe_to_market_streams(self, symbols: list[str]):
+    async def _async_subscribe_to_market_streams(self, symbols: list[str]):
         """
         Subscribe to the market stream for a specific symbol.
         This will allow the signal generator to receive real-time data updates.
@@ -92,11 +92,14 @@ class MarketDataEnrichedStreamer:
             for symbol in symbols:
                 self.logger.debug(f"Subscribing to stream for symbol: {symbol}")
 
-                async_subscriber = self.market_data_streamer.subscribe_to_stream(
-                    symbol=symbol,
-                    callback=lambda data, symbol=symbol: self._async_data_enrichment(
-                        symbol=symbol, data=data
-                    ),
+                async_subscriber = (
+                    await self.market_data_streamer.async_subscribe_to_stream(
+                        symbol=symbol,
+                        callback=lambda data,
+                        symbol=symbol: self._async_data_enrichment(
+                            symbol=symbol, data=data
+                        ),
+                    )
                 )
                 self.symbol_async_subscriber_map[symbol] = async_subscriber
                 self.logger.info(f"Subscribed to market stream for symbol: {symbol}")
@@ -201,13 +204,13 @@ class MarketDataEnrichedStreamer:
                 f"Error unsubscribing from enriched data for {symbol}: {e}"
             )
 
-    def _unsubscribe_from_market_data(self):
+    async def _async_unsubscribe_from_market_data(self):
         """
         Unsubscribe from all market data streams for all symbols.
         """
         try:
             for symbol, async_subscriber in self.symbol_async_subscriber_map.items():
-                self.market_data_streamer.unsubscribe_from_stream(
+                await self.market_data_streamer.async_unsubscribe_from_stream(
                     symbol, async_subscriber
                 )
                 self.logger.info(f"Unsubscribed from {symbol} market data stream")
@@ -220,7 +223,7 @@ class MarketDataEnrichedStreamer:
         Stop the enriched data generation service.
         """
         try:
-            self._unsubscribe_from_market_data()
+            await self._async_unsubscribe_from_market_data()
             self.logger.info("Unsubscribed from all market data streams.")
         except Exception as e:
             self.logger.error(f"Error stopping enriched data generation: {e}")

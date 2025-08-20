@@ -29,10 +29,11 @@ class MarketDataRawStreamer:
         self.symbol_manager = symbol_manager
         self.stream_service = stream_service
         self.stream_data_ingest_object_map: dict[str, StreamDataIngestObject] = {}
+        self.stream_subscribers: dict[str, AsyncSubscriber] = {}
         self.logger = logger
         self.is_live = is_live
 
-    async def async_start(self):
+    async def _async_start(self):
         """
         Generate a trading signal based on the provided data and strategy.
         """
@@ -101,7 +102,9 @@ class MarketDataRawStreamer:
         except Exception as e:
             self.logger.error(f"Error processing bar: {e}")
 
-    def subscribe_to_stream(self, symbol: str, callback: Any) -> AsyncSubscriber:
+    async def async_subscribe_to_stream(
+        self, symbol: str, callback: Any
+    ) -> AsyncSubscriber:
         """
         Subscribe to the stream for a specific symbol.
         This will allow the signal generator to receive real-time data updates.
@@ -110,12 +113,15 @@ class MarketDataRawStreamer:
         :param callback: The callback function to handle incoming data.
         """
         try:
+            if not any(self.stream_subscribers.values()):
+                # No subscribers present, need to run async_start
+                await self._async_start()
             if symbol in self.stream_data_ingest_object_map:
                 subscriber = self.stream_data_ingest_object_map[symbol].subscribe(
                     callback=callback,
                 )
+                self.stream_subscribers[symbol] = subscriber
                 self.logger.info(f"Subscribed to stream for symbol: {symbol}")
-
                 return subscriber
             else:
                 self.logger.error(
@@ -125,7 +131,9 @@ class MarketDataRawStreamer:
             self.logger.error(f"Error subscribing to stream for {symbol}: {e}")
         return None
 
-    def unsubscribe_from_stream(self, symbol: str, subscriber: AsyncSubscriber):
+    async def async_unsubscribe_from_stream(
+        self, symbol: str, subscriber: AsyncSubscriber
+    ):
         """
         Unsubscribe from the stream for a specific symbol.
 
@@ -135,13 +143,16 @@ class MarketDataRawStreamer:
             if symbol in self.stream_data_ingest_object_map:
                 if subscriber:
                     self.stream_data_ingest_object_map[symbol].unsubscribe(subscriber)
+                    self.stream_subscribers.pop(symbol, None)
                     self.logger.info(f"Unsubscribed from stream for symbol: {symbol}")
                 else:
                     self.logger.error("Subscriber is None, cannot unsubscribe.")
+                if not any(self.stream_subscribers.values()):
+                    await self._async_stop()
         except Exception as e:
             self.logger.error(f"Error unsubscribing from stream for {symbol}: {e}")
 
-    async def async_stop(self):
+    async def _async_stop(self):
         """
         Stop the market data streamer and clean up resources.
         """
