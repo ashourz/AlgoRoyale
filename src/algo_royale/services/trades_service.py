@@ -28,13 +28,30 @@ class TradesService:
         self.account_id = account_id
         self.days_to_settle = days_to_settle
 
-    def get_unsettled_trades(self, limit: int = 100, offset: int = 0) -> list:
+    def fetch_trades_by_order_id(self, order_id: UUID) -> list[DBTrade]:
+        """Fetch trades by their associated order ID."""
+        return self.repo.fetch_trades_by_order_id(order_id)
+
+    def fetch_unsettled_trades(self, limit: int = 100, offset: int = 0) -> list:
         """Fetch all unsettled trades with pagination.
         :param limit: Maximum number of trades to fetch.
         :param offset: Offset for pagination.
         :return: List of unsettled trades.
         """
         return self.repo.fetch_unsettled_trades(limit, offset)
+
+    def update_settled_trades(self):
+        """Update settlement status for all trades."""
+        try:
+            self.logger.info("Updating settled trades...")
+            settlement_datetime = datetime.now()
+            updated_count = self.repo.update_settled_trades(settlement_datetime)
+            if updated_count == -1:
+                self.logger.error("Failed to update settled trades.")
+                return
+            self.logger.info(f"Updated {updated_count} settled trades.")
+        except Exception as e:
+            self.logger.error(f"Error updating settled trades: {e}")
 
     def insert_trade(
         self,
@@ -65,7 +82,7 @@ class TradesService:
             order_id=order_id,
         )
 
-    def get_trades_by_date_range(
+    def fetch_trades_by_date_range(
         self,
         start_date: datetime,
         end_date: datetime,
@@ -94,7 +111,7 @@ class TradesService:
         """
         return self.repo.delete_all_trades()
 
-    def _get_all_local_trades_by_date_range(
+    def _fetch_all_local_trades_by_date_range(
         self, start_date: datetime, end_date: datetime
     ) -> list[DBTrade]:
         """Fetch all local trades from the repository."""
@@ -132,7 +149,7 @@ class TradesService:
     ):
         """Reconcile trades between the local database and the Alpaca API."""
         try:
-            local_trades = self._get_all_local_trades_by_date_range(
+            local_trades = self._fetch_all_local_trades_by_date_range(
                 start_date, end_date
             )
             account_activities = (
