@@ -48,27 +48,49 @@ class OrderRepo:
         return self.dao.fetch_order_by_id(order_id, user_id, account_id)
 
     def fetch_orders_by_status(
-        self, status: DBOrderStatus, limit: int = 100, offset: int = 0
+        self, status_list: list[DBOrderStatus], limit: int = 100, offset: int = 0
     ) -> list[DBOrder]:
         """Fetch all orders for a specific status with pagination.
-        :param status: Status of the orders to fetch (e.g., 'open', 'closed').
+        :param status_list: List of statuses to filter orders by.
         :param limit: Maximum number of orders to fetch.
         :param offset: Offset for pagination.
         :return: List of orders for the specified status.
         """
-        return self.dao.fetch_orders_by_status(status, limit, offset)
+        return self.dao.fetch_orders_by_status(
+            status_list=status_list, limit=limit, offset=offset
+        )
 
-    def fetch_orders_by_symbol_and_status(
-        self, symbol: str, status: DBOrderStatus, limit: int = 100, offset: int = 0
+    def fetch_all_orders_by_symbol_and_status(
+        self, symbol: str, status_list: list[DBOrderStatus]
     ) -> list[DBOrder]:
         """Fetch orders by symbol and status with pagination.
         :param symbol: The stock symbol of the orders to fetch.
-        :param status: The status of the orders to fetch (e.g., 'open', 'closed').
+        :param status_list: List of statuses to filter orders by.
         :param limit: Maximum number of orders to fetch.
         :param offset: Offset for pagination.
         :return: List of orders matching the specified symbol and status.
         """
-        return self.dao.fetch_orders_by_symbol_and_status(symbol, status, limit, offset)
+        return self.dao.fetch_orders_by_symbol_and_status(
+            symbol=symbol, status_list=status_list
+        )
+
+    def fetch_orders_by_symbol_and_status(
+        self,
+        symbol: str,
+        status_list: list[DBOrderStatus],
+        limit: int = 100,
+        offset: int = 0,
+    ) -> list[DBOrder]:
+        """Fetch orders by symbol and status with pagination.
+        :param symbol: The stock symbol of the orders to fetch.
+        :param status_list: List of statuses to filter orders by.
+        :param limit: Maximum number of orders to fetch.
+        :param offset: Offset for pagination.
+        :return: List of orders matching the specified symbol and status.
+        """
+        return self.dao.fetch_orders_by_symbol_and_status(
+            symbol=symbol, status_list=status_list, limit=limit, offset=offset
+        )
 
     def insert_order(
         self,

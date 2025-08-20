@@ -14,7 +14,7 @@ class EnrichedDataDAO(BaseDAO):
         :param order_id: The ID of the order to fetch enriched data for.
         :return: A list containing the enriched data, or an empty list if not found.
         """
-        rows = self.fetch("get_enriched_data_by_order_id.sql", (order_id,))
+        rows = self.fetch("fetch_enriched_data_by_order_id.sql", (order_id,))
         if not rows:
             self.logger.warning(f"No enriched data found for order_id {order_id}.")
             return []

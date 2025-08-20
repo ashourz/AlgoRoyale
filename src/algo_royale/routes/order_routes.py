@@ -21,7 +21,7 @@ def create_order_blueprint(service: OrderService) -> Blueprint:
     def fetch_orders_by_symbol_and_status(symbol: str, status: str):
         limit = request.args.get("limit", default=100, type=int)
         offset = request.args.get("offset", default=0, type=int)
-        orders = service.fetch_orders_by_symbol_and_status(
+        orders = service.fetch_all_orders_by_symbol_and_status(
             symbol, status, limit, offset
         )
         return jsonify(orders)

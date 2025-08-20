@@ -18,7 +18,7 @@ class OrderDAO(BaseDAO):
         :param account_id: The ID of the account associated with the order.
         :return: A list representing the orders, or an empty list if not found.
         """
-        rows = self.fetch("get_order_by_id.sql", (order_id, user_id, account_id))
+        rows = self.fetch("fetch_order_by_id.sql", (order_id, user_id, account_id))
         if not rows:
             self.logger.warning(
                 f"Order with ID {order_id} not found for user {user_id}."
@@ -26,36 +26,56 @@ class OrderDAO(BaseDAO):
             return []
         return [DBOrder.from_tuple(row) for row in rows]
 
-    def fetch_all_orders_by_status(self, status: str) -> list[DBOrder]:
-        rows = self.fetch("get_all_orders_by_status.sql", (status,))
+    def fetch_all_orders_by_status(self, status_list: list[str]) -> list[DBOrder]:
+        """
+        Fetch all orders by their status.
+        :param status_list: List of statuses to filter orders by.
+        :return: List of orders matching the specified statuses.
+        """
+        rows = self.fetch("fetch_all_orders_by_status.sql", (status_list,))
         return [DBOrder.from_tuple(row) for row in rows]
 
     def fetch_orders_by_status(
-        self, status: str, limit: int = 100, offset: int = 0
+        self, status_list: list[str], limit: int = 100, offset: int = 0
     ) -> list[DBOrder]:
         """
         Fetch orders by their status.
-        :param status: The status of the orders to fetch (e.g., 'open', 'closed').
+        :param status_list: List of statuses to filter orders by.
         :param limit: The maximum number of orders to fetch.
         :param offset: The offset for pagination.
         :return: List of orders with the specified status.
         """
-        rows = self.fetch("get_orders_by_status.sql", (status, limit, offset))
+        rows = self.fetch("fetch_orders_by_status.sql", (status_list, limit, offset))
         return [DBOrder.from_tuple(row) for row in rows]
 
-    def fetch_orders_by_symbol_and_status(
-        self, symbol: str, status: str, limit: int = 100, offset: int = 0
+    def fetch_all_orders_by_symbol_and_status(
+        self, status_list: list[str], status: str
     ) -> list[DBOrder]:
         """
         Fetch orders by symbol and status.
         :param symbol: The stock symbol of the orders to fetch.
-        :param status: The status of the orders to fetch (e.g., 'open', 'closed').
+        :param status_list: List of statuses to filter orders by.
+        :return: List of orders matching the specified symbol and status.
+        """
+        rows = self.fetch(
+            "fetch_all_orders_by_symbol_and_status.sql", (status_list, status)
+        )
+        return [DBOrder.from_tuple(row) for row in rows]
+
+    def fetch_orders_by_symbol_and_status(
+        self, symbol: str, status_list: list[str], limit: int = 100, offset: int = 0
+    ) -> list[DBOrder]:
+        """
+        Fetch orders by symbol and status.
+        :param symbol: The stock symbol of the orders to fetch.
+        :param status_list: List of statuses to filter orders by.
         :param limit: The maximum number of orders to fetch.
         :param offset: The offset for pagination.
         :return: List of orders matching the specified symbol and status.
         """
         rows = self.fetch(
-            "get_orders_by_symbol_and_status.sql", (symbol, status, limit, offset)
+            "fetch_orders_by_symbol_and_status.sql",
+            (status_list, symbol, limit, offset),
         )
         return [DBOrder.from_tuple(row) for row in rows]
 

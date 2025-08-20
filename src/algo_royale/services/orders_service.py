@@ -16,23 +16,29 @@ class OrderService:
         self.account_id = account_id
         self.logger = logger
 
-    def fetch_orders_by_status(
-        self, status: DBOrderStatus, limit: int | None = 100, offset: int | None = 0
+    def fetch_orders_by_symbol_and_status(
+        self,
+        symbol: str,
+        status_list: list[DBOrderStatus],
+        limit: int | None = 100,
+        offset: int | None = 0,
     ):
         try:
             if limit <= 0:
-                orders = self.order_repo.fetch_all_orders_by_status(status)
+                orders = self.order_repo.fetch_all_orders_by_symbol_and_status(
+                    symbol=symbol, status_list=status_list
+                )
             else:
                 if offset < 0 | offset is None:
                     self.logger.warning("Invalid offset, defaulting to 0.")
                     offset = 0
-                orders = self.order_repo.fetch_orders_by_status(
-                    status=status, limit=limit, offset=offset
+                orders = self.order_repo.fetch_orders_by_symbol_and_status(
+                    symbol=symbol, status_list=status_list, limit=limit, offset=offset
                 )
-            self.logger.info(f"Fetched {len(orders)} orders with status {status}")
+            self.logger.info(f"Fetched {len(orders)} orders with status {status_list}")
             return orders
         except Exception as e:
-            self.logger.error(f"Error fetching orders by status {status}: {e}")
+            self.logger.error(f"Error fetching orders by status {status_list}: {e}")
             return []
 
     def update_order_status(self, order_id: str, status: DBOrderStatus):

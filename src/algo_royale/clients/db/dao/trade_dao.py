@@ -24,7 +24,7 @@ class TradeDAO(BaseDAO):
         self, limit: int = 100, offset: int = 0
     ) -> list[DBTrade]:
         """Fetch all unsettled trades with pagination."""
-        rows = self.fetch("get_unsettled_trades.sql", (limit, offset))
+        rows = self.fetch("fetch_unsettled_trades.sql", (limit, offset))
         return [DBTrade.from_tuple(row) for row in rows]
 
     def fetch_open_positions(self, user_id: str, account_id: str) -> list[DBPosition]:
@@ -43,7 +43,7 @@ class TradeDAO(BaseDAO):
     ) -> list[DBTrade]:
         """Fetch trades within a specific date range."""
         rows = self.fetch(
-            "get_trades_by_date_range.sql",
+            "fetch_trades_by_date_range.sql",
             (start_date, end_date, limit, offset),
         )
         return [DBTrade.from_tuple(row) for row in rows]

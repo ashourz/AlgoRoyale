@@ -18,7 +18,8 @@ class DataStreamSessionDAO(BaseDAO):
         :return: A list of dictionaries containing the session data, or an empty list if not found.
         """
         rows = self.fetch(
-            "get_data_stream_session_by_timestamp.sql", (start_timestamp, end_timestamp)
+            "fetch_data_stream_session_by_timestamp.sql",
+            (start_timestamp, end_timestamp),
         )
         return [DBDataStreamSession.from_tuple(row) for row in rows] if rows else []
 
