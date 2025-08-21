@@ -42,7 +42,7 @@ class MarketDataEnrichedStreamer:
         symbol: str,
         callback: Callable[[pd.Series, type], Any],
         queue_size=1,
-    ) -> AsyncSubscriber:
+    ) -> AsyncSubscriber | None:
         """
         Subscribe to enriched data for a specific symbol.
 
@@ -63,6 +63,7 @@ class MarketDataEnrichedStreamer:
             return async_subscriber
         except Exception as e:
             self.logger.error(f"Error subscribing to enriched data for {symbol}: {e}")
+            return None
 
     async def async_unsubscribe_from_enriched_data(
         self, symbol: str, subscriber: AsyncSubscriber
@@ -159,6 +160,11 @@ class MarketDataEnrichedStreamer:
                         ),
                     )
                 )
+                if async_subscriber is None:
+                    self.logger.error(
+                        f"Failed to subscribe to market stream for {symbol}"
+                    )
+                    continue
                 self.symbol_async_subscriber_map[symbol] = async_subscriber
                 self.logger.info(f"Subscribed to market stream for symbol: {symbol}")
         except Exception as e:
@@ -242,6 +248,19 @@ class MarketDataEnrichedStreamer:
         except Exception as e:
             self.logger.error(f"Error unsubscribing from market data streams: {e}")
         self.symbol_async_subscriber_map.clear()
+
+    async def _async_unsubscribe_all_subscribers(self):
+        """
+        Unsubscribe from all signal event subscribers.
+        """
+        try:
+            for symbol, async_subscriber in self.symbol_async_subscriber_map.items():
+                await self.pubsub_signals_map[symbol].unsubscribe(async_subscriber)
+                self.logger.info(f"Unsubscribed from {symbol} signal events")
+        except Exception as e:
+            self.logger.error(f"Error unsubscribing from signal events: {e}")
+        finally:
+            self.symbol_async_subscriber_map.clear()
 
     async def _async_stop(self):
         """

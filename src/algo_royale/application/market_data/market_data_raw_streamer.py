@@ -35,7 +35,7 @@ class MarketDataRawStreamer:
 
     async def async_subscribe_to_stream(
         self, symbol: str, callback: Any
-    ) -> AsyncSubscriber:
+    ) -> AsyncSubscriber | None:
         """
         Subscribe to the stream for a specific symbol.
         This will allow the signal generator to receive real-time data updates.
@@ -162,11 +162,27 @@ class MarketDataRawStreamer:
         except Exception as e:
             self.logger.error(f"Error processing bar: {e}")
 
+    async def _async_unsubscribe_all_subscribers(self):
+        """
+        Unsubscribe all subscribers from their respective streams.
+        """
+        try:
+            self.logger.info("Unsubscribing all subscribers from streams...")
+            for symbol, subscriber in self.stream_subscribers.items():
+                if symbol in self.stream_data_ingest_object_map and subscriber:
+                    self.stream_data_ingest_object_map[symbol].unsubscribe(subscriber)
+                    self.logger.info(f"Unsubscribed from stream for symbol: {symbol}")
+        except Exception as e:
+            self.logger.error(f"Error unsubscribing all subscribers: {e}")
+        finally:
+            self.stream_subscribers.clear()
+
     async def _async_stop(self):
         """
         Stop the market data streamer and clean up resources.
         """
         try:
+            await self._async_unsubscribe_all_subscribers()
             self.logger.info("Stopping market data streamer...")
             for symbol, ingest_object in self.stream_data_ingest_object_map.items():
                 await ingest_object.async_shutdown()

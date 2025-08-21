@@ -44,9 +44,74 @@ class OrderGenerator:
         self.order_lock: asyncio.Lock = asyncio.Lock()
         self.pubsub_orders_map: dict[str, AsyncPubSub] = {}
         self.portfolio_strategy: BufferedPortfolioStrategy = None
+        self.signal_roster_subscriber: AsyncSubscriber = None
+        self.signal_order_subscribers: dict[str, set[AsyncSubscriber]] = {}
         self.logger.info("OrderGenerator initialized.")
 
-    async def async_start(self):
+    async def async_subscribe_to_order_events(
+        self, symbols: list[str], callback: callable, queue_size=1
+    ) -> dict[str, AsyncSubscriber] | None:
+        """
+        Subscribe to order events for a specific symbol.
+        """
+        try:
+            if not any(self.signal_order_subscribers.values()):
+                await self._async_start()
+            async_subscribers = {}
+            for symbol in symbols:
+                pubsub = self.pubsub_orders_map[symbol]
+                if not pubsub:
+                    self.logger.error(f"No pubsub found for symbol: {symbol}")
+                    continue
+                self.logger.info(f"Subscribing to order events for {symbol}")
+                async_subscribers[symbol] = pubsub.subscribe(
+                    event_type=self.order_event_type,
+                    callback=callback,
+                    queue_size=queue_size,
+                )
+                if symbol not in self.signal_order_subscribers:
+                    self.signal_order_subscribers[symbol] = set()
+                self.signal_order_subscribers[symbol].add(async_subscribers[symbol])
+                self.logger.info(f"Subscribed to order events for {symbol}")
+            return async_subscribers
+        except Exception as e:
+            self.logger.error(f"Error subscribing to order events: {e}")
+            return None
+
+    async def async_unsubscribe_from_order_events(
+        self, symbol: str, async_subscriber: AsyncSubscriber
+    ):
+        """
+        Unsubscribe from order events for the specified symbols.
+        """
+        try:
+            pubsub = self._get_order_pubsub(symbol)
+            if not pubsub:
+                self.logger.error(f"No pubsub found for symbol: {symbol}")
+                return
+            pubsub.unsubscribe(subscriber=async_subscriber)
+            self.signal_roster_subscriber[symbol].remove(async_subscriber)
+            if not self.signal_roster_subscriber[symbol]:
+                self.signal_roster_subscriber.pop(symbol)
+            if not any(self.signal_roster_subscriber.values()):
+                await self._async_stop()
+            self.logger.info(f"Unsubscribed from order events for {symbol}")
+        except Exception as e:
+            self.logger.error(
+                f"Error unsubscribing from order events for {symbol}: {e}"
+            )
+
+    async def async_restart_stream(self):
+        """
+        Restart the order generation stream.
+        """
+        try:
+            await self._async_stop()
+            await self._async_start()
+        except Exception as e:
+            self.logger.error(f"Error restarting order generation stream: {e}")
+
+    async def _async_start(self):
         """
         Start the order generation process.
         """
@@ -58,18 +123,21 @@ class OrderGenerator:
                 )
             )
             self.logger.info("Subscribing to streams...")
-            self._subscribe_to_roster_stream()
+            await self._async_subscribe_to_roster_stream()
             self.logger.info("Starting signal generation...")
         except Exception as e:
             self.logger.error(f"Error starting order generation: {e}")
 
-    def _subscribe_to_roster_stream(self):
+    async def _async_subscribe_to_roster_stream(self):
         """Subscribe to the signal roster stream to receive updates."""
         try:
             self.logger.info("Subscribing to signal roster stream...")
             async_subscriber = await self.signal_generator.async_subscribe_to_signals(
                 callback=lambda roster: self._async_generate_orders(roster=roster),
             )
+            if async_subscriber is None:
+                self.logger.error("Failed to subscribe to signal roster stream")
+                return
             self.signal_roster_subscriber = async_subscriber
         except Exception as e:
             self.logger.error(f"Error subscribing to signal stream: {e}")
@@ -196,46 +264,23 @@ class OrderGenerator:
         except Exception as e:
             self.logger.error(f"Error publishing order event for {symbol}: {e}")
 
-    def subscribe_to_order_events(
-        self, symbols: list[str], callback: callable, queue_size=1
-    ) -> dict[str, AsyncSubscriber]:
+    async def _async_unsubscribe_all_subscribers(self):
         """
-        Subscribe to order events for a specific symbol.
-        """
-        async_subscribers = {}
-        for symbol in symbols:
-            pubsub = self.pubsub_orders_map[symbol]
-            if not pubsub:
-                self.logger.error(f"No pubsub found for symbol: {symbol}")
-                continue
-            self.logger.info(f"Subscribing to order events for {symbol}")
-            async_subscribers[symbol] = pubsub.subscribe(
-                event_type=self.order_event_type,
-                callback=callback,
-                queue_size=queue_size,
-            )
-            self.logger.info(f"Subscribed to order events for {symbol}")
-        return async_subscribers
-
-    def unsubscribe_from_order_events(
-        self, symbol: str, async_subscriber: AsyncSubscriber
-    ):
-        """
-        Unsubscribe from order events for the specified symbols.
+        Unsubscribe all subscribers from order events.
         """
         try:
-            pubsub = self._get_order_pubsub(symbol)
-            if not pubsub:
-                self.logger.error(f"No pubsub found for symbol: {symbol}")
-                return
-            pubsub.unsubscribe(subscriber=async_subscriber)
-            self.logger.info(f"Unsubscribed from order events for {symbol}")
+            self.logger.info("Unsubscribing all subscribers from order events...")
+            for symbol, subscribers in self.signal_order_subscribers.items():
+                for subscriber in subscribers:
+                    await self.signal_generator.async_unsubscribe_from_signals(
+                        subscriber=subscriber
+                    )
         except Exception as e:
-            self.logger.error(
-                f"Error unsubscribing from order events for {symbol}: {e}"
-            )
+            self.logger.error(f"Error unsubscribing all subscribers: {e}")
+        finally:
+            self.signal_order_subscribers.clear()
 
-    def async_stop(self):
+    async def _async_stop(self):
         """
         Stop the order generation service.
         """
