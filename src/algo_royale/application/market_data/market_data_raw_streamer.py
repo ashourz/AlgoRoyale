@@ -9,7 +9,6 @@ from algo_royale.application.utils.async_pubsub import AsyncSubscriber
 from algo_royale.models.alpaca_market_data.alpaca_stream_bar import StreamBar
 from algo_royale.models.alpaca_market_data.alpaca_stream_quote import StreamQuote
 from algo_royale.models.alpaca_market_data.enums import DataFeed
-from algo_royale.services.symbol_service import SymbolService
 
 
 class MarketDataRawStreamer:
@@ -21,12 +20,10 @@ class MarketDataRawStreamer:
 
     def __init__(
         self,
-        symbol_manager: SymbolService,
         stream_adapter: StreamAdapter,
         logger: Logger,
         is_live: bool = False,
     ):
-        self.symbol_manager = symbol_manager
         self.stream_adapter = stream_adapter
         self.stream_data_ingest_object_map: dict[str, StreamDataIngestObject] = {}
         self.stream_subscribers: dict[str, list[AsyncSubscriber]] = {}
@@ -63,9 +60,8 @@ class MarketDataRawStreamer:
             self.logger.error(f"Error subscribing to stream for {symbol}: {e}")
         return []
 
-    ### TODO UPDATE TO A DICT OF STR : AsyncSubscriber
     async def async_unsubscribe_from_stream(
-        self, symbols: list[str], subscriber: AsyncSubscriber
+        self, symbol_subscribers: dict[str, list[AsyncSubscriber]]
     ):
         """
         Unsubscribe from the stream for specific symbols.
@@ -74,20 +70,19 @@ class MarketDataRawStreamer:
         """
         try:
             symbols_to_stop = []
-            for symbol in symbols:
+            for symbol, subscribers in symbol_subscribers.items():
                 if symbol in self.stream_data_ingest_object_map:
-                    if subscriber:
+                    for subscriber in subscribers:
                         self.stream_data_ingest_object_map[symbol].unsubscribe(
                             subscriber
                         )
                         self._remove_subscriber(symbol, subscriber)
-                        if not self.stream_subscribers[symbol]:
-                            symbols_to_stop.append(symbol)
-                        self.logger.info(
-                            f"Unsubscribed from stream for symbol: {symbol}"
-                        )
+
                     else:
                         self.logger.error("Subscriber is None, cannot unsubscribe.")
+                if not self.stream_subscribers[symbol]:
+                    symbols_to_stop.append(symbol)
+                self.logger.info(f"Unsubscribed from stream for symbol: {symbol}")
 
             await self._async_stop_streaming_symbols(symbols=symbols_to_stop)
             if not any(self.stream_subscribers.values()):

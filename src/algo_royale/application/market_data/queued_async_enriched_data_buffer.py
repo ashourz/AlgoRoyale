@@ -47,3 +47,8 @@ class QueuedAsyncEnrichedDataBuffer(QueuedAsyncUpdateObject):
                 return self.buffer.iloc[-1]
             self.logger.warning(f"No enriched data found for {self.symbol}")
             return None
+
+    async def async_clear_buffer(self):
+        async with self.get_set_lock:
+            self.buffer = pd.DataFrame()
+            self.logger.info(f"Cleared buffer for {self.symbol}")
