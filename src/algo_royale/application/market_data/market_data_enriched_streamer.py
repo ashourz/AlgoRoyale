@@ -10,6 +10,7 @@ from algo_royale.application.market_data.queued_async_enriched_data_buffer impor
     QueuedAsyncEnrichedDataBuffer,
 )
 from algo_royale.application.utils.async_pubsub import AsyncPubSub, AsyncSubscriber
+from algo_royale.backtester.column_names.data_ingest_columns import DataIngestColumns
 from algo_royale.backtester.feature_engineering.feature_engineer import FeatureEngineer
 from algo_royale.logging.loggable import Loggable
 from algo_royale.services.symbol_service import SymbolService
@@ -29,13 +30,13 @@ class MarketDataEnrichedStreamer:
         self.symbol_manager = symbol_manager
         self.market_data_streamer = market_data_streamer
         # MARKET DATA
-        self.symbol_async_subscriber_map: dict[str, AsyncSubscriber] = {}
+        self.symbol_async_subscriber_map: dict[str, list[AsyncSubscriber]] = {}
         # FEATURE ENGINEERING
         self.feature_engineer = feature_engineer
         self.symbol_enrichment_lock_map: dict[str, asyncio.Lock] = {}
         self.symbol_enrichment_buffer: dict[str, QueuedAsyncEnrichedDataBuffer] = {}
         self.pubsub_enriched_data_map: dict[str, AsyncPubSub] = {}
-        self.pubsub_subscribers: dict[str, AsyncSubscriber] = {}
+        self.pubsub_subscribers: dict[str, list[AsyncSubscriber]] = {}
 
     async def async_subscribe_to_enriched_data(
         self,
@@ -76,10 +77,14 @@ class MarketDataEnrichedStreamer:
         try:
             pubsub = self._get_enriched_data_pubsub(symbol)
             pubsub.unsubscribe(subscriber=subscriber)
-            self.pubsub_subscribers.pop(symbol, None)
+            self.pubsub_subscribers[symbol].remove(subscriber)
+            if not any(self.pubsub_subscribers[symbol]):
+                self.pubsub_subscribers.pop(symbol, None)
+                self.logger.info(f"Unsubscribed all from enriched data for {symbol}")
             if not any(self.pubsub_subscribers.values()):
-                # No subscribers left, need to stop
+                # No subscribers left for any symbol
                 await self._async_stop()
+                self.logger.info("Unsubscribed all from enriched data for all symbols")
         except Exception as e:
             self.logger.error(
                 f"Error unsubscribing from enriched data for {symbol}: {e}"
@@ -148,33 +153,32 @@ class MarketDataEnrichedStreamer:
         This will allow the signal generator to receive real-time data updates.
         """
         try:
-            for symbol in symbols:
-                self.logger.debug(f"Subscribing to stream for symbol: {symbol}")
+            self.logger.debug(f"Subscribing to stream for symbols: {symbols}")
 
-                async_subscriber = (
-                    await self.market_data_streamer.async_subscribe_to_stream(
-                        symbol=symbol,
-                        callback=lambda data,
-                        symbol=symbol: self._async_data_enrichment(
-                            symbol=symbol, data=data
-                        ),
-                    )
+            async_subscriber_map = (
+                await self.market_data_streamer.async_subscribe_to_stream(
+                    symbols=symbols,
+                    callback=lambda data: self._async_data_enrichment(data=data),
                 )
-                if async_subscriber is None:
-                    self.logger.error(
-                        f"Failed to subscribe to market stream for {symbol}"
+            )
+            if not any(async_subscriber_map.values()):
+                self.logger.error(f"Failed to subscribe to market stream for {symbols}")
+                return
+            else:
+                for symbol, async_subscriber in async_subscriber_map.items():
+                    self.symbol_async_subscriber_map[symbol].append(async_subscriber)
+                    self.logger.info(
+                        f"Subscribed to market stream for symbol: {symbol}"
                     )
-                    continue
-                self.symbol_async_subscriber_map[symbol] = async_subscriber
-                self.logger.info(f"Subscribed to market stream for symbol: {symbol}")
         except Exception as e:
             self.logger.error(f"Error subscribing to market stream for {symbol}: {e}")
 
-    async def _async_data_enrichment(self, symbol: str, data: dict):
+    async def _async_data_enrichment(self, data: dict):
         """
         Enrich market data for a specific symbol.
         """
         try:
+            symbol = data[DataIngestColumns.SYMBOL]
             self.logger.debug(f"Received data for {symbol}: {data}")
             lock = self.symbol_enrichment_lock_map.get(symbol)
             if lock is None:

@@ -112,6 +112,7 @@ class StreamDataIngestObject(QueuedAsyncUpdateObject):
         """
         try:
             self.latest_quote = quote
+            self.data[DataIngestColumns.SYMBOL] = quote.symbol
             average_price = (
                 (quote.ask_price + quote.bid_price) / 2
                 if quote.ask_price and quote.bid_price
@@ -156,6 +157,7 @@ class StreamDataIngestObject(QueuedAsyncUpdateObject):
         """
         try:
             self.latest_bar = bar
+            self.data[DataIngestColumns.SYMBOL] = bar.symbol
             self.data[DataIngestColumns.TIMESTAMP] = bar.closing_epoch
             self.data[DataIngestColumns.OPEN_PRICE] = bar.open_price
             self.data[DataIngestColumns.HIGH_PRICE] = bar.high_price

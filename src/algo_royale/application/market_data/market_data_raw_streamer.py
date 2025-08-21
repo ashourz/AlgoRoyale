@@ -35,7 +35,7 @@ class MarketDataRawStreamer:
 
     async def async_subscribe_to_stream(
         self, symbols: list[str], callback: Any
-    ) -> AsyncSubscriber | None:
+    ) -> dict[str, AsyncSubscriber]:
         """
         Subscribe to the stream for specific symbols.
         This will allow the signal generator to receive real-time data updates.
@@ -61,8 +61,9 @@ class MarketDataRawStreamer:
             return subscriber_dict
         except Exception as e:
             self.logger.error(f"Error subscribing to stream for {symbol}: {e}")
-        return None
+        return []
 
+    ### TODO UPDATE TO A DICT OF STR : AsyncSubscriber
     async def async_unsubscribe_from_stream(
         self, symbols: list[str], subscriber: AsyncSubscriber
     ):
