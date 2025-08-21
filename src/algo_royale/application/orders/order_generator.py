@@ -14,7 +14,6 @@ from algo_royale.backtester.strategy.portfolio.buffered_components.buffered_port
     BufferedPortfolioStrategy,
 )
 from algo_royale.logging.loggable import Loggable
-from algo_royale.services.symbol_service import SymbolService
 
 
 class OrderGenerator:
@@ -22,7 +21,6 @@ class OrderGenerator:
 
     def __init__(
         self,
-        symbol_manager: SymbolService,
         signal_generator: SignalGenerator,
         portfolio_strategy_registry: PortfolioStrategyRegistry,
         logger: Loggable,
@@ -35,7 +33,6 @@ class OrderGenerator:
             logger (Loggable): Logger for logging events and errors.
         """
         self.logger = logger
-        self.symbol_manager = symbol_manager
         # SIGNAL GENERATOR
         self.signal_generator = signal_generator
         # PORTFOLIO STRATEGY REGISTRY
