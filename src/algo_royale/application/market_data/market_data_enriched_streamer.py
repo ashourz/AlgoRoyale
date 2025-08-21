@@ -35,8 +35,66 @@ class MarketDataEnrichedStreamer:
         self.symbol_enrichment_lock_map: dict[str, asyncio.Lock] = {}
         self.symbol_enrichment_buffer: dict[str, QueuedAsyncEnrichedDataBuffer] = {}
         self.pubsub_enriched_data_map: dict[str, AsyncPubSub] = {}
+        self.pubsub_subscribers: dict[str, AsyncSubscriber] = {}
 
-    async def async_start(self):
+    async def async_subscribe_to_enriched_data(
+        self,
+        symbol: str,
+        callback: Callable[[pd.Series, type], Any],
+        queue_size=1,
+    ) -> AsyncSubscriber:
+        """
+        Subscribe to enriched data for a specific symbol.
+
+        :param symbol: The symbol to subscribe to.
+        :param callback: The callback function to call with the enriched data.
+        :param queue_size: The size of the queue for the subscriber.
+        """
+        try:
+            if not any(self.pubsub_subscribers.values()):
+                # No subscribers present, need to run async_start
+                await self._async_start()
+            pubsub = self._get_enriched_data_pubsub(symbol)
+            async_subscriber = pubsub.subscribe(
+                callback=callback,
+                queue_size=queue_size,
+            )
+            self.pubsub_subscribers[symbol] = async_subscriber
+            return async_subscriber
+        except Exception as e:
+            self.logger.error(f"Error subscribing to enriched data for {symbol}: {e}")
+
+    async def async_unsubscribe_from_enriched_data(
+        self, symbol: str, subscriber: AsyncSubscriber
+    ):
+        """
+        Unsubscribe from enriched data for a specific subscriber.
+
+        :param subscriber: The subscriber to unsubscribe from.
+        """
+        try:
+            pubsub = self._get_enriched_data_pubsub(symbol)
+            pubsub.unsubscribe(subscriber=subscriber)
+            self.pubsub_subscribers.pop(symbol, None)
+            if not any(self.pubsub_subscribers.values()):
+                # No subscribers left, need to stop
+                await self._async_stop()
+        except Exception as e:
+            self.logger.error(
+                f"Error unsubscribing from enriched data for {symbol}: {e}"
+            )
+
+    async def async_restart_stream(self):
+        """
+        Restart the market data stream.
+        """
+        try:
+            await self._async_stop()
+            await self._async_start()
+        except Exception as e:
+            self.logger.error(f"Error restarting market data stream: {e}")
+
+    async def _async_start(self):
         """
         Generate a trading signal based on the provided data and strategy.
         """
@@ -171,39 +229,6 @@ class MarketDataEnrichedStreamer:
         except Exception as e:
             self.logger.error(f"Error publishing enriched data for {symbol}: {e}")
 
-    def subscribe_to_enriched_data(
-        self,
-        symbol: str,
-        callback: Callable[[pd.Series, type], Any],
-        queue_size=1,
-    ) -> AsyncSubscriber:
-        """
-        Subscribe to enriched data for a specific symbol.
-
-        :param symbol: The symbol to subscribe to.
-        :param callback: The callback function to call with the enriched data.
-        :param queue_size: The size of the queue for the subscriber.
-        """
-        pubsub = self._get_enriched_data_pubsub(symbol)
-        return pubsub.subscribe(
-            callback=callback,
-            queue_size=queue_size,
-        )
-
-    def unsubscribe_from_enriched_data(self, symbol: str, subscriber: AsyncSubscriber):
-        """
-        Unsubscribe from enriched data for a specific subscriber.
-
-        :param subscriber: The subscriber to unsubscribe from.
-        """
-        try:
-            pubsub = self._get_enriched_data_pubsub(symbol)
-            pubsub.unsubscribe(subscriber=subscriber)
-        except Exception as e:
-            self.logger.error(
-                f"Error unsubscribing from enriched data for {symbol}: {e}"
-            )
-
     async def _async_unsubscribe_from_market_data(self):
         """
         Unsubscribe from all market data streams for all symbols.
@@ -218,7 +243,7 @@ class MarketDataEnrichedStreamer:
             self.logger.error(f"Error unsubscribing from market data streams: {e}")
         self.symbol_async_subscriber_map.clear()
 
-    async def async_stop(self):
+    async def _async_stop(self):
         """
         Stop the enriched data generation service.
         """

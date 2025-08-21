@@ -98,7 +98,7 @@ class SignalGenerator:
                 )
 
                 async_subscriber = (
-                    self.enriched_data_streamer.subscribe_to_enriched_data(
+                    await self.enriched_data_streamer.async_subscribe_to_enriched_data(
                         symbol=symbol,
                         callback=lambda enriched_data,
                         symbol=symbol: self._async_generate_signal(
@@ -197,7 +197,7 @@ class SignalGenerator:
         """
         try:
             for symbol, async_subscriber in self.symbol_async_subscriber_map.items():
-                self.enriched_data_streamer.unsubscribe_from_enriched_data(
+                await self.enriched_data_streamer.async_unsubscribe_from_enriched_data(
                     symbol, async_subscriber
                 )
                 self.logger.info(f"Unsubscribed from {symbol} enriched data stream")
