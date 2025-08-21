@@ -67,7 +67,7 @@ class OrderGenerator:
         """Subscribe to the signal roster stream to receive updates."""
         try:
             self.logger.info("Subscribing to signal roster stream...")
-            async_subscriber = self.signal_generator.subscribe_to_signals(
+            async_subscriber = await self.signal_generator.async_subscribe_to_signals(
                 callback=lambda roster: self._async_generate_orders(roster=roster),
             )
             self.signal_roster_subscriber = async_subscriber
@@ -242,7 +242,7 @@ class OrderGenerator:
         try:
             self.logger.info("Stopping order generation service...")
             if self.signal_roster_subscriber:
-                self.signal_generator.unsubscribe_from_signals(
+                await self.signal_generator.async_unsubscribe_from_signals(
                     subscriber=self.signal_roster_subscriber
                 )
         except Exception as e:

@@ -38,9 +38,56 @@ class SignalGenerator:
         # SIGNALS
         self.symbol_signal_lock_map: dict[str, asyncio.Lock] = {}
         self.signal_roster: StreamSignalRosterObject | None = None
+        self.subscribers = []
         self.logger.info("SignalGenerator initialized.")
 
-    async def async_start(self):
+    async def async_subscribe_to_signals(
+        self,
+        callback: Callable[[dict[str, SignalDataPayload], type], Any],
+        queue_size=1,
+    ) -> AsyncSubscriber:
+        """
+        Subscribe to signals for a specific symbol.
+
+        :param symbol: The symbol to subscribe to.
+        :param callback: The callback function to call with the generated signals.
+        """
+        if not self.subscribers:
+            # No subscribers present, need to run async_start
+            await self._async_start()
+        subscriber = self.signal_roster.subscribe(
+            callback=callback,
+            queue_size=queue_size,
+        )
+        self.subscribers.append(subscriber)
+        return subscriber
+
+    async def async_unsubscribe_from_signals(self, subscriber: AsyncSubscriber):
+        """
+        Unsubscribe from signals for a specific subscriber.
+
+        :param subscriber: The subscriber to unsubscribe from.
+        """
+        try:
+            self.signal_roster.unsubscribe(subscriber=subscriber)
+            self.subscribers.remove(subscriber)
+            if not self.subscribers:
+                # No subscribers left, need to run async_stop
+                await self._async_stop()
+        except Exception as e:
+            self.logger.error(f"Error unsubscribing from signals: {e}")
+
+    async def async_restart_stream(self):
+        """
+        Restart the signal generation stream.
+        """
+        try:
+            await self._async_stop()
+            await self._async_start()
+        except Exception as e:
+            self.logger.error(f"Error restarting signal stream: {e}")
+
+    async def _async_start(self):
         """
         Generate a trading signal based on the provided data and strategy.
         """
@@ -51,7 +98,7 @@ class SignalGenerator:
             self.logger.info("Initializing symbol signal locks...")
             self._initialize_symbol_signal_lock(symbols=symbols)
             self.logger.info("Subscribing to streams...")
-            self._subscribe_to_enriched_streams(symbols=symbols)
+            await self._async_subscribe_to_enriched_streams(symbols=symbols)
             self.logger.info("Creating signal roster object...")
             self.signal_roster = StreamSignalRosterObject(
                 initial_symbols=symbols, logger=self.logger
@@ -86,7 +133,7 @@ class SignalGenerator:
         else:
             self.logger.debug(f"Lock already exists for symbol: {symbol}")
 
-    def _subscribe_to_enriched_streams(self, symbols: list[str]):
+    async def _async_subscribe_to_enriched_streams(self, symbols: list[str]):
         """
         Subscribe to the enriched stream for a specific symbol.
         This will allow the signal generator to receive real-time data updates.
@@ -164,34 +211,7 @@ class SignalGenerator:
         except Exception as e:
             self.logger.error(f"Error generating signals for {symbol}: {e}")
 
-    def subscribe_to_signals(
-        self,
-        callback: Callable[[dict[str, SignalDataPayload], type], Any],
-        queue_size=1,
-    ) -> AsyncSubscriber:
-        """
-        Subscribe to signals for a specific symbol.
-
-        :param symbol: The symbol to subscribe to.
-        :param callback: The callback function to call with the generated signals.
-        """
-        return self.signal_roster.subscribe(
-            callback=callback,
-            queue_size=queue_size,
-        )
-
-    def unsubscribe_from_signals(self, subscriber: AsyncSubscriber):
-        """
-        Unsubscribe from signals for a specific subscriber.
-
-        :param subscriber: The subscriber to unsubscribe from.
-        """
-        try:
-            self.signal_roster.unsubscribe(subscriber=subscriber)
-        except Exception as e:
-            self.logger.error(f"Error unsubscribing from signals: {e}")
-
-    def _unsubscribe_from_enriched_data(self):
+    async def _async_unsubscribe_from_enriched_data(self):
         """
         Unsubscribe from all enriched data streams for all symbols.
         """
@@ -205,7 +225,7 @@ class SignalGenerator:
             self.logger.error(f"Error unsubscribing from enriched data streams: {e}")
         self.symbol_async_subscriber_map.clear()
 
-    async def async_stop(self):
+    async def _async_stop(self):
         """
         Stop the signal generation service.
         """
@@ -215,7 +235,7 @@ class SignalGenerator:
             self.logger.info("Signal generation stopped.")
             self.symbol_strategy_map.clear()
             self.logger.info("Symbol strategy map cleared.")
-            self._unsubscribe_from_enriched_data()
+            await self._async_unsubscribe_from_enriched_data()
             self.logger.info("Unsubscribed from all enriched data streams.")
         except Exception as e:
             self.logger.error(f"Error stopping signal generation: {e}")
