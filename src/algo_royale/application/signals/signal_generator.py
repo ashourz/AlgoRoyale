@@ -14,7 +14,6 @@ from algo_royale.backtester.strategy.signal.combined_weighted_signal_strategy im
     CombinedWeightedSignalStrategy,
 )
 from algo_royale.logging.loggable import Loggable
-from algo_royale.services.symbol_service import SymbolService
 
 
 class SignalGenerator:
@@ -22,13 +21,11 @@ class SignalGenerator:
 
     def __init__(
         self,
-        symbol_manager: SymbolService,
         enriched_data_streamer: MarketDataEnrichedStreamer,
         strategy_registry: StrategyRegistry,
         logger: Loggable,
     ):
         self.logger = logger
-        self.symbol_manager = symbol_manager
         self.enriched_data_streamer = enriched_data_streamer
         self.strategy_registry = strategy_registry
         # MARKET DATA
@@ -37,12 +34,15 @@ class SignalGenerator:
         self.symbol_strategy_map: dict[str, CombinedWeightedSignalStrategy] = {}
         # SIGNALS
         self.symbol_signal_lock_map: dict[str, asyncio.Lock] = {}
-        self.signal_roster: StreamSignalRosterObject | None = None
+        self.signal_roster: StreamSignalRosterObject = StreamSignalRosterObject(
+            initial_symbols=[], logger=self.logger
+        )
         self.subscribers = []
         self.logger.info("SignalGenerator initialized.")
 
     async def async_subscribe_to_signals(
         self,
+        symbols: list[str],
         callback: Callable[[dict[str, SignalDataPayload], type], Any],
         queue_size=1,
     ) -> AsyncSubscriber | None:
@@ -53,9 +53,7 @@ class SignalGenerator:
         :param callback: The callback function to call with the generated signals.
         """
         try:
-            if not self.subscribers:
-                # No subscribers present, need to run async_start
-                await self._async_start()
+            await self._async_start(symbols=symbols)
             subscriber = self.signal_roster.subscribe(
                 callback=callback,
                 queue_size=queue_size,
@@ -91,22 +89,14 @@ class SignalGenerator:
         except Exception as e:
             self.logger.error(f"Error restarting signal stream: {e}")
 
-    async def _async_start(self):
+    async def _async_start(self, symbols: list[str]):
         """
         Generate a trading signal based on the provided data and strategy.
         """
         try:
-            symbols = await self.symbol_manager.async_get_symbols()
-            self.logger.info("Loading symbol strategies...")
             self._load_symbol_strategies(symbols=symbols)
-            self.logger.info("Initializing symbol signal locks...")
             self._initialize_symbol_signal_lock(symbols=symbols)
-            self.logger.info("Subscribing to streams...")
             await self._async_subscribe_to_enriched_streams(symbols=symbols)
-            self.logger.info("Creating signal roster object...")
-            self.signal_roster = StreamSignalRosterObject(
-                initial_symbols=symbols, logger=self.logger
-            )
         except Exception as e:
             self.logger.error(f"Error starting signal generation: {e}")
 
@@ -116,13 +106,14 @@ class SignalGenerator:
         """
         try:
             for symbol in symbols:
-                self.logger.debug(f"Loading strategies for symbol: {symbol}")
-                self.symbol_strategy_map[symbol] = (
-                    self.strategy_registry.get_combined_weighted_signal_strategy(
-                        symbol=symbol
+                if self.symbol_strategy_map.get(symbol) is None:
+                    self.logger.debug(f"Loading strategies for symbol: {symbol}")
+                    self.symbol_strategy_map[symbol] = (
+                        self.strategy_registry.get_combined_weighted_signal_strategy(
+                            symbol=symbol
+                        )
                     )
-                )
-            self.logger.info("Symbol strategies loaded successfully.")
+                self.logger.info(f"Symbol strategies loaded successfully for {symbol}.")
         except Exception as e:
             self.logger.error(f"Error loading symbol strategies: {e}")
 
@@ -130,12 +121,13 @@ class SignalGenerator:
         """
         Initialize locks for each symbol to ensure thread-safe signal generation.
         """
-        for symbol in symbols:
-            if symbol not in self.symbol_signal_lock_map:
-                self.symbol_signal_lock_map[symbol] = asyncio.Lock()
-            self.logger.debug(f"Initialized lock for symbol: {symbol}")
-        else:
-            self.logger.debug(f"Lock already exists for symbol: {symbol}")
+        try:
+            for symbol in symbols:
+                if symbol not in self.symbol_signal_lock_map:
+                    self.symbol_signal_lock_map[symbol] = asyncio.Lock()
+                    self.logger.debug(f"Initialized lock for symbol: {symbol}")
+        except Exception as e:
+            self.logger.error(f"Error initializing symbol signal locks: {e}")
 
     async def _async_subscribe_to_enriched_streams(self, symbols: list[str]):
         """
@@ -144,28 +136,33 @@ class SignalGenerator:
         """
         try:
             for symbol in symbols:
-                self.logger.debug(
-                    f"Subscribing to enriched stream for symbol: {symbol}"
-                )
-
-                async_subscriber = (
-                    await self.enriched_data_streamer.async_subscribe_to_enriched_data(
-                        symbol=symbol,
-                        callback=lambda enriched_data,
-                        symbol=symbol: self._async_generate_signal(
-                            symbol=symbol, enriched_data=enriched_data
-                        ),
-                    )
-                )
-                if async_subscriber is None:
+                try:
+                    if self.symbol_async_subscriber_map.get(symbol) is None:
+                        self.logger.debug(
+                            f"Subscribing to enriched stream for symbol: {symbol}"
+                        )
+                        async_subscriber = await self.enriched_data_streamer.async_subscribe_to_enriched_data(
+                            symbol=symbol,
+                            callback=lambda enriched_data,
+                            symbol=symbol: self._async_generate_signal(
+                                symbol=symbol, enriched_data=enriched_data
+                            ),
+                        )
+                        if async_subscriber is None:
+                            self.logger.error(
+                                f"Failed to subscribe to enriched stream for {symbol}"
+                            )
+                            continue
+                        self.symbol_async_subscriber_map[symbol] = async_subscriber
+                        self.logger.info(
+                            f"Subscribed to enriched stream for symbol: {symbol}"
+                        )
+                except Exception as e:
                     self.logger.error(
-                        f"Failed to subscribe to enriched stream for {symbol}"
+                        f"Error subscribing to enriched stream for {symbol}: {e}"
                     )
-                    continue
-                self.symbol_async_subscriber_map[symbol] = async_subscriber
-                self.logger.info(f"Subscribed to enriched stream for symbol: {symbol}")
         except Exception as e:
-            self.logger.error(f"Error subscribing to enriched stream for {symbol}: {e}")
+            self.logger.error(f"Error initializing enriched stream subscriptions: {e}")
 
     async def _async_generate_signal(self, symbol: str, enriched_data: dict):
         """
@@ -236,14 +233,21 @@ class SignalGenerator:
 
     async def _async_unsubscribe_all_subscribers(self):
         """
-        Unsubscribe from all order event subscribers.
+        Unsubscribe from all enriched data streams.
         """
         try:
-            for symbol, async_subscriber in self.symbol_async_subscriber_map.items():
-                await self.pubsub_orders_map[symbol].unsubscribe(async_subscriber)
-                self.logger.info(f"Unsubscribed from {symbol} order events")
+            symbol_subscribers = {
+                symbol: [async_subscriber]
+                for symbol, async_subscriber in self.symbol_async_subscriber_map.items()
+            }
+            await self.enriched_data_streamer.async_unsubscribe_from_enriched_data(
+                symbol_subscribers=symbol_subscribers
+            )
+            self.logger.info("Unsubscribed from all enriched data streams")
         except Exception as e:
-            self.logger.error(f"Error unsubscribing from order events: {e}")
+            self.logger.error(
+                f"Error unsubscribing from all enriched data streams: {e}"
+            )
         finally:
             self.symbol_async_subscriber_map.clear()
 
