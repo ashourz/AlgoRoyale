@@ -1,9 +1,17 @@
 from typing import Callable
 
+from pydantic import BaseModel
+
 from algo_royale.clients.alpaca.alpaca_market_data.alpaca_stream_client import (
     AlpacaStreamClient,
 )
 from algo_royale.models.alpaca_market_data.enums import DataFeed
+
+
+class StreamSymbols(BaseModel):
+    quotes: list[str]
+    trades: list[str]
+    bars: list[str]
 
 
 class StreamAdapter:
@@ -23,7 +31,20 @@ class StreamAdapter:
         """
         self.stream_client = stream_client
 
-    async def start_stream(
+    def get_stream_symbols(self) -> StreamSymbols:
+        """
+        Get the currently subscribed stream symbols.
+
+        Returns:
+            StreamSymbols: An instance of StreamSymbols containing the subscribed symbols for quotes, trades, and bars.
+        """
+        return StreamSymbols(
+            quotes=list(self.stream_client.quote_symbols),
+            trades=list(self.stream_client.trade_symbols),
+            bars=list(self.stream_client.bar_symbols),
+        )
+
+    async def async_start_stream(
         self,
         symbols: list[str],
         feed: DataFeed = DataFeed.IEX,
@@ -49,7 +70,7 @@ class StreamAdapter:
             on_bar=on_bar,
         )
 
-    async def add_symbols(
+    async def async_add_symbols(
         self, quotes: list[str] = [], trades: list[str] = [], bars: list[str] = []
     ):
         """
@@ -62,7 +83,7 @@ class StreamAdapter:
         """
         await self.stream_client.add_symbols(quotes=quotes, trades=trades, bars=bars)
 
-    async def remove_symbols(
+    async def async_remove_symbols(
         self, quotes: list[str] = [], trades: list[str] = [], bars: list[str] = []
     ):
         """
@@ -75,7 +96,7 @@ class StreamAdapter:
         """
         await self.stream_client.remove_symbols(quotes=quotes, trades=trades, bars=bars)
 
-    async def stop_stream(self):
+    async def async_stop_stream(self):
         """
         Stop the Alpaca WebSocket stream.
         """
