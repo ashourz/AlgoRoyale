@@ -48,6 +48,8 @@ class MarketDataRawStreamer:
                     subscriber = self.stream_data_ingest_object_map[symbol].subscribe(
                         callback=callback,
                     )
+                    if symbol not in self.stream_subscribers:
+                        self.stream_subscribers[symbol] = []
                     self.stream_subscribers[symbol].append(subscriber)
                     self.logger.info(f"Subscribed to stream for symbol: {symbol}")
                     subscriber_dict[symbol] = subscriber
@@ -80,7 +82,7 @@ class MarketDataRawStreamer:
 
                     else:
                         self.logger.error("Subscriber is None, cannot unsubscribe.")
-                if not self.stream_subscribers[symbol]:
+                if not self.stream_subscribers.get(symbol, []):
                     symbols_to_stop.append(symbol)
                 self.logger.info(f"Unsubscribed from stream for symbol: {symbol}")
 

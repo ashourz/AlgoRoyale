@@ -159,7 +159,7 @@ class MarketDataEnrichedStreamer:
             self.logger.debug(f"Subscribing to stream for symbols: {symbols}")
             symbols_to_subscribe = []  # Ensure unique symbols
             for symbol in set(symbols):
-                if not any(self.market_data_raw_subscriber_map[symbol]):
+                if not any(self.market_data_raw_subscriber_map.get(symbol, [])):
                     symbols_to_subscribe.append(symbol)
 
             async_subscriber_map = (
@@ -173,7 +173,9 @@ class MarketDataEnrichedStreamer:
                 return
             else:
                 for symbol, async_subscriber in async_subscriber_map.items():
-                    self.market_data_raw_subscriber_map[symbol].append(async_subscriber)
+                    self.market_data_raw_subscriber_map.setdefault(symbol, []).append(
+                        async_subscriber
+                    )
                     self.logger.info(
                         f"Subscribed to market stream for symbol: {symbol}"
                     )
