@@ -129,7 +129,7 @@ class StreamSignalRosterObject:
         """
         self._pubsub.unsubscribe(subscriber)
 
-    async def shutdown(self):
+    async def async_shutdown(self):
         """
         Shutdown the pubsub system and cancel all tasks.
         """

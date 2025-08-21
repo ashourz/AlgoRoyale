@@ -219,20 +219,6 @@ class SignalGenerator:
 
     async def _async_unsubscribe_from_enriched_data(self):
         """
-        Unsubscribe from all enriched data streams for all symbols.
-        """
-        try:
-            for symbol, async_subscriber in self.symbol_async_subscriber_map.items():
-                await self.enriched_data_streamer.async_unsubscribe_from_enriched_data(
-                    symbol, async_subscriber
-                )
-                self.logger.info(f"Unsubscribed from {symbol} enriched data stream")
-        except Exception as e:
-            self.logger.error(f"Error unsubscribing from enriched data streams: {e}")
-        self.symbol_async_subscriber_map.clear()
-
-    async def _async_unsubscribe_all_subscribers(self):
-        """
         Unsubscribe from all enriched data streams.
         """
         try:
@@ -251,18 +237,35 @@ class SignalGenerator:
         finally:
             self.symbol_async_subscriber_map.clear()
 
+    async def _async_unsubscribe_all_subscribers(self):
+        """
+        Unsubscribe from all signal roster streams.
+        """
+        try:
+            for subscriber in self.subscribers:
+                self.signal_roster.unsubscribe(subscriber)
+                self.logger.info(
+                    f"Unsubscribed from enriched data stream: {subscriber}"
+                )
+        except Exception as e:
+            self.logger.error(
+                f"Error unsubscribing from all enriched data streams: {e}"
+            )
+        finally:
+            self.subscribers.clear()
+
     async def _async_stop(self):
         """
         Stop the signal generation service.
         """
         try:
             await self._async_unsubscribe_all_subscribers()
-            self.logger.info("Stopping signal generation service...")
             await self.signal_roster.async_shutdown()
-            self.logger.info("Signal generation stopped.")
+            self.signal_roster = StreamSignalRosterObject(
+                initial_symbols=[], logger=self.logger
+            )
             self.symbol_strategy_map.clear()
-            self.logger.info("Symbol strategy map cleared.")
             await self._async_unsubscribe_from_enriched_data()
-            self.logger.info("Unsubscribed from all enriched data streams.")
+            self.logger.info("Signal generation service stopped.")
         except Exception as e:
             self.logger.error(f"Error stopping signal generation: {e}")

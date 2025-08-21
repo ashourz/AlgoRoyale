@@ -46,6 +46,7 @@ class OrderGenerator:
         self.portfolio_strategy: BufferedPortfolioStrategy = None
         self.signal_roster_subscriber: AsyncSubscriber = None
         self.signal_order_subscribers: dict[str, set[AsyncSubscriber]] = {}
+        self.symbols: set[str] = set()
         self.logger.info("OrderGenerator initialized.")
 
     async def async_subscribe_to_order_events(
@@ -55,8 +56,7 @@ class OrderGenerator:
         Subscribe to order events for a specific symbol.
         """
         try:
-            if not any(self.signal_order_subscribers.values()):
-                await self._async_start()
+            await self._async_start(symbols=symbols)
             async_subscribers = {}
             for symbol in symbols:
                 pubsub = self.pubsub_orders_map[symbol]
@@ -101,44 +101,49 @@ class OrderGenerator:
                 f"Error unsubscribing from order events for {symbol}: {e}"
             )
 
-    async def async_restart_stream(self):
+    async def async_restart_stream(self, symbols: list[str]):
         """
         Restart the order generation stream.
         """
         try:
             await self._async_stop()
-            await self._async_start()
+            await self._async_start(symbols=symbols)
         except Exception as e:
             self.logger.error(f"Error restarting order generation stream: {e}")
 
-    async def _async_start(self):
+    async def _async_start(self, symbols: list[str]):
         """
-        Start the order generation process.
+        Start the order generation process for the given symbols.
         """
         try:
-            symbols = await self.symbol_manager.async_get_symbols()
+            self.symbols.update(set(symbols))
             self.portfolio_strategy = (
                 self.portfolio_strategy_registry.get_buffered_portfolio_strategy(
-                    symbols=symbols
+                    symbols=self.symbols
                 )
             )
-            self.logger.info("Subscribing to streams...")
             await self._async_subscribe_to_roster_stream()
-            self.logger.info("Starting signal generation...")
         except Exception as e:
-            self.logger.error(f"Error starting order generation: {e}")
+            self.logger.error(
+                f"Error starting order generation for symbols {self.symbols}: {e}"
+            )
 
     async def _async_subscribe_to_roster_stream(self):
         """Subscribe to the signal roster stream to receive updates."""
         try:
-            self.logger.info("Subscribing to signal roster stream...")
-            async_subscriber = await self.signal_generator.async_subscribe_to_signals(
-                callback=lambda roster: self._async_generate_orders(roster=roster),
-            )
-            if async_subscriber is None:
-                self.logger.error("Failed to subscribe to signal roster stream")
-                return
-            self.signal_roster_subscriber = async_subscriber
+            if self.signal_roster_subscriber is not None:
+                async_subscriber = (
+                    await self.signal_generator.async_subscribe_to_signals(
+                        callback=lambda roster: self._async_generate_orders(
+                            roster=roster
+                        ),
+                    )
+                )
+                if async_subscriber is None:
+                    self.logger.error("Failed to subscribe to signal roster stream")
+                    return
+                self.signal_roster_subscriber = async_subscriber
+                self.logger.info("Subscribed to signal roster stream")
         except Exception as e:
             self.logger.error(f"Error subscribing to signal stream: {e}")
 
@@ -152,7 +157,6 @@ class OrderGenerator:
                 await self._async_inner_generate_orders(roster=roster)
         except Exception as e:
             self.logger.error(f"Error generating order: {e}")
-            return
 
     async def _async_inner_generate_orders(self, roster: dict[str, SignalDataPayload]):
         """
@@ -285,10 +289,15 @@ class OrderGenerator:
         Stop the order generation service.
         """
         try:
-            self.logger.info("Stopping order generation service...")
             if self.signal_roster_subscriber:
                 await self.signal_generator.async_unsubscribe_from_signals(
                     subscriber=self.signal_roster_subscriber
                 )
+                self.signal_roster_subscriber = None
+            self.pubsub_orders_map.clear()
+            self.portfolio_strategy = None
+            self.signal_order_subscribers.clear()
+            self.symbols = set()
+            self.logger.info("Order generation service stopped.")
         except Exception as e:
             self.logger.error(f"Error stopping order generation service: {e}")

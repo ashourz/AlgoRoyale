@@ -98,7 +98,7 @@ class MarketDataRawStreamer:
             if symbol in self.stream_subscribers:
                 self.stream_subscribers[symbol].remove(subscriber)
                 if not self.stream_subscribers[symbol]:
-                    del self.stream_subscribers[symbol]
+                    self.stream_subscribers.pop(symbol)
         except Exception as e:
             self.logger.error(f"Error removing subscriber for {symbol}: {e}")
 
@@ -240,6 +240,7 @@ class MarketDataRawStreamer:
             self.logger.error(f"Error unsubscribing all subscribers: {e}")
         finally:
             self.stream_subscribers.clear()
+            self.stream_data_ingest_object_map.clear()
 
     async def _async_stop(self):
         """
