@@ -1,11 +1,15 @@
 from datetime import datetime
 
+from algo_royale.application.orders.signal_order_payload import SignalOrderPayload
+from algo_royale.application.utils.async_pubsub import AsyncSubscriber
 from algo_royale.logging.loggable import Loggable
 from algo_royale.models.alpaca_trading.alpaca_order import Order
 from algo_royale.models.alpaca_trading.enums.order_stream_event import OrderStreamEvent
 from algo_royale.models.alpaca_trading.order_stream_data import OrderStreamData
 from algo_royale.models.db.db_order import DBOrder
+from algo_royale.services.ledger_service import LedgerService
 from algo_royale.services.order_event_service import OrderEventService
+from algo_royale.services.order_generator_service import OrderGeneratorService
 from algo_royale.services.orders_service import OrderService
 from algo_royale.services.trades_service import TradesService
 
@@ -14,60 +18,92 @@ from algo_royale.services.trades_service import TradesService
 class OrderExecutionServices:
     def __init__(
         self,
-        order_service: OrderService,
-        trade_service: TradesService,
-        order_event_service: OrderEventService,
+        ledger_service: LedgerService,  ## Service for managing the ledger
+        order_generator_service: OrderGeneratorService,  ## Service for generating order payloads
+        order_event_service: OrderEventService,  ## Incoming order events
+        order_service: OrderService,  ## Order service for managing orders
+        trade_service: TradesService,  ## Service for managing trades
         logger: Loggable,
     ):
+        self.ledger_service = ledger_service
+        self.order_generator_service = order_generator_service
         self.order_service = order_service
         self.trade_service = trade_service
         self.order_event_service = order_event_service
         self.logger = logger
-        self.order_stream_subscriber = None
+        self.order_events_subscriber = None
+        self.symbol_order_subscribers: dict[str, list[AsyncSubscriber]] = {}
 
-    async def start(self) -> bool:
+    async def start(self, symbols) -> dict[str, AsyncSubscriber] | None:
         """Start the order stream adapter to listen for order events."""
         try:
-            await self._subscribe_to_order_stream()
-            return True
+            if self.order_events_subscriber is None:
+                self.logger.info("Starting order stream subscriber.")
+                await self._async_subscribe_to_order_events()
+            symbol_subscriber = (
+                await self.order_generator_service.subscribe_to_symbol_orders(
+                    symbols=symbols, callback=self._handle_order_generation
+                )
+            )
+            self.symbol_order_subscribers.setdefault(symbols, []).append(
+                symbol_subscriber
+            )
+            return symbol_subscriber
         except Exception as e:
             self.logger.error(f"Error starting order stream: {e}")
-        return False
+        return None
 
-    async def _subscribe_to_order_stream(self):
+    async def stop(self, symbol_subscribers: dict[str, list[AsyncSubscriber]]) -> bool:
+        """Stop the order stream adapter."""
+        try:
+            for symbol, subscribers in symbol_subscribers.items():
+                await self.order_generator_service.unsubscribe_from_symbol_orders(
+                    symbols=[symbol]
+                )
+                self.symbol_order_subscribers.get(symbol, []).remove(subscribers)
+                if not self.symbol_order_subscribers.get(symbol, []):
+                    del self.symbol_order_subscribers[symbol]
+            if not self.symbol_order_subscribers:
+                await self._async_unsubscribe_from_order_events()
+            return True
+        except Exception as e:
+            self.logger.error(f"Error stopping order stream: {e}")
+            return False
+
+    async def _async_subscribe_to_order_events(self):
         """Subscribe to the order stream."""
         try:
-            if self.order_stream_subscriber:
+            if self.order_events_subscriber:
                 self.logger.warning("Order stream subscriber already exists.")
                 return
             async_subscriber = await self.order_event_service.async_subscribe(
                 callback=self._handle_order_event
             )
-            self.order_stream_subscriber = async_subscriber
+            self.order_events_subscriber = async_subscriber
         except Exception as e:
             self.logger.error(f"Error subscribing to order stream: {e}")
 
-    async def async_unsubscribe(self):
+    async def _async_unsubscribe_from_order_events(self):
         """Unsubscribe from the order stream."""
         try:
-            if not self.order_stream_subscriber:
+            if not self.order_events_subscriber:
                 self.logger.warning("Order stream subscriber does not exist.")
                 return
             await self.order_event_service.async_unsubscribe(
-                self.order_stream_subscriber
+                self.order_events_subscriber
             )
-            self.order_stream_subscriber = None
+            self.order_events_subscriber = None
         except Exception as e:
             self.logger.error(f"Error unsubscribing from order stream: {e}")
 
-    async def stop(self) -> bool:
-        """Stop the order stream adapter."""
+    def _handle_order_generation(self, data: SignalOrderPayload):
+        """Handle incoming order generation events from the order stream."""
         try:
-            await self.async_unsubscribe()
-            return True
+            self.logger.info(f"Handling order generation event: {data}")
+            ## TODO:
+
         except Exception as e:
-            self.logger.error(f"Error stopping order stream: {e}")
-            return False
+            self.logger.error(f"Error handling order generation event: {e}")
 
     def _handle_order_event(self, data: OrderStreamData):
         """Handle incoming order events from the order stream."""

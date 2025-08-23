@@ -55,9 +55,7 @@ class SymbolHoldService:
             if self._order_event_subscriber:
                 self.logger.warning("Order event subscriber already initialized.")
                 return
-            # Initialize symbol holds
-            symbols = await self.symbol_service.async_get_symbols()
-            await self._async_initialize_symbol_holds(symbols)
+            await self._async_initialize_symbol_holds()
             # Subscribe to order events to update symbol holds
             async_subscriber = await self.order_event_service.async_subscribe(
                 callback=self._async_update_symbol_hold, queue_size=0
@@ -77,7 +75,7 @@ class SymbolHoldService:
         except Exception as e:
             self.logger.error(f"Error stopping symbol hold service: {e}")
 
-    async def _async_initialize_symbol_holds(self, symbols):
+    async def _async_initialize_symbol_holds(self):
         """Initialize symbol holds for the user."""
         self.logger.info("Initializing symbol holds...")
         # Fetch orders in hold status

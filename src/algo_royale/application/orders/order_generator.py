@@ -1,4 +1,5 @@
 import asyncio
+from typing import Callable
 
 from algo_royale.application.orders.equity_order_enums import EquityOrderSide
 from algo_royale.application.orders.signal_order_payload import SignalOrderPayload
@@ -47,7 +48,10 @@ class OrderGenerator:
         self.logger.info("OrderGenerator initialized.")
 
     async def async_subscribe_to_order_events(
-        self, symbols: list[str], callback: callable, queue_size=1
+        self,
+        symbols: list[str],
+        callback: Callable[[SignalOrderPayload], None],
+        queue_size=1,
     ) -> dict[str, AsyncSubscriber] | None:
         """
         Subscribe to order events for a specific symbol.
