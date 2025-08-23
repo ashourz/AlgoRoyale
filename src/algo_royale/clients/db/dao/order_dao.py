@@ -82,7 +82,6 @@ class OrderDAO(BaseDAO):
     def insert_order(
         self,
         symbol: str,
-        market: str,
         order_type: str,
         status: str,
         action: str,
@@ -95,7 +94,6 @@ class OrderDAO(BaseDAO):
         Insert a new order into the database.
         :param symbol: The stock symbol of the order.
         :param order_type: The type of the order (e.g., 'market', 'limit').
-        :param market: The market where the order is placed (e.g., 'NYSE', 'NASDAQ').
         :param status: The status of the order (e.g., 'open', 'closed').
         :param action: The action of the order (e.g., 'buy', 'sell').
         :param quantity: The quantity of the order.
@@ -108,7 +106,6 @@ class OrderDAO(BaseDAO):
             "insert_order.sql",
             (
                 symbol,
-                market,
                 order_type,
                 status,
                 action,

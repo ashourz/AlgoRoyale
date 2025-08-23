@@ -20,7 +20,6 @@ CREATE TABLE
     orders (
         id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
         symbol TEXT NOT NULL,
-        market TEXT NOT NULL,
         order_type TEXT NOT NULL,
         status TEXT NOT NULL,
         action TEXT NOT NULL,
@@ -37,7 +36,6 @@ CREATE TABLE
     trades (
         id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
         symbol TEXT NOT NULL,
-        market TEXT NOT NULL,
         action TEXT NOT NULL,
         settled BOOLEAN DEFAULT FALSE,
         settlement_date TIMESTAMP,

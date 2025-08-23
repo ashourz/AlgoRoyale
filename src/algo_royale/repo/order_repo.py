@@ -23,6 +23,7 @@ class DBOrderStatus(ABC):
     SUSPENDED = "suspended"
     ORDER_REPLACE_REJECTED = "order_replace_rejected"
     ORDER_CANCEL_REJECTED = "order_cancel_rejected"
+    FAILED = "failed"
 
 
 class OrderType(ABC):
@@ -95,7 +96,6 @@ class OrderRepo:
     def insert_order(
         self,
         symbol: str,
-        market: str,
         order_type: OrderType,
         status: DBOrderStatus,
         action: OrderAction,
@@ -104,7 +104,6 @@ class OrderRepo:
     ) -> int:
         """Insert a new order record.
         :param symbol: The stock symbol of the order.
-        :param market: The market where the order is placed (e.g., 'NYSE', 'NASDAQ').
         :param order_type: The type of the order (e.g., 'market', 'limit').
         :param status: The status of the order (e.g., 'open', 'closed').
         :param action: The action of the order (e.g., 'buy', 'sell').
@@ -117,7 +116,6 @@ class OrderRepo:
         """
         return self.dao.insert_order(
             symbol,
-            market,
             order_type,
             status,
             action,

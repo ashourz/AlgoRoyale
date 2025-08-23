@@ -164,6 +164,15 @@ class OrderExecutionServices:
         try:
             self.logger.info(f"Submitting buy order: {data}")
             # Implement buy order submission logic here
+            weighted_notional = self.ledger_service.calculate_weighted_notional(data.weight)
+            order = self.order_service.create_order_payload(
+                symbol=data.symbol,
+                side=EquityOrderSide.BUY,
+                qty=data.qty,
+                price=data.price,
+                weighted_notional=weighted_notional
+            )
+            self.
         except Exception as e:
             self.logger.error(f"Error submitting buy order: {e}")
 
