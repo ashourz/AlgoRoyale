@@ -47,7 +47,7 @@ class OrderService:
             self.logger.error(f"Error fetching orders by status {status_list}: {e}")
             return []
 
-    def update_order_status(
+    def update_order(
         self,
         order_id: str,
         status: DBOrderStatus,
@@ -55,7 +55,7 @@ class OrderService:
         price: float | None,
     ) -> int:
         try:
-            affected_rows = self.order_repo.update_order_status(
+            affected_rows = self.order_repo.update_order(
                 order_id, status, quantity, price
             )
             self.logger.info(f"Updated order {order_id} status to {status}")
@@ -68,11 +68,18 @@ class OrderService:
 
     def fetch_order_by_id(self, order_id: str) -> DBOrder | None:
         try:
-            order = self.order_repo.fetch_order_by_id(
+            orders = self.order_repo.fetch_order_by_id(
                 order_id, user_id=self.user_id, account_id=self.account_id
             )
-            self.logger.info(f"Fetched order {order_id}: {order}")
-            return order
+            self.logger.info(f"Fetched order {order_id}: {orders}")
+            if len(orders) > 1:
+                self.logger.info(f"Multiple orders found for {order_id}: {orders}")
+                return orders[0]
+            elif len(orders) == 1:
+                return orders[0]
+            else:
+                self.logger.warning(f"No orders found for {order_id}")
+                return None
         except Exception as e:
             self.logger.error(f"Error fetching order {order_id}: {e}")
             return None
@@ -106,7 +113,7 @@ class OrderService:
                 self.logger.info(f"Order submitted successfully: {confirmed_order}")
             else:
                 self.logger.error(f"Order submission failed for: {order}")
-                self.update_order_status(order.client_order_id, DBOrderStatus.FAILED)
+                self.update_order(order.client_order_id, DBOrderStatus.FAILED)
         except Exception as e:
             self.logger.error(f"Error submitting order: {order}, Error: {e}")
-            self.update_order_status(order.client_order_id, DBOrderStatus.FAILED)
+            self.update_order(order.client_order_id, DBOrderStatus.FAILED)

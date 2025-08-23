@@ -125,7 +125,7 @@ class OrderDAO(BaseDAO):
             return -1
         return inserted_id
 
-    def update_order_status(
+    def update_order(
         self,
         order_id: UUID,
         status: str,

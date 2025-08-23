@@ -128,7 +128,7 @@ class OrderRepo:
             self.account_id,
         )
 
-    def update_order_status(
+    def update_order(
         self,
         order_id: UUID,
         new_status: DBOrderStatus,
@@ -140,7 +140,7 @@ class OrderRepo:
         :param new_status: The new status to set for the order (e.g., 'open', 'closed').
         :return: The number of rows affected by the update.
         """
-        return self.dao.update_order_status(order_id, new_status, quantity, price)
+        return self.dao.update_order(order_id, new_status, quantity, price)
 
     def delete_order(self, order_id: UUID) -> int:
         """Delete an order by its ID.

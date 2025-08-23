@@ -5,11 +5,11 @@ from algo_royale.logging.loggable import Loggable
 
 
 class AccountCashService:
-    def __init__(self, cash_repo: AccountCashAdapter, logger: Loggable):
-        self.cash_repo = cash_repo
+    def __init__(self, cash_adapter: AccountCashAdapter, logger: Loggable):
+        self.cash_adapter = cash_adapter
         self.logger = logger
-        self.buying_power: Decimal = self._fetch_buying_power()
-        self.total_cash: Decimal = self._fetch_total_cash()
+        self.buying_power: Decimal = 0
+        self.total_cash: Decimal = 0
 
     def total_cash(self) -> Decimal:
         """Get the current total cash in the account."""
@@ -23,11 +23,14 @@ class AccountCashService:
         """Get the current unsettled cash in the account."""
         return self.total_cash - self.buying_power
 
-    async def async_update_cash_info(self) -> None:
+    async def async_update_cash_info(self):
         """Update the cash information by fetching the latest data from Alpaca."""
         try:
-            self.buying_power = await self.cash_repo.fetch_buying_power()
-            self.total_cash = await self.cash_repo.fetch_total_cash()
+            account_data = await self.cash_adapter.fetch_account_data()
+            if account_data:
+                self.buying_power = Decimal(account_data.regt_buying_power)
+                self.total_cash = Decimal(account_data.cash)
         except Exception as e:
             self.logger.error(f"Error updating cash info: {e}")
-            pass
+            self.buying_power = Decimal(0)
+            self.total_cash = Decimal(0)
