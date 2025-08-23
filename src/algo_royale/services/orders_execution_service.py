@@ -1,6 +1,7 @@
 from datetime import datetime
 
 from algo_royale.application.orders.equity_order_enums import EquityOrderSide
+from algo_royale.application.orders.equity_order_types import EquityMarketNotionalOrder
 from algo_royale.application.orders.signal_order_payload import SignalOrderPayload
 from algo_royale.application.symbols.enums import SymbolHoldStatus
 from algo_royale.application.symbols.queued_async_symbol_hold import (
@@ -164,15 +165,18 @@ class OrderExecutionServices:
         try:
             self.logger.info(f"Submitting buy order: {data}")
             # Implement buy order submission logic here
-            weighted_notional = self.ledger_service.calculate_weighted_notional(data.weight)
-            order = self.order_service.create_order_payload(
-                symbol=data.symbol,
-                side=EquityOrderSide.BUY,
-                qty=data.qty,
-                price=data.price,
-                weighted_notional=weighted_notional
+            ##TODO:::
+
+            weighted_notional = self.ledger_service.calculate_weighted_notional(
+                data.weight
             )
-            self.
+            self.order_service.submit_order(
+                order=EquityMarketNotionalOrder(
+                    symbol=data.symbol,
+                    side=EquityOrderSide.BUY,
+                    notional=weighted_notional,
+                )
+            )
         except Exception as e:
             self.logger.error(f"Error submitting buy order: {e}")
 
@@ -181,6 +185,8 @@ class OrderExecutionServices:
         try:
             self.logger.info(f"Submitting sell order: {data}")
             # Implement sell order submission logic here
+            ##TODO::
+
         except Exception as e:
             self.logger.error(f"Error submitting sell order: {e}")
 
@@ -188,7 +194,7 @@ class OrderExecutionServices:
         """Handle incoming order events from the order stream."""
         try:
             self.logger.info(f"Handling order event: {data}")
-            self._update_order_status(data = data)
+            self._update_order_status(data=data)
             if data.event in [OrderStreamEvent.FILL, OrderStreamEvent.PARTIAL_FILL]:
                 self._handle_fill_event(data.order)
         except Exception as e:
@@ -204,7 +210,7 @@ class OrderExecutionServices:
                 order_id=data.order.id,
                 status=status,
                 quantity=data.position_qty,
-                price=data.price
+                price=data.price,
             )
             self.logger.info(f"Order {data.order.id} status updated to {status}.")
         except Exception as e:

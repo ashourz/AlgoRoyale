@@ -99,9 +99,9 @@ class OrderRepo:
         order_type: OrderType,
         status: DBOrderStatus,
         action: OrderAction,
-        notional: float | None,
-        quantity: int | None,
-        price: float | None,
+        notional: float | None = None,
+        quantity: int | None = None,
+        price: float | None = None,
     ) -> int:
         """Insert a new order record.
         :param symbol: The stock symbol of the order.

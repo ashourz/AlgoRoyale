@@ -87,8 +87,7 @@ class OrderService:
                 order_type=order.order_type,
                 status=DBOrderStatus.NEW,
                 action=action,
-                quantity=order.qty,
-                price=order.price,
+                notional=order.notional,
             )
             if not client_id:
                 self.logger.error(f"Failed to insert order into DB: {order}")
