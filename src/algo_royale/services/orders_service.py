@@ -47,9 +47,17 @@ class OrderService:
             self.logger.error(f"Error fetching orders by status {status_list}: {e}")
             return []
 
-    def update_order_status(self, order_id: str, status: DBOrderStatus) -> int:
+    def update_order_status(
+        self,
+        order_id: str,
+        status: DBOrderStatus,
+        quantity: int | None,
+        price: float | None,
+    ) -> int:
         try:
-            affected_rows = self.order_repo.update_order_status(order_id, status)
+            affected_rows = self.order_repo.update_order_status(
+                order_id, status, quantity, price
+            )
             self.logger.info(f"Updated order {order_id} status to {status}")
             return affected_rows
         except Exception as e:

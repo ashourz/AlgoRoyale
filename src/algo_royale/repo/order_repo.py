@@ -99,8 +99,9 @@ class OrderRepo:
         order_type: OrderType,
         status: DBOrderStatus,
         action: OrderAction,
-        quantity: int,
-        price: float,
+        notional: float | None,
+        quantity: int | None,
+        price: float | None,
     ) -> int:
         """Insert a new order record.
         :param symbol: The stock symbol of the order.
@@ -108,6 +109,7 @@ class OrderRepo:
         :param status: The status of the order (e.g., 'open', 'closed').
         :param action: The action of the order (e.g., 'buy', 'sell').
         :param quantity: The quantity of the order.
+        :param notional: The notional value of the order.
         :param price: The price at which the order was placed.
         :param signal_id: The ID of the signal associated with the order.
         :param user_id: The ID of the user who placed the order.
@@ -119,19 +121,26 @@ class OrderRepo:
             order_type,
             status,
             action,
+            notional,
             quantity,
             price,
             self.user_id,
             self.account_id,
         )
 
-    def update_order_status(self, order_id: UUID, new_status: DBOrderStatus) -> int:
+    def update_order_status(
+        self,
+        order_id: UUID,
+        new_status: DBOrderStatus,
+        quantity: int | None,
+        price: float | None,
+    ) -> int:
         """Update the status of an existing order.
         :param order_id: The ID of the order to update.
         :param new_status: The new status to set for the order (e.g., 'open', 'closed').
         :return: The number of rows affected by the update.
         """
-        return self.dao.update_order_status(order_id, new_status)
+        return self.dao.update_order_status(order_id, new_status, quantity, price)
 
     def delete_order(self, order_id: UUID) -> int:
         """Delete an order by its ID.

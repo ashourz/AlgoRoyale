@@ -85,8 +85,9 @@ class OrderDAO(BaseDAO):
         order_type: str,
         status: str,
         action: str,
-        quantity: int,
-        price: float,
+        notional: float | None,
+        quantity: int | None,
+        price: float | None,
         user_id: str,
         account_id: str,
     ) -> int:
@@ -97,6 +98,7 @@ class OrderDAO(BaseDAO):
         :param status: The status of the order (e.g., 'open', 'closed').
         :param action: The action of the order (e.g., 'buy', 'sell').
         :param quantity: The quantity of the order.
+        :param notional: The notional value of the order.
         :param price: The price at which the order was placed.
         :param user_id: The ID of the user who placed the order.
         :param account_id: The ID of the account associated with the order.
@@ -109,6 +111,7 @@ class OrderDAO(BaseDAO):
                 order_type,
                 status,
                 action,
+                notional,
                 quantity,
                 price,
                 user_id,
@@ -126,17 +129,23 @@ class OrderDAO(BaseDAO):
         self,
         order_id: UUID,
         status: str,
+        quantity: int,
+        price: float,
     ) -> int:
         """
         Update an existing order in the database.
         :param order_id: The ID of the order to update.
         :param status: The new status of the order.
+        :param quantity: The new quantity of the order.
+        :param price: The new price of the order.
         :return: The ID of the updated order, or -1 if the update failed.
         """
         updated_id = self.update(
             "update_order.sql",
             (
                 status,
+                quantity,
+                price,
                 order_id,
             ),
         )

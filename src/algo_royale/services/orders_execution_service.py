@@ -188,22 +188,27 @@ class OrderExecutionServices:
         """Handle incoming order events from the order stream."""
         try:
             self.logger.info(f"Handling order event: {data}")
-            self._update_order_status(data.order.order_id, data.event)
+            self._update_order_status(data = data)
             if data.event in [OrderStreamEvent.FILL, OrderStreamEvent.PARTIAL_FILL]:
                 self._handle_fill_event(data.order)
         except Exception as e:
             self.logger.error(f"Error handling order event: {e}")
 
-    def _update_order_status(self, order_id: str, event: OrderStreamEvent):
+    def _update_order_status(self, data: OrderStreamData):
         """
         Update the order status in the repository.
         """
         try:
-            status = event.db_status
-            self.order_service.update_order_status(order_id, status)
-            self.logger.info(f"Order {order_id} status updated to {status}.")
+            status = data.db_status
+            self.order_service.update_order_status(
+                order_id=data.order.id,
+                status=status,
+                quantity=data.position_qty,
+                price=data.price
+            )
+            self.logger.info(f"Order {data.order.id} status updated to {status}.")
         except Exception as e:
-            self.logger.error(f"Error updating order status for {order_id}: {e}")
+            self.logger.error(f"Error updating order status for {data.order.id}: {e}")
 
     def _get_existing_order(self, order_id: str) -> DBOrder:
         try:
