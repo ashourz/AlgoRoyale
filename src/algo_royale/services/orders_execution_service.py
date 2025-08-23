@@ -1,6 +1,11 @@
 from datetime import datetime
 
+from algo_royale.application.orders.equity_order_enums import EquityOrderSide
 from algo_royale.application.orders.signal_order_payload import SignalOrderPayload
+from algo_royale.application.symbols.enums import SymbolHoldStatus
+from algo_royale.application.symbols.queued_async_symbol_hold import (
+    QueuedAsyncSymbolHold,
+)
 from algo_royale.application.utils.async_pubsub import AsyncSubscriber
 from algo_royale.logging.loggable import Loggable
 from algo_royale.models.alpaca_trading.alpaca_order import Order
@@ -11,6 +16,7 @@ from algo_royale.services.ledger_service import LedgerService
 from algo_royale.services.order_event_service import OrderEventService
 from algo_royale.services.order_generator_service import OrderGeneratorService
 from algo_royale.services.orders_service import OrderService
+from algo_royale.services.symbol_hold_service import SymbolHoldService
 from algo_royale.services.trades_service import TradesService
 
 
@@ -19,6 +25,7 @@ class OrderExecutionServices:
     def __init__(
         self,
         ledger_service: LedgerService,  ## Service for managing the ledger
+        symbol_hold_service: SymbolHoldService,  ## Service for managing symbol holds
         order_generator_service: OrderGeneratorService,  ## Service for generating order payloads
         order_event_service: OrderEventService,  ## Incoming order events
         order_service: OrderService,  ## Order service for managing orders
@@ -26,6 +33,8 @@ class OrderExecutionServices:
         logger: Loggable,
     ):
         self.ledger_service = ledger_service
+        self.symbol_hold_service = symbol_hold_service
+        self.symbol_holds = QueuedAsyncSymbolHold(logger=logger)
         self.order_generator_service = order_generator_service
         self.order_service = order_service
         self.trade_service = trade_service
@@ -70,6 +79,17 @@ class OrderExecutionServices:
             self.logger.error(f"Error stopping order stream: {e}")
             return False
 
+    async def _async_subscribe_to_symbol_hold(self):
+        """Subscribe to the symbol hold stream."""
+        try:
+            if self.symbol_hold_service:
+                self.logger.info("Starting symbol hold subscriber.")
+                await self.symbol_hold_service.subscribe(
+                    callback=self._handle_symbol_hold_event
+                )
+        except Exception as e:
+            self.logger.error(f"Error subscribing to symbol hold stream: {e}")
+
     async def _async_subscribe_to_order_events(self):
         """Subscribe to the order stream."""
         try:
@@ -96,14 +116,64 @@ class OrderExecutionServices:
         except Exception as e:
             self.logger.error(f"Error unsubscribing from order stream: {e}")
 
+    def _handle_symbol_hold_event(self, data: SymbolHoldStatus):
+        """Handle incoming symbol hold events from the symbol hold stream."""
+        try:
+            self.logger.info(f"Handling symbol hold event: {data}")
+            self.symbol_holds.async_update(data)
+        except Exception as e:
+            self.logger.error(f"Error handling symbol hold event: {e}")
+
     def _handle_order_generation(self, data: SignalOrderPayload):
         """Handle incoming order generation events from the order stream."""
         try:
             self.logger.info(f"Handling order generation event: {data}")
-            ## TODO:
+            symbol = data.symbol
+            hold_status = self.symbol_holds.status[symbol]
+            match data.side:
+                case EquityOrderSide.BUY:
+                    self.logger.info(f"Buy order for symbol {symbol}.")
+                    if hold_status is SymbolHoldStatus.BUY_ONLY:
+                        self.logger.info(f"Symbol {symbol} is buy-only. Proceeding.")
+                        self._submit_buy_order(data)
+                    else:
+                        self.logger.warning(
+                            f"Cannot place buy order for symbol {symbol} as it is in SELL_ONLY hold status."
+                        )
+                        return
+                case EquityOrderSide.SELL:
+                    self.logger.info(f"Sell order for symbol {symbol}.")
+                    if hold_status is SymbolHoldStatus.SELL_ONLY:
+                        self.logger.info(f"Symbol {symbol} is sell-only. Proceeding.")
+                        self._submit_sell_order(data)
+                    else:
+                        self.logger.warning(
+                            f"Cannot place sell order for symbol {symbol} as it is in BUY_ONLY hold status."
+                        )
+                        return
+                case _:
+                    self.logger.warning(
+                        f"Unknown order side for symbol {symbol}: {data.side}"
+                    )
 
         except Exception as e:
             self.logger.error(f"Error handling order generation event: {e}")
+
+    def _submit_buy_order(self, data: SignalOrderPayload):
+        """Submit a buy order."""
+        try:
+            self.logger.info(f"Submitting buy order: {data}")
+            # Implement buy order submission logic here
+        except Exception as e:
+            self.logger.error(f"Error submitting buy order: {e}")
+
+    def _submit_sell_order(self, data: SignalOrderPayload):
+        """Submit a sell order."""
+        try:
+            self.logger.info(f"Submitting sell order: {data}")
+            # Implement sell order submission logic here
+        except Exception as e:
+            self.logger.error(f"Error submitting sell order: {e}")
 
     def _handle_order_event(self, data: OrderStreamData):
         """Handle incoming order events from the order stream."""
