@@ -1,3 +1,4 @@
+import asyncio
 from logging import Logger
 from typing import Any, Callable
 
@@ -5,6 +6,7 @@ from algo_royale.application.symbols.enums import SymbolHoldStatus
 from algo_royale.application.symbols.queued_async_symbol_hold import (
     QueuedAsyncSymbolHold,
 )
+from algo_royale.application.symbols.symbol_hold_tracker import SymbolHoldTracker
 from algo_royale.application.utils.async_pubsub import AsyncPubSub, AsyncSubscriber
 
 
@@ -13,8 +15,9 @@ class SymbolHoldManager:
 
     def __init__(self, symbols: list[str], get_set_timeout: float, logger: Logger):
         self.symbols = symbols
-        self._pubsub = AsyncPubSub()
-        self.get_set_timeout = get_set_timeout
+        self._lock = asyncio.Lock()
+        self._symbol_hold_pubsub = AsyncPubSub()
+        self._roster_hold_pubsub = SymbolHoldTracker()
         self.logger = logger
         self._initialize_symbol_holds()
 
@@ -57,8 +60,9 @@ class SymbolHoldManager:
         self, symbol: str, status: SymbolHoldStatus
     ):
         try:
-            symbol_hold = self._get_symbol_hold(symbol)
-            await symbol_hold.async_update(status)
+            with await self._lock:
+                symbol_hold = self._get_symbol_hold(symbol)
+                await symbol_hold.async_update(status)
         except Exception as e:
             self.logger.error(f"Error updating symbol hold for {symbol}: {e}")
 
@@ -68,7 +72,9 @@ class SymbolHoldManager:
             for symbol in self.symbols:
                 async_symbol_hold = self._get_symbol_hold(symbol)
                 symbol_status_dict[symbol] = async_symbol_hold.status
-            await self._pubsub.async_publish(self.update_type, symbol_status_dict)
+            await self._symbol_hold_pubsub.async_publish(
+                self.update_type, symbol_status_dict
+            )
         except Exception as e:
             self.logger.error(f"Error publishing symbol holds: {e}")
 
@@ -80,7 +86,7 @@ class SymbolHoldManager:
         queue_size: int = 1,
     ) -> AsyncSubscriber:
         """Subscribe to updates with a callback."""
-        return self._pubsub.subscribe(
+        return self._symbol_hold_pubsub.subscribe(
             event_type=self.update_type, callback=callback, queue_size=queue_size
         )
 
@@ -88,10 +94,10 @@ class SymbolHoldManager:
         """
         Unsubscribe a subscriber from the pubsub system.
         """
-        self._pubsub.unsubscribe(subscriber)
+        self._symbol_hold_pubsub.unsubscribe(subscriber)
 
     async def shutdown(self):
         """
         Shutdown the pubsub system and cancel all tasks.
         """
-        await self._pubsub.async_shutdown()
+        await self._symbol_hold_pubsub.async_shutdown()
