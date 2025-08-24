@@ -110,7 +110,10 @@ class OrchestratorService:
     async def _subscribe_to_symbol_holds(self) -> None:
         """Subscribe to symbol holds."""
         try:
-            async_subscriber = self.symbol_hold_service.subscribe()
+            async_subscriber = (
+                await self.symbol_hold_service.async_subscribe_to_symbol_holds()
+            )
+
             if async_subscriber:
                 self.symbol_hold_subscriber = async_subscriber
                 return True

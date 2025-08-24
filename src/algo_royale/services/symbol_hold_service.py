@@ -2,7 +2,7 @@ from logging import Logger
 from typing import Any, Callable
 
 from algo_royale.application.symbols.enums import SymbolHoldStatus
-from algo_royale.application.symbols.symbol_hold_manager import SymbolHoldManager
+from algo_royale.application.symbols.symbol_hold_tracker import SymbolHoldTracker
 from algo_royale.application.utils.async_pubsub import AsyncSubscriber
 from algo_royale.models.alpaca_trading.enums.enums import OrderSide
 from algo_royale.models.alpaca_trading.enums.order_stream_event import OrderStreamEvent
@@ -36,14 +36,14 @@ class SymbolHoldService:
     def __init__(
         self,
         symbol_service: SymbolService,
-        symbol_hold_manager: SymbolHoldManager,
+        symbol_hold_tracker: SymbolHoldTracker,
         order_service: OrderService,
         order_event_service: OrderEventService,
         position_service: PositionsService,
         logger: Logger,
     ):
         self.symbol_service = symbol_service
-        self.symbol_hold_manager = symbol_hold_manager
+        self.symbol_hold_tracker = symbol_hold_tracker
         self.order_service = order_service
         self.order_event_service = order_event_service
         self.position_service = position_service
@@ -161,23 +161,42 @@ class SymbolHoldService:
 
     async def _async_set_symbol_hold(self, symbol: str, status: SymbolHoldStatus):
         try:
-            await self.symbol_hold_manager.async_set_symbol_hold(symbol, status)
+            await self.symbol_hold_tracker.async_set_hold(symbol, status)
         except Exception as e:
             self.logger.error(f"Error setting symbol hold for {symbol}: {e}")
 
-    def subscribe(
+    async def async_subscribe_to_symbol_holds(
         self,
         callback: Callable[[dict[str, SymbolHoldStatus], type], Any],
-        queue_size: int = 1,
+        queue_size: int = -1,
     ) -> AsyncSubscriber:
         try:
-            return self.symbol_hold_manager.subscribe(callback, queue_size)
+            return await self.symbol_hold_tracker.async_subscribe_to_symbol_holds(
+                callback=callback, queue_size=queue_size
+            )
         except Exception as e:
             self.logger.error(f"Error subscribing to symbol holds: {e}")
             return None
 
-    def unsubscribe(self, subscriber: AsyncSubscriber):
+    def unsubscribe_from_symbol_holds(self, subscriber: AsyncSubscriber):
         try:
-            self.symbol_hold_manager.unsubscribe(subscriber)
+            self.symbol_hold_tracker.unsubscribe_from_symbol(subscriber)
         except Exception as e:
             self.logger.error(f"Error unsubscribing from symbol holds: {e}")
+
+    async def async_subscribe_to_hold_roster(
+        self, callback: Callable[[dict[str, SymbolHoldStatus], type], Any]
+    ) -> AsyncSubscriber:
+        try:
+            return await self.symbol_hold_tracker.async_subscribe_to_roster(
+                callback=callback
+            )
+        except Exception as e:
+            self.logger.error(f"Error subscribing to hold roster: {e}")
+            return None
+
+    def unsubscribe_from_hold_roster(self, subscriber: AsyncSubscriber):
+        try:
+            self.symbol_hold_tracker.unsubscribe_from_roster(subscriber)
+        except Exception as e:
+            self.logger.error(f"Error unsubscribing from hold roster: {e}")

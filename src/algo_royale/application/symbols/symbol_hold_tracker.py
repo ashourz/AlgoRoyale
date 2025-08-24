@@ -16,15 +16,14 @@ class SymbolHoldTracker:
         ] = {}  # True if on hold, False if closed
         self.lock = asyncio.Lock()
         self._symbol_hold_pubsub = AsyncPubSub()
-        self._roster_hold_pubsub = SymbolHoldTracker()
+        self._roster_hold_pubsub = AsyncPubSub()
 
-    async def set_hold(self, symbol: str, status: SymbolHoldStatus):
+    async def async_set_hold(self, symbol: str, status: SymbolHoldStatus):
         try:
             async with self.lock:
                 self.symbol_holds[symbol] = status
-                symbol_event_type = self._get_symbol_event_type(symbol)
                 await self._symbol_hold_pubsub.async_publish(
-                    event_type=symbol_event_type, data=status
+                    event_type=self.event_type, data={symbol: status}
                 )
                 await self._roster_hold_pubsub.async_publish(
                     event_type=self.event_type, data=self.symbol_holds
@@ -32,22 +31,24 @@ class SymbolHoldTracker:
         except Exception as e:
             self.logger.error(f"Error setting hold for {symbol}: {e}")
 
-    async def subscribe_to_symbol(
-        self, symbol: str, callback: Callable[[SymbolHoldStatus], None]
+    async def async_subscribe_to_symbol_holds(
+        self,
+        callback: Callable[[dict[str, SymbolHoldStatus]], None],
+        queue_size: int = -1,
     ) -> AsyncSubscriber | None:
         try:
             async_subscriber = await self._symbol_hold_pubsub.subscribe(
-                self._get_symbol_event_type(symbol), callback
+                event_type=self.event_type, callback=callback, queue_size=queue_size
             )
             if async_subscriber:
                 return async_subscriber
-            self.logger.warning(f"Failed to subscribe to {symbol}")
+            self.logger.warning("Failed to subscribe to symbol holds")
         except Exception as e:
             # Handle subscription errors
-            self.logger.error(f"Error subscribing to {symbol}: {e}")
+            self.logger.error(f"Error subscribing to symbol holds: {e}")
         return None
 
-    async def unsubscribe_from_symbol(self, async_subscriber: AsyncSubscriber):
+    def unsubscribe_from_symbol(self, async_subscriber: AsyncSubscriber):
         try:
             self._symbol_hold_pubsub.unsubscribe(subscriber=async_subscriber)
         except Exception as e:
@@ -56,7 +57,7 @@ class SymbolHoldTracker:
                 f"Error unsubscribing from {async_subscriber.symbol}: {e}"
             )
 
-    async def subscribe_to_roster(
+    async def async_subscribe_to_roster(
         self, callback: Callable[[dict[str, SymbolHoldStatus]], None]
     ) -> AsyncSubscriber | None:
         try:
@@ -77,6 +78,3 @@ class SymbolHoldTracker:
         except Exception as e:
             # Handle unsubscription errors
             self.logger.error(f"Error unsubscribing from roster holds: {e}")
-
-    def _get_symbol_event_type(self, symbol: str) -> str:
-        return f"{self.event_type}_{symbol}"

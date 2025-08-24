@@ -69,7 +69,7 @@ class OrderExecutionServices:
         try:
             if self.symbol_hold_service:
                 self.logger.info("Starting symbol hold subscriber.")
-                await self.symbol_hold_service.subscribe(
+                await self.symbol_hold_service.async_subscribe_to_symbol_holds(
                     callback=self._handle_symbol_hold_event
                 )
         except Exception as e:

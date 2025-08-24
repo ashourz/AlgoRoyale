@@ -27,7 +27,7 @@ class OrderGeneratorService:
         try:
             if self.symbol_hold_subscriber is None:
                 self.logger.info("Initializing symbol hold subscriber.")
-                self._subscribe_to_symbol_hold()
+                await self._await_subscribe_to_symbol_hold()
             symbol_subscribers = await self._async_subscribe_to_orders(
                 symbols, callback
             )
@@ -51,10 +51,12 @@ class OrderGeneratorService:
         except Exception as e:
             self.logger.error(f"Error unsubscribing from symbol orders: {e}")
 
-    def _subscribe_to_symbol_hold(self):
+    async def _await_subscribe_to_symbol_hold(self):
         try:
-            async_subscriber = self.symbol_hold_service.subscribe(
-                callback=self._handle_symbol_hold
+            async_subscriber = (
+                await self.symbol_hold_service.async_subscribe_to_symbol_holds(
+                    callback=self._handle_symbol_hold
+                )
             )
             if async_subscriber is None:
                 self.logger.error("Failed to subscribe to symbol hold updates.")
@@ -68,7 +70,9 @@ class OrderGeneratorService:
             if not self.symbol_hold_subscriber:
                 self.logger.warning("Symbol hold subscriber not initialized.")
                 return
-            self.symbol_hold_service.unsubscribe(subscriber=self.symbol_hold_subscriber)
+            self.symbol_hold_service.unsubscribe_from_symbol_holds(
+                subscriber=self.symbol_hold_subscriber
+            )
         except Exception as e:
             self.logger.error(f"Error unsubscribing from symbol hold updates: {e}")
 
