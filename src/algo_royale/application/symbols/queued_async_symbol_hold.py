@@ -12,7 +12,7 @@ class QueuedAsyncSymbolHold(QueuedAsyncUpdateObject):
 
     def __init__(self, logger=None):
         super().__init__(logger=logger)
-        self.status: SymbolHoldStatus = SymbolHoldStatus.CLOSED
+        self.status: SymbolHoldStatus = SymbolHoldStatus.CLOSED_FOR_DAY
 
     def _update(self, status: SymbolHoldStatus):
         """

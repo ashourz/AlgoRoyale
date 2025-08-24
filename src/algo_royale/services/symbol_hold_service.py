@@ -47,6 +47,7 @@ class SymbolHoldService:
         self.order_service = order_service
         self.order_event_service = order_event_service
         self.position_service = position_service
+
         self._order_event_subscriber = None
         self.logger = logger
 
@@ -56,6 +57,7 @@ class SymbolHoldService:
                 self.logger.warning("Order event subscriber already initialized.")
                 return
             await self._async_initialize_symbol_holds()
+            await self._async_set_symbol_holds_by_order_status()
             # Subscribe to order events to update symbol holds
             async_subscriber = await self.order_event_service.async_subscribe(
                 callback=self._async_update_symbol_hold, queue_size=0
@@ -77,37 +79,51 @@ class SymbolHoldService:
 
     async def _async_initialize_symbol_holds(self):
         """Initialize symbol holds for the user."""
-        self.logger.info("Initializing symbol holds...")
-        # Fetch orders in hold status
-        for symbol in self.symbol_service.async_get_symbols():
-            # Fetch orders in hold status
-            orders = self.order_service.fetch_orders_by_symbol_and_status(
-                symbol=symbol, status_list=self.HOLD_ALL_EVENTS
-            )
-            if len(orders) > 0:
-                for order in orders:
-                    await self._async_set_symbol_hold(
-                        order.symbol, SymbolHoldStatus.HOLD_ALL
-                    )
-                    return
+        try:
+            self.logger.info("Initializing symbol holds...")
+            # Fetch all symbols
+            symbols = await self.symbol_service.async_get_symbols()
+            for symbol in symbols:
+                await self._async_set_symbol_hold(symbol, SymbolHoldStatus.START)
+        except Exception as e:
+            self.logger.error(f"Error initializing symbol holds: {e}")
 
-            # Fetch orders in sell-only or buy-only status
-            orders = self.order_service.fetch_orders_by_symbol_and_status(
-                symbol=symbol, status_list=self.SELL_ONLY_OR_BUY_ONLY_EVENTS
-            )
-            if len(orders) > 0:
-                for order in orders:
-                    if self.position_service.get_positions_by_symbol(order.symbol):
+    async def _async_set_symbol_holds_by_order_status(self):
+        """Set symbol holds based on order status."""
+        try:
+            self.logger.info("Setting symbol holds by order status...")
+            # Fetch orders in hold status
+            for symbol in self.symbol_service.async_get_symbols():
+                # Fetch orders in hold status
+                orders = self.order_service.fetch_orders_by_symbol_and_status(
+                    symbol=symbol, status_list=self.HOLD_ALL_EVENTS
+                )
+                if len(orders) > 0:
+                    for order in orders:
                         await self._async_set_symbol_hold(
-                            order.symbol, SymbolHoldStatus.SELL_ONLY
+                            order.symbol, SymbolHoldStatus.HOLD_ALL
                         )
-                    else:
-                        await self._async_set_symbol_hold(
-                            order.symbol, SymbolHoldStatus.BUY_ONLY
-                        )
-                return
-            # If no orders found, set symbol hold to BUY_ONLY
-            await self._async_set_symbol_hold(symbol, SymbolHoldStatus.BUY_ONLY)
+                        return
+
+                # Fetch orders in sell-only or buy-only status
+                orders = self.order_service.fetch_orders_by_symbol_and_status(
+                    symbol=symbol, status_list=self.SELL_ONLY_OR_BUY_ONLY_EVENTS
+                )
+                if len(orders) > 0:
+                    for order in orders:
+                        if self.position_service.get_positions_by_symbol(order.symbol):
+                            await self._async_set_symbol_hold(
+                                order.symbol, SymbolHoldStatus.SELL_ONLY
+                            )
+                        else:
+                            await self._async_set_symbol_hold(
+                                order.symbol, SymbolHoldStatus.BUY_ONLY
+                            )
+                    return
+                # If no orders found, set symbol hold to BUY_ONLY
+                await self._async_set_symbol_hold(symbol, SymbolHoldStatus.BUY_ONLY)
+        except Exception as e:
+            self.logger.error(f"Error setting symbol holds by order status: {e}")
 
     async def _async_update_symbol_hold(self, symbol: str, data: OrderStreamData):
         """
@@ -129,9 +145,13 @@ class SymbolHoldService:
                         symbol, SymbolHoldStatus.SELL_ONLY
                     )
                 elif data.order.side == OrderSide.SELL:
-                    await self._async_set_symbol_hold(symbol, SymbolHoldStatus.CLOSED)
+                    await self._async_set_symbol_hold(
+                        symbol, SymbolHoldStatus.CLOSED_FOR_DAY
+                    )
             elif data.event == OrderStreamEvent.DONE_FOR_DAY:
-                await self._async_set_symbol_hold(symbol, SymbolHoldStatus.CLOSED)
+                await self._async_set_symbol_hold(
+                    symbol, SymbolHoldStatus.CLOSED_FOR_DAY
+                )
 
             self.logger.info(
                 f"Updated hold status for {symbol}: {self._get_symbol_hold(symbol)}"

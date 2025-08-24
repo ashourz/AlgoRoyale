@@ -82,7 +82,7 @@ class OrderGeneratorService:
                     self.logger.info(f"Symbol '{symbol}' is buy only.")
                 case SymbolHoldStatus.SELL_ONLY:
                     self.logger.info(f"Symbol '{symbol}' is sell only.")
-                case SymbolHoldStatus.CLOSED:
+                case SymbolHoldStatus.CLOSED_FOR_DAY:
                     self.logger.info(f"Symbol '{symbol}' is closed.")
                 case _:
                     self.logger.warning(
