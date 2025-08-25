@@ -1,3 +1,4 @@
+import asyncio
 from logging import Logger
 from typing import Any, Callable
 
@@ -11,6 +12,7 @@ from algo_royale.services.order_event_service import OrderEventService
 from algo_royale.services.orders_service import OrderService
 from algo_royale.services.positions_service import PositionsService
 from algo_royale.services.symbol_service import SymbolService
+from algo_royale.services.trades_service import TradesService
 
 
 class SymbolHoldService:
@@ -40,16 +42,19 @@ class SymbolHoldService:
         order_service: OrderService,
         order_event_service: OrderEventService,
         position_service: PositionsService,
+        trades_service: TradesService,
         logger: Logger,
+        post_fill_delay_seconds: float,  ## TODO: move to config as 60
     ):
         self.symbol_service = symbol_service
         self.symbol_hold_tracker = symbol_hold_tracker
         self.order_service = order_service
         self.order_event_service = order_event_service
         self.position_service = position_service
-
+        self.trades_service = trades_service
         self._order_event_subscriber = None
         self.logger = logger
+        self.post_fill_delay_seconds = post_fill_delay_seconds
 
     async def start(self):
         try:
@@ -142,11 +147,13 @@ class SymbolHoldService:
             elif data.event == OrderStreamEvent.FILL:
                 if data.order.side == OrderSide.BUY:
                     await self._async_set_symbol_hold(
-                        symbol, SymbolHoldStatus.SELL_ONLY
+                        symbol, SymbolHoldStatus.POST_FILL_DELAY
                     )
+                    # Start background coroutine for post-fill delay
+                    asyncio.create_task(self._post_fill_delay(symbol))
                 elif data.order.side == OrderSide.SELL:
                     await self._async_set_symbol_hold(
-                        symbol, SymbolHoldStatus.CLOSED_FOR_DAY
+                        symbol, SymbolHoldStatus.PENDING_SETTLEMENT
                     )
             elif data.event == OrderStreamEvent.DONE_FOR_DAY:
                 await self._async_set_symbol_hold(
@@ -158,6 +165,16 @@ class SymbolHoldService:
             )
         except Exception as e:
             self.logger.error(f"Error updating hold status for {symbol}: {e}")
+
+    async def _post_fill_delay(self, symbol: str):
+        try:
+            await asyncio.sleep(self.post_fill_delay_seconds)
+            await self._async_set_symbol_hold(symbol, SymbolHoldStatus.SELL_ONLY)
+            self.logger.info(
+                f"Post-fill delay complete for {symbol}, set to SELL_ONLY."
+            )
+        except Exception as e:
+            self.logger.error(f"Error in post-fill delay for {symbol}: {e}")
 
     async def _async_set_symbol_hold(self, symbol: str, status: SymbolHoldStatus):
         try:

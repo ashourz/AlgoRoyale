@@ -7,6 +7,6 @@ class SymbolHoldStatus(Enum):
     HOLD_ALL = "hold_all"
     BUY_ONLY = "buy_only"
     SELL_ONLY = "sell_only"
-    POST_FILL_DELAY = "post_fill_delay"
+    POST_FILL_DELAY = "delay_until"
     PENDING_SETTLEMENT = "pending_settlement"
     CLOSED_FOR_DAY = "closed_for_day"

@@ -23,6 +23,7 @@ CREATE TABLE
         order_type TEXT NOT NULL,
         status TEXT NOT NULL,
         action TEXT NOT NULL,
+        settled BOOLEAN DEFAULT FALSE,
         notional NUMERIC(10, 4),
         quantity INTEGER,
         price NUMERIC(10, 4),

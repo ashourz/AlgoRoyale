@@ -26,11 +26,11 @@ class OrderService:
         self,
         symbol: str,
         status_list: list[DBOrderStatus],
-        limit: int | None = 100,
-        offset: int | None = 0,
+        limit: int | None = None,
+        offset: int | None = None,
     ):
         try:
-            if limit <= 0:
+            if limit <= 0 | limit is None:
                 orders = self.order_repo.fetch_all_orders_by_symbol_and_status(
                     symbol=symbol, status_list=status_list
                 )
