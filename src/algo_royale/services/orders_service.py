@@ -121,7 +121,7 @@ class OrderService:
             self.logger.error(f"Error submitting order: {order}, Error: {e}")
             self.update_order(order.client_order_id, DBOrderStatus.FAILED)
 
-    def update_unsettled_orders(self):
+    def update_settled_orders(self):
         try:
             unsettled_orders = self.order_repo.fetch_unsettled_orders()
             for order in unsettled_orders:

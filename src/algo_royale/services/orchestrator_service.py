@@ -50,7 +50,8 @@ class OrchestratorService:
     async def async_start(self) -> dict[str, AsyncSubscriber] | None:
         """Start the order execution services."""
         try:
-            await self.trade_service.update_settled_trades()
+            self.trade_service.update_settled_trades()
+            self.order_service.update_settled_orders()
             await self._run_validations()
             self._init_ledger_service()
             await self.order_monitor_service.start()
