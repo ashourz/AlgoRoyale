@@ -24,7 +24,7 @@ class OrderMonitorService:
         self.order_events_subscriber = None
         self.logger = logger
 
-    async def start(self):
+    async def async_start(self):
         """Start the order monitor service."""
         try:
             if self.order_events_subscriber is None:
@@ -33,7 +33,7 @@ class OrderMonitorService:
         except Exception as e:
             self.logger.error(f"Error starting order monitor service: {e}")
 
-    async def stop(self):
+    async def async_stop(self):
         """Stop the order monitor service."""
         try:
             if self.order_events_subscriber:

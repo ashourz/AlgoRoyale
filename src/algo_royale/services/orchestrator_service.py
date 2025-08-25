@@ -52,9 +52,11 @@ class OrchestratorService:
         try:
             self.trade_service.update_settled_trades()
             self.order_service.update_settled_orders()
-            await self._run_validations()
+            self.symbol_hold_service.start()
+            await self._async_subscribe_to_symbol_holds()
+            await self._async_run_validations()
             self._init_ledger_service()
-            await self.order_monitor_service.start()
+            await self.order_monitor_service.async_start()
             await self._async_start_order_execution()
         except Exception as e:
             self.logger.error(f"Error starting orchestrator service: {e}")
@@ -63,10 +65,11 @@ class OrchestratorService:
     async def async_force_stop(self) -> None:
         """Stop the order execution services."""
         try:
-            await self._unsubscribe_from_symbol_holds()
+            await self._async_unsubscribe_from_symbol_holds()
+            self.symbol_hold_service.stop()
             await self._async_stop_order_execution()
-            await self.order_monitor_service.stop()
-            await self._run_validations()
+            await self.order_monitor_service.async_stop()
+            await self._async_run_validations()
         except Exception as e:
             self.logger.error(f"Error stopping orchestrator service: {e}")
 
@@ -105,7 +108,7 @@ class OrchestratorService:
         finally:
             self.symbol_subscribers.clear()
 
-    async def _run_validations(self) -> None:
+    async def _async_run_validations(self) -> None:
         """Run all necessary validations."""
         try:
             await self.trade_service.reconcile_trades()
@@ -113,12 +116,12 @@ class OrchestratorService:
         except Exception as e:
             self.logger.error(f"Error running validations: {e}")
 
-    async def _subscribe_to_symbol_holds(self) -> None:
+    async def _async_subscribe_to_symbol_holds(self) -> None:
         """Subscribe to symbol holds."""
         try:
             async_subscriber = (
                 await self.symbol_hold_service.async_subscribe_to_hold_roster(
-                    callback=self._handle_symbol_hold_roster_event
+                    callback=self._async_handle_symbol_hold_roster_event
                 )
             )
 
@@ -132,7 +135,7 @@ class OrchestratorService:
             self.logger.error(f"Error subscribing to symbol holds: {e}")
         return False
 
-    async def _unsubscribe_from_symbol_holds(self) -> None:
+    async def _async_unsubscribe_from_symbol_holds(self) -> None:
         """Unsubscribe from symbol holds."""
         try:
             if self.symbol_hold_subscriber:
@@ -142,7 +145,7 @@ class OrchestratorService:
         finally:
             self.symbol_hold_subscriber = None
 
-    async def _handle_symbol_hold_roster_event(
+    async def _async_handle_symbol_hold_roster_event(
         self, symbol_hold_roster: dict[str, SymbolHoldStatus]
     ) -> None:
         """Handle symbol hold events."""
