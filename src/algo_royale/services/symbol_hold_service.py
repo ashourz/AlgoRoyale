@@ -8,6 +8,7 @@ from algo_royale.application.utils.async_pubsub import AsyncSubscriber
 from algo_royale.models.alpaca_trading.enums.enums import OrderSide
 from algo_royale.models.alpaca_trading.enums.order_stream_event import OrderStreamEvent
 from algo_royale.models.alpaca_trading.order_stream_data import OrderStreamData
+from algo_royale.repo.order_repo import DBOrderStatus
 from algo_royale.services.order_event_service import OrderEventService
 from algo_royale.services.orders_service import OrderService
 from algo_royale.services.positions_service import PositionsService
@@ -125,6 +126,18 @@ class SymbolHoldService:
                                 order.symbol, SymbolHoldStatus.BUY_ONLY
                             )
                     return
+
+                # Fetch unsettled orders
+                filled_orders = self.order_service.fetch_orders_by_symbol_and_status(
+                    symbol=symbol, status_list=[DBOrderStatus.FILL]
+                )
+
+                if any(not order.settled for order in filled_orders):
+                    await self._async_set_symbol_hold(
+                        symbol, SymbolHoldStatus.PENDING_SETTLEMENT
+                    )
+                return
+
                 # If no orders found, set symbol hold to BUY_ONLY
                 await self._async_set_symbol_hold(symbol, SymbolHoldStatus.BUY_ONLY)
         except Exception as e:

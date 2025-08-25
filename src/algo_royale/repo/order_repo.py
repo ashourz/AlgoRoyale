@@ -93,6 +93,12 @@ class OrderRepo:
             symbol=symbol, status_list=status_list, limit=limit, offset=offset
         )
 
+    def fetch_unsettled_orders(self) -> list[DBOrder]:
+        """Fetch all unsettled orders.
+        :return: List of unsettled orders.
+        """
+        return self.dao.fetch_unsettled_orders()
+
     def insert_order(
         self,
         symbol: str,
@@ -141,6 +147,13 @@ class OrderRepo:
         :return: The number of rows affected by the update.
         """
         return self.dao.update_order(order_id, new_status, quantity, price)
+
+    def update_order_as_settled(self, order_id: UUID) -> int:
+        """Update an order's status to settled.
+        :param order_id: The ID of the order to update.
+        :return: The number of rows affected by the update.
+        """
+        return self.dao.update_order_as_settled(order_id)
 
     def delete_order(self, order_id: UUID) -> int:
         """Delete an order by its ID.

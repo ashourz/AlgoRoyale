@@ -79,6 +79,14 @@ class OrderDAO(BaseDAO):
         )
         return [DBOrder.from_tuple(row) for row in rows]
 
+    def fetch_unsettled_orders(self) -> list[DBOrder]:
+        """
+        Fetch all unsettled orders.
+        :return: List of unsettled orders.
+        """
+        rows = self.fetch("fetch_unsettled_orders.sql")
+        return [DBOrder.from_tuple(row) for row in rows]
+
     def insert_order(
         self,
         symbol: str,
@@ -151,6 +159,21 @@ class OrderDAO(BaseDAO):
         )
         if not updated_id:
             self.logger.error(f"Failed to update order {order_id} to status {status}.")
+            return -1
+        return updated_id
+
+    def update_order_as_settled(self, order_id: UUID) -> int:
+        """
+        Update an order's status to settled.
+        :param order_id: The ID of the order to update.
+        :return: The ID of the updated order, or -1 if the update failed.
+        """
+        updated_id = self.update(
+            "update_order_as_settled.sql",
+            (order_id,),
+        )
+        if not updated_id:
+            self.logger.error(f"Failed to update order {order_id} to settled.")
             return -1
         return updated_id
 

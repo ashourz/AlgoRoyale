@@ -31,8 +31,10 @@ class DBOrder(BaseModel):
     order_type: str
     status: str
     action: str
-    quantity: int
-    price: float
+    settled: bool
+    notional: float | None
+    quantity: int | None
+    price: float | None
     created_at: datetime
     updated_at: datetime
 
@@ -51,6 +53,8 @@ class DBOrder(BaseModel):
             "order_type",
             "status",
             "action",
+            "settled",
+            "notional",
             "quantity",
             "price",
             "created_at",
@@ -86,10 +90,11 @@ class DBOrder(BaseModel):
             user_id=data["user_id"],
             account_id=data["account_id"],
             symbol=data["symbol"],
-            market=data["market"],
             order_type=data["order_type"],
             status=data["status"],
             action=data["action"],
+            settled=bool(data["settled"]),
+            notional=data["notional"],
             quantity=data["quantity"],
             price=data["price"],
             created_at=data["created_at"],

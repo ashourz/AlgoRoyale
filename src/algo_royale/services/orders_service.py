@@ -5,6 +5,7 @@ from algo_royale.models.alpaca_trading.alpaca_order import Order
 from algo_royale.models.alpaca_trading.enums.enums import OrderSide
 from algo_royale.models.db.db_order import DBOrder
 from algo_royale.repo.order_repo import DBOrderStatus, OrderAction, OrderRepo
+from algo_royale.repo.trade_repo import TradeRepo
 
 
 class OrderService:
@@ -12,12 +13,14 @@ class OrderService:
         self,
         orders_adapter: OrdersAdapter,
         order_repo: OrderRepo,
+        trade_repo: TradeRepo,
         logger: Loggable,
         user_id: str,
         account_id: str,
     ):
         self.orders_adapter = orders_adapter
         self.order_repo = order_repo
+        self.trade_repo = trade_repo
         self.user_id = user_id
         self.account_id = account_id
         self.logger = logger
@@ -28,7 +31,7 @@ class OrderService:
         status_list: list[DBOrderStatus],
         limit: int | None = None,
         offset: int | None = None,
-    ):
+    ) -> list[DBOrder]:
         try:
             if limit <= 0 | limit is None:
                 orders = self.order_repo.fetch_all_orders_by_symbol_and_status(
@@ -117,3 +120,18 @@ class OrderService:
         except Exception as e:
             self.logger.error(f"Error submitting order: {order}, Error: {e}")
             self.update_order(order.client_order_id, DBOrderStatus.FAILED)
+
+    def update_unsettled_orders(self):
+        try:
+            unsettled_orders = self.order_repo.fetch_unsettled_orders()
+            for order in unsettled_orders:
+                try:
+                    trades = self.trade_repo.fetch_trades_by_order_id(order.id)
+                    if all([trade.settled for trade in trades]):
+                        self.order_repo.update_order_as_settled(order.id)
+                except Exception as e:
+                    self.logger.error(
+                        f"Error updating order {order.id} as settled: {e}"
+                    )
+        except Exception as e:
+            self.logger.error(f"Error updating settled orders: {e}")
