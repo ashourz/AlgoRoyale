@@ -11,7 +11,7 @@ from algo_royale.services.symbol_service import SymbolService
 from algo_royale.services.trades_service import TradesService
 
 
-class OrchestratorService:
+class MarketSessionService:
     END_STATUS = [SymbolHoldStatus.PENDING_SETTLEMENT, SymbolHoldStatus.CLOSED_FOR_DAY]
 
     def __init__(

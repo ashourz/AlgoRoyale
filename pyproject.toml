@@ -43,6 +43,7 @@ optuna = "^4.3.0"
     # { version = "< 0.32.0", markers = "platform_system == 'Windows'" }
 # ]
 dependency_injector = "^4.46.0"      # For dependency injection in Python applications.
+apscheduler = "^3.8.1"               # For scheduling tasks in Python applications.
 
 # Development dependencies (tools you need for development, not production).
 # These are optional and can be installed separately if needed.
@@ -61,6 +62,7 @@ black = "^21.7b0"               # For automatic code formatting.
 # isort = "^5.9.3"                # For sorting imports in Python files.     
 # mypy = "^0.910"                 # For static type checking in Python.
 ruff = "^0.11.11"
+
 # Poetry script configuration.
 # This allows you to define custom scripts that can be run with `poetry run <script-name>`
 # or `poetry run watch` in this case.
