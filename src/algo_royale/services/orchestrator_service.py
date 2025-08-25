@@ -12,6 +12,8 @@ from algo_royale.services.trades_service import TradesService
 
 
 class OrchestratorService:
+    END_STATUS = [SymbolHoldStatus.PENDING_SETTLEMENT, SymbolHoldStatus.CLOSED_FOR_DAY]
+
     def __init__(
         self,
         order_service: OrderService,
@@ -43,7 +45,9 @@ class OrchestratorService:
         ## LOGGER
         self.logger = logger
 
-    async def start(self) -> dict[str, AsyncSubscriber] | None:
+    ## TODO: ADD SCHEDULER
+
+    async def async_start(self) -> dict[str, AsyncSubscriber] | None:
         """Start the order execution services."""
         try:
             await self.trade_service.update_settled_trades()
@@ -55,9 +59,10 @@ class OrchestratorService:
             self.logger.error(f"Error starting orchestrator service: {e}")
         return None
 
-    async def force_stop(self) -> None:
+    async def async_force_stop(self) -> None:
         """Stop the order execution services."""
         try:
+            await self._unsubscribe_from_symbol_holds()
             await self._async_stop_order_execution()
             await self.order_monitor_service.stop()
             await self._run_validations()
@@ -111,7 +116,9 @@ class OrchestratorService:
         """Subscribe to symbol holds."""
         try:
             async_subscriber = (
-                await self.symbol_hold_service.async_subscribe_to_symbol_holds()
+                await self.symbol_hold_service.async_subscribe_to_hold_roster(
+                    callback=self._handle_symbol_hold_roster_event
+                )
             )
 
             if async_subscriber:
@@ -124,13 +131,6 @@ class OrchestratorService:
             self.logger.error(f"Error subscribing to symbol holds: {e}")
         return False
 
-    async def _handle_symbol_hold_event(self, event: SymbolHoldStatus) -> None:
-        """Handle symbol hold events."""
-        try:
-            await self.symbol_hold_service.process_event(event)
-        except Exception as e:
-            self.logger.error(f"Error handling symbol hold event: {e}")
-
     async def _unsubscribe_from_symbol_holds(self) -> None:
         """Unsubscribe from symbol holds."""
         try:
@@ -140,3 +140,19 @@ class OrchestratorService:
             self.logger.error(f"Error unsubscribing from symbol holds: {e}")
         finally:
             self.symbol_hold_subscriber = None
+
+    async def _handle_symbol_hold_roster_event(
+        self, symbol_hold_roster: dict[str, SymbolHoldStatus]
+    ) -> None:
+        """Handle symbol hold events."""
+        try:
+            if symbol_hold_roster and all(
+                status in self.END_STATUS for status in symbol_hold_roster.values()
+            ):
+                # All symbols are in an end status, do your logic here
+                self.logger.info(
+                    "All symbol holds are in END_STATUS. Force stopping..."
+                )
+                await self.async_force_stop()
+        except Exception as e:
+            self.logger.error(f"Error handling symbol hold event: {e}")
