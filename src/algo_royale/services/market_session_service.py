@@ -45,11 +45,10 @@ class MarketSessionService:
         ## LOGGER
         self.logger = logger
 
-    ## TODO: ADD SCHEDULER
-
-    async def async_start(self) -> dict[str, AsyncSubscriber] | None:
-        """Start the order execution services."""
+    async def async_start_premarket(self) -> None:
+        """Start the pre-market session."""
         try:
+            self.logger.info("Starting pre-market session...")
             self.trade_service.update_settled_trades()
             self.order_service.update_settled_orders()
             self.symbol_hold_service.start()
@@ -57,21 +56,33 @@ class MarketSessionService:
             await self._async_run_validations()
             self._init_ledger_service()
             await self.order_monitor_service.async_start()
-            await self._async_start_order_execution()
+            self.logger.info("Pre-market session started.")
         except Exception as e:
-            self.logger.error(f"Error starting orchestrator service: {e}")
+            self.logger.error(f"Error starting pre-market session: {e}")
+
+    ##TODO: this may need to be broken up
+    async def async_start_market(self) -> dict[str, AsyncSubscriber] | None:
+        """Start the market session."""
+        try:
+            self.logger.info("Starting market session...")
+            await self._async_start_order_execution()
+            self.logger.info("Market session started.")
+        except Exception as e:
+            self.logger.error(f"Error starting market session: {e}")
         return None
 
-    async def async_force_stop(self) -> None:
-        """Stop the order execution services."""
+    async def async_stop_market(self) -> None:
+        """Stop the market session."""
         try:
+            self.logger.info("Stopping market session...")
             await self._async_unsubscribe_from_symbol_holds()
             self.symbol_hold_service.stop()
             await self._async_stop_order_execution()
             await self.order_monitor_service.async_stop()
             await self._async_run_validations()
+            self.logger
         except Exception as e:
-            self.logger.error(f"Error stopping orchestrator service: {e}")
+            self.logger.error(f"Error stopping market session: {e}")
 
     def _init_ledger_service(self) -> None:
         """Initialize the ledger service."""
