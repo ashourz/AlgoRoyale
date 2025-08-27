@@ -42,6 +42,8 @@ class MarketSessionService:
         self.trade_service = trade_service
         ## LEDGER
         self.ledger_service = ledger_service
+        ## PROCESS
+        self.premarket_completed = False
         ## LOGGER
         self.logger = logger
 
@@ -56,16 +58,22 @@ class MarketSessionService:
             await self._async_run_validations()
             self._init_ledger_service()
             await self.order_monitor_service.async_start()
+            await self._async_start_order_execution_subscription()
+            self.premarket_completed = True
             self.logger.info("Pre-market session started.")
         except Exception as e:
             self.logger.error(f"Error starting pre-market session: {e}")
 
-    ##TODO: this may need to be broken up
     async def async_start_market(self) -> dict[str, AsyncSubscriber] | None:
         """Start the market session."""
         try:
+            if not self.premarket_completed:
+                self.logger.warning(
+                    "Pre-market session has not been completed. Starting pre-market session..."
+                )
+                await self.async_start_premarket()
             self.logger.info("Starting market session...")
-            await self._async_start_order_execution()
+            self.order_execution_service.update_executor_status(True)
             self.logger.info("Market session started.")
         except Exception as e:
             self.logger.error(f"Error starting market session: {e}")
@@ -75,12 +83,13 @@ class MarketSessionService:
         """Stop the market session."""
         try:
             self.logger.info("Stopping market session...")
+            await self._async_stop_order_execution()
             await self._async_unsubscribe_from_symbol_holds()
             self.symbol_hold_service.stop()
-            await self._async_stop_order_execution()
             await self.order_monitor_service.async_stop()
             await self._async_run_validations()
-            self.logger
+            self.premarket_completed = False
+            self.logger.info("Market session stopped.")
         except Exception as e:
             self.logger.error(f"Error stopping market session: {e}")
 
@@ -92,7 +101,7 @@ class MarketSessionService:
         except Exception as e:
             self.logger.error(f"Error initializing ledger service: {e}")
 
-    async def _async_start_order_execution(self) -> None:
+    async def _async_start_order_execution_subscription(self) -> None:
         """Start the order execution services."""
         try:
             symbols = await self.symbol_service.async_get_symbols()
@@ -110,6 +119,7 @@ class MarketSessionService:
     async def _async_stop_order_execution(self) -> None:
         """Stop the order execution services."""
         try:
+            self.order_execution_service.update_executor_status(False)
             if self.symbol_subscribers:
                 await self.order_execution_service.stop(
                     symbol_subscribers=self.symbol_subscribers

@@ -32,6 +32,7 @@ class OrderExecutionServices:
         self.trade_service = TradesService(logger=logger)
         self.logger = logger
         self.symbol_order_subscribers: dict[str, list[AsyncSubscriber]] = {}
+        self._executor_on: bool = False
 
     async def start(self, symbols) -> dict[str, AsyncSubscriber] | None:
         """Start the order stream adapter to listen for order events."""
@@ -64,6 +65,17 @@ class OrderExecutionServices:
             self.logger.error(f"Error stopping order stream: {e}")
             return False
 
+    def update_executor_status(self, status: bool):
+        """Update the status of the order executor."""
+        try:
+            self._executor_on = status
+            if status:
+                self.logger.info("Order executor is now enabled.")
+            else:
+                self.logger.info("Order executor is now disabled.")
+        except Exception as e:
+            self.logger.error(f"Error updating order executor status: {e}")
+
     async def _async_subscribe_to_symbol_hold(self):
         """Subscribe to the symbol hold stream."""
         try:
@@ -86,6 +98,8 @@ class OrderExecutionServices:
     def _handle_order_generation(self, data: SignalOrderPayload):
         """Handle incoming order generation events from the order stream."""
         try:
+            if self._executor_on is False:
+                return
             self.logger.info(f"Handling order generation event: {data}")
             symbol = data.symbol
             hold_status = self.symbol_holds.status[symbol]
