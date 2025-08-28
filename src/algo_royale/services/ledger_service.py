@@ -4,6 +4,7 @@ from algo_royale.application.orders.equity_order_types import EquityBaseOrder
 from algo_royale.logging.loggable import Loggable
 from algo_royale.models.db.db_order import DBOrder
 from algo_royale.services.account_cash_service import AccountCashService
+from algo_royale.services.enriched_data_service import EnrichedDataService
 from algo_royale.services.orders_service import OrderService
 from algo_royale.services.positions_service import PositionsService
 from algo_royale.services.trades_service import TradesService
@@ -16,6 +17,7 @@ class LedgerService:
         order_service: OrderService,
         trade_service: TradesService,
         position_service: PositionsService,
+        enriched_data_service: EnrichedDataService,
         logger: Loggable,
     ):
         self.entries = []
@@ -23,6 +25,7 @@ class LedgerService:
         self.order_service = order_service
         self.trade_service = trade_service
         self.position_service = position_service
+        self.enriched_data_service = enriched_data_service
         self.logger = logger
         self.sod_cash = Decimal(0)
 
@@ -68,10 +71,13 @@ class LedgerService:
             self.logger.error(f"Error fetching order {order_id}: {e}")
             return None
 
-    def submit_equity_order(self, order: EquityBaseOrder) -> None:
+    def submit_equity_order(self, order: EquityBaseOrder, enriched_data: dict) -> None:
         """Submit a new order."""
         try:
-            self.order_service.submit_order(order)
+            order_id = self.order_service.submit_order(order)
+            self.enriched_data_service.insert_enriched_data(
+                order_id=order_id, enriched_data=enriched_data
+            )
             self.logger.info(f"Submitted order {order.id}.")
         except Exception as e:
             self.logger.error(f"Error submitting order {order.id}: {e}")

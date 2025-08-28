@@ -5,7 +5,7 @@ from algo_royale.logging.loggable import Loggable
 from algo_royale.models.db.db_enriched_data import DBEnrichedData
 
 
-class EnrichedTradeData:
+class EnrichedDataRepo:
     def __init__(
         self, dao: EnrichedDataDAO, logger: Loggable, user_id: str, account_id: str
     ):

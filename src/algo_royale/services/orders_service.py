@@ -87,21 +87,22 @@ class OrderService:
             self.logger.error(f"Error fetching order {order_id}: {e}")
             return None
 
-    async def submit_order(self, order: EquityMarketNotionalOrder):
+    async def submit_order(self, order: EquityMarketNotionalOrder) -> str | None:
         try:
             action = (
                 OrderAction.BUY if order.side == OrderSide.BUY else OrderAction.SELL
             )
-            client_id = self.order_repo.insert_order(
+            order_id = self.order_repo.insert_order(
                 symbol=order.symbol,
                 order_type=order.order_type,
                 status=DBOrderStatus.NEW,
                 action=action,
                 notional=order.notional,
             )
-            if not client_id:
+            if not order_id:
                 self.logger.error(f"Failed to insert order into DB: {order}")
-                return
+                return None
+
             confirmed_order: Order = await self.orders_adapter.create_order(
                 symbol=order.symbol,
                 side=order.side,
@@ -109,17 +110,20 @@ class OrderService:
                 order_class=order.order_class,
                 time_in_force=order.time_in_force,
                 extended_hours=order.extended_hours,
-                client_order_id=client_id,
+                client_order_id=order_id,
                 notional=order.notional,
             )
             if confirmed_order:
                 self.logger.info(f"Order submitted successfully: {confirmed_order}")
+                return confirmed_order.client_order_id
             else:
                 self.logger.error(f"Order submission failed for: {order}")
                 self.update_order(order.client_order_id, DBOrderStatus.FAILED)
+                return None
         except Exception as e:
             self.logger.error(f"Error submitting order: {order}, Error: {e}")
             self.update_order(order.client_order_id, DBOrderStatus.FAILED)
+            return None
 
     def update_settled_orders(self):
         try:
