@@ -1,3 +1,4 @@
+from asyncio.log import logger
 from functools import partial
 
 from dependency_injector import containers, providers
@@ -134,10 +135,11 @@ from algo_royale.clients.alpaca.alpaca_trading.alpaca_positions_client import (
 from algo_royale.clients.alpaca.alpaca_trading.alpaca_watchlist_client import (
     AlpacaWatchlistClient,
 )
+from algo_royale.clients.db.dao.data_stream_session_dao import DataStreamSessionDAO
+from algo_royale.clients.db.dao.enriched_data_dao import EnrichedDataDAO
 from algo_royale.clients.db.dao.indicator_dao import IndicatorDAO
-from algo_royale.clients.db.dao.news_sentiment_dao import NewsSentimentDAO
+from algo_royale.clients.db.dao.order_dao import OrderDAO
 from algo_royale.clients.db.dao.trade_dao import TradeDAO
-from algo_royale.clients.db.dao.trade_signal_dao import TradeSignalDAO
 from algo_royale.clients.db.database import Database
 from algo_royale.config.config import Config
 from algo_royale.logging.loggable import TaggableLogger
@@ -146,11 +148,11 @@ from algo_royale.logging.logger_factory import (
     LoggerFactory,
     LoggerType,
 )
+from algo_royale.repo.data_stream_session_repo import DataStreamSessionRepo
+from algo_royale.repo.enriched_data_repo import EnrichedDataRepo
+from algo_royale.repo.order_repo import OrderRepo
 from algo_royale.repo.trade_repo import TradeRepo
-from algo_royale.repo.trade_signal_repo import TradeSignalRepo
 from algo_royale.repo.watchlist_repo import WatchlistRepo
-from algo_royale.services.db.news_sentiment_repo import NewsSentimentRepo
-from algo_royale.services.market_data.quote_adapter import QuoteAdapter
 from algo_royale.utils.path_utils import get_data_dir
 from algo_royale.visualization.dashboard import BacktestDashboard
 
@@ -352,15 +354,15 @@ class DIContainer(containers.DeclarativeContainer):
 
     db_connection = providers.Callable(lambda db: db.connection_context(), db=database)
 
-    indicator_dao = providers.Singleton(
-        IndicatorDAO,
+    data_stream_session_dao = providers.Singleton(
+        DataStreamSessionDAO,
         connection=db_connection,
         sql_dir=dao_sql_dir,
         logger=logger_trading,
     )
 
-    news_sentiment_dao = providers.Singleton(
-        NewsSentimentDAO,
+    enriched_data_dao = providers.Singleton(
+        EnrichedDataDAO,
         connection=db_connection,
         sql_dir=dao_sql_dir,
         logger=logger_trading,
@@ -373,8 +375,8 @@ class DIContainer(containers.DeclarativeContainer):
         logger=logger_trading,
     )
 
-    trade_signal_dao = providers.Singleton(
-        TradeSignalDAO,
+    order_dao = providers.Singleton(
+        OrderDAO,
         connection=db_connection,
         sql_dir=dao_sql_dir,
         logger=logger_trading,
@@ -382,13 +384,21 @@ class DIContainer(containers.DeclarativeContainer):
 
     indicator_service = providers.Singleton(IndicatorDAO, dao=indicator_dao)
 
-    news_sentiment_service = providers.Singleton(
-        NewsSentimentRepo, dao=news_sentiment_dao
+    data_stream_session_repo = providers.Singleton(
+        DataStreamSessionRepo, dao=data_stream_session_dao, logger=logger
     )
 
-    trade_service = providers.Singleton(TradeRepo, dao=trade_dao)
+    enriched_data_repo = providers.Singleton(
+        EnrichedDataRepo, dao=enriched_data_dao, logger=logger
+    )
 
-    trade_signal_service = providers.Singleton(TradeSignalRepo, dao=trade_signal_dao)
+    order_repo = providers.Singleton(OrderRepo, dao=order_dao, logger=logger)
+
+    trade_repo = providers.Singleton(TradeRepo, dao=trade_dao, logger=logger)
+
+    watchlist_repo = providers.Singleton(
+        WatchlistRepo, dao=watchlist_dao, logger=logger
+    )
 
     alpaca_corporate_action_client = providers.Factory(
         AlpacaCorporateActionClient, trading_config=trading_config
