@@ -1,13 +1,20 @@
 from dependency_injector import containers, providers
 
-from algo_royale.di.config_container import ConfigContainer
+from algo_royale.clients.db.database import Database
 
 
 class DBContainer(containers.DeclarativeContainer):
-    def __init__(self, config_container: ConfigContainer):
-        self.config_container = config_container
+    config = providers.Configuration()
+    secrets = providers.Configuration()
 
-    dao_sql_dir = providers.Callable(
-        lambda config: config.get("paths.db", "sql_dir"),
-        config=self.config_container.config,
+    database = providers.Singleton(
+        Database,
+        db_name=config.db.connection.dbname,
+        db_user=config.db.connection.user,
+        db_password=secrets.db.connection.password,
+        db_host=config.db.connection.host,
+        db_port=config.db.connection.port,
+        logger=config.logger_trading,
     )
+
+    db_connection = providers.Callable(lambda db: db.connection_context(), db=database)

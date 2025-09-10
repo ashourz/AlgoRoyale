@@ -7,7 +7,6 @@ from typing import Any, Dict, Optional
 
 import httpx
 
-from algo_royale.clients.alpaca.alpaca_client_config import TradingConfig
 from algo_royale.clients.alpaca.exceptions import (
     AlpacaAPIException,
     AlpacaBadRequestException,
@@ -18,10 +17,7 @@ from algo_royale.clients.alpaca.exceptions import (
     AlpacaUnauthorizedException,
     AlpacaUnprocessableException,
 )
-from algo_royale.logging.logger_env import LoggerEnv
-from algo_royale.logging.logger_factory import (
-    LoggerFactory,
-)
+from algo_royale.logging.loggable import Loggable
 
 
 class AlpacaBaseClient(ABC):
@@ -32,22 +28,33 @@ class AlpacaBaseClient(ABC):
     _last_request_time: float = 0
     _rate_limit_lock: asyncio.Lock = asyncio.Lock()
 
-    def __init__(self, trading_config: TradingConfig):
+    def __init__(
+        self,
+        logger: Loggable,
+        base_url: str,
+        api_key: str,
+        api_secret: str,
+        api_key_header: str,
+        api_secret_header: str,
+        http_timeout: int = 10,
+        reconnect_delay: int = 5,
+        keep_alive_timeout: int = 20,
+    ):
         # Instance-specific initialization
-        self.api_key = trading_config.alpaca_secrets["api_key"]
-        self.api_secret = trading_config.alpaca_secrets["api_secret"]
-        self.api_key_header = trading_config.alpaca_params["api_key_header"]
-        self.api_secret_header = trading_config.alpaca_params["api_secret_header"]
+        self.base_url = base_url
+        self.api_key = api_key
+        self.api_secret = api_secret
+        self.api_key_header = api_key_header
+        self.api_secret_header = api_secret_header
+        self.http_timeout = http_timeout
 
-        self.client = httpx.AsyncClient(timeout=10.0)
+        self.client = httpx.AsyncClient(timeout=http_timeout)
 
         # Configurable reconnect delay and keep-alive timeout
-        self.reconnect_delay = trading_config.alpaca_params.get("reconnect_delay", 5)
-        self.keep_alive_timeout = trading_config.alpaca_params.get(
-            "keep_alive_timeout", 20
-        )
+        self.reconnect_delay = reconnect_delay
+        self.keep_alive_timeout = keep_alive_timeout
 
-        self.logger = LoggerFactory.get_base_logger(LoggerEnv.TRADING)
+        self.logger = logger
 
     async def aclose(self):
         """Proper async cleanup"""
@@ -58,7 +65,7 @@ class AlpacaBaseClient(ABC):
     async def __aenter__(self):
         """Support async context manager"""
         if not hasattr(self, "client") or self.client.is_closed:
-            self.client = httpx.AsyncClient(timeout=10.0)
+            self.client = httpx.AsyncClient(timeout=self.http_timeout)
         return self
 
     async def __aexit__(self, *exc_info):
@@ -69,12 +76,6 @@ class AlpacaBaseClient(ABC):
     @abstractmethod
     def client_name(self) -> str:
         """Subclasses must define a name for logging and ID purposes"""
-        pass
-
-    @property
-    @abstractmethod
-    def base_url(self) -> str:
-        """Base URL for the Alpaca API (to be defined by subclass)"""
         pass
 
     def _get_headers(self) -> Dict[str, str]:
@@ -186,7 +187,7 @@ class AlpacaBaseClient(ABC):
 
     def _ensure_client_open(self):
         if not hasattr(self, "client") or self.client.is_closed:
-            self.client = httpx.AsyncClient(timeout=10.0)
+            self.client = httpx.AsyncClient(timeout=self.http_timeout)
 
     ## ASYNC
     async def get(self, endpoint: str, params: Optional[Dict] = None) -> Any:

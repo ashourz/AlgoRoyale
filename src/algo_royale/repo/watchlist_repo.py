@@ -1,12 +1,15 @@
 import os
 
+from algo_royale.logging.loggable import Loggable
+
 
 class WatchlistRepo:
     """Repository for managing the watchlist of symbols.
     This class provides methods to load and save the watchlist from/to a file."""
 
-    def __init__(self, watchlist_path: str):
+    def __init__(self, watchlist_path: str, logger: Loggable):
         self.watchlist_path = watchlist_path
+        self.logger = logger
         if not os.path.exists(self.watchlist_path):
             raise FileNotFoundError(
                 f"Watchlist file not found at: {self.watchlist_path}"

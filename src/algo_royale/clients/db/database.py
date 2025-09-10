@@ -1,19 +1,29 @@
 import time
 from contextlib import contextmanager
 from typing import Generator
-from algo_royale.logging.loggable import Loggable
 
 import psycopg2
 from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
 
-from algo_royale.config.config import Config
+from algo_royale.logging.loggable import Loggable
 
 
 class Database:
-    def __init__(self, logger: Loggable, config: Config, secrets: Config):
+    def __init__(
+        self,
+        db_name: str,
+        db_user: str,
+        db_password: str,
+        db_host: str,
+        db_port: int,
+        logger: Loggable,
+    ):
         self.logger = logger
-        self.db_params = config.get_section("db.connection")
-        self.db_secrets = secrets.get_section("db.connection")
+        self.db_name = db_name
+        self.db_user = db_user
+        self.db_password = db_password
+        self.db_host = db_host
+        self.db_port = db_port
         self.connection = None
 
     def connect(
@@ -22,22 +32,16 @@ class Database:
         """
         Establish a connection to the database. Optionally create the database if it doesn't exist.
         """
-        dbname = self.db_params["dbname"]
-        user = self.db_params["user"]
-        password = self.db_secrets["password"]
-        host = self.db_params["host"]
-        port = int(self.db_params["port"])
-
         attempt = 0
         while attempt < retries:
             try:
                 # Connect to the "postgres" database for creation if needed
                 conn = psycopg2.connect(
                     dbname="postgres",
-                    user=user,
-                    password=password,
-                    host=host,
-                    port=port,
+                    user=self.db_user,
+                    password=self.db_password,
+                    host=self.db_host,
+                    port=self.db_port,
                 )
                 conn.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
 
@@ -45,21 +49,23 @@ class Database:
                     # Check if the target database exists; create it if it doesn't
                     with conn.cursor() as cur:
                         cur.execute(
-                            f"SELECT 1 FROM pg_database WHERE datname = '{dbname}'"
+                            f"SELECT 1 FROM pg_database WHERE datname = '{self.db_name}'"
                         )
                         if not cur.fetchone():
-                            cur.execute(f"CREATE DATABASE {dbname}")
-                            self.logger.info(f"✅ Created database: {dbname}")
+                            cur.execute(f"CREATE DATABASE {self.db_name}")
+                            self.logger.info(f"✅ Created database: {self.db_name}")
                         else:
-                            self.logger.info(f"ℹ️ Database already exists: {dbname}")
+                            self.logger.info(
+                                f"ℹ️ Database already exists: {self.db_name}"
+                            )
 
                 # Connect to the target database
                 self.connection = psycopg2.connect(
-                    dbname=dbname,
-                    user=user,
-                    password=password,
-                    host=host,
-                    port=port,
+                    dbname=self.db_name,
+                    user=self.db_user,
+                    password=self.db_password,
+                    host=self.db_host,
+                    port=self.db_port,
                 )
                 self.logger.info("✅ Database connection established.")
                 return self.connection

@@ -6,7 +6,7 @@ from websockets.client import connect
 from websockets.exceptions import ConnectionClosed
 
 from algo_royale.clients.alpaca.alpaca_base_client import AlpacaBaseClient
-from algo_royale.clients.alpaca.alpaca_client_config import TradingConfig
+from algo_royale.logging.loggable import Loggable
 
 
 class AlpacaOrderStreamClient(AlpacaBaseClient):
@@ -14,19 +14,35 @@ class AlpacaOrderStreamClient(AlpacaBaseClient):
     Singleton client for streaming real-time order updates from Alpaca WebSocket API.
     """
 
-    def __init__(self, trading_config: TradingConfig):
-        super().__init__(trading_config)
-        self.trading_config = trading_config
+    def __init__(
+        self,
+        logger: Loggable,
+        base_url: str,
+        api_key: str,
+        api_secret: str,
+        api_key_header: str,
+        api_secret_header: str,
+        http_timeout: int = 10,
+        reconnect_delay: int = 5,
+        keep_alive_timeout: int = 20,
+    ):
+        super().__init__(
+            logger=logger,
+            base_url=base_url,
+            api_key=api_key,
+            api_secret=api_secret,
+            api_key_header=api_key_header,
+            api_secret_header=api_secret_header,
+            http_timeout=http_timeout,
+            reconnect_delay=reconnect_delay,
+            keep_alive_timeout=keep_alive_timeout,
+        )
         self.websocket = None
         self.stop_stream = False
 
     @property
     def client_name(self) -> str:
         return "AlpacaOrderStreamClient"
-
-    @property
-    def base_url(self) -> str:
-        return self.trading_config.alpaca_params["base_url_trade_updates_stream"]
 
     async def stream(
         self,
