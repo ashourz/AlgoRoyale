@@ -7,6 +7,7 @@ from algo_royale.clients.alpaca.alpaca_trading.alpaca_portfolio_client import (
     AlpacaPortfolioClient,
 )
 from algo_royale.clients.alpaca.exceptions import ParameterConflictError
+from algo_royale.logging.loggable import Loggable
 from algo_royale.models.alpaca_trading.alpaca_portfolio import PortfolioPerformance
 from algo_royale.models.alpaca_trading.enums import IntradayReporting, PNLReset
 
@@ -14,8 +15,9 @@ from algo_royale.models.alpaca_trading.enums import IntradayReporting, PNLReset
 class PortfolioAdapter:
     """Service class to manage portfolio data and history for Alpaca API."""
 
-    def __init__(self):
-        self.client = AlpacaPortfolioClient()
+    def __init__(self, client: AlpacaPortfolioClient, logger: Loggable):
+        self.client = client
+        self.logger = logger
 
     async def get_portfolio_history(
         self,

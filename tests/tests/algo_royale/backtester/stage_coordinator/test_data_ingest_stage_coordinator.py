@@ -40,7 +40,7 @@ def test_init_success(
         data_loader=mock_loader,
         data_writer=mock_writer,
         logger=mock_logger,
-        quote_service=mock_quote_service,
+        quote_adapter=mock_quote_service,
         load_watchlist=lambda path: ["AAPL", "GOOG"],
         watchlist_path_string="mock_watchlist.txt",
     )
@@ -57,7 +57,7 @@ def test_init_missing_watchlist_path(
             data_loader=mock_loader,
             data_writer=mock_writer,
             logger=mock_logger,
-            quote_service=mock_quote_service,
+            quote_adapter=mock_quote_service,
             load_watchlist=lambda path: ["AAPL"],
             watchlist_path_string="",
         )
@@ -73,7 +73,7 @@ async def test_init_empty_watchlist(
         data_loader=mock_loader,
         data_writer=mock_writer,
         logger=mock_logger,
-        quote_service=mock_quote_service,
+        quote_adapter=mock_quote_service,
         load_watchlist=lambda path: [],
         watchlist_path_string="mock_watchlist.txt",
     )
@@ -98,7 +98,7 @@ async def test_process_returns_factories(
         data_loader=mock_loader,
         data_writer=mock_writer,
         logger=mock_logger,
-        quote_service=mock_quote_service,
+        quote_adapter=mock_quote_service,
         load_watchlist=lambda path: ["AAPL", "GOOG"],
         watchlist_path_string="mock_watchlist.txt",
     )
@@ -154,12 +154,12 @@ async def test_fetch_symbol_data_success(
         data_loader=mock_loader,
         data_writer=mock_writer,
         logger=mock_logger,
-        quote_service=mock_quote_service,
+        quote_adapter=mock_quote_service,
         load_watchlist=lambda path: ["AAPL"],
         watchlist_path_string="mock_watchlist.txt",
     )
-    coordinator.quote_service.client = MagicMock()
-    coordinator.quote_service.client.aclose = AsyncMock()
+    coordinator.quote_adapter.client = MagicMock()
+    coordinator.quote_adapter.client.aclose = AsyncMock()
     coordinator.start_date = datetime(2024, 1, 1)
     coordinator.end_date = datetime(2024, 1, 31)
     results = []
@@ -185,12 +185,12 @@ async def test_fetch_symbol_data_no_data_warns(
         data_loader=mock_loader,
         data_writer=mock_writer,
         logger=mock_logger,
-        quote_service=mock_quote_service,
+        quote_adapter=mock_quote_service,
         load_watchlist=lambda path: ["AAPL"],
         watchlist_path_string="mock_watchlist.txt",
     )
-    coordinator.quote_service.client = MagicMock()
-    coordinator.quote_service.client.aclose = AsyncMock()
+    coordinator.quote_adapter.client = MagicMock()
+    coordinator.quote_adapter.client.aclose = AsyncMock()
     coordinator.start_date = datetime(2024, 1, 1)
     coordinator.end_date = datetime(2024, 1, 31)
     results = []
@@ -211,12 +211,12 @@ async def test_fetch_symbol_data_exception_logs_error(
         data_loader=mock_loader,
         data_writer=mock_writer,
         logger=mock_logger,
-        quote_service=mock_quote_service,
+        quote_adapter=mock_quote_service,
         load_watchlist=lambda path: ["AAPL"],
         watchlist_path_string="mock_watchlist.txt",
     )
-    coordinator.quote_service.client = MagicMock()
-    coordinator.quote_service.client.aclose = AsyncMock()
+    coordinator.quote_adapter.client = MagicMock()
+    coordinator.quote_adapter.client.aclose = AsyncMock()
     coordinator.start_date = datetime(2024, 1, 1)
     coordinator.end_date = datetime(2024, 1, 31)
     results = []
@@ -275,12 +275,12 @@ async def test_fetch_symbol_data_validation(
         data_loader=mock_loader,
         data_writer=mock_writer,
         logger=mock_logger,
-        quote_service=mock_quote_service,
+        quote_adapter=mock_quote_service,
         load_watchlist=lambda path: ["AAPL"],
         watchlist_path_string="mock_watchlist.txt",
     )
-    coordinator.quote_service.client = MagicMock()
-    coordinator.quote_service.client.aclose = AsyncMock()
+    coordinator.quote_adapter.client = MagicMock()
+    coordinator.quote_adapter.client.aclose = AsyncMock()
     coordinator.start_date = datetime(2024, 1, 1)
     coordinator.end_date = datetime(2024, 1, 31)
     results = []

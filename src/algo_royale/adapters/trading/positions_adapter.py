@@ -9,6 +9,7 @@ from algo_royale.clients.alpaca.exceptions import (
     MissingParameterError,
     ParameterConflictError,
 )
+from algo_royale.logging.loggable import Loggable
 from algo_royale.models.alpaca_trading.alpaca_position import (
     ClosedPositionList,
     PositionList,
@@ -18,8 +19,9 @@ from algo_royale.models.alpaca_trading.alpaca_position import (
 class PositionsAdapter:
     """Service class to manage positions data and actions on Alpaca API."""
 
-    def __init__(self):
-        self.client = AlpacaPositionsClient()
+    def __init__(self, client: AlpacaPositionsClient, logger: Loggable):
+        self.client = client
+        self.logger = logger
 
     async def fetch_all_open_positions(self) -> Optional[PositionList]:
         """

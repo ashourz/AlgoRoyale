@@ -4,13 +4,14 @@ from algo_royale.clients.alpaca.alpaca_trading.alpaca_assets_client import (
     AlpacaAssetsClient,
 )
 from algo_royale.clients.alpaca.exceptions import AssetNotFoundError
+from algo_royale.logging.loggable import Loggable
 from algo_royale.models.alpaca_trading.alpaca_asset import Asset
 
 
 class AssetsAdapter:
     """Service class to interact with Alpaca's assets data, leveraging AlpacaAssetsClient."""
 
-    def __init__(self, assets_client: AlpacaAssetsClient):
+    def __init__(self, assets_client: AlpacaAssetsClient, logger: Loggable):
         """
         Initializes AlpacaAssetService with the given AlpacaAssetsClient.
 
@@ -18,6 +19,7 @@ class AssetsAdapter:
             assets_client (AlpacaAssetsClient): The Alpaca client used to interact with the Alpaca API for asset data.
         """
         self.assets_client = assets_client
+        self.logger = logger
 
     async def get_assets(
         self,

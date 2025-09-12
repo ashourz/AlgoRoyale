@@ -12,8 +12,7 @@ class BacktestFeatureEngineer:
         self,
         feature_engineering_func: Callable[[pd.DataFrame], pd.DataFrame],
         logger: Loggable,
-        max_lookback=200,  # Default to 200, can be adjusted based on your needs
-        # This should match the max window/lag you use in your feature engineering function
+        max_lookback: int,
     ):
         self.feature_engineering_func = feature_engineering_func
         self.logger = logger

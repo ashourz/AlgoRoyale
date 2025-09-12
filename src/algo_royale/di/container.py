@@ -1,11 +1,8 @@
-from functools import partial
-
 from dependency_injector import containers, providers
 
 from algo_royale.backtester.data_preparer.asset_matrix_preparer import (
     AssetMatrixPreparer,
 )
-from algo_royale.backtester.data_preparer.stage_data_preparer import StageDataPreparer
 from algo_royale.backtester.evaluator.backtest.portfolio_backtest_evaluator import (
     PortfolioBacktestEvaluator,
 )
@@ -36,12 +33,6 @@ from algo_royale.backtester.executor.portfolio_backtest_executor import (
 from algo_royale.backtester.executor.strategy_backtest_executor import (
     StrategyBacktestExecutor,
 )
-from algo_royale.backtester.feature_engineering.backtest_feature_engineer import (
-    BacktestFeatureEngineer,
-)
-from algo_royale.backtester.feature_engineering.feature_engineering import (
-    feature_engineering,
-)
 from algo_royale.backtester.optimizer.portfolio.portfolio_strategy_optimizer_factory import (
     PortfolioStrategyOptimizerFactoryImpl,
 )
@@ -49,12 +40,6 @@ from algo_royale.backtester.optimizer.signal.signal_strategy_optimizer_factory i
     SignalStrategyOptimizerFactoryImpl,
 )
 from algo_royale.backtester.pipeline.pipeline_coordinator import PipelineCoordinator
-from algo_royale.backtester.stage_coordinator.data_staging.data_ingest_stage_coordinator import (
-    DataIngestStageCoordinator,
-)
-from algo_royale.backtester.stage_coordinator.data_staging.feature_engineering_stage_coordinator import (
-    FeatureEngineeringStageCoordinator,
-)
 from algo_royale.backtester.stage_coordinator.optimization.portfolio_optimization_stage_coordinator import (
     PortfolioOptimizationStageCoordinator,
 )
@@ -70,18 +55,6 @@ from algo_royale.backtester.stage_coordinator.testing.strategy_testing_stage_coo
 from algo_royale.backtester.stage_data.loader.portfolio_matrix_loader import (
     PortfolioMatrixLoader,
 )
-from algo_royale.backtester.stage_data.loader.stage_data_loader import StageDataLoader
-from algo_royale.backtester.stage_data.loader.symbol_strategy_data_loader import (
-    SymbolStrategyDataLoader,
-)
-from algo_royale.backtester.stage_data.stage_data_manager import StageDataManager
-from algo_royale.backtester.stage_data.writer.stage_data_writer import StageDataWriter
-from algo_royale.backtester.stage_data.writer.symbol_strategy_data_writer import (
-    SymbolStrategyDataWriter,
-)
-from algo_royale.backtester.strategy.signal.manager.symbol_strategy_manager import (
-    SymbolStrategyManager,
-)
 from algo_royale.backtester.strategy_factory.portfolio.portfolio_strategy_combinator_factory import (
     PortfolioStrategyCombinatorFactory,
 )
@@ -95,7 +68,6 @@ from algo_royale.backtester.walkforward.walk_forward_coordinator import (
     WalkForwardCoordinator,
 )
 from algo_royale.utils.path_utils import get_data_dir
-from algo_royale.visualization.dashboard import BacktestDashboard
 
 
 class DIContainer(containers.DeclarativeContainer):
@@ -103,79 +75,6 @@ class DIContainer(containers.DeclarativeContainer):
 
     alpaca_quote_service = providers.Singleton(
         QuoteAdapter, alpaca_stock_client=alpaca_stock_client
-    )
-
-    data_dir = get_data_dir()
-    ## Backtester
-    stage_data_manager = providers.Singleton(
-        StageDataManager, data_dir=data_dir, logger=logger_stage_data_manager
-    )
-
-    stage_data_preparer = providers.Singleton(
-        StageDataPreparer,
-        stage_data_manager=stage_data_manager,
-        logger=logger_stage_data_preparer,
-    )
-
-    stage_data_loader = providers.Singleton(
-        StageDataLoader,
-        logger=logger_stage_data_loader,
-        stage_data_manager=stage_data_manager,
-        watchlist_repo=watchlist_repo,
-    )
-
-    stage_data_writer = providers.Singleton(
-        StageDataWriter,
-        logger=logger_stage_data_writer,
-        stage_data_manager=stage_data_manager,
-    )
-
-    feature_engineering_func = providers.Object(
-        partial(feature_engineering, logger=logger_backtest_feature_engineering())
-    )
-
-    feature_engineer = providers.Singleton(
-        BacktestFeatureEngineer,
-        feature_engineering_func=feature_engineering_func,
-        logger=logger_backtest_feature_engineering,
-    )
-
-    backtest_dashboard = providers.Singleton(
-        BacktestDashboard,
-        config=config,
-    )
-
-    symbol_strategy_data_loader = providers.Singleton(
-        SymbolStrategyDataLoader,
-        stage_data_manager=stage_data_manager,
-        stage_data_loader=stage_data_loader,
-        logger=logger_symbol_strategy_data_loader,
-    )
-
-    symbol_strategy_data_writer = providers.Singleton(
-        SymbolStrategyDataWriter,
-        stage_data_manager=stage_data_manager,
-        data_writer=stage_data_writer,
-        logger=logger_symbol_strategy_data_writer,
-    )
-
-    data_ingest_stage_coordinator = providers.Singleton(
-        DataIngestStageCoordinator,
-        data_loader=stage_data_loader,
-        data_writer=symbol_strategy_data_writer,
-        data_manager=stage_data_manager,
-        logger=logger_backtest_data_ingest,
-        quote_service=alpaca_quote_service,
-        watchlist_repo=watchlist_repo,
-    )
-
-    feature_engineering_stage_coordinator = providers.Singleton(
-        FeatureEngineeringStageCoordinator,
-        data_loader=symbol_strategy_data_loader,
-        data_writer=symbol_strategy_data_writer,
-        data_manager=stage_data_manager,
-        logger=logger_backtest_feature_engineering,
-        feature_engineer=feature_engineer,
     )
 
     # Strategy backtest executor
@@ -259,16 +158,6 @@ class DIContainer(containers.DeclarativeContainer):
         optimization_stage_coordinator=strategy_optimization_stage_coordinator,
         testing_stage_coordinator=strategy_testing_stage_coordinator,
         logger=logger_strategy_walk_forward,
-    )
-
-    symbol_strategy_manager = providers.Singleton(
-        SymbolStrategyManager,
-        data_dir=get_data_dir(),
-        stage_data_manager=stage_data_manager,
-        symbol_strategy_evaluation_filename=providers.Object(
-            config().get("backtester.signal.filenames", "signal_summary_json_filename")
-        ),
-        logger=logger_symbol_strategy_manager,
     )
 
     portfolio_executor = providers.Singleton(

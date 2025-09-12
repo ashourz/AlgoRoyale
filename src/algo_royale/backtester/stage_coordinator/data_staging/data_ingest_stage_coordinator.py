@@ -35,7 +35,7 @@ class DataIngestStageCoordinator(StageCoordinator):
         data_writer: SymbolStrategyDataWriter,
         data_manager: StageDataManager,
         logger: Loggable,
-        quote_service: QuoteAdapter,
+        quote_adapter: QuoteAdapter,
         watchlist_repo: WatchlistRepo,
     ):
         self.stage = BacktestStage.DATA_INGEST
@@ -43,7 +43,7 @@ class DataIngestStageCoordinator(StageCoordinator):
         self.data_writer = data_writer
         self.data_manager = data_manager
         self.logger = logger
-        self.quote_service = quote_service
+        self.quote_adapter = quote_adapter
         self.watchlist_repo = watchlist_repo
 
     async def run(
@@ -150,7 +150,7 @@ class DataIngestStageCoordinator(StageCoordinator):
         try:
             while True:
                 page_count += 1
-                response = await self.quote_service.fetch_historical_bars(
+                response = await self.quote_adapter.fetch_historical_bars(
                     symbols=[symbol],
                     start_date=self.start_date,
                     end_date=self.end_date,
@@ -196,7 +196,7 @@ class DataIngestStageCoordinator(StageCoordinator):
             return  # Return None instead of yielding an empty DataFrame
 
         finally:
-            await self.quote_service.client.aclose()
+            await self.quote_adapter.client.aclose()
             self.logger.info(f"Closed connection for {symbol}")
 
     def _does_symbol_data_exist(self, symbol: str) -> bool:

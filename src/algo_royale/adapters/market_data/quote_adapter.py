@@ -10,6 +10,7 @@ from alpaca.data.timeframe import TimeFrame, TimeFrameUnit
 from algo_royale.clients.alpaca.alpaca_market_data.alpaca_stock_client import (
     AlpacaStockClient,
 )
+from algo_royale.logging.loggable import Loggable
 from algo_royale.models.alpaca_market_data.alpaca_auction import AuctionResponse
 from algo_royale.models.alpaca_market_data.alpaca_bar import (
     BarsResponse,
@@ -31,8 +32,9 @@ class QuoteAdapter:
     This class abstracts the AlpacaStockClient and provides higher-level methods to fetch data.
     """
 
-    def __init__(self, alpaca_stock_client: AlpacaStockClient):
+    def __init__(self, alpaca_stock_client: AlpacaStockClient, logger: Loggable):
         self.client = alpaca_stock_client
+        self.logger = logger
 
     async def fetch_historical_quotes(
         self,

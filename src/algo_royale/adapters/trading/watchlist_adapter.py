@@ -5,6 +5,7 @@ from typing import Optional
 from algo_royale.clients.alpaca.alpaca_trading.alpaca_watchlist_client import (
     AlpacaWatchlistClient,
 )
+from algo_royale.logging.loggable import Loggable
 from algo_royale.models.alpaca_trading.alpaca_watchlist import (
     Watchlist,
     WatchlistListResponse,
@@ -14,8 +15,9 @@ from algo_royale.models.alpaca_trading.alpaca_watchlist import (
 class WatchlistAdapter:
     """Service class for interacting with Alpaca's watchlist data."""
 
-    def __init__(self, client: AlpacaWatchlistClient):
+    def __init__(self, client: AlpacaWatchlistClient, logger: Loggable):
         self.client = client
+        self.logger = logger
 
     async def get_all_watchlists(self) -> Optional[WatchlistListResponse]:
         """

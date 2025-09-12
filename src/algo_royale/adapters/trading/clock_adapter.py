@@ -4,13 +4,14 @@ from algo_royale.clients.alpaca.alpaca_trading.alpaca_clock_client import (
     AlpacaClockClient,
 )
 from algo_royale.clients.alpaca.exceptions import ClockNotFoundError
+from algo_royale.logging.loggable import Loggable
 from algo_royale.models.alpaca_trading.alpaca_clock import Clock
 
 
 class ClockAdapter:
     """Service class to interact with Alpaca's clock data, leveraging AlpacaClockClient."""
 
-    def __init__(self, clock_client: AlpacaClockClient):
+    def __init__(self, clock_client: AlpacaClockClient, logger: Loggable):
         """
         Initializes AlpacaClockService with the given AlpacaClockClient.
 
@@ -18,6 +19,7 @@ class ClockAdapter:
             clock_client (AlpacaClockClient): The Alpaca client used to interact with the Alpaca API for clock data.
         """
         self.clock_client = clock_client
+        self.logger = logger
 
     async def get_clock(self) -> Optional[Clock]:
         """

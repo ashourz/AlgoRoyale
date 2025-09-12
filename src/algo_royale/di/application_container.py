@@ -1,9 +1,12 @@
 from dependency_injector import containers, providers
 
+from algo_royale.di.adapter_container import AdapterContainer
+from algo_royale.di.client_container import ClientContainer
 from algo_royale.di.dao_container import DAOContainer
 from algo_royale.di.db_container import DBContainer
 from algo_royale.di.logger_container import LoggerContainer
 from algo_royale.di.repo_container import RepoContainer
+from algo_royale.di.stage_data_container import StageDataContainer
 
 
 class ApplicationContainer(containers.DeclarativeContainer):
@@ -25,4 +28,24 @@ class ApplicationContainer(containers.DeclarativeContainer):
         config=config,
         dao=dao_container,
         logger_container=logger_container,
+    )
+
+    client_container = providers.Container(
+        ClientContainer,
+        config=config,
+        secrets=secrets,
+        logger_container=logger_container,
+    )
+
+    adapter_container = providers.Container(
+        AdapterContainer,
+        client_container=client_container,
+        logger_container=logger_container,
+    )
+
+    stage_data_container = providers.Container(
+        StageDataContainer,
+        config=config,
+        logger_container=logger_container,
+        watchlist_repo=repo_container.watchlist_repo,
     )

@@ -5,6 +5,7 @@ from pydantic import BaseModel
 from algo_royale.clients.alpaca.alpaca_market_data.alpaca_stream_client import (
     AlpacaStreamClient,
 )
+from algo_royale.logging.loggable import Loggable
 from algo_royale.models.alpaca_market_data.enums import DataFeed
 
 
@@ -22,14 +23,16 @@ class StreamAdapter:
     for real-time stock market data from Alpaca. It simplifies integration and handling of events.
     """
 
-    def __init__(self, stream_client: AlpacaStreamClient):
+    def __init__(self, stream_client: AlpacaStreamClient, logger: Loggable):
         """
         Initialize AlpacaStreamService with the provided AlpacaStreamClient.
 
         Args:
             stream_client (AlpacaStreamClient): Instance of AlpacaStreamClient for streaming data.
+            logger (Loggable): Logger instance for logging events and errors.
         """
         self.stream_client = stream_client
+        self.logger = logger
 
     def get_stream_symbols(self) -> StreamSymbols:
         """

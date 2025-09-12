@@ -8,6 +8,7 @@ from alpaca.common.enums import Sort
 from algo_royale.clients.alpaca.alpaca_market_data.alpaca_corporate_action_client import (
     AlpacaCorporateActionClient,
 )
+from algo_royale.logging.loggable import Loggable
 from algo_royale.models.alpaca_market_data.alpaca_corporate_action import (
     CorporateActionResponse,
 )
@@ -20,8 +21,16 @@ class CorporateActionAdapter:
     easier-to-use access to corporate actions, with additional business logic.
     """
 
-    def __init__(self, client: Optional[AlpacaCorporateActionClient] = None):
-        self.client = client or AlpacaCorporateActionClient()
+    def __init__(self, client: AlpacaCorporateActionClient, logger: Loggable):
+        """
+        Initialize the CorporateActionAdapter with the AlpacaCorporateActionClient and a logger.
+
+        Args:
+            client (AlpacaCorporateActionClient): Instance of AlpacaCorporateActionClient for API calls.
+            logger (Loggable): Logger instance for logging events and errors.
+        """
+        self.client = client
+        self.logger = logger
 
     async def get_corporate_actions_for_symbols(
         self,

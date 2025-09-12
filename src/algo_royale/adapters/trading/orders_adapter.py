@@ -4,6 +4,7 @@ from typing import Optional
 from algo_royale.clients.alpaca.alpaca_trading.alpaca_orders_client import (
     AlpacaOrdersClient,
 )
+from algo_royale.logging.loggable import Loggable
 from algo_royale.models.alpaca_trading.alpaca_order import (
     DeleteOrdersResponse,
     Order,
@@ -31,8 +32,9 @@ class OrdersAdapter:
     fully documented to facilitate interaction with the Alpaca platform.
     """
 
-    def __init__(self):
-        self.client = AlpacaOrdersClient()
+    def __init__(self, client: AlpacaOrdersClient, logger: Loggable):
+        self.client = client
+        self.logger = logger
 
     async def create_order(
         self,

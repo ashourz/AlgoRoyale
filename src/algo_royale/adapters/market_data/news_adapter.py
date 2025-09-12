@@ -8,6 +8,7 @@ from alpaca.common.enums import Sort
 from algo_royale.clients.alpaca.alpaca_market_data.alpaca_news_client import (
     AlpacaNewsClient,
 )
+from algo_royale.logging.loggable import Loggable
 from algo_royale.models.alpaca_market_data.alpaca_news import NewsResponse
 
 
@@ -17,8 +18,16 @@ class NewsAdapter:
     provide higher-level business logic if needed.
     """
 
-    def __init__(self, client: Optional[AlpacaNewsClient] = None):
-        self.client = client or AlpacaNewsClient()
+    def __init__(self, client: AlpacaNewsClient, logger: Loggable):
+        """
+        Initialize the NewsAdapter with the AlpacaNewsClient and a logger.
+
+        Args:
+            client (AlpacaNewsClient): Instance of AlpacaNewsClient for API calls.
+            logger (Loggable): Logger instance for logging events and errors.
+        """
+        self.client = client
+        self.logger = logger
 
     async def get_recent_news(
         self,

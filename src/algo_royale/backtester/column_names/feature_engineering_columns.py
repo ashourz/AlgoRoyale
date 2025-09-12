@@ -7,7 +7,7 @@ class FeatureEngineeringColumns(DataIngestColumns):
     These columns are derived from the raw data and used for technical analysis and modeling."""
 
     @classmethod
-    def get_max_lookback_from_columns(cls):
+    def get_max_lookback_from_columns(cls) -> int:
         """
         Returns the maximum lookback window required based on the last '_' separated value in feature engineering column names.
         """

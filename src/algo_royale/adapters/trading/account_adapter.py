@@ -5,6 +5,7 @@ from algo_royale.clients.alpaca.alpaca_trading.alpaca_accounts_client import (
     AlpacaAccountClient,
 )
 from algo_royale.clients.alpaca.exceptions import ParameterConflictError
+from algo_royale.logging.loggable import Loggable
 from algo_royale.models.alpaca_trading.alpaca_account import (
     Account,
     AccountActivities,
@@ -24,7 +25,7 @@ from algo_royale.models.alpaca_trading.enums.enums import (
 class AccountAdapter:
     """Service class to interact with Alpaca account data, leveraging the AlpacaAccountClient."""
 
-    def __init__(self, account_client: AlpacaAccountClient):
+    def __init__(self, account_client: AlpacaAccountClient, logger: Loggable):
         """
         Initializes AlpacaAccountService with the given AlpacaAccountClient.
 
@@ -32,6 +33,7 @@ class AccountAdapter:
             account_client (AlpacaAccountClient): The Alpaca API client used to fetch data from the Alpaca API.
         """
         self.account_client = account_client
+        self.logger = logger
 
     async def get_account_data(self) -> Optional[Account]:
         """

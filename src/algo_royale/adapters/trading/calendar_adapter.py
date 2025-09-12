@@ -5,13 +5,14 @@ from algo_royale.clients.alpaca.alpaca_trading.alpaca_calendar_client import (
     AlpacaCalendarClient,
 )
 from algo_royale.clients.alpaca.exceptions import CalendarNotFoundError
+from algo_royale.logging.loggable import Loggable
 from algo_royale.models.alpaca_trading.alpaca_calendar import CalendarList
 
 
 class CalendarAdapter:
     """Service class to interact with Alpaca's corporate action calendar data, leveraging AlpacaCalendarClient."""
 
-    def __init__(self, calendar_client: AlpacaCalendarClient):
+    def __init__(self, calendar_client: AlpacaCalendarClient, logger: Loggable):
         """
         Initializes AlpacaCalendarService with the given AlpacaCalendarClient.
 
@@ -19,6 +20,7 @@ class CalendarAdapter:
             calendar_client (AlpacaCalendarClient): The Alpaca client used to interact with the Alpaca API for calendar data.
         """
         self.calendar_client = calendar_client
+        self.logger = logger
 
     async def get_calendar(
         self,
