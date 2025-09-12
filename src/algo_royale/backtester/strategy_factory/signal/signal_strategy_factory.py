@@ -20,7 +20,7 @@ from algo_royale.backtester.strategy.signal.stateful_logic.base_stateful_logic i
 from algo_royale.logging.loggable import Loggable
 
 
-class StrategyFactory:
+class SignalStrategyFactory:
     """Factory for creating signal strategies based on provided parameters.
     This factory allows for dynamic instantiation of strategies with their conditions
     and stateful logic based on configuration parameters.

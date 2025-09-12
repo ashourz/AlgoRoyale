@@ -23,8 +23,8 @@ from algo_royale.backtester.stage_data.stage_data_manager import StageDataManage
 from algo_royale.backtester.strategy.signal.base_signal_strategy import (
     BaseSignalStrategy,
 )
-from algo_royale.backtester.strategy_factory.signal.strategy_factory import (
-    StrategyFactory,
+from algo_royale.backtester.strategy_factory.signal.signal_strategy_factory import (
+    SignalStrategyFactory,
 )
 from algo_royale.logging.loggable import Loggable
 
@@ -36,7 +36,7 @@ class PortfolioMatrixLoader:
         asset_matrix_preparer: AssetMatrixPreparer,
         stage_data_manager: StageDataManager,
         stage_data_loader: StageDataLoader,
-        strategy_factory: StrategyFactory,
+        strategy_factory: SignalStrategyFactory,
         data_dir: str,
         optimization_root: str,
         signal_summary_json_filename: str,

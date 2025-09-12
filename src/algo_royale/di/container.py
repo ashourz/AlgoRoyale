@@ -33,12 +33,6 @@ from algo_royale.backtester.executor.portfolio_backtest_executor import (
 from algo_royale.backtester.executor.strategy_backtest_executor import (
     StrategyBacktestExecutor,
 )
-from algo_royale.backtester.optimizer.portfolio.portfolio_strategy_optimizer_factory import (
-    PortfolioStrategyOptimizerFactoryImpl,
-)
-from algo_royale.backtester.optimizer.signal.signal_strategy_optimizer_factory import (
-    SignalStrategyOptimizerFactoryImpl,
-)
 from algo_royale.backtester.pipeline.pipeline_coordinator import PipelineCoordinator
 from algo_royale.backtester.stage_coordinator.optimization.portfolio_optimization_stage_coordinator import (
     PortfolioOptimizationStageCoordinator,
@@ -55,15 +49,6 @@ from algo_royale.backtester.stage_coordinator.testing.strategy_testing_stage_coo
 from algo_royale.backtester.stage_data.loader.portfolio_matrix_loader import (
     PortfolioMatrixLoader,
 )
-from algo_royale.backtester.strategy_factory.portfolio.portfolio_strategy_combinator_factory import (
-    PortfolioStrategyCombinatorFactory,
-)
-from algo_royale.backtester.strategy_factory.signal.signal_strategy_combinator_factory import (
-    SignalStrategyCombinatorFactory,
-)
-from algo_royale.backtester.strategy_factory.signal.strategy_factory import (
-    StrategyFactory,
-)
 from algo_royale.backtester.walkforward.walk_forward_coordinator import (
     WalkForwardCoordinator,
 )
@@ -72,10 +57,6 @@ from algo_royale.utils.path_utils import get_data_dir
 
 class DIContainer(containers.DeclarativeContainer):
     """Dependency Injection Container"""
-
-    alpaca_quote_service = providers.Singleton(
-        QuoteAdapter, alpaca_stock_client=alpaca_stock_client
-    )
 
     # Strategy backtest executor
     strategy_executor = providers.Singleton(
@@ -86,26 +67,6 @@ class DIContainer(containers.DeclarativeContainer):
     strategy_evaluator = providers.Singleton(
         SignalBacktestEvaluator,
         logger=logger_strategy_evaluator,
-    )
-
-    signal_strategy_combinator_factory = providers.Singleton(
-        SignalStrategyCombinatorFactory,
-        combinator_list_path=providers.Object(
-            config().get("backtester.paths", "signal_strategy_combinators")
-        ),
-        logger=logger_signal_strategy_combinator_factory,
-    )
-
-    strategy_factory = providers.Singleton(
-        StrategyFactory,
-        logger=logger_strategy_factory,
-        strategy_logger=logger_signal_strategy,
-    )
-
-    signal_strategy_optimizer_factory = providers.Singleton(
-        SignalStrategyOptimizerFactoryImpl,
-        logger=logger_signal_strategy_optimizer,
-        strategy_logger=logger_signal_strategy,
     )
 
     strategy_optimization_stage_coordinator = providers.Singleton(
@@ -187,15 +148,6 @@ class DIContainer(containers.DeclarativeContainer):
         logger=logger_portfolio_evaluator,
     )
 
-    portfolio_strategy_combinator_factory = providers.Singleton(
-        PortfolioStrategyCombinatorFactory,
-        combinator_list_path=providers.Object(
-            config().get("backtester.paths", "portfolio_strategy_combinators")
-        ),
-        logger=logger_portfolio_strategy_combinator_factory,
-        strategy_logger=logger_portfolio_strategy,
-    )
-
     portfolio_asset_matrix_preparer = providers.Singleton(
         AssetMatrixPreparer,
         logger=logger_portfolio_asset_matrix_preparer,
@@ -219,12 +171,6 @@ class DIContainer(containers.DeclarativeContainer):
             config().get("backtester.signal.filenames", "symbol_signals_filename")
         ),
         logger=logger_portfolio_matrix_loader,
-    )
-
-    portfolio_strategy_optimizer_factory = providers.Singleton(
-        PortfolioStrategyOptimizerFactoryImpl,
-        logger=logger_portfolio_strategy_optimizer,
-        strategy_logger=logger_portfolio_strategy,
     )
 
     portfolio_optimization_stage_coordinator = providers.Singleton(

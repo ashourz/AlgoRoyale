@@ -5,8 +5,8 @@ from typing import Any, Optional
 
 from algo_royale.backtester.maps.strategy_class_map import SYMBOL_STRATEGY_CLASS_MAP
 from algo_royale.backtester.stage_data.stage_data_manager import StageDataManager
-from algo_royale.backtester.strategy_factory.signal.strategy_factory import (
-    StrategyFactory,
+from algo_royale.backtester.strategy_factory.signal.signal_strategy_factory import (
+    SignalStrategyFactory,
 )
 
 
@@ -86,4 +86,4 @@ class SymbolStrategyManager:
             self.logger.debug(
                 f"Instantiating strategy '{strat_name}' for symbol {symbol} with params: {params} using StrategyFactory.build_strategy"
             )
-        return StrategyFactory.build_strategy(strat_class, params)
+        return SignalStrategyFactory.build_strategy(strat_class, params)

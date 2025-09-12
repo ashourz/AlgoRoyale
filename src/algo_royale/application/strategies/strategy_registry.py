@@ -12,8 +12,8 @@ from algo_royale.backtester.stage_data.stage_data_manager import StageDataManage
 from algo_royale.backtester.strategy.signal.combined_weighted_signal_strategy import (
     CombinedWeightedSignalStrategy,
 )
-from algo_royale.backtester.strategy_factory.signal.strategy_factory import (
-    StrategyFactory,
+from algo_royale.backtester.strategy_factory.signal.signal_strategy_factory import (
+    SignalStrategyFactory,
 )
 from algo_royale.logging.loggable import Loggable
 from algo_royale.services.symbol_service import SymbolService
@@ -26,7 +26,7 @@ class StrategyRegistry:
         stage_data_manager: StageDataManager,
         evaluation_json_filename: str,
         viable_strategies_path: str,
-        signal_strategy_factory: StrategyFactory,
+        signal_strategy_factory: SignalStrategyFactory,
         logger: Loggable,
         combined_buy_threshold: float = 0.5,
         combined_sell_threshold: float = 0.5,

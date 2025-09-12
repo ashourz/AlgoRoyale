@@ -22,8 +22,8 @@ from algo_royale.backtester.stage_data.stage_data_manager import StageDataManage
 from algo_royale.backtester.strategy_factory.signal.signal_strategy_combinator_factory import (
     SignalStrategyCombinatorFactory,
 )
-from algo_royale.backtester.strategy_factory.signal.strategy_factory import (
-    StrategyFactory,
+from algo_royale.backtester.strategy_factory.signal.signal_strategy_factory import (
+    SignalStrategyFactory,
 )
 from algo_royale.logging.loggable import Loggable
 
@@ -52,7 +52,7 @@ class StrategyTestingStageCoordinator(BaseTestingStageCoordinator):
         stage_data_manager: StageDataManager,
         strategy_executor: StrategyBacktestExecutor,
         strategy_evaluator: BacktestEvaluator,
-        strategy_factory: StrategyFactory,
+        strategy_factory: SignalStrategyFactory,
         logger: Loggable,
         strategy_combinator_factory: SignalStrategyCombinatorFactory,
         optimization_root: str,
