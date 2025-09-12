@@ -94,7 +94,6 @@ from algo_royale.backtester.strategy_factory.signal.strategy_factory import (
 from algo_royale.backtester.walkforward.walk_forward_coordinator import (
     WalkForwardCoordinator,
 )
-from algo_royale.repo.watchlist_repo import WatchlistRepo
 from algo_royale.utils.path_utils import get_data_dir
 from algo_royale.visualization.dashboard import BacktestDashboard
 
@@ -116,14 +115,6 @@ class DIContainer(containers.DeclarativeContainer):
         StageDataPreparer,
         stage_data_manager=stage_data_manager,
         logger=logger_stage_data_preparer,
-    )
-
-    watchlist_path_string = providers.Object(
-        config().get("backtester.paths", "watchlist_path")
-    )
-
-    watchlist_repo = providers.Singleton(
-        WatchlistRepo, watchlist_path=watchlist_path_string
     )
 
     stage_data_loader = providers.Singleton(

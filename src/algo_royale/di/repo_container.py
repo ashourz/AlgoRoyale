@@ -15,12 +15,14 @@ class RepoContainer(containers.DeclarativeContainer):
 
     config: providers.Configuration = providers.Configuration()
     dao: DAOContainer = providers.DependenciesContainer()
-    logger: LoggerContainer = providers.Singleton()
+    logger_container: LoggerContainer = providers.Singleton()
 
     data_stream_session_repo = providers.Singleton(
         DataStreamSessionRepo,
         dao=dao.data_stream_session_dao,
-        logger=logger.provides_logger(logger_type=LoggerType.DATA_STREAM_SESSION_REPO),
+        logger=logger_container.provides_logger(
+            logger_type=LoggerType.DATA_STREAM_SESSION_REPO
+        ),
         user_id=config.db.user.id,
         account_id=config.db.user.account_id,
     )
@@ -28,7 +30,9 @@ class RepoContainer(containers.DeclarativeContainer):
     enriched_data_repo = providers.Singleton(
         EnrichedDataRepo,
         dao=dao.enriched_data_dao,
-        logger=logger.provides_logger(logger_type=LoggerType.ENRICHED_DATA_REPO),
+        logger=logger_container.provides_logger(
+            logger_type=LoggerType.ENRICHED_DATA_REPO
+        ),
         user_id=config.db.user.id,
         account_id=config.db.user.account_id,
     )
@@ -36,7 +40,7 @@ class RepoContainer(containers.DeclarativeContainer):
     trade_repo = providers.Singleton(
         TradeRepo,
         dao=dao.trade_dao,
-        logger=logger.provides_logger(logger_type=LoggerType.TRADE_REPO),
+        logger=logger_container.provides_logger(logger_type=LoggerType.TRADE_REPO),
         user_id=config.db.user.id,
         account_id=config.db.user.account_id,
     )
@@ -44,7 +48,7 @@ class RepoContainer(containers.DeclarativeContainer):
     order_repo = providers.Singleton(
         OrderRepo,
         dao=dao.order_dao,
-        logger=logger.provides_logger(logger_type=LoggerType.ORDER_REPO),
+        logger=logger_container.provides_logger(logger_type=LoggerType.ORDER_REPO),
         user_id=config.db.user.id,
         account_id=config.db.user.account_id,
     )
@@ -52,5 +56,5 @@ class RepoContainer(containers.DeclarativeContainer):
     watchlist_repo = providers.Singleton(
         WatchlistRepo,
         watchlist_path=config.backtester.paths.watchlist_path,
-        logger=logger.provides_logger(logger_type=LoggerType.WATCHLIST_REPO),
+        logger=logger_container.provides_logger(logger_type=LoggerType.WATCHLIST_REPO),
     )

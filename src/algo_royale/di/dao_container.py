@@ -15,6 +15,7 @@ class DAOContainer(containers.DeclarativeContainer):
     config: providers.Configuration = providers.Configuration()
     db_container: DBContainer = providers.DependenciesContainer()
     logger_container: LoggerContainer = providers.DependenciesContainer()
+
     sql_dir = config.db.paths.sql_dir
     data_stream_session_dao = providers.Singleton(
         DataStreamSessionDAO,
