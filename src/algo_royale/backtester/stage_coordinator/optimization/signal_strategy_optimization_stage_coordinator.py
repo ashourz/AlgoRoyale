@@ -34,7 +34,7 @@ from algo_royale.backtester.strategy_factory.signal.signal_strategy_combinator_f
 from algo_royale.logging.loggable import Loggable
 
 
-class StrategyOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
+class SignalStrategyOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
     """Coordinator for the optimization stage of the backtest pipeline.
     This class is responsible for optimizing and backtesting strategies
     for a list of symbols using the provided data loader, data writer,

@@ -1,19 +1,19 @@
 import json
 from pathlib import Path
 from typing import List
-from algo_royale.logging.loggable import Loggable
 
 import numpy as np
 
 from algo_royale.backtester.evaluator.strategy.strategy_evaluation_type import (
     StrategyEvaluationType,
 )
+from algo_royale.logging.loggable import Loggable
 from algo_royale.logging.logger_factory import mockLogger
 
 from .strategy_evaluator import StrategyEvaluator
 
 
-class StrategyEvaluationCoordinator:
+class SignalStrategyEvaluationCoordinator:
     """Coordinator for evaluating walk-forward optimization results.
     This class finds all optimization result files, evaluates them,
     and writes the evaluation reports to JSON files.
@@ -218,12 +218,12 @@ def mockStrategyEvaluationCoordinator(
     evaluation_type: StrategyEvaluationType = StrategyEvaluationType.TEST,
     optimization_json_filename: str = "mock_optimization.json",
     evaluation_json_filename: str = "mock_evaluation.json",
-) -> StrategyEvaluationCoordinator:
+) -> SignalStrategyEvaluationCoordinator:
     """
     Create a mock StrategyEvaluationCoordinator for testing purposes.
     """
     logger = mockLogger()
-    return StrategyEvaluationCoordinator(
+    return SignalStrategyEvaluationCoordinator(
         logger=logger,
         optimization_root=optimization_root,
         evaluation_type=evaluation_type,

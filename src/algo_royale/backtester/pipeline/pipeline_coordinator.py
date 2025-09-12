@@ -3,8 +3,8 @@ import asyncio
 from algo_royale.backtester.evaluator.portfolio.portfolio_evaluation_coordinator import (
     PortfolioEvaluationCoordinator,
 )
-from algo_royale.backtester.evaluator.strategy.strategy_evaluation_coordinator import (
-    StrategyEvaluationCoordinator,
+from algo_royale.backtester.evaluator.strategy.signal_strategy_evaluation_coordinator import (
+    SignalStrategyEvaluationCoordinator,
 )
 from algo_royale.backtester.evaluator.symbol.symbol_evaluation_coordinator import (
     SymbolEvaluationCoordinator,
@@ -30,17 +30,19 @@ class PipelineCoordinator:
 
     def __init__(
         self,
-        strategy_walk_forward_coordinator: WalkForwardCoordinator,
+        signal_strategy_walk_forward_coordinator: WalkForwardCoordinator,
         portfolio_walk_forward_coordinator: WalkForwardCoordinator,
-        strategy_evaluation_coordinator: StrategyEvaluationCoordinator,
+        signal_strategy_evaluation_coordinator: SignalStrategyEvaluationCoordinator,
         symbol_evaluation_coordinator: SymbolEvaluationCoordinator,
         portfolio_evaluation_coordinator: PortfolioEvaluationCoordinator,
         logger: Loggable,
     ):
         self.logger = logger
-        self.strategy_walk_forward_coordinator = strategy_walk_forward_coordinator
+        self.strategy_walk_forward_coordinator = (
+            signal_strategy_walk_forward_coordinator
+        )
         self.portfolio_walk_forward_coordinator = portfolio_walk_forward_coordinator
-        self.strategy_evaluation_coordinator = strategy_evaluation_coordinator
+        self.strategy_evaluation_coordinator = signal_strategy_evaluation_coordinator
         self.symbol_evaluation_coordinator = symbol_evaluation_coordinator
         self.portfolio_evaluation_coordinator = portfolio_evaluation_coordinator
 

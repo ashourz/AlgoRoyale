@@ -8,8 +8,8 @@ from algo_royale.backtester.enums.backtest_stage import BacktestStage
 from algo_royale.backtester.optimizer.signal.signal_strategy_optimizer_factory import (
     mockSignalStrategyOptimizerFactory,
 )
-from algo_royale.backtester.stage_coordinator.optimization.strategy_optimization_stage_coordinator import (
-    StrategyOptimizationStageCoordinator,
+from algo_royale.backtester.stage_coordinator.optimization.signal_strategy_optimization_stage_coordinator import (
+    SignalStrategyOptimizationStageCoordinator,
 )
 from algo_royale.logging.logger_factory import mockLogger
 
@@ -147,7 +147,7 @@ async def test_init_success(
     with patch.object(
         BacktestStage.STRATEGY_OPTIMIZATION, "output_stage", create=True, new=None
     ):
-        StrategyOptimizationStageCoordinator(
+        SignalStrategyOptimizationStageCoordinator(
             data_loader=mock_loader,
             stage_data_manager=mock_manager,
             logger=mock_logger,
@@ -220,7 +220,7 @@ async def test_process_returns_factories(
     with patch.object(
         BacktestStage.STRATEGY_OPTIMIZATION, "output_stage", create=True, new=None
     ):
-        coordinator = StrategyOptimizationStageCoordinator(
+        coordinator = SignalStrategyOptimizationStageCoordinator(
             data_loader=mock_loader,
             stage_data_manager=mock_manager,
             logger=mock_logger,
@@ -347,7 +347,7 @@ async def test_fetch_symbol_optimization_exception_logs_error(
     with patch.object(
         BacktestStage.STRATEGY_OPTIMIZATION, "output_stage", create=True, new=None
     ):
-        coordinator = StrategyOptimizationStageCoordinator(
+        coordinator = SignalStrategyOptimizationStageCoordinator(
             data_loader=mock_loader,
             stage_data_manager=mock_manager,
             logger=mock_logger,
@@ -432,7 +432,7 @@ async def test_process_skips_symbol_with_no_data(
     with patch.object(
         BacktestStage.STRATEGY_OPTIMIZATION, "output_stage", create=True, new=None
     ):
-        coordinator = StrategyOptimizationStageCoordinator(
+        coordinator = SignalStrategyOptimizationStageCoordinator(
             data_loader=mock_loader,
             stage_data_manager=mock_manager,
             logger=mock_logger,
@@ -559,7 +559,7 @@ async def test_process_multiple_strategies(
     with patch.object(
         BacktestStage.STRATEGY_OPTIMIZATION, "output_stage", create=True, new=None
     ):
-        coordinator = StrategyOptimizationStageCoordinator(
+        coordinator = SignalStrategyOptimizationStageCoordinator(
             data_loader=mock_loader,
             stage_data_manager=mock_manager,
             logger=mock_logger,
@@ -677,7 +677,7 @@ async def test_process_optimizer_exception_logs_error(
     with patch.object(
         BacktestStage.STRATEGY_OPTIMIZATION, "output_stage", create=True, new=None
     ):
-        coordinator = StrategyOptimizationStageCoordinator(
+        coordinator = SignalStrategyOptimizationStageCoordinator(
             data_loader=mock_loader,
             stage_data_manager=mock_manager,
             logger=mock_logger,

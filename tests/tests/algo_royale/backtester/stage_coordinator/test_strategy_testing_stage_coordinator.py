@@ -6,8 +6,8 @@ import pandas as pd
 import pytest
 
 from algo_royale.backtester.enums.backtest_stage import BacktestStage
-from algo_royale.backtester.stage_coordinator.testing.strategy_testing_stage_coordinator import (
-    StrategyTestingStageCoordinator,
+from algo_royale.backtester.stage_coordinator.testing.signal_strategy_testing_stage_coordinator import (
+    SignalStrategyTestingStageCoordinator,
 )
 
 
@@ -96,7 +96,7 @@ def test_init_success(
         create=True,
         new=None,
     ):
-        StrategyTestingStageCoordinator(
+        SignalStrategyTestingStageCoordinator(
             data_loader=mock_loader,
             stage_data_manager=mock_manager,
             strategy_executor=mock_executor,
@@ -171,7 +171,7 @@ async def test_process_returns_metrics(
 
     StrategyA = type("StrategyA", (), {})
     CombA = type("CombA", (), {"strategy_class": StrategyA})
-    coordinator = StrategyTestingStageCoordinator(
+    coordinator = SignalStrategyTestingStageCoordinator(
         data_loader=mock_loader,
         stage_data_manager=mock_manager,
         strategy_executor=mock_executor,
@@ -307,7 +307,7 @@ async def test_process_warns_on_missing_optimization(
         create=True,
         new=None,
     ):
-        coordinator = StrategyTestingStageCoordinator(
+        coordinator = SignalStrategyTestingStageCoordinator(
             data_loader=mock_loader,
             stage_data_manager=mock_manager,
             strategy_executor=mock_executor,
@@ -358,7 +358,7 @@ async def test_process_warns_on_no_data(
         create=True,
         new=None,
     ):
-        coordinator = StrategyTestingStageCoordinator(
+        coordinator = SignalStrategyTestingStageCoordinator(
             data_loader=mock_loader,
             stage_data_manager=mock_manager,
             strategy_executor=mock_executor,
@@ -405,7 +405,7 @@ async def test_write_is_noop(
         create=True,
         new=None,
     ):
-        coordinator = StrategyTestingStageCoordinator(
+        coordinator = SignalStrategyTestingStageCoordinator(
             data_loader=mock_loader,
             stage_data_manager=mock_manager,
             strategy_executor=mock_executor,
