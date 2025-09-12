@@ -4,6 +4,7 @@ from typing import AsyncIterator, Callable, Dict, Optional
 import pandas as pd
 from alpaca.common.enums import SupportedCurrencies
 
+from algo_royale.adapters.market_data.quote_adapter import QuoteAdapter
 from algo_royale.backtester.column_names.data_ingest_columns import DataIngestColumns
 from algo_royale.backtester.enums.backtest_stage import BacktestStage
 from algo_royale.backtester.stage_coordinator.stage_coordinator import StageCoordinator
@@ -15,7 +16,6 @@ from algo_royale.backtester.stage_data.writer.symbol_strategy_data_writer import
 from algo_royale.logging.loggable import Loggable
 from algo_royale.models.alpaca_market_data.enums import DataFeed
 from algo_royale.repo.watchlist_repo import WatchlistRepo
-from algo_royale.services.market_data.quote_adapter import QuoteAdapter
 
 
 class DataIngestStageCoordinator(StageCoordinator):

@@ -16,6 +16,7 @@ class DataPrepCoordinatorContainer(containers.DeclarativeContainer):
     logger_container = providers.DependenciesContainer()
     stage_data_container = providers.DependenciesContainer()
     feature_engineering_container = providers.DependenciesContainer()
+    adapter_container = providers.DependenciesContainer()
     repo_container = providers.DependenciesContainer()
 
     data_ingest_stage_coordinator = providers.Singleton(
@@ -26,7 +27,7 @@ class DataPrepCoordinatorContainer(containers.DeclarativeContainer):
         logger=logger_container.provides_logger(
             logger_type=LoggerType.BACKTEST_DATA_INGEST
         ),
-        quote_adapter=stage_data_container.alpaca_quote_service,
+        quote_adapter=adapter_container.quote_adapter,
         watchlist_repo=repo_container.watchlist_repo,
     )
 
