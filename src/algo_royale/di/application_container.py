@@ -49,3 +49,16 @@ class ApplicationContainer(containers.DeclarativeContainer):
         logger_container=logger_container,
         watchlist_repo=repo_container.watchlist_repo,
     )
+
+    pipeline_coordinator = providers.Singleton(
+        PipelineCoordinator,
+        strategy_walk_forward_coordinator=strategy_walk_forward_coordinator,
+        portfolio_walk_forward_coordinator=portfolio_walk_forward_coordinator,
+        strategy_evaluation_coordinator=strategy_evaluation_coordinator,
+        symbol_evaluation_coordinator=symbol_evaluation_coordinator,
+        portfolio_evaluation_coordinator=portfolio_evaluation_coordinator,
+        logger=logger_backtest_pipeline,
+    )
+
+
+application_container = ApplicationContainer()
