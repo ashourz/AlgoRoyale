@@ -7,7 +7,6 @@ from algo_royale.clients.alpaca.alpaca_market_data.alpaca_stream_client import (
     AlpacaStreamClient,
     DataFeed,
 )
-from algo_royale.di.container import DIContainer
 
 
 # Refactor TestHandler class without __init__ constructor

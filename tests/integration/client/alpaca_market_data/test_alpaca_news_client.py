@@ -1,38 +1,61 @@
 # src: tests/integration/client/test_alpaca_client.py
 
-from datetime import datetime, timezone
+
+from unittest.mock import AsyncMock
 
 import pytest
 
 from algo_royale.clients.alpaca.alpaca_market_data.alpaca_news_client import (
     AlpacaNewsClient,
 )
-from algo_royale.di.container import DIContainer
-from algo_royale.logging.logger_env import LoggerEnv
-from algo_royale.logging.logger_factory import LoggerFactory
 from algo_royale.models.alpaca_market_data.alpaca_news import News, NewsResponse
+from tests.mocks.mock_loggable import MockLoggable
 
-# Set up logging (prints to console)
-logger = LoggerFactory.get_base_logger(LoggerEnv.TEST)
+logger = MockLoggable()
 
 
 @pytest.fixture
-async def alpaca_client(event_loop):
+async def alpaca_client(monkeypatch):
     client = AlpacaNewsClient(
-        trading_config=DIContainer.trading_config(),
+        logger=logger,
+        base_url="https://mock.alpaca.markets",
+        api_key="fake_key",
+        api_secret="fake_secret",
+        api_key_header="APCA-API-KEY-ID",
+        api_secret_header="APCA-API-SECRET-KEY",
+        http_timeout=5,
+        reconnect_delay=1,
+        keep_alive_timeout=5,
     )
+    # Patch the get method to return a fake response
+    fake_response = {
+        "news": [
+            {
+                "id": "news_1",
+                "author": "Test Author",
+                "content": "Test content",
+                "created_at": "2024-04-01T00:00:00Z",
+                "headline": "Test Headline",
+                "images": [],
+                "source": "Test Source",
+                "summary": "Test summary",
+                "symbols": ["AAPL"],
+                "updated_at": "2024-04-01T01:00:00Z",
+                "url": "https://example.com/news/1",
+            }
+        ],
+        "next_page_token": None,
+    }
+    monkeypatch.setattr(client, "get", AsyncMock(return_value=fake_response))
     yield client
-    await client.aclose()  # Clean up the async client
+    await client.aclose()
 
 
 @pytest.mark.asyncio
-class TestAlpacaNewsClientIntegration:
+class TestAlpacaNewsClient:
     async def test_fetch_news(self, alpaca_client: AlpacaNewsClient):
-        """Test fetching news data from Alpaca's live endpoint."""
+        """Test fetching news data from Alpaca using a mock response."""
         symbols = ["AAPL"]
-        start_date = datetime(2024, 4, 1, 0, 0, 0, tzinfo=timezone.utc)
-        end_date = datetime(2024, 4, 3, tzinfo=timezone.utc)
-
         result = await alpaca_client.fetch_news(
             symbols=symbols,
             # start_date=start_date,
