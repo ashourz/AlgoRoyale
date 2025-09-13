@@ -16,14 +16,24 @@ from algo_royale.adapters.trading.orders_adapter import OrdersAdapter
 from algo_royale.adapters.trading.portfolio_adapter import PortfolioAdapter
 from algo_royale.adapters.trading.positions_adapter import PositionsAdapter
 from algo_royale.adapters.trading.watchlist_adapter import WatchlistAdapter
+from algo_royale.di.adapter.client_container import ClientContainer
+from algo_royale.di.logger_container import LoggerContainer
 from algo_royale.logging.logger_type import LoggerType
 
 
 class AdapterContainer(containers.DeclarativeContainer):
     """Adapter Container"""
 
-    logger_container = providers.DependenciesContainer()
-    client_container = providers.DependenciesContainer()
+    config = providers.Configuration()
+    secrets = providers.Configuration()
+    logger_container: LoggerContainer = providers.DependenciesContainer()
+
+    client_container = providers.Container(
+        ClientContainer,
+        config=config,
+        secrets=secrets,
+        logger_container=logger_container,
+    )
 
     ## MARKET DATA ADAPTERS
     corporate_action_adapter = providers.Singleton(

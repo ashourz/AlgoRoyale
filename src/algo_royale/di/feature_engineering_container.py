@@ -17,8 +17,8 @@ from algo_royale.logging.logger_type import LoggerType
 
 
 class FeatureEngineeringContainer(containers.DeclarativeContainer):
-    config = providers.Configuration(ini_files=["config.ini"])
-    logger_container = LoggerContainer()
+    config = providers.Configuration()
+    logger_container: LoggerContainer = providers.DependenciesContainer()
 
     feature_engineering_func = providers.Object(partial(feature_engineering))
 

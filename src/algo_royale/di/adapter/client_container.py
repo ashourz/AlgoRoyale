@@ -49,8 +49,8 @@ from algo_royale.logging.logger_type import LoggerType
 class ClientContainer(containers.DeclarativeContainer):
     """Dependency injection container for clients."""
 
-    config: providers.Configuration = providers.Configuration()
-    secrets: providers.Configuration = providers.Configuration()
+    config = providers.Configuration()
+    secrets = providers.Configuration()
     logger_container: LoggerContainer = providers.DependenciesContainer()
 
     def get_trading_url(config):

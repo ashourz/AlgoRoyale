@@ -6,10 +6,10 @@ from algo_royale.backtester.stage_coordinator.data_staging.data_ingest_stage_coo
 from algo_royale.backtester.stage_coordinator.data_staging.feature_engineering_stage_coordinator import (
     FeatureEngineeringStageCoordinator,
 )
-from algo_royale.di.adapter_container import AdapterContainer
+from algo_royale.di.adapter.adapter_container import AdapterContainer
 from algo_royale.di.feature_engineering_container import FeatureEngineeringContainer
 from algo_royale.di.logger_container import LoggerContainer
-from algo_royale.di.repo_container import RepoContainer
+from algo_royale.di.repo.repo_container import RepoContainer
 from algo_royale.di.stage_data_container import StageDataContainer
 from algo_royale.logging.logger_type import LoggerType
 

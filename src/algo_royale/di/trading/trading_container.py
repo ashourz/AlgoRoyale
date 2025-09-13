@@ -5,13 +5,13 @@ from algo_royale.di.factory_container import FactoryContainer
 from algo_royale.di.feature_engineering_container import FeatureEngineeringContainer
 from algo_royale.di.ledger_service_container import LedgerServiceContainer
 from algo_royale.di.logger_container import LoggerContainer
-from algo_royale.di.market_session_container import MarketSessionContainer
-from algo_royale.di.order_generator_service_container import (
-    OrderGeneratorServiceContainer,
-)
-from algo_royale.di.registry_container import RegistryContainer
 from algo_royale.di.repo_container import RepoContainer
 from algo_royale.di.stage_data_container import StageDataContainer
+from algo_royale.di.trading.market_session_container import MarketSessionContainer
+from algo_royale.di.trading.order_generator_service_container import (
+    OrderGeneratorServiceContainer,
+)
+from algo_royale.di.trading.registry_container import RegistryContainer
 
 
 class TradingContainer(containers.DeclarativeContainer):

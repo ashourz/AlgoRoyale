@@ -2,7 +2,7 @@ from dependency_injector import containers, providers
 
 from algo_royale.di.ledger_service_container import LedgerServiceContainer
 from algo_royale.di.logger_container import LoggerContainer
-from algo_royale.di.order_generator_service_container import (
+from algo_royale.di.trading.order_generator_service_container import (
     OrderGeneratorServiceContainer,
 )
 from algo_royale.logging.logger_type import LoggerType

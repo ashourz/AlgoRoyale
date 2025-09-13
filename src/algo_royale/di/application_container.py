@@ -1,17 +1,16 @@
 from dependency_injector import containers, providers
 
-from algo_royale.di.adapter_container import AdapterContainer
-from algo_royale.di.backtest_pipeline_container import BacktestPipelineContainer
-from algo_royale.di.client_container import ClientContainer
-from algo_royale.di.dao_container import DAOContainer
-from algo_royale.di.db_container import DBContainer
+from algo_royale.di.adapter.adapter_container import AdapterContainer
+from algo_royale.di.backtest.backtest_pipeline_container import (
+    BacktestPipelineContainer,
+)
 from algo_royale.di.factory_container import FactoryContainer
 from algo_royale.di.feature_engineering_container import FeatureEngineeringContainer
 from algo_royale.di.ledger_service_container import LedgerServiceContainer
 from algo_royale.di.logger_container import LoggerContainer
-from algo_royale.di.repo_container import RepoContainer
+from algo_royale.di.repo.repo_container import RepoContainer
 from algo_royale.di.stage_data_container import StageDataContainer
-from algo_royale.di.trading_container import TradingContainer
+from algo_royale.di.trading.trading_container import TradingContainer
 
 
 class ApplicationContainer(containers.DeclarativeContainer):
@@ -19,24 +18,8 @@ class ApplicationContainer(containers.DeclarativeContainer):
     secrets = providers.Configuration(ini_files=["secrets.ini"])
     logger_container = LoggerContainer()
 
-    db_container = providers.Container(DBContainer, config=config, secrets=secrets)
-
-    dao_container = providers.Container(
-        DAOContainer,
-        config=config,
-        db_container=db_container,
-        logger_container=logger_container,
-    )
-
     repo_container = providers.Container(
         RepoContainer,
-        config=config,
-        dao=dao_container,
-        logger_container=logger_container,
-    )
-
-    client_container = providers.Container(
-        ClientContainer,
         config=config,
         secrets=secrets,
         logger_container=logger_container,
@@ -44,7 +27,8 @@ class ApplicationContainer(containers.DeclarativeContainer):
 
     adapter_container = providers.Container(
         AdapterContainer,
-        client_container=client_container,
+        config=config,
+        secrets=secrets,
         logger_container=logger_container,
     )
 
