@@ -3,7 +3,7 @@ from algo_royale.services.clock_service import ClockService
 from algo_royale.services.market_session_service import MarketSessionService
 
 
-class Orchestrator:
+class TradeOrchestrator:
     def __init__(
         self,
         clock_service: ClockService,

@@ -11,6 +11,8 @@ from algo_royale.di.logger_container import LoggerContainer
 from algo_royale.di.repo.repo_container import RepoContainer
 from algo_royale.di.stage_data_container import StageDataContainer
 from algo_royale.di.trading.trading_container import TradingContainer
+from algo_royale.logging.logger_type import LoggerType
+from algo_royale.services.clock_service import ClockService
 
 
 class ApplicationContainer(containers.DeclarativeContainer):
@@ -30,6 +32,12 @@ class ApplicationContainer(containers.DeclarativeContainer):
         config=config,
         secrets=secrets,
         logger_container=logger_container,
+    )
+
+    clock_service = providers.Singleton(
+        ClockService,
+        clock_adapter=adapter_container.clock_adapter,
+        logger=logger_container.provides_logger(logger_type=LoggerType.CLOCK_SERVICE),
     )
 
     stage_data_container = providers.Container(
@@ -68,6 +76,7 @@ class ApplicationContainer(containers.DeclarativeContainer):
         adapter_container=adapter_container,
         repo_container=repo_container,
         logger_container=logger_container,
+        clock_service=clock_service,
     )
 
     trading_container = providers.Container(

@@ -18,6 +18,7 @@ class LedgerServiceContainer(containers.DeclarativeContainer):
     adapter_container: AdapterContainer = providers.DependenciesContainer()
     repo_container: RepoContainer = providers.DependenciesContainer()
     logger_container: LoggerContainer = providers.DependenciesContainer()
+    clock_service: ClockService = providers.Dependency()
 
     account_cash_service = providers.Singleton(
         AccountCashService,
@@ -25,12 +26,6 @@ class LedgerServiceContainer(containers.DeclarativeContainer):
         logger=logger_container.provides_logger(
             logger_type=LoggerType.ACCOUNT_CASH_SERVICE
         ),
-    )
-
-    clock_service = providers.Singleton(
-        ClockService,
-        clock_adapter=adapter_container.clock_adapter,
-        logger=logger_container.provides_logger(logger_type=LoggerType.CLOCK_SERVICE),
     )
 
     enriched_data_service = providers.Singleton(

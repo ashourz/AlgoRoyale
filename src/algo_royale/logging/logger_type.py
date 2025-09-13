@@ -158,6 +158,10 @@ class LoggerType(Enum):
     ## BACKTEST PIPELINE
     PIPELINE_COORDINATOR = ("PIPELINE_COORDINATOR", logging.ERROR)
 
+    ## TRADE ORCHESTRATOR
+    TEST_TRADE_ORCHESTRATOR = ("TEST_TRADE_ORCHESTRATOR", logging.ERROR)
+    LIVE_TRADE_ORCHESTRATOR = ("LIVE_TRADE_ORCHESTRATOR", logging.ERROR)
+
     @property
     def name_str(self):
         return self.value[0]
