@@ -40,6 +40,7 @@ class TradingContainer(containers.DeclarativeContainer):
         logger_container=logger_container,
     )
 
+    ## TODO: ENSURE PROPOGATION OF is_live FLAG IS PERFORMED CORRECTLY
     test_order_generator_service_container = providers.Container(
         OrderGeneratorServiceContainer,
         adapter_container=adapter_container,

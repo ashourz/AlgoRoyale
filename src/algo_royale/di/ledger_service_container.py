@@ -1,8 +1,8 @@
 from dependency_injector import containers, providers
 
-from algo_royale.di.adapter_container import AdapterContainer
+from algo_royale.di.adapter.adapter_container import AdapterContainer
 from algo_royale.di.logger_container import LoggerContainer
-from algo_royale.di.repo_container import RepoContainer
+from algo_royale.di.repo.repo_container import RepoContainer
 from algo_royale.logging.logger_type import LoggerType
 from algo_royale.services.account_cash_service import AccountCashService
 from algo_royale.services.clock_service import ClockService
