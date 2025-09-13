@@ -6,6 +6,11 @@ from algo_royale.backtester.stage_coordinator.data_staging.data_ingest_stage_coo
 from algo_royale.backtester.stage_coordinator.data_staging.feature_engineering_stage_coordinator import (
     FeatureEngineeringStageCoordinator,
 )
+from algo_royale.di.adapter_container import AdapterContainer
+from algo_royale.di.feature_engineering_container import FeatureEngineeringContainer
+from algo_royale.di.logger_container import LoggerContainer
+from algo_royale.di.repo_container import RepoContainer
+from algo_royale.di.stage_data_container import StageDataContainer
 from algo_royale.logging.logger_type import LoggerType
 
 
@@ -13,11 +18,13 @@ class DataPrepCoordinatorContainer(containers.DeclarativeContainer):
     """Stage Coordinator Container"""
 
     config = providers.Configuration()
-    logger_container = providers.DependenciesContainer()
-    stage_data_container = providers.DependenciesContainer()
-    feature_engineering_container = providers.DependenciesContainer()
-    adapter_container = providers.DependenciesContainer()
-    repo_container = providers.DependenciesContainer()
+    logger_container: LoggerContainer = providers.DependenciesContainer()
+    stage_data_container: StageDataContainer = providers.DependenciesContainer()
+    feature_engineering_container: FeatureEngineeringContainer = (
+        providers.DependenciesContainer()
+    )
+    adapter_container: AdapterContainer = providers.DependenciesContainer()
+    repo_container: RepoContainer = providers.DependenciesContainer()
 
     data_ingest_stage_coordinator = providers.Singleton(
         DataIngestStageCoordinator,
@@ -39,5 +46,5 @@ class DataPrepCoordinatorContainer(containers.DeclarativeContainer):
         logger=logger_container.provides_logger(
             logger_type=LoggerType.BACKTEST_FEATURE_ENGINEERING
         ),
-        feature_engineer=feature_engineering_container.feature_engineer,
+        feature_engineer=feature_engineering_container.backtest_feature_engineer,
     )

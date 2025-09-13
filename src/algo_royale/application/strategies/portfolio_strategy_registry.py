@@ -20,14 +20,14 @@ from algo_royale.services.symbol_service import SymbolService
 class PortfolioStrategyRegistry:
     def __init__(
         self,
-        symbol_manager: SymbolService,
+        symbol_service: SymbolService,
         stage_data_manager: StageDataManager,
         evaluation_json_filename: str,
         viable_strategies_path: str,
         portfolio_strategy_factory: PortfolioStrategyFactory,
         logger: Loggable,
     ):
-        self.symbol_manager = symbol_manager
+        self.symbol_manager = symbol_service
         self.stage_data_manager = stage_data_manager
         self.evaluation_json_filename = evaluation_json_filename
         self.viable_strategies_path = Path(viable_strategies_path)

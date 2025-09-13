@@ -15,13 +15,13 @@ class TradesService:
     def __init__(
         self,
         account_adapter: AccountAdapter,
-        repo: TradeRepo,
+        trade_repo: TradeRepo,
         logger: Loggable,
         user_id: str,
         account_id: str,
         days_to_settle: int = 1,
     ):
-        self.repo = repo
+        self.repo = trade_repo
         self.account_adapter = account_adapter
         self.logger = logger
         self.user_id = user_id

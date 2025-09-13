@@ -15,7 +15,7 @@ class LedgerService:
         self,
         cash_service: AccountCashService,
         order_service: OrderService,
-        trade_service: TradesService,
+        trades_service: TradesService,
         position_service: PositionsService,
         enriched_data_service: EnrichedDataService,
         logger: Loggable,
@@ -23,7 +23,7 @@ class LedgerService:
         self.entries = []
         self.cash_service = cash_service
         self.order_service = order_service
-        self.trade_service = trade_service
+        self.trade_service = trades_service
         self.position_service = position_service
         self.enriched_data_service = enriched_data_service
         self.logger = logger

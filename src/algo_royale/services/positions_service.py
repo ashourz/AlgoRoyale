@@ -9,13 +9,13 @@ from algo_royale.repo.trade_repo import TradeRepo
 class PositionsService:
     def __init__(
         self,
-        adapter: PositionsAdapter,
+        positions_adapter: PositionsAdapter,
         trade_repo: TradeRepo,
         logger: Loggable,
         user_id: str,
         account_id: str,
     ):
-        self.adapter = adapter
+        self.adapter = positions_adapter
         self.trade_repo = trade_repo
         self.logger = logger
         self.user_id = user_id

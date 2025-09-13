@@ -8,7 +8,9 @@ from algo_royale.application.signals.signals_data_payload import SignalDataPaylo
 from algo_royale.application.signals.stream_signal_roster_object import (
     StreamSignalRosterObject,
 )
-from algo_royale.application.strategies.strategy_registry import StrategyRegistry
+from algo_royale.application.strategies.signal_strategy_registry import (
+    SignalStrategyRegistry,
+)
 from algo_royale.application.utils.async_pubsub import AsyncSubscriber
 from algo_royale.backtester.strategy.signal.combined_weighted_signal_strategy import (
     CombinedWeightedSignalStrategy,
@@ -22,7 +24,7 @@ class SignalGenerator:
     def __init__(
         self,
         enriched_data_streamer: MarketDataEnrichedStreamer,
-        strategy_registry: StrategyRegistry,
+        strategy_registry: SignalStrategyRegistry,
         logger: Loggable,
     ):
         self.logger = logger

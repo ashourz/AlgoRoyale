@@ -3,7 +3,7 @@ from algo_royale.application.utils.async_pubsub import AsyncSubscriber
 from algo_royale.logging.loggable import Loggable
 from algo_royale.services.ledger_service import LedgerService
 from algo_royale.services.order_monitor_service import OrderMonitorService
-from algo_royale.services.orders_execution_service import OrderExecutionServices
+from algo_royale.services.orders_execution_service import OrderExecutionService
 from algo_royale.services.orders_service import OrderService
 from algo_royale.services.positions_service import PositionsService
 from algo_royale.services.symbol_hold_service import SymbolHoldService
@@ -22,7 +22,7 @@ class MarketSessionService:
         symbol_hold_service: SymbolHoldService,
         trade_service: TradesService,
         ledger_service: LedgerService,
-        order_execution_service: OrderExecutionServices,
+        order_execution_service: OrderExecutionService,
         order_monitor_service: OrderMonitorService,
         logger: Loggable,
     ):

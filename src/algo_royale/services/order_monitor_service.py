@@ -15,12 +15,12 @@ class OrderMonitorService:
         self,
         ledger_service: LedgerService,  ## Service for managing the ledger
         order_event_service: OrderEventService,  ## Incoming order events
-        trade_service: TradesService,  ## Service for managing trades
+        trades_service: TradesService,  ## Service for managing trades
         logger: Loggable,
     ):
         self.ledger_service = ledger_service
         self.order_event_service = order_event_service
-        self.trade_service = trade_service
+        self.trade_service = trades_service
         self.order_events_subscriber = None
         self.logger = logger
 

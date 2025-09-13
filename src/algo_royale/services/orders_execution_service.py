@@ -17,7 +17,7 @@ from algo_royale.services.trades_service import TradesService
 
 
 ##TODO: add days to settle to config
-class OrderExecutionServices:
+class OrderExecutionService:
     def __init__(
         self,
         ledger_service: LedgerService,  ## Service for managing the ledger

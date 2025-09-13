@@ -42,7 +42,7 @@ class SymbolHoldService:
         symbol_hold_tracker: SymbolHoldTracker,
         order_service: OrderService,
         order_event_service: OrderEventService,
-        position_service: PositionsService,
+        positions_service: PositionsService,
         trades_service: TradesService,
         logger: Logger,
         post_fill_delay_seconds: float,  ## TODO: move to config as 60
@@ -51,7 +51,7 @@ class SymbolHoldService:
         self.symbol_hold_tracker = symbol_hold_tracker
         self.order_service = order_service
         self.order_event_service = order_event_service
-        self.position_service = position_service
+        self.position_service = positions_service
         self.trades_service = trades_service
         self._order_event_subscriber = None
         self.logger = logger
