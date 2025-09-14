@@ -4,7 +4,7 @@
 import pytest
 
 from algo_royale.models.alpaca_market_data.alpaca_news import News, NewsResponse
-from tests.mocks.mock_alpaca_news_client import MockAlpacaNewsClient
+from tests.mocks.clients.mock_alpaca_news_client import MockAlpacaNewsClient
 from tests.mocks.mock_loggable import MockLoggable
 
 logger = MockLoggable()

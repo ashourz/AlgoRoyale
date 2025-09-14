@@ -11,7 +11,7 @@ from algo_royale.models.alpaca_trading.alpaca_position import (
     PositionList,
     PositionSide,
 )
-from tests.mocks.mock_alpaca_positions_client import MockAlpacaPositionsClient
+from tests.mocks.clients.mock_alpaca_positions_client import MockAlpacaPositionsClient
 from tests.mocks.mock_loggable import MockLoggable
 
 

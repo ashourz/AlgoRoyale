@@ -2,43 +2,18 @@
 
 
 from datetime import datetime
-from unittest.mock import AsyncMock
 
 import pytest
 
-from algo_royale.clients.alpaca.alpaca_trading.alpaca_calendar_client import (
-    AlpacaCalendarClient,
-)
 from algo_royale.models.alpaca_trading.alpaca_calendar import Calendar, CalendarList
+from tests.mocks.clients.mock_alpaca_calendar_client import MockAlpacaCalendarClient
 from tests.mocks.mock_loggable import MockLoggable
 
 
+# Async fixture for MockAlpacaAccountClient
 @pytest.fixture
-async def alpaca_client(monkeypatch):
-    client = AlpacaCalendarClient(
-        logger=MockLoggable(),
-        base_url="https://mock.alpaca.markets",
-        api_key="fake_key",
-        api_secret="fake_secret",
-        api_key_header="APCA-API-KEY-ID",
-        api_secret_header="APCA-API-SECRET-KEY",
-        http_timeout=5,
-        reconnect_delay=1,
-        keep_alive_timeout=5,
-    )
-    fake_calendar = Calendar(
-        trading_day="2024-01-01",
-        open="2024-01-01T09:30:00",
-        close="2024-01-01T16:00:00",
-        session_open="2024-01-01T09:00:00",
-        session_close="2024-01-01T17:00:00",
-        settlement_date="2024-01-02",
-    )
-    monkeypatch.setattr(
-        client,
-        "fetch_calendar",
-        AsyncMock(return_value=CalendarList(calendars=[fake_calendar])),
-    )
+async def alpaca_client():
+    client = MockAlpacaCalendarClient(logger=MockLoggable())
     yield client
     await client.aclose()
 

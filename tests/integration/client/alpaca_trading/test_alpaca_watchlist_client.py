@@ -6,7 +6,7 @@ import uuid
 import pytest
 
 from algo_royale.models.alpaca_trading.alpaca_watchlist import Watchlist
-from tests.mocks.mock_alpaca_watchlist_client import MockAlpacaWatchlistClient
+from tests.mocks.clients.mock_alpaca_watchlist_client import MockAlpacaWatchlistClient
 from tests.mocks.mock_loggable import MockLoggable
 
 

@@ -1,11 +1,7 @@
 from datetime import datetime
-from unittest.mock import AsyncMock
 
 import pytest
 
-from algo_royale.clients.alpaca.alpaca_trading.alpaca_orders_client import (
-    AlpacaOrdersClient,
-)
 from algo_royale.clients.alpaca.exceptions import (
     InsufficientBuyingPowerOrSharesError,
     UnprocessableOrderException,
@@ -25,64 +21,14 @@ from algo_royale.models.alpaca_trading.enums.enums import (
     SortDirection,
     TimeInForce,
 )
+from tests.mocks.clients.mock_alpaca_orders_client import MockAlpacaOrdersClient
 from tests.mocks.mock_loggable import MockLoggable
 
 
+# Async fixture for MockAlpacaAccountClient
 @pytest.fixture
-async def alpaca_client(monkeypatch):
-    client = AlpacaOrdersClient(
-        logger=MockLoggable(),
-        base_url="https://mock.alpaca.markets",
-        api_key="fake_key",
-        api_secret="fake_secret",
-        api_key_header="APCA-API-KEY-ID",
-        api_secret_header="APCA-API-SECRET-KEY",
-        http_timeout=5,
-        reconnect_delay=1,
-        keep_alive_timeout=5,
-    )
-    # Patch fetch_orders and fetch_order to return fake responses
-    fake_order = Order(
-        symbol="AAPL",
-        qty=1,
-        side=OrderSide.BUY,
-        type=OrderType.MARKET,
-        time_in_force=TimeInForce.DAY,
-        id="order_id",
-        status="new",
-        client_order_id="client_order_id",
-        created_at="2024-01-01T09:30:00",
-        updated_at="2024-01-01T09:31:00",
-        submitted_at="2024-01-01T09:30:00",
-        asset_id="asset_id",
-        asset_class="us_equity",
-        filled_qty=0,
-        order_type=OrderType.MARKET,
-        extended_hours=False,
-    )
-    monkeypatch.setattr(
-        client,
-        "get_all_orders",
-        AsyncMock(return_value=OrderListResponse(orders=[fake_order])),
-    )
-    monkeypatch.setattr(
-        client, "get_order_by_client_order_id", AsyncMock(return_value=fake_order)
-    )
-    monkeypatch.setattr(client, "create_order", AsyncMock(return_value=fake_order))
-    monkeypatch.setattr(
-        client,
-        "delete_order_by_client_order_id",
-        AsyncMock(return_value=DeleteOrderStatus(id="order_id", status=1)),
-    )
-    monkeypatch.setattr(
-        client,
-        "delete_all_orders",
-        AsyncMock(
-            return_value=DeleteOrdersResponse(
-                orders=[DeleteOrderStatus(id="order_id", status=200)]
-            )
-        ),
-    )
+async def alpaca_client():
+    client = MockAlpacaOrdersClient(logger=MockLoggable())
     yield client
     await client.aclose()
 
