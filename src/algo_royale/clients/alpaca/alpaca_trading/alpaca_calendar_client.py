@@ -7,7 +7,7 @@ from typing import Optional
 from algo_royale.clients.alpaca.alpaca_base_client import AlpacaBaseClient
 from algo_royale.logging.loggable import Loggable
 from algo_royale.models.alpaca_trading.alpaca_calendar import CalendarList
-from algo_royale.models.alpaca_trading.enums import CalendarDateType
+from algo_royale.models.alpaca_trading.enums.enums import CalendarDateType
 
 
 class AlpacaCalendarClient(AlpacaBaseClient):

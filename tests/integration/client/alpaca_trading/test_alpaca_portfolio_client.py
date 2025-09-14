@@ -1,28 +1,45 @@
 # src: tests/integration/client/test_alpaca_portfolio_client.py
 
+
 from datetime import datetime
+from unittest.mock import AsyncMock
 
 import pytest
 
 from algo_royale.clients.alpaca.alpaca_trading.alpaca_portfolio_client import (
     AlpacaPortfolioClient,
 )
-from algo_royale.di.container import DIContainer
-from algo_royale.logging.logger_env import LoggerEnv
-from algo_royale.logging.logger_factory import LoggerFactory
 from algo_royale.models.alpaca_trading.alpaca_portfolio import PortfolioPerformance
-
-# Set up logging (prints to console)
-logger = LoggerFactory.get_base_logger(LoggerEnv.TEST)
+from tests.mocks.mock_loggable import MockLoggable
 
 
 @pytest.fixture
-async def alpaca_client():
+async def alpaca_client(monkeypatch):
     client = AlpacaPortfolioClient(
-        trading_config=DIContainer.trading_config(),
+        logger=MockLoggable(),
+        base_url="https://mock.alpaca.markets",
+        api_key="fake_key",
+        api_secret="fake_secret",
+        api_key_header="APCA-API-KEY-ID",
+        api_secret_header="APCA-API-SECRET-KEY",
+        http_timeout=5,
+        reconnect_delay=1,
+        keep_alive_timeout=5,
+    )
+    fake_performance = PortfolioPerformance(
+        timestamp=[1, 2, 3],
+        equity=[1000.0, 1010.0, 1020.0],
+        profit_loss=[0.0, 10.0, 20.0],
+        profit_loss_pct=[0.0, 0.01, 0.02],
+        base_value=1000.0,
+        timeframe="1D",
+        base_value_asof=datetime.now(),
+    )
+    monkeypatch.setattr(
+        client, "fetch_portfolio_history", AsyncMock(return_value=fake_performance)
     )
     yield client
-    await client.aclose()  # Clean up the async client
+    await client.aclose()
 
 
 @pytest.mark.asyncio

@@ -1,6 +1,5 @@
-# src: tests/integration/client/test_alpaca_account_client.py
-
 from datetime import datetime
+from unittest.mock import AsyncMock
 
 import pytest
 
@@ -11,34 +10,81 @@ from algo_royale.clients.alpaca.exceptions import (
     InsufficientBuyingPowerOrSharesError,
     UnprocessableOrderException,
 )
-from algo_royale.di.container import DIContainer
-from algo_royale.logging.logger_env import LoggerEnv
-from algo_royale.logging.logger_factory import LoggerFactory
 from algo_royale.models.alpaca_trading.alpaca_order import (
     DeleteOrdersResponse,
     DeleteOrderStatus,
     Order,
     OrderListResponse,
 )
-from algo_royale.models.alpaca_trading.enums import (
+
+# src: tests/integration/client/test_alpaca_account_client.py
+from algo_royale.models.alpaca_trading.enums.enums import (
     OrderSide,
     OrderStatusFilter,
     OrderType,
     SortDirection,
     TimeInForce,
 )
-
-# Set up logging (prints to console)
-logger = LoggerFactory.get_base_logger(LoggerEnv.TEST)
+from tests.mocks.mock_loggable import MockLoggable
 
 
 @pytest.fixture
-async def alpaca_client():
+async def alpaca_client(monkeypatch):
     client = AlpacaOrdersClient(
-        trading_config=DIContainer.trading_config(),
+        logger=MockLoggable(),
+        base_url="https://mock.alpaca.markets",
+        api_key="fake_key",
+        api_secret="fake_secret",
+        api_key_header="APCA-API-KEY-ID",
+        api_secret_header="APCA-API-SECRET-KEY",
+        http_timeout=5,
+        reconnect_delay=1,
+        keep_alive_timeout=5,
+    )
+    # Patch fetch_orders and fetch_order to return fake responses
+    fake_order = Order(
+        symbol="AAPL",
+        qty=1,
+        side=OrderSide.BUY,
+        type=OrderType.MARKET,
+        time_in_force=TimeInForce.DAY,
+        id="order_id",
+        status="new",
+        client_order_id="client_order_id",
+        created_at="2024-01-01T09:30:00",
+        updated_at="2024-01-01T09:31:00",
+        submitted_at="2024-01-01T09:30:00",
+        asset_id="asset_id",
+        asset_class="us_equity",
+        filled_qty=0,
+        order_type=OrderType.MARKET,
+        extended_hours=False,
+    )
+    monkeypatch.setattr(
+        client,
+        "get_all_orders",
+        AsyncMock(return_value=OrderListResponse(orders=[fake_order])),
+    )
+    monkeypatch.setattr(
+        client, "get_order_by_client_order_id", AsyncMock(return_value=fake_order)
+    )
+    monkeypatch.setattr(client, "create_order", AsyncMock(return_value=fake_order))
+    monkeypatch.setattr(
+        client,
+        "delete_order_by_client_order_id",
+        AsyncMock(return_value=DeleteOrderStatus(id="order_id", status=1)),
+    )
+    monkeypatch.setattr(
+        client,
+        "delete_all_orders",
+        AsyncMock(
+            return_value=DeleteOrdersResponse(
+                orders=[DeleteOrderStatus(id="order_id", status=200)]
+            )
+        ),
     )
     yield client
-    await client.aclose()  # Clean up the async client
+    await client.aclose()
 
 
 @pytest.mark.asyncio
@@ -64,6 +110,7 @@ class TestAlpacaOrdersClientIntegration:
         }
 
         assert hasattr(order, "created_at")
+
         assert isinstance(order.created_at, datetime)
 
     async def test_create_order(self, alpaca_client):
@@ -83,7 +130,7 @@ class TestAlpacaOrdersClientIntegration:
                 order_type=order_type,
                 time_in_force=time_in_force,
             )
-            logger.debug("Order Response", order)
+            alpaca_client.logger.debug("Order Response", order)
 
             # ✅ SUCCESS CASE - Status 200
             assert order is not None

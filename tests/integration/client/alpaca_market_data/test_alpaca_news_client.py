@@ -31,7 +31,7 @@ async def alpaca_client(monkeypatch):
     fake_response = {
         "news": [
             {
-                "id": "news_1",
+                "id": 1,
                 "author": "Test Author",
                 "content": "Test content",
                 "created_at": "2024-04-01T00:00:00Z",

@@ -1,21 +1,31 @@
 # src: tests/integration/client/test_alpaca_portfolio_client.py
 
+
 import pytest
 
-from algo_royale.di.container import di_container
-from algo_royale.logging.logger_env import LoggerEnv
-from algo_royale.logging.logger_factory import LoggerFactory
 from algo_royale.models.alpaca_trading.alpaca_clock import Clock
-
-# Set up logging (prints to console)
-logger = LoggerFactory.get_base_logger(LoggerEnv.TEST)
+from tests.mocks.mock_loggable import MockLoggable
 
 
 @pytest.fixture
-async def alpaca_client():
-    client = di_container.alpaca_clock_client()
+async def alpaca_client(monkeypatch):
+    class DummyClockClient:
+        logger = MockLoggable()
+
+        async def fetch_clock(self):
+            return Clock(
+                timestamp=1234567890,
+                is_open=True,
+                next_open="2024-09-15T09:30:00Z",
+                next_close="2024-09-15T16:00:00Z",
+            )
+
+        async def aclose(self):
+            pass
+
+    client = DummyClockClient()
     yield client
-    await client.aclose()  # Clean up the async client
+    await client.aclose()
 
 
 @pytest.mark.asyncio

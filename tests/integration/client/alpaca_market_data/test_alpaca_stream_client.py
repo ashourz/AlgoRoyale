@@ -7,6 +7,7 @@ from algo_royale.clients.alpaca.alpaca_market_data.alpaca_stream_client import (
     AlpacaStreamClient,
     DataFeed,
 )
+from tests.mocks.mock_loggable import MockLoggable
 
 
 # Refactor TestHandler class without __init__ constructor
@@ -29,10 +30,28 @@ class TestHandler:
 
 
 @pytest.fixture
-async def alpaca_client():
+async def alpaca_client(monkeypatch):
     client = AlpacaStreamClient(
-        trading_config=DIContainer.trading_config(),
+        logger=MockLoggable(),
+        base_url="wss://mock.alpaca.markets",
+        api_key="fake_key",
+        api_secret="fake_secret",
+        api_key_header="APCA-API-KEY-ID",
+        api_secret_header="APCA-API-SECRET-KEY",
+        http_timeout=5,
+        reconnect_delay=1,
+        keep_alive_timeout=5,
     )
+
+    # Patch the stream method to simulate receiving messages
+    async def fake_stream(symbols, feed, on_quote, on_trade, on_bar):
+        await on_quote({"symbol": symbols[0], "price": 100.0})
+        await on_trade({"symbol": symbols[0], "price": 100.0})
+        await on_bar({"symbol": symbols[0], "open": 99.0, "close": 101.0})
+        await asyncio.sleep(0.1)
+
+    monkeypatch.setattr(client, "stream", fake_stream)
+    monkeypatch.setattr(client, "stop", lambda: None)
     yield client
     await client.aclose()
 

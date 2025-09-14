@@ -7,7 +7,7 @@ from algo_royale.clients.alpaca.alpaca_base_client import AlpacaBaseClient
 from algo_royale.clients.alpaca.exceptions import ParameterConflictError
 from algo_royale.logging.loggable import Loggable
 from algo_royale.models.alpaca_trading.alpaca_portfolio import PortfolioPerformance
-from algo_royale.models.alpaca_trading.enums import IntradayReporting, PNLReset
+from algo_royale.models.alpaca_trading.enums.enums import IntradayReporting, PNLReset
 
 
 class AlpacaPortfolioClient(AlpacaBaseClient):
