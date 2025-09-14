@@ -6,8 +6,6 @@ from decimal import Decimal
 from unittest import TestCase
 from unittest.mock import patch
 
-from algo_royale.repo.indicator_repo import IndicatorRepo
-
 
 class TestIndicatorsService(TestCase):
     @patch("algo_royale.services.db.indicator_service.IndicatorDAO")
