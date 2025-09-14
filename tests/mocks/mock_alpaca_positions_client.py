@@ -68,7 +68,9 @@ class MockAlpacaPositionsClient(AlpacaPositionsClient):
             return PositionList(positions=[copy.deepcopy(pos)])
         raise AlpacaPositionNotFoundException()
 
-    async def close_position_by_symbol_or_asset_id(self, symbol_or_asset_id, qty=None, **kwargs):
+    async def close_position_by_symbol_or_asset_id(
+        self, symbol_or_asset_id, qty=None, **kwargs
+    ):
         pos = self._positions.get(symbol_or_asset_id)
         if pos:
             # Optionally handle qty (simulate partial close if needed)
