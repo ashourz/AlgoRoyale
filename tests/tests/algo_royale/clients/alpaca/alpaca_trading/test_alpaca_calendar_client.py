@@ -7,13 +7,12 @@ import pytest
 
 from algo_royale.models.alpaca_trading.alpaca_calendar import Calendar, CalendarList
 from tests.mocks.clients.mock_alpaca_calendar_client import MockAlpacaCalendarClient
-from tests.mocks.mock_loggable import MockLoggable
 
 
 # Async fixture for MockAlpacaAccountClient
 @pytest.fixture
 async def alpaca_client():
-    client = MockAlpacaCalendarClient(logger=MockLoggable())
+    client = MockAlpacaCalendarClient()
     yield client
     await client.aclose()
 

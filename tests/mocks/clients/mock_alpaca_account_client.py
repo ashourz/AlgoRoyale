@@ -12,8 +12,8 @@ from tests.mocks.mock_loggable import MockLoggable
 
 
 class MockAlpacaAccountClient:
-    def __init__(self, logger=None, **kwargs):
-        self.logger = logger or MockLoggable()
+    def __init__(self):
+        self.logger = MockLoggable()
 
     async def fetch_account(self):
         return Account(

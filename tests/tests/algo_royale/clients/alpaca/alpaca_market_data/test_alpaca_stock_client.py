@@ -29,7 +29,7 @@ logger = MockLoggable()
 
 @pytest.fixture
 async def alpaca_client():
-    client = MockAlpacaStockClient(logger=logger)
+    client = MockAlpacaStockClient()
     yield client
     await client.aclose()
 

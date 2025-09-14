@@ -17,8 +17,8 @@ from tests.mocks.mock_loggable import MockLoggable
 
 
 class MockAlpacaOrdersClient:
-    def __init__(self, logger=None, **kwargs):
-        self.logger = logger or MockLoggable()
+    def __init__(self):
+        self.logger = MockLoggable()
 
     async def create_order(
         self, symbol, qty, side, order_type, time_in_force, **kwargs

@@ -5,8 +5,8 @@ from tests.mocks.mock_loggable import MockLoggable
 
 
 class MockAlpacaPortfolioClient:
-    def __init__(self, logger=None, **kwargs):
-        self.logger = logger or MockLoggable()
+    def __init__(self):
+        self.logger = MockLoggable()
 
     async def fetch_portfolio_history(self, period="1M", timeframe="1D"):
         return PortfolioPerformance(

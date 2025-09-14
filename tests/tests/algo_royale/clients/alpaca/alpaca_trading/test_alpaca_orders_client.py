@@ -22,13 +22,12 @@ from algo_royale.models.alpaca_trading.enums.enums import (
     TimeInForce,
 )
 from tests.mocks.clients.mock_alpaca_orders_client import MockAlpacaOrdersClient
-from tests.mocks.mock_loggable import MockLoggable
 
 
 # Async fixture for MockAlpacaAccountClient
 @pytest.fixture
 async def alpaca_client():
-    client = MockAlpacaOrdersClient(logger=MockLoggable())
+    client = MockAlpacaOrdersClient()
     yield client
     await client.aclose()
 

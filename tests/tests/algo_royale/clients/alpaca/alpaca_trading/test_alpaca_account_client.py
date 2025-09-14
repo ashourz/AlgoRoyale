@@ -13,13 +13,12 @@ from algo_royale.models.alpaca_trading.enums.enums import (
     TradeConfirmationEmail,
 )
 from tests.mocks.clients.mock_alpaca_account_client import MockAlpacaAccountClient
-from tests.mocks.mock_loggable import MockLoggable
 
 
 # Async fixture for MockAlpacaAccountClient
 @pytest.fixture
 async def alpaca_client():
-    client = MockAlpacaAccountClient(logger=MockLoggable())
+    client = MockAlpacaAccountClient()
     yield client
     await client.aclose()
 

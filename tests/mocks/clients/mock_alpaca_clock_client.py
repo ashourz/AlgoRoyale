@@ -3,8 +3,8 @@ from tests.mocks.mock_loggable import MockLoggable
 
 
 class MockAlpacaClockClient:
-    def __init__(self, logger=None, **kwargs):
-        self.logger = logger or MockLoggable()
+    def __init__(self):
+        self.logger = MockLoggable()
 
     async def fetch_clock(self):
         return Clock(

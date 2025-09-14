@@ -7,12 +7,14 @@ from algo_royale.clients.alpaca.alpaca_trading.alpaca_watchlist_client import (
 )
 from algo_royale.models.alpaca_trading.alpaca_asset import Asset
 from algo_royale.models.alpaca_trading.alpaca_watchlist import Watchlist
+from tests.mocks.mock_loggable import MockLoggable
 
 
 class MockAlpacaWatchlistClient(AlpacaWatchlistClient):
-    def __init__(self, logger):
+    def __init__(self):
+        self.logger = MockLoggable()
         super().__init__(
-            logger=logger,
+            logger=self.logger,
             base_url="https://mock.alpaca.markets",
             api_key="fake_key",
             api_secret="fake_secret",

@@ -6,13 +6,12 @@ import pytest
 from algo_royale.clients.alpaca.exceptions import AlpacaAssetNotFoundException
 from algo_royale.models.alpaca_trading.alpaca_asset import Asset
 from tests.mocks.clients.mock_alpaca_asset_client import MockAlpacaAssetsClient
-from tests.mocks.mock_loggable import MockLoggable
 
 
 # Async fixture for MockAlpacaAccountClient
 @pytest.fixture
 async def alpaca_client():
-    client = MockAlpacaAssetsClient(logger=MockLoggable())
+    client = MockAlpacaAssetsClient()
     yield client
     await client.aclose()
 

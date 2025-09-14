@@ -5,7 +5,6 @@ import pytest
 
 from algo_royale.clients.alpaca.alpaca_market_data.alpaca_stream_client import DataFeed
 from tests.mocks.clients.mock_alpaca_stream_client import MockAlpacaStreamClient
-from tests.mocks.mock_loggable import MockLoggable
 
 
 # Refactor TestHandler class without __init__ constructor
@@ -29,7 +28,7 @@ class TestHandler:
 
 @pytest.fixture
 async def alpaca_client():
-    client = MockAlpacaStreamClient(logger=MockLoggable())
+    client = MockAlpacaStreamClient()
     yield client
     await client.aclose()
 

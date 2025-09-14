@@ -3,10 +3,12 @@ from unittest.mock import AsyncMock
 from algo_royale.clients.alpaca.alpaca_market_data.alpaca_corporate_action_client import (
     AlpacaCorporateActionClient,
 )
+from tests.mocks.mock_loggable import MockLoggable
 
 
 class MockAlpacaCorporateActionClient(AlpacaCorporateActionClient):
-    def __init__(self, logger):
+    def __init__(self):
+        logger = MockLoggable()  # Or use a mock logger if needed
         super().__init__(
             logger=logger,
             base_url="https://mock.alpaca.markets",
@@ -18,8 +20,16 @@ class MockAlpacaCorporateActionClient(AlpacaCorporateActionClient):
             reconnect_delay=1,
             keep_alive_timeout=5,
         )
+        self.return_empty = False  # Default: not empty
 
     def get(self, endpoint, params=None):
+        if self.return_empty:
+            return AsyncMock(
+                return_value={
+                    "corporate_actions": {},
+                    "next_page_token": None,
+                }
+            )()
         return AsyncMock(
             return_value={
                 "corporate_actions": {

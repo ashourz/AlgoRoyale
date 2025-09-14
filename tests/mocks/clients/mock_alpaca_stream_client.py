@@ -3,12 +3,14 @@ import asyncio
 from algo_royale.clients.alpaca.alpaca_market_data.alpaca_stream_client import (
     AlpacaStreamClient,
 )
+from tests.mocks.mock_loggable import MockLoggable
 
 
 class MockAlpacaStreamClient(AlpacaStreamClient):
-    def __init__(self, logger):
+    def __init__(self):
+        self.logger = MockLoggable()
         super().__init__(
-            logger=logger,
+            logger=self.logger,
             base_url="wss://mock.alpaca.markets",
             api_key="fake_key",
             api_secret="fake_secret",

@@ -4,8 +4,8 @@ from tests.mocks.mock_loggable import MockLoggable
 
 
 class MockAlpacaAssetsClient:
-    def __init__(self, logger=None, **kwargs):
-        self.logger = logger or MockLoggable()
+    def __init__(self):
+        self.logger = MockLoggable()
 
     async def fetch_assets(self):
         fake_asset = Asset(

@@ -17,12 +17,14 @@ from algo_royale.models.alpaca_trading.alpaca_position import (
     PositionList,
     PositionSide,
 )
+from tests.mocks.mock_loggable import MockLoggable
 
 
 class MockAlpacaPositionsClient(AlpacaPositionsClient):
-    def __init__(self, logger):
+    def __init__(self):
+        self.logger = MockLoggable()
         super().__init__(
-            logger=logger,
+            logger=self.logger,
             base_url="https://mock.alpaca.markets",
             api_key="fake_key",
             api_secret="fake_secret",

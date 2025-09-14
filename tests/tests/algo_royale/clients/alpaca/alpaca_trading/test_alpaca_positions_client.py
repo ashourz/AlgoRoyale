@@ -12,12 +12,11 @@ from algo_royale.models.alpaca_trading.alpaca_position import (
     PositionSide,
 )
 from tests.mocks.clients.mock_alpaca_positions_client import MockAlpacaPositionsClient
-from tests.mocks.mock_loggable import MockLoggable
 
 
 @pytest.fixture
 async def alpaca_client():
-    client = MockAlpacaPositionsClient(logger=MockLoggable())
+    client = MockAlpacaPositionsClient()
     yield client
     await client.aclose()
 

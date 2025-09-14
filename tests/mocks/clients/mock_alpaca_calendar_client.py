@@ -5,8 +5,8 @@ from tests.mocks.mock_loggable import MockLoggable
 
 
 class MockAlpacaCalendarClient:
-    def __init__(self, logger=None, **kwargs):
-        self.logger = logger or MockLoggable()
+    def __init__(self):
+        self.logger = MockLoggable()
 
     async def fetch_calendar(self, start=None, end=None):
         fake_calendar = Calendar(
