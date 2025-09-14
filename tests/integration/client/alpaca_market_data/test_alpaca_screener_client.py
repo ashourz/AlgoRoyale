@@ -5,7 +5,6 @@ import pytest
 
 from algo_royale.clients.alpaca.alpaca_market_data.alpaca_screener_client import (
     ActiveStockFilter,
-    AlpacaScreenerClient,
 )
 from algo_royale.models.alpaca_market_data.alpaca_active_stock import (
     MostActiveStocksResponse,
@@ -13,43 +12,15 @@ from algo_royale.models.alpaca_market_data.alpaca_active_stock import (
 from algo_royale.models.alpaca_market_data.alpaca_market_mover import (
     MarketMoversResponse,
 )
+from tests.mocks.mock_alpaca_screener_client import MockAlpacaScreenerClient
 from tests.mocks.mock_loggable import MockLoggable
 
 logger = MockLoggable()
 
 
 @pytest.fixture
-async def alpaca_client(monkeypatch):
-    from unittest.mock import AsyncMock
-
-    client = AlpacaScreenerClient(
-        logger=logger,
-        base_url="https://mock.alpaca.markets",
-        api_key="fake_key",
-        api_secret="fake_secret",
-        api_key_header="APCA-API-KEY-ID",
-        api_secret_header="APCA-API-SECRET-KEY",
-        http_timeout=5,
-        reconnect_delay=1,
-        keep_alive_timeout=5,
-    )
-    # Patch the get method to return a fake response
-    fake_response = {
-        "market_type": "gainers",
-        "most_actives": [
-            {"symbol": "AAPL", "trade_count": 100, "volume": 10000},
-            {"symbol": "GOOG", "trade_count": 80, "volume": 8000},
-        ],
-        "gainers": [
-            {"symbol": "AAPL", "change": 5.0, "percent_change": 2.5, "price": 150.0}
-        ],
-        "losers": [
-            {"symbol": "GOOG", "change": -3.0, "percent_change": -1.5, "price": 120.0}
-        ],
-        "next_page_token": None,
-        "last_updated": "2024-09-14T12:00:00Z",
-    }
-    monkeypatch.setattr(client, "get", AsyncMock(return_value=fake_response))
+async def alpaca_client():
+    client = MockAlpacaScreenerClient(logger=logger)
     yield client
     await client.aclose()
 
