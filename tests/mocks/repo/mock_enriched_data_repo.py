@@ -21,6 +21,12 @@ class MockEnrichedDataRepo(EnrichedDataRepo):
         self._return_empty = False
         self._raise_exception = False
 
+    def set_return_empty(self, value: bool):
+        self._return_empty = value
+
+    def set_raise_exception(self, value: bool):
+        self._raise_exception = value
+
     def reset_return_empty(self):
         self._return_empty = False
 

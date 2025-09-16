@@ -1,5 +1,5 @@
 from algo_royale.adapters.trading.clock_adapter import ClockAdapter
-from tests.mocks.clients.mock_alpaca_clock_client import MockAlpacaClockClient
+from tests.mocks.clients.alpaca.mock_alpaca_clock_client import MockAlpacaClockClient
 from tests.mocks.mock_loggable import MockLoggable
 
 
