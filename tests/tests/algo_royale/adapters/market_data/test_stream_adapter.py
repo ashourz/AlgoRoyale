@@ -9,15 +9,16 @@ def stream_adapter():
     yield adapter
 
 
+@pytest.mark.asyncio
 class TestStreamAdapter:
-    def test_get_stream(self, stream_adapter):
-        result = pytest.run(stream_adapter.get_stream())
+    async def test_get_stream(self, stream_adapter):
+        result = await stream_adapter.get_stream()
         assert result is not None
         assert isinstance(result, list)
         assert "stream_event_1" in result
 
-    def test_get_stream_empty(self, stream_adapter):
+    async def test_get_stream_empty(self, stream_adapter):
         stream_adapter.set_return_empty(True)
-        result = pytest.run(stream_adapter.get_stream())
+        result = await stream_adapter.get_stream()
         assert result == []
         stream_adapter.reset_return_empty()

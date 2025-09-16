@@ -1,20 +1,17 @@
 from algo_royale.adapters.market_data.quote_adapter import QuoteAdapter
+from tests.mocks.clients.mock_alpaca_stock_client import MockAlpacaStockClient
 from tests.mocks.mock_loggable import MockLoggable
 
 
 class MockQuoteAdapter(QuoteAdapter):
     def __init__(self):
         logger = MockLoggable()
-        super().__init__(logger=logger)
+        client = MockAlpacaStockClient()
+        super().__init__(alpaca_stock_client=client, logger=logger)
         self.return_empty = False
 
     def set_return_empty(self, value: bool):
-        self.return_empty = value
+        self.client.return_empty = value
 
     def reset_return_empty(self):
-        self.return_empty = False
-
-    async def get_quotes(self, *args, **kwargs):
-        if self.return_empty:
-            return []
-        return [{"symbol": "AAPL", "price": 123.45}]
+        self.client.return_empty = False

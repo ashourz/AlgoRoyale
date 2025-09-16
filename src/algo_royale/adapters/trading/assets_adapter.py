@@ -3,7 +3,6 @@ from typing import Optional
 from algo_royale.clients.alpaca.alpaca_trading.alpaca_assets_client import (
     AlpacaAssetsClient,
 )
-from algo_royale.clients.alpaca.exceptions import AssetNotFoundError
 from algo_royale.logging.loggable import Loggable
 from algo_royale.models.alpaca_trading.alpaca_asset import Asset
 
@@ -64,9 +63,7 @@ class AssetsAdapter:
         """
         asset = await self.assets_client.fetch_asset_by_symbol_or_id(symbol_or_asset_id)
 
-        if asset is None:
-            raise AssetNotFoundError(
-                f"Asset with symbol or ID '{symbol_or_asset_id}' not found."
-            )
+        if not asset:
+            return None
 
         return asset

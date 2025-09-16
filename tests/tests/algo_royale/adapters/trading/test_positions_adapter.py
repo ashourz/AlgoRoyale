@@ -9,15 +9,20 @@ def positions_adapter():
     yield adapter
 
 
+@pytest.mark.asyncio
 class TestPositionsAdapter:
-    def test_get_positions(self, positions_adapter):
-        result = pytest.run(positions_adapter.get_positions())
-        assert result is not None
+    async def test_get_positions(self, positions_adapter):
+        result = await positions_adapter.get_positions()
         assert isinstance(result, list)
-        assert any("symbol" in p for p in result)
+        assert all(hasattr(p, "symbol") for p in result)
 
-    def test_get_positions_empty(self, positions_adapter):
+    async def test_get_position_by_symbol(self, positions_adapter):
+        result = await positions_adapter.get_position_by_symbol("AAPL")
+        assert result is not None
+        assert hasattr(result, "symbol")
+
+    async def test_get_positions_empty(self, positions_adapter):
         positions_adapter.set_return_empty(True)
-        result = pytest.run(positions_adapter.get_positions())
+        result = await positions_adapter.get_positions()
         assert result == []
         positions_adapter.reset_return_empty()

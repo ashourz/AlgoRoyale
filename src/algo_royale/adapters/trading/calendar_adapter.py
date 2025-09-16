@@ -4,7 +4,6 @@ from typing import Optional
 from algo_royale.clients.alpaca.alpaca_trading.alpaca_calendar_client import (
     AlpacaCalendarClient,
 )
-from algo_royale.clients.alpaca.exceptions import CalendarNotFoundError
 from algo_royale.logging.loggable import Loggable
 from algo_royale.models.alpaca_trading.alpaca_calendar import CalendarList
 
@@ -67,8 +66,6 @@ class CalendarAdapter:
         calendar = await self.calendar_client.fetch_calendar(start=start, end=end)
 
         if not calendar:
-            raise CalendarNotFoundError(
-                f"No corporate action calendar data found for the dates {start} to {end}."
-            )
+            return None
 
         return calendar

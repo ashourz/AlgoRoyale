@@ -9,15 +9,18 @@ def news_adapter():
     yield adapter
 
 
+@pytest.mark.asyncio
 class TestNewsAdapter:
-    def test_get_news(self, news_adapter):
-        result = pytest.run(news_adapter.get_news())
+    async def test_get_news(self, news_adapter):
+        result = await news_adapter.get_recent_news(symbols=["AAPL"])
         assert result is not None
-        assert isinstance(result, list)
-        assert any("headline" in n for n in result)
+        assert hasattr(result, "news")
+        assert isinstance(result.news, list)
+        assert any(hasattr(n, "headline") for n in result.news)
 
-    def test_get_news_empty(self, news_adapter):
+    async def test_get_news_empty(self, news_adapter):
         news_adapter.set_return_empty(True)
-        result = pytest.run(news_adapter.get_news())
-        assert result == []
+        result = await news_adapter.get_recent_news(symbols=["AAPL"])
+        assert result is not None
+        assert result.news == []
         news_adapter.reset_return_empty()

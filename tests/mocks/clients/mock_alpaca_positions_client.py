@@ -34,6 +34,8 @@ class MockAlpacaPositionsClient(AlpacaPositionsClient):
             reconnect_delay=1,
             keep_alive_timeout=5,
         )
+        self.return_empty = False
+        self.throw_exception = False
         self._positions = {}
         self._closed_positions = []
         # Add a default open position
@@ -60,11 +62,23 @@ class MockAlpacaPositionsClient(AlpacaPositionsClient):
         self._positions[pos.symbol] = pos
 
     async def fetch_all_open_positions(self):
+        if self.throw_exception:
+            raise Exception(
+                "MockAlpacaPositionsClient: Exception forced by throw_exception flag."
+            )
+        if self.return_empty:
+            return PositionList(positions=[])
         return PositionList(
             positions=[copy.deepcopy(p) for p in self._positions.values()]
         )
 
     async def fetch_open_position_by_symbol_or_asset_id(self, symbol_or_id):
+        if self.throw_exception:
+            raise Exception(
+                "MockAlpacaPositionsClient: Exception forced by throw_exception flag."
+            )
+        if self.return_empty:
+            return PositionList(positions=[])
         pos = self._positions.get(symbol_or_id)
         if pos:
             return PositionList(positions=[copy.deepcopy(pos)])
@@ -73,6 +87,12 @@ class MockAlpacaPositionsClient(AlpacaPositionsClient):
     async def close_position_by_symbol_or_asset_id(
         self, symbol_or_asset_id, qty=None, **kwargs
     ):
+        if self.throw_exception:
+            raise Exception(
+                "MockAlpacaPositionsClient: Exception forced by throw_exception flag."
+            )
+        if self.return_empty:
+            return ClosedPositionList(closedPositions=[])
         pos = self._positions.get(symbol_or_asset_id)
         if pos:
             # Optionally handle qty (simulate partial close if needed)
@@ -107,6 +127,12 @@ class MockAlpacaPositionsClient(AlpacaPositionsClient):
         raise AlpacaPositionNotFoundException()
 
     async def close_all_positions(self):
+        if self.throw_exception:
+            raise Exception(
+                "MockAlpacaPositionsClient: Exception forced by throw_exception flag."
+            )
+        if self.return_empty:
+            return ClosedPositionList(closedPositions=[])
         closed = []
         for symbol in list(self._positions.keys()):
             closed += (

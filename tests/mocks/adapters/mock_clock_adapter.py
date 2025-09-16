@@ -1,11 +1,13 @@
 from algo_royale.adapters.trading.clock_adapter import ClockAdapter
+from tests.mocks.clients.mock_alpaca_clock_client import MockAlpacaClockClient
 from tests.mocks.mock_loggable import MockLoggable
 
 
 class MockClockAdapter(ClockAdapter):
     def __init__(self):
+        client = MockAlpacaClockClient()
         logger = MockLoggable()
-        super().__init__(logger=logger)
+        super().__init__(client=client, logger=logger)
         self.return_empty = False
 
     def set_return_empty(self, value: bool):

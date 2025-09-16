@@ -1,3 +1,6 @@
+from algo_royale.clients.alpaca.alpaca_trading.alpaca_accounts_client import (
+    AlpacaAccountClient,
+)
 from algo_royale.models.alpaca_trading.alpaca_account import (
     Account,
     AccountActivities,
@@ -11,11 +14,30 @@ from algo_royale.models.alpaca_trading.enums.enums import (
 from tests.mocks.mock_loggable import MockLoggable
 
 
-class MockAlpacaAccountClient:
+class MockAlpacaAccountClient(AlpacaAccountClient):
     def __init__(self):
         self.logger = MockLoggable()
+        self.return_empty = False
+        self.throw_exception = False
+        super().__init__(
+            logger=self.logger,
+            base_url="https://mock.alpaca.markets",
+            api_key="fake_key",
+            api_secret="fake_secret",
+            api_key_header="APCA-API-KEY-ID",
+            api_secret_header="APCA-API-SECRET-KEY",
+            http_timeout=5,
+            reconnect_delay=1,
+            keep_alive_timeout=5,
+        )
 
     async def fetch_account(self):
+        if self.throw_exception:
+            raise Exception(
+                "MockAlpacaAccountClient: Exception forced by throw_exception flag."
+            )
+        if self.return_empty:
+            return None
         return Account(
             id="id",
             account_number="123",
@@ -51,23 +73,64 @@ class MockAlpacaAccountClient:
         )
 
     async def fetch_account_configuration(self):
+        if self.throw_exception:
+            raise Exception(
+                "MockAlpacaAccountClient: Exception forced by throw_exception flag."
+            )
+        if self.return_empty:
+            return None
         return AccountConfiguration(
             dtbp_check=DTBPCheck.ENTRY,
             trade_confirm_email=TradeConfirmationEmail.NONE,
         )
 
     async def update_account_configuration(self, **kwargs):
+        if self.throw_exception:
+            raise Exception(
+                "MockAlpacaAccountClient: Exception forced by throw_exception flag."
+            )
+        if self.return_empty:
+            return None
         return AccountConfiguration(
             dtbp_check=DTBPCheck.ENTRY,
             trade_confirm_email=TradeConfirmationEmail.NONE,
         )
 
-    async def get_account_activities(self, after=None, page_size=None):
+    async def get_account_activities(
+        self,
+        activity_types=None,
+        category=None,
+        date=None,
+        until=None,
+        after=None,
+        direction=None,
+        page_size=None,
+        page_token=None,
+    ):
+        if self.throw_exception:
+            raise Exception(
+                "MockAlpacaAccountClient: Exception forced by throw_exception flag."
+            )
+        if self.return_empty:
+            return AccountActivities(activities=[])
         return AccountActivities(activities=[])
 
     async def get_account_activities_by_activity_type(
-        self, activity_type: ActivityType
+        self,
+        activity_type: ActivityType,
+        date=None,
+        until=None,
+        after=None,
+        direction=None,
+        page_size=None,
+        page_token=None,
     ):
+        if self.throw_exception:
+            raise Exception(
+                "MockAlpacaAccountClient: Exception forced by throw_exception flag."
+            )
+        if self.return_empty:
+            return AccountActivities(activities=[])
         return AccountActivities(activities=[])
 
     async def aclose(self):

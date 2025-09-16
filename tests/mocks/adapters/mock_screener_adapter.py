@@ -1,11 +1,13 @@
 from algo_royale.adapters.market_data.screener_adapter import ScreenerAdapter
+from tests.mocks.clients.mock_alpaca_screener_client import MockAlpacaScreenerClient
 from tests.mocks.mock_loggable import MockLoggable
 
 
 class MockScreenerAdapter(ScreenerAdapter):
     def __init__(self):
+        client = MockAlpacaScreenerClient()
         logger = MockLoggable()
-        super().__init__(logger=logger)
+        super().__init__(client=client, logger=logger)
         self.return_empty = False
 
     def set_return_empty(self, value: bool):

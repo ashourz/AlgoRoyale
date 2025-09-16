@@ -9,15 +9,20 @@ def orders_adapter():
     yield adapter
 
 
+@pytest.mark.asyncio
 class TestOrdersAdapter:
-    def test_get_orders(self, orders_adapter):
-        result = pytest.run(orders_adapter.get_orders())
-        assert result is not None
+    async def test_get_orders(self, orders_adapter):
+        result = await orders_adapter.get_orders()
         assert isinstance(result, list)
-        assert any("id" in o for o in result)
+        assert all(hasattr(o, "id") for o in result)
 
-    def test_get_orders_empty(self, orders_adapter):
+    async def test_get_order_by_id(self, orders_adapter):
+        result = await orders_adapter.get_order_by_id("order_id")
+        assert result is not None
+        assert hasattr(result, "id")
+
+    async def test_get_orders_empty(self, orders_adapter):
         orders_adapter.set_return_empty(True)
-        result = pytest.run(orders_adapter.get_orders())
+        result = await orders_adapter.get_orders()
         assert result == []
         orders_adapter.reset_return_empty()

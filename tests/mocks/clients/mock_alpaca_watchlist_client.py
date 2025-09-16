@@ -26,6 +26,7 @@ class MockAlpacaWatchlistClient(AlpacaWatchlistClient):
         )
         self._watchlists_by_id = {}
         self._watchlists_by_name = {}
+        self.return_empty = False
 
     def _make_watchlist(self, name, symbols=None, wid=None):
         assets = []

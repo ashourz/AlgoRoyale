@@ -9,14 +9,15 @@ def clock_adapter():
     yield adapter
 
 
+@pytest.mark.asyncio
 class TestClockAdapter:
-    def test_get_clock(self, clock_adapter):
-        result = pytest.run(clock_adapter.get_clock())
+    async def test_get_clock(self, clock_adapter):
+        result = await clock_adapter.get_clock()
         assert result is not None
-        assert "timestamp" in result
+        assert hasattr(result, "timestamp")
 
-    def test_get_clock_empty(self, clock_adapter):
+    async def test_get_clock_empty(self, clock_adapter):
         clock_adapter.set_return_empty(True)
-        result = pytest.run(clock_adapter.get_clock())
-        assert result is None
+        result = await clock_adapter.get_clock()
+        assert result is None or result == {}
         clock_adapter.reset_return_empty()

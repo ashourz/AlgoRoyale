@@ -20,8 +20,17 @@ class MockAlpacaNewsClient(AlpacaNewsClient):
             reconnect_delay=1,
             keep_alive_timeout=5,
         )
+        self.return_empty = False
+        self.throw_exception = False
 
     def get(self, endpoint, params=None):
+        if self.throw_exception:
+            raise Exception(
+                "MockAlpacaNewsClient: Exception forced by throw_exception flag."
+            )
+        if self.return_empty:
+            return AsyncMock(return_value={"news": [], "next_page_token": None})()
+        # Optionally, call super().get if you want real logic, or return a mock
         return AsyncMock(
             return_value={
                 "news": [

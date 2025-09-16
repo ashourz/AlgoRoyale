@@ -9,15 +9,15 @@ def calendar_adapter():
     yield adapter
 
 
+@pytest.mark.asyncio
 class TestCalendarAdapter:
-    def test_get_calendar(self, calendar_adapter):
-        result = pytest.run(calendar_adapter.get_calendar())
-        assert result is not None
+    async def test_get_calendar(self, calendar_adapter):
+        result = await calendar_adapter.get_calendar()
         assert isinstance(result, list)
-        assert any("date" in c for c in result)
+        assert all(hasattr(c, "date") for c in result)
 
-    def test_get_calendar_empty(self, calendar_adapter):
+    async def test_get_calendar_empty(self, calendar_adapter):
         calendar_adapter.set_return_empty(True)
-        result = pytest.run(calendar_adapter.get_calendar())
+        result = await calendar_adapter.get_calendar()
         assert result == []
         calendar_adapter.reset_return_empty()

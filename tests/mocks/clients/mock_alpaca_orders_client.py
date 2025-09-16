@@ -1,5 +1,8 @@
 from datetime import datetime
 
+from algo_royale.clients.alpaca.alpaca_trading.alpaca_orders_client import (
+    AlpacaOrdersClient,
+)
 from algo_royale.models.alpaca_trading.alpaca_order import (
     DeleteOrdersResponse,
     DeleteOrderStatus,
@@ -16,13 +19,32 @@ from algo_royale.models.alpaca_trading.enums.enums import (
 from tests.mocks.mock_loggable import MockLoggable
 
 
-class MockAlpacaOrdersClient:
+class MockAlpacaOrdersClient(AlpacaOrdersClient):
     def __init__(self):
         self.logger = MockLoggable()
+        super().__init__(
+            logger=self.logger,
+            base_url="https://mock.alpaca.markets",
+            api_key="fake_key",
+            api_secret="fake_secret",
+            api_key_header="APCA-API-KEY-ID",
+            api_secret_header="APCA-API-SECRET-KEY",
+            http_timeout=5,
+            reconnect_delay=1,
+            keep_alive_timeout=5,
+        )
+        self.return_empty = False
+        self.throw_exception = False
 
     async def create_order(
         self, symbol, qty, side, order_type, time_in_force, **kwargs
     ):
+        if self.throw_exception:
+            raise Exception(
+                "MockAlpacaOrdersClient: Exception forced by throw_exception flag."
+            )
+        if self.return_empty:
+            return None
         return Order(
             symbol=symbol,
             qty=qty,
@@ -45,6 +67,12 @@ class MockAlpacaOrdersClient:
     async def get_all_orders(
         self, status=OrderStatusFilter.OPEN, limit=10, direction=SortDirection.DESC
     ):
+        if self.throw_exception:
+            raise Exception(
+                "MockAlpacaOrdersClient: Exception forced by throw_exception flag."
+            )
+        if self.return_empty:
+            return OrderListResponse(orders=[])
         fake_order = await self.create_order(
             symbol="AAPL",
             qty=1,
@@ -55,6 +83,12 @@ class MockAlpacaOrdersClient:
         return OrderListResponse(orders=[fake_order])
 
     async def get_order_by_client_order_id(self, client_order_id):
+        if self.throw_exception:
+            raise Exception(
+                "MockAlpacaOrdersClient: Exception forced by throw_exception flag."
+            )
+        if self.return_empty:
+            return None
         return await self.create_order(
             symbol="AAPL",
             qty=1,
@@ -64,9 +98,21 @@ class MockAlpacaOrdersClient:
         )
 
     async def delete_order_by_client_order_id(self, client_order_id):
+        if self.throw_exception:
+            raise Exception(
+                "MockAlpacaOrdersClient: Exception forced by throw_exception flag."
+            )
+        if self.return_empty:
+            return None
         return DeleteOrderStatus(id=client_order_id, status=200)
 
     async def delete_all_orders(self):
+        if self.throw_exception:
+            raise Exception(
+                "MockAlpacaOrdersClient: Exception forced by throw_exception flag."
+            )
+        if self.return_empty:
+            return DeleteOrdersResponse(orders=[])
         return DeleteOrdersResponse(
             orders=[DeleteOrderStatus(id="order_id", status=200)]
         )

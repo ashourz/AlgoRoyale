@@ -12,7 +12,7 @@ from algo_royale.models.alpaca_trading.alpaca_order import (
     StopLoss,
     TakeProfit,
 )
-from algo_royale.models.alpaca_trading.enums import (
+from algo_royale.models.alpaca_trading.enums.enums import (
     OrderClass,
     OrderSide,
     OrderStatusFilter,

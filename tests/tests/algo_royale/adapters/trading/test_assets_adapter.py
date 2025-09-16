@@ -9,15 +9,20 @@ def assets_adapter():
     yield adapter
 
 
+@pytest.mark.asyncio
 class TestAssetsAdapter:
-    def test_get_assets(self, assets_adapter):
-        result = pytest.run(assets_adapter.get_assets())
-        assert result is not None
+    async def test_get_assets(self, assets_adapter):
+        result = await assets_adapter.get_assets()
         assert isinstance(result, list)
-        assert any("symbol" in a for a in result)
+        assert all(hasattr(a, "symbol") for a in result)
 
-    def test_get_assets_empty(self, assets_adapter):
+    async def test_get_asset_by_symbol(self, assets_adapter):
+        result = await assets_adapter.get_asset_by_symbol("AAPL")
+        assert result is not None
+        assert hasattr(result, "symbol")
+
+    async def test_get_assets_empty(self, assets_adapter):
         assets_adapter.set_return_empty(True)
-        result = pytest.run(assets_adapter.get_assets())
+        result = await assets_adapter.get_assets()
         assert result == []
         assets_adapter.reset_return_empty()

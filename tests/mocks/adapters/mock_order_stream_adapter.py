@@ -1,20 +1,22 @@
 from algo_royale.adapters.trading.order_stream_adapter import OrderStreamAdapter
+from tests.mocks.clients.mock_alpaca_order_stream_client import (
+    MockAlpacaOrderStreamClient,
+)
 from tests.mocks.mock_loggable import MockLoggable
 
 
 class MockOrderStreamAdapter(OrderStreamAdapter):
     def __init__(self):
+        client = MockAlpacaOrderStreamClient()
         logger = MockLoggable()
-        super().__init__(logger=logger)
-        self.return_empty = False
+        super().__init__(order_stream_client=client, logger=logger)
 
     def set_return_empty(self, value: bool):
-        self.return_empty = value
+        self.order_stream_client.return_empty = value
 
     def reset_return_empty(self):
-        self.return_empty = False
+        self.order_stream_client.return_empty = False
 
-    async def get_order_stream(self, *args, **kwargs):
-        if self.return_empty:
-            return []
-        return ["order_event_1", "order_event_2"]
+    async def _on_start_stream(self, data=None):
+        # Stub for test compatibility
+        pass

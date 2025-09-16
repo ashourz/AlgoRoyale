@@ -20,8 +20,17 @@ class MockAlpacaStockClient(AlpacaStockClient):
             reconnect_delay=1,
             keep_alive_timeout=5,
         )
+        self.return_empty = False
+        self.throw_exception = False
 
     def get(self, endpoint, params=None):
+        if self.throw_exception:
+            raise Exception(
+                "MockAlpacaStockClient: Exception forced by throw_exception flag."
+            )
+        if self.return_empty:
+            return AsyncMock(return_value={})()
+        # Optionally, call super().get if you want real logic, or return a mock
         if endpoint == "stocks/quotes":
             return AsyncMock(
                 return_value={

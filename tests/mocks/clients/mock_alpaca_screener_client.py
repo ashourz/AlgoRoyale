@@ -20,8 +20,16 @@ class MockAlpacaScreenerClient(AlpacaScreenerClient):
             reconnect_delay=1,
             keep_alive_timeout=5,
         )
+        self.return_empty = False
+        self.throw_exception = False
 
     def get(self, endpoint, params=None):
+        if self.throw_exception:
+            raise Exception(
+                "MockAlpacaScreenerClient: Exception forced by throw_exception flag."
+            )
+        if self.return_empty:
+            return AsyncMock(return_value={})()
         return AsyncMock(
             return_value={
                 "market_type": "gainers",

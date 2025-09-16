@@ -1,11 +1,13 @@
 from algo_royale.adapters.market_data.stream_adapter import StreamAdapter
+from tests.mocks.clients.mock_alpaca_stream_client import MockAlpacaStreamClient
 from tests.mocks.mock_loggable import MockLoggable
 
 
 class MockStreamAdapter(StreamAdapter):
     def __init__(self):
+        client = MockAlpacaStreamClient()
         logger = MockLoggable()
-        super().__init__(logger=logger)
+        super().__init__(stream_client=client, logger=logger)
         self.return_empty = False
 
     def set_return_empty(self, value: bool):

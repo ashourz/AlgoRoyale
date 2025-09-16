@@ -25,14 +25,14 @@ from algo_royale.models.alpaca_trading.enums.enums import (
 class AccountAdapter:
     """Service class to interact with Alpaca account data, leveraging the AlpacaAccountClient."""
 
-    def __init__(self, account_client: AlpacaAccountClient, logger: Loggable):
+    def __init__(self, client: AlpacaAccountClient, logger: Loggable):
         """
         Initializes AlpacaAccountService with the given AlpacaAccountClient.
 
         Args:
             account_client (AlpacaAccountClient): The Alpaca API client used to fetch data from the Alpaca API.
         """
-        self.account_client = account_client
+        self.account_client = client
         self.logger = logger
 
     async def get_account_data(self) -> Optional[Account]:

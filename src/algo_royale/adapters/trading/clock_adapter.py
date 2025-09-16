@@ -3,7 +3,6 @@ from typing import Optional
 from algo_royale.clients.alpaca.alpaca_trading.alpaca_clock_client import (
     AlpacaClockClient,
 )
-from algo_royale.clients.alpaca.exceptions import ClockNotFoundError
 from algo_royale.logging.loggable import Loggable
 from algo_royale.models.alpaca_trading.alpaca_clock import Clock
 
@@ -32,22 +31,5 @@ class ClockAdapter:
 
         if not clock:
             return None
-
-        return clock
-
-    async def get_clock_or_raise(self) -> Clock:
-        """
-        Fetches clock data from the Alpaca API and raises an exception if no data is found.
-
-        Returns:
-            Clock: The clock data retrieved from Alpaca.
-
-        Raises:
-            ClockNotFoundError: If no clock data is found.
-        """
-        clock = await self.clock_client.fetch_clock()
-
-        if not clock:
-            raise ClockNotFoundError("Clock data could not be retrieved from Alpaca.")
 
         return clock
