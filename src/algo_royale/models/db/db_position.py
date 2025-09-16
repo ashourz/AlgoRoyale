@@ -8,15 +8,15 @@ class DBPosition(BaseModel):
     Attributes:
         symbol (str): The stock symbol of the position.
         market (str): The market where the position is held (e.g., 'NYSE', 'NASDAQ').
-        user_id (int): The ID of the user who owns the position.
-        account_id (int): The ID of the account associated with the position.
+        user_id (str): The ID of the user who owns the position.
+        account_id (str): The ID of the account associated with the position.
         net_position (float): The net position of the stock in the account.
     """
 
     symbol: str
     market: str
-    user_id: int
-    account_id: int
+    user_id: str
+    account_id: str
     net_position: float
 
     @classmethod
