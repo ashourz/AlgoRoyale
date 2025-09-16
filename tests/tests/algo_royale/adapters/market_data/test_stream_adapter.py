@@ -11,14 +11,33 @@ def stream_adapter():
 
 @pytest.mark.asyncio
 class TestStreamAdapter:
-    async def test_get_stream(self, stream_adapter):
-        result = await stream_adapter.get_stream()
-        assert result is not None
-        assert isinstance(result, list)
-        assert "stream_event_1" in result
+    def test_get_stream_symbols(self, stream_adapter):
+        symbols = stream_adapter.get_stream_symbols()
+        assert hasattr(symbols, "quotes")
+        assert hasattr(symbols, "trades")
+        assert hasattr(symbols, "bars")
+        assert isinstance(symbols.quotes, list)
 
-    async def test_get_stream_empty(self, stream_adapter):
-        stream_adapter.set_return_empty(True)
-        result = await stream_adapter.get_stream()
-        assert result == []
-        stream_adapter.reset_return_empty()
+    @pytest.mark.asyncio
+    async def test_async_start_stream(self, stream_adapter):
+        # Should not raise, just test invocation
+        await stream_adapter.async_start_stream(["AAPL", "GOOG"])
+
+    @pytest.mark.asyncio
+    async def test_async_add_symbols(self, stream_adapter):
+        await stream_adapter.async_add_symbols(
+            quotes=["AAPL"], trades=["GOOG"], bars=["MSFT"]
+        )
+        # No assertion, just ensure no exception
+
+    @pytest.mark.asyncio
+    async def test_async_remove_symbols(self, stream_adapter):
+        await stream_adapter.async_remove_symbols(
+            quotes=["AAPL"], trades=["GOOG"], bars=["MSFT"]
+        )
+        # No assertion, just ensure no exception
+
+    @pytest.mark.asyncio
+    async def test_async_stop_stream(self, stream_adapter):
+        await stream_adapter.async_stop_stream()
+        # No assertion, just ensure no exception

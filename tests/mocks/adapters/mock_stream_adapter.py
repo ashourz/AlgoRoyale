@@ -15,8 +15,3 @@ class MockStreamAdapter(StreamAdapter):
 
     def reset_return_empty(self):
         self.return_empty = False
-
-    async def get_stream(self, *args, **kwargs):
-        if self.return_empty:
-            return []
-        return ["stream_event_1", "stream_event_2"]

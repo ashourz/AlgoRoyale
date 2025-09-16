@@ -22,10 +22,13 @@ class MockAlpacaStreamClient(AlpacaStreamClient):
         )
 
     async def stream(self, symbols, feed, on_quote, on_trade, on_bar):
-        await on_quote({"symbol": symbols[0], "price": 100.0})
-        await on_trade({"symbol": symbols[0], "price": 100.0})
-        await on_bar({"symbol": symbols[0], "open": 99.0, "close": 101.0})
+        if on_quote is not None:
+            await on_quote({"symbol": symbols[0], "price": 100.0})
+        if on_trade is not None:
+            await on_trade({"symbol": symbols[0], "price": 100.0})
+        if on_bar is not None:
+            await on_bar({"symbol": symbols[0], "open": 99.0, "close": 101.0})
         await asyncio.sleep(0.1)
 
-    def stop(self):
+    async def stop(self):
         pass
