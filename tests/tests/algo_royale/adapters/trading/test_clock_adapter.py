@@ -21,3 +21,9 @@ class TestClockAdapter:
         result = await clock_adapter.get_clock()
         assert result is None or result == {}
         clock_adapter.reset_return_empty()
+
+    async def test_get_clock_exception(self, clock_adapter):
+        clock_adapter.set_throw_exception(True)
+        with pytest.raises(Exception):
+            await clock_adapter.get_clock()
+        clock_adapter.reset_throw_exception()

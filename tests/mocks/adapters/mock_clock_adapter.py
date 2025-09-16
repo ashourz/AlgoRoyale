@@ -5,18 +5,18 @@ from tests.mocks.mock_loggable import MockLoggable
 
 class MockClockAdapter(ClockAdapter):
     def __init__(self):
-        client = MockAlpacaClockClient()
+        clock_client = MockAlpacaClockClient()
         logger = MockLoggable()
-        super().__init__(client=client, logger=logger)
-        self.return_empty = False
+        super().__init__(clock_client=clock_client, logger=logger)
 
     def set_return_empty(self, value: bool):
-        self.return_empty = value
+        self.clock_client.return_empty = value
 
     def reset_return_empty(self):
-        self.return_empty = False
+        self.clock_client.return_empty = False
 
-    async def get_clock(self, *args, **kwargs):
-        if self.return_empty:
-            return None
-        return {"timestamp": 1234567890, "is_open": True}
+    def set_throw_exception(self, value: bool):
+        self.clock_client.throw_exception = value
+
+    def reset_throw_exception(self):
+        self.clock_client.throw_exception = False

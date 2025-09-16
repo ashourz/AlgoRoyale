@@ -24,19 +24,20 @@ class MockAlpacaPortfolioClient(AlpacaPortfolioClient):
         self.return_empty = False
         self.throw_exception = False
 
-    async def fetch_portfolio_history(self, period="1M", timeframe="1D"):
+    async def fetch_portfolio_history(self, period="1M", timeframe="1D", **kwargs):
         if self.throw_exception:
             raise Exception(
                 "MockAlpacaPortfolioClient: Exception forced by throw_exception flag."
             )
         if self.return_empty:
+            tf = timeframe or "1D"
             return PortfolioPerformance(
                 timestamp=[],
                 equity=[],
                 profit_loss=[],
                 profit_loss_pct=[],
                 base_value=0.0,
-                timeframe=timeframe,
+                timeframe=tf,
                 base_value_asof=datetime.now(),
             )
         return PortfolioPerformance(

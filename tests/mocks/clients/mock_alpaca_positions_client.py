@@ -85,7 +85,7 @@ class MockAlpacaPositionsClient(AlpacaPositionsClient):
         raise AlpacaPositionNotFoundException()
 
     async def close_position_by_symbol_or_asset_id(
-        self, symbol_or_asset_id, qty=None, **kwargs
+        self, symbol_or_asset_id, qty=None, percentage=None, **kwargs
     ):
         if self.throw_exception:
             raise Exception(
@@ -126,7 +126,7 @@ class MockAlpacaPositionsClient(AlpacaPositionsClient):
             return ClosedPositionList(closedPositions=[copy.deepcopy(closed)])
         raise AlpacaPositionNotFoundException()
 
-    async def close_all_positions(self):
+    async def close_all_positions(self, cancel_orders=None, **kwargs):
         if self.throw_exception:
             raise Exception(
                 "MockAlpacaPositionsClient: Exception forced by throw_exception flag."

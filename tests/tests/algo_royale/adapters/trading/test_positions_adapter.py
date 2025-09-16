@@ -11,18 +11,53 @@ def positions_adapter():
 
 @pytest.mark.asyncio
 class TestPositionsAdapter:
-    async def test_get_positions(self, positions_adapter):
-        result = await positions_adapter.get_positions()
-        assert isinstance(result, list)
-        assert all(hasattr(p, "symbol") for p in result)
-
-    async def test_get_position_by_symbol(self, positions_adapter):
-        result = await positions_adapter.get_position_by_symbol("AAPL")
+    async def test_fetch_all_open_positions(self, positions_adapter):
+        result = await positions_adapter.fetch_all_open_positions()
         assert result is not None
-        assert hasattr(result, "symbol")
+        assert hasattr(result, "positions")
+        assert isinstance(result.positions, list)
 
-    async def test_get_positions_empty(self, positions_adapter):
+    async def test_get_open_position_by_symbol_or_asset_id(self, positions_adapter):
+        result = await positions_adapter.get_open_position_by_symbol_or_asset_id("AAPL")
+        assert result is not None
+        assert hasattr(result, "positions")
+
+    async def test_close_position_by_symbol_or_asset_id(self, positions_adapter):
+        result = await positions_adapter.close_position_by_symbol_or_asset_id("AAPL")
+        assert result is not None
+        assert hasattr(result, "closedPositions")
+
+    async def test_close_all_positions(self, positions_adapter):
+        result = await positions_adapter.close_all_positions()
+        assert result is not None
+        assert hasattr(result, "closedPositions")
+
+    async def test_fetch_all_open_positions_empty(self, positions_adapter):
         positions_adapter.set_return_empty(True)
-        result = await positions_adapter.get_positions()
-        assert result == []
+        result = await positions_adapter.fetch_all_open_positions()
+        assert result is not None
+        assert result.positions == []
+        positions_adapter.reset_return_empty()
+
+    async def test_get_open_position_by_symbol_or_asset_id_empty(
+        self, positions_adapter
+    ):
+        positions_adapter.set_return_empty(True)
+        result = await positions_adapter.get_open_position_by_symbol_or_asset_id("AAPL")
+        assert result is not None
+        assert result.positions == []
+        positions_adapter.reset_return_empty()
+
+    async def test_close_position_by_symbol_or_asset_id_empty(self, positions_adapter):
+        positions_adapter.set_return_empty(True)
+        result = await positions_adapter.close_position_by_symbol_or_asset_id("AAPL")
+        assert result is not None
+        assert result.closedPositions == []
+        positions_adapter.reset_return_empty()
+
+    async def test_close_all_positions_empty(self, positions_adapter):
+        positions_adapter.set_return_empty(True)
+        result = await positions_adapter.close_all_positions()
+        assert result is not None
+        assert result.closedPositions == []
         positions_adapter.reset_return_empty()

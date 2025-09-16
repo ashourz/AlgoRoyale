@@ -48,12 +48,15 @@ class MockAlpacaAssetsClient(AlpacaAssetsClient):
         return [fake_asset]
 
     async def fetch_asset_by_symbol_or_id(self, symbol_or_asset_id):
-        if self.raise_exception:
+        if self.throw_exception:
             raise AlpacaAssetNotFoundException()
         if self.return_empty:
             return None
         if symbol_or_asset_id == "AAPL":
-            return (await self.fetch_assets())[0]
+            assets = await self.fetch_assets()
+            if not assets:
+                return None
+            return assets[0]
         raise AlpacaAssetNotFoundException()
 
     async def aclose(self):

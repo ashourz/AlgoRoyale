@@ -45,6 +45,10 @@ class MockAlpacaOrdersClient(AlpacaOrdersClient):
             )
         if self.return_empty:
             return None
+        # Use valid enum defaults if None is passed
+        side = side or OrderSide.BUY
+        order_type = order_type or OrderType.MARKET
+        time_in_force = time_in_force or TimeInForce.DAY
         return Order(
             symbol=symbol,
             qty=qty,
@@ -65,7 +69,11 @@ class MockAlpacaOrdersClient(AlpacaOrdersClient):
         )
 
     async def get_all_orders(
-        self, status=OrderStatusFilter.OPEN, limit=10, direction=SortDirection.DESC
+        self,
+        status=OrderStatusFilter.OPEN,
+        limit=10,
+        direction=SortDirection.DESC,
+        **kwargs,
     ):
         if self.throw_exception:
             raise Exception(
@@ -82,7 +90,7 @@ class MockAlpacaOrdersClient(AlpacaOrdersClient):
         )
         return OrderListResponse(orders=[fake_order])
 
-    async def get_order_by_client_order_id(self, client_order_id):
+    async def get_order_by_client_order_id(self, client_order_id, **kwargs):
         if self.throw_exception:
             raise Exception(
                 "MockAlpacaOrdersClient: Exception forced by throw_exception flag."
@@ -92,6 +100,31 @@ class MockAlpacaOrdersClient(AlpacaOrdersClient):
         return await self.create_order(
             symbol="AAPL",
             qty=1,
+            side=OrderSide.BUY,
+            order_type=OrderType.MARKET,
+            time_in_force=TimeInForce.DAY,
+        )
+
+    async def replace_order_by_client_order_id(
+        self,
+        client_order_id,
+        qty=None,
+        time_in_force=None,
+        limit_price=None,
+        stop_price=None,
+        trail_price=None,
+        new_client_order_id=None,
+        **kwargs,
+    ):
+        if self.throw_exception:
+            raise Exception(
+                "MockAlpacaOrdersClient: Exception forced by throw_exception flag."
+            )
+        if self.return_empty:
+            return None
+        return await self.create_order(
+            symbol="AAPL",
+            qty=qty or 1,
             side=OrderSide.BUY,
             order_type=OrderType.MARKET,
             time_in_force=TimeInForce.DAY,

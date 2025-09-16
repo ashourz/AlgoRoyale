@@ -11,14 +11,20 @@ def order_stream_adapter():
 
 @pytest.mark.asyncio
 class TestOrderStreamAdapter:
-    async def test_subscribe_orders(self, order_stream_adapter):
-        result = await order_stream_adapter.subscribe_orders()
-        assert result is None or result == []
+    async def test_start_and_stop(self, order_stream_adapter):
+        # Should not raise
+        await order_stream_adapter.start()
+        await order_stream_adapter.stop()
 
-    async def test_unsubscribe_orders(self, order_stream_adapter):
-        result = await order_stream_adapter.unsubscribe_orders()
-        assert result is None or result == []
+    async def test_on_order_update(self, order_stream_adapter):
+        # Should not raise and should publish to pubsub
+        data = {"id": "order1", "status": "filled"}
+        await order_stream_adapter._on_order_update(data)
 
-    async def test_on_start_stream(self, order_stream_adapter):
-        result = await order_stream_adapter._on_start_stream()
-        assert result is None
+    async def test_subscribe_and_unsubscribe(self, order_stream_adapter):
+        async def callback(data):
+            pass
+
+        subscriber = order_stream_adapter.subscribe(callback)
+        assert subscriber is not None
+        order_stream_adapter.unsubscribe(subscriber)
