@@ -9,20 +9,43 @@ class MockEnrichedDataService(EnrichedDataService):
             enriched_data_repo=MockEnrichedDataRepo(),
             logger=MockLoggable(),
         )
+        self.return_empty = False
+        self.raise_exception = False
+        self.mock_enriched_data = {"key": "value"}
 
     def set_return_empty(self, value: bool):
-        self.enriched_data_repo.set_return_empty(value)
+        self.return_empty = value
 
     def reset_return_empty(self):
-        self.enriched_data_repo.reset_return_empty()
+        self.return_empty = False
 
     def set_raise_exception(self, value: bool):
-        self.enriched_data_repo.set_raise_exception(value)
+        self.raise_exception = value
 
     def reset_raise_exception(self):
-        self.enriched_data_repo.reset_raise_exception()
+        self.raise_exception = False
 
     def reset(self):
         self.reset_return_empty()
         self.reset_raise_exception()
-        self.enriched_data_repo.reset_dao()
+
+    def insert_enriched_data(self, order_id, enriched_data):
+        if self.raise_exception:
+            return -1
+        if self.return_empty:
+            return 0
+        return 1
+
+    def fetch_enriched_data_by_order_id(self, order_id):
+        if self.raise_exception:
+            return []
+        if self.return_empty:
+            return []
+        return [self.mock_enriched_data]
+
+    def delete_all_enriched_data(self):
+        if self.raise_exception:
+            return -1
+        if self.return_empty:
+            return
+        return 1

@@ -23,7 +23,7 @@ class LedgerService:
         self.entries = []
         self.cash_service = cash_service
         self.order_service = order_service
-        self.trade_service = trades_service
+        self.trades_service = trades_service
         self.position_service = position_service
         self.enriched_data_service = enriched_data_service
         self.logger = logger
@@ -33,7 +33,7 @@ class LedgerService:
         """Get the current position for a given symbol."""
         try:
             positions = self.position_service.get_positions_by_symbol(symbol)
-            return sum(pos.quantity for pos in positions)
+            return sum(pos.qty for pos in positions)
         except Exception as e:
             self.logger.error(f"Error getting current position for {symbol}: {e}")
             return 0

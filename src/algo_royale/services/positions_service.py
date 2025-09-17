@@ -15,7 +15,7 @@ class PositionsService:
         user_id: str,
         account_id: str,
     ):
-        self.adapter = positions_adapter
+        self.positions_adapter = positions_adapter
         self.trade_repo = trade_repo
         self.logger = logger
         self.user_id = user_id
@@ -91,7 +91,9 @@ class PositionsService:
         """
         try:
             # Fetch positions from Alpaca and local DB
-            alpacaPositionsList = await self.adapter.fetch_all_open_positions()
+            alpacaPositionsList = (
+                await self.positions_adapter.fetch_all_open_positions()
+            )
             alpaca_positions = (
                 alpacaPositionsList.positions if alpacaPositionsList else []
             )

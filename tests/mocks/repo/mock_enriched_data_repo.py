@@ -36,6 +36,11 @@ class MockEnrichedDataRepo(EnrichedDataRepo):
     def reset_dao(self):
         self.dao.reset()
 
+    def reset(self):
+        self.reset_return_empty()
+        self.reset_raise_exception()
+        self.reset_dao()
+
     def fetch_enriched_data_by_order_id(self, order_id: UUID) -> list[DBEnrichedData]:
         if self._raise_exception:
             raise ValueError("Database error")
