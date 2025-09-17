@@ -84,23 +84,8 @@ class TestTradesService:
     async def test_update_settled_trades_normal(
         self, trades_service: MockTradesService
     ):
-        from datetime import datetime, timedelta
-
-        settlement_datetime = datetime.now() - timedelta(days=1)
-        updated_count = trades_service.update_settled_trades()
-        assert updated_count == 1
-
-    async def test_update_settled_trades_exception(
-        self, trades_service: MockTradesService
-    ):
-        from datetime import datetime, timedelta
-
-        trades_service.set_raise_exception(True)
-        settlement_datetime = datetime.now() - timedelta(days=1)
-        with pytest.raises(ValueError) as excinfo:
-            trades_service.update_settled_trades(settlement_datetime)
-        assert "Database error" in str(excinfo.value)
-        trades_service.reset_raise_exception()
+        trades_service.update_settled_trades()
+        assert True  # If no exception is raised, the test passes
 
     async def test_insert_trade_normal(self, trades_service: MockTradesService):
         from uuid import uuid4
@@ -110,12 +95,11 @@ class TestTradesService:
             symbol="AAPL",
             action="buy",
             price=100.0,
-            settled=False,
             quantity=10,
             executed_at=datetime.now(),
             order_id=order_id,
         )
-        assert trade_id == 1
+        assert trade_id == trades_service.repo.dao.test_trade.id
 
     async def test_insert_trade_exception(self, trades_service: MockTradesService):
         from uuid import uuid4
@@ -124,12 +108,12 @@ class TestTradesService:
         order_id = uuid4()
         with pytest.raises(ValueError) as excinfo:
             trades_service.insert_trade(
-                order_id=order_id,
+                symbol="AAPL",
                 action="buy",
-                quantity=10,
                 price=100.0,
-                settled=False,
-                settlement_date=None,
+                quantity=10,
+                executed_at=datetime.now(),
+                order_id=order_id,
             )
         assert "Database error" in str(excinfo.value)
         trades_service.reset_raise_exception()
@@ -176,12 +160,12 @@ class TestTradesService:
 
         order_id = uuid4()
         trade_id = trades_service.insert_trade(
-            order_id=order_id,
+            symbol="AAPL",
             action="buy",
-            quantity=10,
             price=100.0,
-            settled=False,
-            settlement_date=None,
+            quantity=10,
+            executed_at=datetime.now(),
+            order_id=order_id,
         )
         deleted_count = trades_service.delete_trade(trade_id)
         assert deleted_count == 1

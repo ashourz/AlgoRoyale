@@ -19,14 +19,25 @@ class MockTradeRepo(TradeRepo):
         self._return_empty = False
         self._raise_exception = False
 
+    def set_return_empty(self, value: bool):
+        self._return_empty = value
+
     def reset_return_empty(self):
         self._return_empty = False
+
+    def set_raise_exception(self, value: bool):
+        self._raise_exception = value
 
     def reset_raise_exception(self):
         self._raise_exception = False
 
     def reset_dao(self):
         self.dao.reset()
+
+    def reset(self):
+        self.reset_return_empty()
+        self.reset_raise_exception()
+        self.reset_dao()
 
     def fetch_unsettled_trades(
         self, limit: int = 100, offset: int = 0

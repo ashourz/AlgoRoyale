@@ -18,3 +18,5 @@ class MockAccountCashService(AccountCashService):
 
     def reset(self):
         self.reset_raise_exception()
+        self._total_cash = 0
+        self._buying_power = 0

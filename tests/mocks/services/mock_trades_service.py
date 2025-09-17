@@ -17,16 +17,20 @@ class MockTradesService(TradesService):
 
     def set_return_empty(self, value: bool):
         self.account_adapter.set_return_empty(value)
+        self.repo.set_return_empty(value)
 
     def reset_return_empty(self):
         self.account_adapter.reset_return_empty()
+        self.repo.reset_return_empty()
 
     def set_raise_exception(self, value: bool):
         self.account_adapter.set_raise_exception(value)
+        self.repo.set_raise_exception(value)
 
     def reset_raise_exception(self):
         self.account_adapter.reset_raise_exception()
+        self.repo.reset_raise_exception()
 
     def reset(self):
-        self.reset_return_empty()
-        self.reset_raise_exception()
+        self.account_adapter.reset()
+        self.repo.reset()

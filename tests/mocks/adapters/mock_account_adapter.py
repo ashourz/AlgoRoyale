@@ -23,3 +23,7 @@ class MockAccountAdapter(AccountAdapter):
 
     def reset_raise_exception(self):
         self.account_client.raise_exception = False
+
+    def reset(self):
+        self.reset_return_empty()
+        self.reset_raise_exception()

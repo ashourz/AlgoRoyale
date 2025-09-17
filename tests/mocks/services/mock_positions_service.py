@@ -16,15 +16,19 @@ class MockPositionsService(PositionsService):
 
     def set_return_empty(self, value: bool):
         self.positions_adapter.set_return_empty(value)
+        self.trade_repo.set_return_empty(value)
 
     def reset_return_empty(self):
         self.positions_adapter.reset_return_empty()
+        self.trade_repo.reset_return_empty()
 
     def set_raise_exception(self, value: bool):
         self.positions_adapter.set_raise_exception(value)
+        self.trade_repo.set_raise_exception(value)
 
     def reset_raise_exception(self):
         self.positions_adapter.reset_raise_exception()
+        self.trade_repo.reset_raise_exception()
 
     def reset(self):
         self.reset_return_empty()
