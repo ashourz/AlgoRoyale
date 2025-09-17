@@ -35,7 +35,7 @@ class MockAlpacaPositionsClient(AlpacaPositionsClient):
             keep_alive_timeout=5,
         )
         self.return_empty = False
-        self.throw_exception = False
+        self.raise_exception = False
         self._positions = {}
         self._closed_positions = []
         # Add a default open position
@@ -62,9 +62,9 @@ class MockAlpacaPositionsClient(AlpacaPositionsClient):
         self._positions[pos.symbol] = pos
 
     async def fetch_all_open_positions(self):
-        if self.throw_exception:
+        if self.raise_exception:
             raise Exception(
-                "MockAlpacaPositionsClient: Exception forced by throw_exception flag."
+                "MockAlpacaPositionsClient: Exception forced by raise_exception flag."
             )
         if self.return_empty:
             return PositionList(positions=[])
@@ -73,9 +73,9 @@ class MockAlpacaPositionsClient(AlpacaPositionsClient):
         )
 
     async def fetch_open_position_by_symbol_or_asset_id(self, symbol_or_id):
-        if self.throw_exception:
+        if self.raise_exception:
             raise Exception(
-                "MockAlpacaPositionsClient: Exception forced by throw_exception flag."
+                "MockAlpacaPositionsClient: Exception forced by raise_exception flag."
             )
         if self.return_empty:
             return PositionList(positions=[])
@@ -87,9 +87,9 @@ class MockAlpacaPositionsClient(AlpacaPositionsClient):
     async def close_position_by_symbol_or_asset_id(
         self, symbol_or_asset_id, qty=None, percentage=None, **kwargs
     ):
-        if self.throw_exception:
+        if self.raise_exception:
             raise Exception(
-                "MockAlpacaPositionsClient: Exception forced by throw_exception flag."
+                "MockAlpacaPositionsClient: Exception forced by raise_exception flag."
             )
         if self.return_empty:
             return ClosedPositionList(closedPositions=[])
@@ -127,9 +127,9 @@ class MockAlpacaPositionsClient(AlpacaPositionsClient):
         raise AlpacaPositionNotFoundException()
 
     async def close_all_positions(self, cancel_orders=None, **kwargs):
-        if self.throw_exception:
+        if self.raise_exception:
             raise Exception(
-                "MockAlpacaPositionsClient: Exception forced by throw_exception flag."
+                "MockAlpacaPositionsClient: Exception forced by raise_exception flag."
             )
         if self.return_empty:
             return ClosedPositionList(closedPositions=[])

@@ -22,7 +22,7 @@ class PositionsService:
         self.account_id = account_id
         self.positions: list[Position] = []
 
-    async def get_positions(self) -> list[Position]:
+    def get_positions(self) -> list[Position]:
         """
         Get a list of currently open positions.
         """

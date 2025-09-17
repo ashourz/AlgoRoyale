@@ -88,7 +88,7 @@ class SymbolHoldService:
         try:
             self.logger.info("Initializing symbol holds...")
             # Fetch all symbols
-            symbols = await self.symbol_service.async_get_symbols()
+            symbols = self.symbol_service.get_symbols()
             for symbol in symbols:
                 await self._async_set_symbol_hold(symbol, SymbolHoldStatus.START)
         except Exception as e:
@@ -99,7 +99,7 @@ class SymbolHoldService:
         try:
             self.logger.info("Setting symbol holds by order status...")
             # Fetch orders in hold status
-            for symbol in self.symbol_service.async_get_symbols():
+            for symbol in self.symbol_service.get_symbols():
                 # Fetch orders in hold status
                 orders = self.order_service.fetch_orders_by_symbol_and_status(
                     symbol=symbol, status_list=self.HOLD_ALL_EVENTS

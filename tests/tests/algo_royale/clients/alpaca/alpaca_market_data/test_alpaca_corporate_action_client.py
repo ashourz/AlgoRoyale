@@ -8,7 +8,7 @@ from algo_royale.models.alpaca_market_data.alpaca_corporate_action import (
     CorporateAction,
     CorporateActionResponse,
 )
-from tests.mocks.clients.mock_alpaca_corporate_action_client import (
+from tests.mocks.clients.alpaca.mock_alpaca_corporate_action_client import (
     MockAlpacaCorporateActionClient,
 )
 from tests.mocks.mock_loggable import MockLoggable

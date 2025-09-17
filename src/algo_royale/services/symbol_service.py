@@ -28,7 +28,7 @@ class SymbolService:
             self.logger.error(f"Error loading watchlist: {e}")
             return []
 
-    async def async_get_symbols(self) -> list[str]:
+    def get_symbols(self) -> list[str]:
         """
         Get the current list of symbols.
         """
@@ -36,7 +36,7 @@ class SymbolService:
             self.logger.info("Getting symbols...")
             # Get watchlist and open positions
             watchlist_symbols = self._get_watchlist()
-            open_positions = await self.positions_service.get_positions()
+            open_positions = self.positions_service.get_positions()
             open_position_symbols = [pos.symbol for pos in open_positions]
             symbols = list(set(watchlist_symbols + open_position_symbols))
             self.logger.info(f"Got symbols: {symbols}")

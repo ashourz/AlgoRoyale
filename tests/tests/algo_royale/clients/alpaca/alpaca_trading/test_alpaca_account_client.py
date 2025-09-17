@@ -12,7 +12,9 @@ from algo_royale.models.alpaca_trading.enums.enums import (
     DTBPCheck,
     TradeConfirmationEmail,
 )
-from tests.mocks.clients.mock_alpaca_account_client import MockAlpacaAccountClient
+from tests.mocks.clients.alpaca.mock_alpaca_account_client import (
+    MockAlpacaAccountClient,
+)
 
 
 # Async fixture for MockAlpacaAccountClient

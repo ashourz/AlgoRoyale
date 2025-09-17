@@ -104,7 +104,7 @@ class MarketSessionService:
     async def _async_start_order_execution_subscription(self) -> None:
         """Start the order execution services."""
         try:
-            symbols = await self.symbol_service.async_get_symbols()
+            symbols = self.symbol_service.get_symbols()
             symbol_subscribers = await self.order_execution_service.start(symbols)
             if symbol_subscribers:
                 for symbol, subscriber in symbol_subscribers.items():

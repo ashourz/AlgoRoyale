@@ -11,6 +11,14 @@ def clock_service():
 
 @pytest.mark.asyncio
 class TestClockService:
+    @pytest.fixture(autouse=True)
+    def setup_and_teardown(self, clock_service: MockClockService):
+        print("Setup")
+        clock_service.reset()
+        yield
+        print("Teardown")
+        clock_service.reset()
+
     async def test_start_and_stop(self, clock_service):
         # Should not raise
         clock_service.start()

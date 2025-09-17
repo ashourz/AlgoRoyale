@@ -11,6 +11,14 @@ def enriched_data_service():
 
 @pytest.mark.asyncio
 class TestEnrichedDataService:
+    @pytest.fixture(autouse=True)
+    def setup_and_teardown(self, enriched_data_service: MockEnrichedDataService):
+        print("Setup")
+        enriched_data_service.reset()
+        yield
+        print("Teardown")
+        enriched_data_service.reset()
+
     def test_insert_enriched_data_normal(self, enriched_data_service):
         order_id = "order123"
         enriched_data = {"foo": "bar"}

@@ -4,7 +4,7 @@ import asyncio
 import pytest
 
 from algo_royale.clients.alpaca.alpaca_market_data.alpaca_stream_client import DataFeed
-from tests.mocks.clients.mock_alpaca_stream_client import MockAlpacaStreamClient
+from tests.mocks.clients.alpaca.mock_alpaca_stream_client import MockAlpacaStreamClient
 
 
 # Refactor TestHandler class without __init__ constructor

@@ -5,7 +5,7 @@ import pytest
 
 from algo_royale.clients.alpaca.exceptions import AlpacaAssetNotFoundException
 from algo_royale.models.alpaca_trading.alpaca_asset import Asset
-from tests.mocks.clients.mock_alpaca_asset_client import MockAlpacaAssetsClient
+from tests.mocks.clients.alpaca.mock_alpaca_asset_client import MockAlpacaAssetsClient
 
 
 # Async fixture for MockAlpacaAccountClient

@@ -6,7 +6,9 @@ from datetime import datetime
 import pytest
 
 from algo_royale.models.alpaca_trading.alpaca_portfolio import PortfolioPerformance
-from tests.mocks.clients.mock_alpaca_portfolio_client import MockAlpacaPortfolioClient
+from tests.mocks.clients.alpaca.mock_alpaca_portfolio_client import (
+    MockAlpacaPortfolioClient,
+)
 
 
 # Async fixture for MockAlpacaAccountClient

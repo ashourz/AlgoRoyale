@@ -12,7 +12,9 @@ from algo_royale.models.alpaca_market_data.alpaca_active_stock import (
 from algo_royale.models.alpaca_market_data.alpaca_market_mover import (
     MarketMoversResponse,
 )
-from tests.mocks.clients.mock_alpaca_screener_client import MockAlpacaScreenerClient
+from tests.mocks.clients.alpaca.mock_alpaca_screener_client import (
+    MockAlpacaScreenerClient,
+)
 from tests.mocks.mock_loggable import MockLoggable
 
 logger = MockLoggable()

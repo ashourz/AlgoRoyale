@@ -6,7 +6,9 @@ from datetime import datetime
 import pytest
 
 from algo_royale.models.alpaca_trading.alpaca_calendar import Calendar, CalendarList
-from tests.mocks.clients.mock_alpaca_calendar_client import MockAlpacaCalendarClient
+from tests.mocks.clients.alpaca.mock_alpaca_calendar_client import (
+    MockAlpacaCalendarClient,
+)
 
 
 # Async fixture for MockAlpacaAccountClient

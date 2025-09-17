@@ -21,7 +21,7 @@ from algo_royale.models.alpaca_trading.enums.enums import (
     SortDirection,
     TimeInForce,
 )
-from tests.mocks.clients.mock_alpaca_orders_client import MockAlpacaOrdersClient
+from tests.mocks.clients.alpaca.mock_alpaca_orders_client import MockAlpacaOrdersClient
 
 
 # Async fixture for MockAlpacaAccountClient

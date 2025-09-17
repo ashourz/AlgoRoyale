@@ -1,5 +1,7 @@
 from algo_royale.adapters.trading.positions_adapter import PositionsAdapter
-from tests.mocks.clients.mock_alpaca_positions_client import MockAlpacaPositionsClient
+from tests.mocks.clients.alpaca.mock_alpaca_positions_client import (
+    MockAlpacaPositionsClient,
+)
 from tests.mocks.mock_loggable import MockLoggable
 
 
@@ -15,8 +17,8 @@ class MockPositionsAdapter(PositionsAdapter):
     def reset_return_empty(self):
         self.client.return_empty = False
 
-    def set_throw_exception(self, value: bool):
-        self.client.throw_exception = value
+    def set_raise_exception(self, value: bool):
+        self.client.raise_exception = value
 
-    def reset_throw_exception(self):
-        self.client.throw_exception = False
+    def reset_raise_exception(self):
+        self.client.raise_exception = False
