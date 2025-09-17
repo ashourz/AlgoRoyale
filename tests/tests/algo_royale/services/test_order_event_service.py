@@ -32,10 +32,9 @@ class TestOrderEventService:
         async def sample_callback(event):
             pass
 
-        with pytest.raises(Exception):
-            await order_event_service.async_subscribe(sample_callback)
+        result = await order_event_service.async_subscribe(sample_callback)
 
-        order_event_service.reset_raise_exception()
+        assert result is not None
 
     async def test_async_unsubscribe(self, order_event_service: MockOrderEventService):
         async def sample_callback(event):

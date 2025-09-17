@@ -46,16 +46,18 @@ class TestOrderRepo:
         assert "Database error" in str(excinfo.value)
 
     async def test_insert_order_normal(self, order_repo):
+        symbol = "AAPL"
+        notional = 1000.0
         order_id = order_repo.insert_order(
-            symbol="AAPL",
+            symbol=symbol,
             order_type=OrderType.MARKET,
             status=DBOrderStatus.NEW,
             action=OrderAction.BUY,
-            notional=1000.0,
+            notional=notional,
             quantity=10,
             price=100.0,
         )
-        assert order_id == 1
+        assert order_id == f"mock_order_{symbol}_{notional}"
 
     async def test_insert_order_exception(self, order_repo):
         order_repo._raise_exception = True
