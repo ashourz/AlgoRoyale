@@ -1,5 +1,5 @@
 from algo_royale.adapters.trading.orders_adapter import OrdersAdapter
-from tests.mocks.clients.mock_alpaca_orders_client import MockAlpacaOrdersClient
+from tests.mocks.clients.alpaca.mock_alpaca_orders_client import MockAlpacaOrdersClient
 from tests.mocks.mock_loggable import MockLoggable
 
 
