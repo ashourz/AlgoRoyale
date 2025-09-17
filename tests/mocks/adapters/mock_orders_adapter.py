@@ -15,8 +15,8 @@ class MockOrdersAdapter(OrdersAdapter):
     def reset_return_empty(self):
         self.client.return_empty = False
 
-    def set_throw_exception(self, value: bool):
-        self.client.throw_exception = value
+    def set_raise_exception(self, value: bool):
+        self.client.raise_exception = value
 
-    def reset_throw_exception(self):
-        self.client.throw_exception = False
+    def reset_raise_exception(self):
+        self.client.raise_exception = False

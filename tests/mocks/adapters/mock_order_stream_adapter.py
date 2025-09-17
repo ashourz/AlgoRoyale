@@ -1,5 +1,5 @@
 from algo_royale.adapters.trading.order_stream_adapter import OrderStreamAdapter
-from tests.mocks.clients.mock_alpaca_order_stream_client import (
+from tests.mocks.clients.alpaca.mock_alpaca_order_stream_client import (
     MockAlpacaOrderStreamClient,
 )
 from tests.mocks.mock_loggable import MockLoggable
@@ -16,6 +16,12 @@ class MockOrderStreamAdapter(OrderStreamAdapter):
 
     def reset_return_empty(self):
         self.order_stream_client.return_empty = False
+
+    def set_raise_exception(self, value: bool):
+        self.order_stream_client.raise_exception = value
+
+    def reset_raise_exception(self):
+        self.order_stream_client.raise_exception = False
 
     async def _on_start_stream(self, data=None):
         # Stub for test compatibility

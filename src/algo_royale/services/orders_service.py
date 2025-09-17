@@ -67,7 +67,7 @@ class OrderService:
             self.logger.error(
                 f"Error updating order {order_id} status to {status}: {e}"
             )
-            return 0
+            return -1
 
     def fetch_order_by_id(self, order_id: str) -> DBOrder | None:
         try:
@@ -118,11 +118,21 @@ class OrderService:
                 return confirmed_order.client_order_id
             else:
                 self.logger.error(f"Order submission failed for: {order}")
-                self.update_order(order.client_order_id, DBOrderStatus.FAILED)
+                self.update_order(
+                    order_id=order.client_order_id,
+                    status=DBOrderStatus.FAILED,
+                    quantity=None,
+                    price=None,
+                )
                 return None
         except Exception as e:
             self.logger.error(f"Error submitting order: {order}, Error: {e}")
-            self.update_order(order.client_order_id, DBOrderStatus.FAILED)
+            self.update_order(
+                order_id=order.client_order_id,
+                status=DBOrderStatus.FAILED,
+                quantity=None,
+                price=None,
+            )
             return None
 
     def update_settled_orders(self):

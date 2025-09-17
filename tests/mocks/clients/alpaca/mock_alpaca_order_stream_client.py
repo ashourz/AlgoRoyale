@@ -55,11 +55,23 @@ class MockAlpacaOrderStreamClient(AlpacaOrderStreamClient):
             keep_alive_timeout=5,
         )
         self.return_empty = False
+        self.raise_exception = False
 
     def set_return_empty(self, value: bool):
         self.return_empty = value
 
+    def reset_return_empty(self):
+        self.return_empty = False
+
+    def set_raise_exception(self, value: bool):
+        self.raise_exception = value
+
+    def reset_raise_exception(self):
+        self.raise_exception = False
+
     async def stream(self, on_order_update=None):
+        if self.raise_exception:
+            raise ValueError("WebSocket error")
         if self.return_empty:
             self.logger.info("Mock order stream returning empty, exiting.")
             return

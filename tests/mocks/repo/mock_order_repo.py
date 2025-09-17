@@ -16,8 +16,14 @@ class MockOrderRepo(OrderRepo):
         self._return_empty = False
         self._raise_exception = False
 
+    def set_return_empty(self, value: bool):
+        self._return_empty = value
+
     def reset_return_empty(self):
         self._return_empty = False
+
+    def set_raise_exception(self, value: bool):
+        self._raise_exception = value
 
     def reset_raise_exception(self):
         self._raise_exception = False
@@ -107,19 +113,27 @@ class MockOrderRepo(OrderRepo):
     ) -> int:
         if self._raise_exception:
             raise ValueError("Database error")
+        if self._return_empty:
+            return 0
         return self.dao.update_order(order_id, new_status, quantity, price)
 
     def update_order_as_settled(self, order_id: UUID) -> int:
         if self._raise_exception:
             raise ValueError("Database error")
+        if self._return_empty:
+            return 0
         return self.dao.update_order_as_settled(order_id)
 
     def delete_order(self, order_id: UUID) -> int:
         if self._raise_exception:
             raise ValueError("Database error")
+        if self._return_empty:
+            return 0
         return self.dao.delete_order(order_id)
 
     def delete_all_orders(self) -> int:
         if self._raise_exception:
             raise ValueError("Database error")
+        if self._return_empty:
+            return 0
         return self.dao.delete_all_orders()

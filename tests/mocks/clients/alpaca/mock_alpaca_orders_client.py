@@ -34,12 +34,29 @@ class MockAlpacaOrdersClient(AlpacaOrdersClient):
             keep_alive_timeout=5,
         )
         self.return_empty = False
-        self.throw_exception = False
+        self.raise_exception = False
 
     async def create_order(
-        self, symbol, qty, side, order_type, time_in_force, **kwargs
+        self,
+        symbol,
+        qty=None,
+        notional=None,
+        side=None,
+        order_type=None,
+        time_in_force=None,
+        limit_price=None,
+        stop_price=None,
+        trail_price=None,
+        trail_percent=None,
+        extended_hours=None,
+        client_order_id=None,
+        order_class=None,
+        take_profit=None,
+        stop_loss=None,
+        position_intent=None,
+        **kwargs,
     ):
-        if self.throw_exception:
+        if self.raise_exception:
             raise Exception(
                 "MockAlpacaOrdersClient: Exception forced by throw_exception flag."
             )
@@ -49,15 +66,17 @@ class MockAlpacaOrdersClient(AlpacaOrdersClient):
         side = side or OrderSide.BUY
         order_type = order_type or OrderType.MARKET
         time_in_force = time_in_force or TimeInForce.DAY
+        # Use provided client_order_id if available, else default
+        coid = client_order_id or kwargs.get("client_order_id") or "client_order_id"
         return Order(
             symbol=symbol,
-            qty=qty,
+            qty=qty if qty is not None else 1,
             side=side,
             type=order_type,
             time_in_force=time_in_force,
             id="order_id",
             status="new",
-            client_order_id="client_order_id",
+            client_order_id=coid,
             created_at=datetime(2024, 1, 1, 9, 30),
             updated_at=datetime(2024, 1, 1, 9, 31),
             submitted_at=datetime(2024, 1, 1, 9, 30),
@@ -75,7 +94,7 @@ class MockAlpacaOrdersClient(AlpacaOrdersClient):
         direction=SortDirection.DESC,
         **kwargs,
     ):
-        if self.throw_exception:
+        if self.raise_exception:
             raise Exception(
                 "MockAlpacaOrdersClient: Exception forced by throw_exception flag."
             )
@@ -91,7 +110,7 @@ class MockAlpacaOrdersClient(AlpacaOrdersClient):
         return OrderListResponse(orders=[fake_order])
 
     async def get_order_by_client_order_id(self, client_order_id, **kwargs):
-        if self.throw_exception:
+        if self.raise_exception:
             raise Exception(
                 "MockAlpacaOrdersClient: Exception forced by throw_exception flag."
             )
@@ -116,7 +135,7 @@ class MockAlpacaOrdersClient(AlpacaOrdersClient):
         new_client_order_id=None,
         **kwargs,
     ):
-        if self.throw_exception:
+        if self.raise_exception:
             raise Exception(
                 "MockAlpacaOrdersClient: Exception forced by throw_exception flag."
             )
@@ -131,7 +150,7 @@ class MockAlpacaOrdersClient(AlpacaOrdersClient):
         )
 
     async def delete_order_by_client_order_id(self, client_order_id):
-        if self.throw_exception:
+        if self.raise_exception:
             raise Exception(
                 "MockAlpacaOrdersClient: Exception forced by throw_exception flag."
             )
@@ -140,7 +159,7 @@ class MockAlpacaOrdersClient(AlpacaOrdersClient):
         return DeleteOrderStatus(id=client_order_id, status=200)
 
     async def delete_all_orders(self):
-        if self.throw_exception:
+        if self.raise_exception:
             raise Exception(
                 "MockAlpacaOrdersClient: Exception forced by throw_exception flag."
             )

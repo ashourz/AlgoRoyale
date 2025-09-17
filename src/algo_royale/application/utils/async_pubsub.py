@@ -38,6 +38,10 @@ class AsyncPubSub:
     def __init__(self):
         self.subscribers: Dict[str, List[AsyncSubscriber]] = {}
 
+    def has_subscribers(self, event_type: str) -> bool:
+        """Return True if there are any subscribers for the given event type."""
+        return bool(self.subscribers.get(event_type))
+
     def subscribe(
         self,
         event_type: str,
