@@ -1,5 +1,5 @@
 from algo_royale.adapters.market_data.news_adapter import NewsAdapter
-from tests.mocks.clients.mock_alpaca_news_client import MockAlpacaNewsClient
+from tests.mocks.clients.alpaca.mock_alpaca_news_client import MockAlpacaNewsClient
 from tests.mocks.mock_loggable import MockLoggable
 
 

@@ -1,5 +1,5 @@
 from algo_royale.adapters.market_data.quote_adapter import QuoteAdapter
-from tests.mocks.clients.mock_alpaca_stock_client import MockAlpacaStockClient
+from tests.mocks.clients.alpaca.mock_alpaca_stock_client import MockAlpacaStockClient
 from tests.mocks.mock_loggable import MockLoggable
 
 

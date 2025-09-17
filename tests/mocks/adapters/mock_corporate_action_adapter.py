@@ -1,7 +1,7 @@
 from algo_royale.adapters.market_data.corporate_action_adapter import (
     CorporateActionAdapter,
 )
-from tests.mocks.clients.mock_alpaca_corporate_action_client import (
+from tests.mocks.clients.alpaca.mock_alpaca_corporate_action_client import (
     MockAlpacaCorporateActionClient,
 )
 from tests.mocks.mock_loggable import MockLoggable

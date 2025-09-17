@@ -1,5 +1,7 @@
 from algo_royale.adapters.trading.watchlist_adapter import WatchlistAdapter
-from tests.mocks.clients.mock_alpaca_watchlist_client import MockAlpacaWatchlistClient
+from tests.mocks.clients.alpaca.mock_alpaca_watchlist_client import (
+    MockAlpacaWatchlistClient,
+)
 from tests.mocks.mock_loggable import MockLoggable
 
 

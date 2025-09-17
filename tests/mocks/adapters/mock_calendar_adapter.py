@@ -1,5 +1,7 @@
 from algo_royale.adapters.trading.calendar_adapter import CalendarAdapter
-from tests.mocks.clients.mock_alpaca_calendar_client import MockAlpacaCalendarClient
+from tests.mocks.clients.alpaca.mock_alpaca_calendar_client import (
+    MockAlpacaCalendarClient,
+)
 from tests.mocks.mock_loggable import MockLoggable
 
 

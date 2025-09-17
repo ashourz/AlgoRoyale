@@ -1,5 +1,7 @@
 from algo_royale.adapters.market_data.screener_adapter import ScreenerAdapter
-from tests.mocks.clients.mock_alpaca_screener_client import MockAlpacaScreenerClient
+from tests.mocks.clients.alpaca.mock_alpaca_screener_client import (
+    MockAlpacaScreenerClient,
+)
 from tests.mocks.mock_loggable import MockLoggable
 
 

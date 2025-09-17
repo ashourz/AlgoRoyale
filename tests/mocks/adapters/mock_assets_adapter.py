@@ -1,5 +1,5 @@
 from algo_royale.adapters.trading.assets_adapter import AssetsAdapter
-from tests.mocks.clients.mock_alpaca_asset_client import MockAlpacaAssetsClient
+from tests.mocks.clients.alpaca.mock_alpaca_asset_client import MockAlpacaAssetsClient
 from tests.mocks.mock_loggable import MockLoggable
 
 

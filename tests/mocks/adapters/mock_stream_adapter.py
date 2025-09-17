@@ -1,5 +1,5 @@
 from algo_royale.adapters.market_data.stream_adapter import StreamAdapter
-from tests.mocks.clients.mock_alpaca_stream_client import MockAlpacaStreamClient
+from tests.mocks.clients.alpaca.mock_alpaca_stream_client import MockAlpacaStreamClient
 from tests.mocks.mock_loggable import MockLoggable
 
 

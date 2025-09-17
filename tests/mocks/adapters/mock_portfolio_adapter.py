@@ -1,5 +1,7 @@
 from algo_royale.adapters.trading.portfolio_adapter import PortfolioAdapter
-from tests.mocks.clients.mock_alpaca_portfolio_client import MockAlpacaPortfolioClient
+from tests.mocks.clients.alpaca.mock_alpaca_portfolio_client import (
+    MockAlpacaPortfolioClient,
+)
 from tests.mocks.mock_loggable import MockLoggable
 
 
