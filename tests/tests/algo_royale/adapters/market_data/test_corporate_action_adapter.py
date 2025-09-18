@@ -5,7 +5,7 @@ import pytest
 from tests.mocks.adapters.mock_corporate_action_adapter import (
     MockCorporateActionAdapter,
 )
-from tests.mocks.clients.mock_alpaca_corporate_action_client import (
+from tests.mocks.clients.alpaca.mock_alpaca_corporate_action_client import (
     MockAlpacaCorporateActionClient,
 )
 

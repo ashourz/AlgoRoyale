@@ -98,7 +98,7 @@ class TradesService:
         """
         return self.repo.fetch_trades_by_date_range(start_date, end_date, limit, offset)
 
-    def delete_trade(self, trade_id: int) -> int:
+    def delete_trade(self, trade_id: UUID) -> int:
         """Delete a trade record.
         :param trade_id: The ID of the trade to delete.
         :return: Number of deleted records."""

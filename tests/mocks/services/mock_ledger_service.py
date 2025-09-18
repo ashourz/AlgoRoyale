@@ -31,19 +31,28 @@ class MockLedgerService(LedgerService):
         self.sod_cash = 100000.0  # Default start of day cash for testing
         self.raise_exception = False
         self.return_empty = False
+        from datetime import datetime
+
         self.mock_order = DBOrder(
             id=UUID("123e4567-e89b-12d3-a456-426614174000"),
             user_id="user_123",
             account_id="account_123",
             symbol="AAPL",
+            market="NASDAQ",
+            order_type="market",
+            action="buy",
+            settled=True,
+            notional=100.0,
+            quantity=1,
+            price=100.0,
+            status="filled",
+            created_at=datetime.now(),
+            updated_at=datetime.now(),
             qty=1,
             filled_qty=1,
             type="market",
             side="buy",
             time_in_force="day",
-            status="filled",
-            created_at=None,
-            updated_at=None,
             submitted_at=None,
             filled_at=None,
             expired_at=None,
