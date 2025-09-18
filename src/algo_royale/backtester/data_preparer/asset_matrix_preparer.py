@@ -6,7 +6,6 @@ from algo_royale.backtester.column_names.feature_engineering_columns import (
     FeatureEngineeringColumns,
 )
 from algo_royale.logging.loggable import Loggable
-from algo_royale.logging.logger_factory import mockLogger
 
 """
 AssetMatrixPreparer: Utility for preparing feature-engineered data in the asset-matrix form
@@ -83,10 +82,3 @@ class AssetMatrixPreparer:
             f"Asset-matrix shape: {pivot_df.shape}, columns: {pivot_df.columns}"
         )
         return pivot_df
-
-
-def mockAssetMatrixPreparer() -> AssetMatrixPreparer:
-    """Creates a mock AssetMatrixPreparer for testing purposes."""
-
-    logger: Loggable = mockLogger()
-    return AssetMatrixPreparer(logger=logger)

@@ -36,7 +36,6 @@ def test_init_success(mock_config, mock_logger, mock_stage_data_manager):
     loader = StageDataLoader(
         logger=mock_logger,
         stage_data_manager=mock_stage_data_manager,
-        load_watchlist=lambda path: ["AAPL", "GOOG"],
         watchlist_path_string="mock_watchlist_path",
     )
     assert loader.get_watchlist() == ["AAPL", "GOOG"]
