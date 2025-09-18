@@ -156,6 +156,7 @@ async def test_engineer_features_handles_exception(mock_logger):
     fe = BacktestFeatureEngineer(
         feature_engineering_func=bad_feature_engineering,
         logger=mock_logger,
+        max_lookback=0,
     )
     results = []
     async for df in fe.engineer_features(df_iter(), "AAPL"):

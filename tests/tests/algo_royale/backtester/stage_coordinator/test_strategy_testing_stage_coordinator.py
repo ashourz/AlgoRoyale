@@ -75,6 +75,11 @@ def mock_factory():
     return fac
 
 
+@pytest.fixture
+def mock_combinator_factory():
+    return MagicMock()
+
+
 def test_init_success(
     mock_loader,
     mock_manager,
@@ -103,7 +108,7 @@ def test_init_success(
             strategy_evaluator=mock_evaluator,
             strategy_factory=mock_factory,
             logger=mock_logger,
-            strategy_combinators=[DummyCombinator],
+            strategy_combinator_factory=[DummyCombinator],
             optimization_root=".",
             optimization_json_filename="test.json",
         )

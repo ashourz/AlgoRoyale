@@ -1,11 +1,16 @@
-from unittest.mock import MagicMock
-import pytest
 from datetime import datetime
+from unittest.mock import MagicMock
+
+import pytest
 
 from algo_royale.backtester.enums.backtest_stage import BacktestStage
-from algo_royale.backtester.stage_data.loader.symbol_strategy_data_loader import SymbolStrategyDataLoader
+from algo_royale.backtester.stage_data.loader.symbol_strategy_data_loader import (
+    SymbolStrategyDataLoader,
+)
 from tests.mocks.backtester.mock_stage_data_manager import MockStageDataManager
-from tests.mocks.backtester.stage_data.loader.mock_stage_data_loader import MockStageDataLoader
+from tests.mocks.backtester.stage_data.loader.mock_stage_data_loader import (
+    MockStageDataLoader,
+)
 from tests.mocks.mock_loggable import MockLoggable
 
 logger = MockLoggable()
