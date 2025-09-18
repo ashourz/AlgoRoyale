@@ -1,12 +1,39 @@
 import pytest
 
+from algo_royale.services.clock_service import ClockService
+from tests.mocks.adapters.mock_clock_adapter import MockClockAdapter
+from tests.mocks.mock_loggable import MockLoggable
 from tests.mocks.services.mock_clock_service import MockClockService
 
 
 @pytest.fixture
 def clock_service():
-    service = MockClockService()
+    service = ClockService(
+        clock_adapter=MockClockAdapter(),
+        logger=MockLoggable(),
+    )
     yield service
+
+
+def set_clock_service_raise_exception(clock_service: ClockService, value: bool):
+    clock_service.clock_adapter.set_throw_exception(value)
+
+
+def reset_clock_service_raise_exception(clock_service: ClockService):
+    clock_service.clock_adapter.reset_throw_exception()
+
+
+def set_clock_service_return_empty(clock_service: ClockService, value: bool):
+    clock_service.clock_adapter.set_return_empty(value)
+
+
+def reset_clock_service_return_empty(clock_service: ClockService):
+    clock_service.clock_adapter.reset_return_empty()
+
+
+def reset_clock_service(clock_service: ClockService):
+    reset_clock_service_raise_exception(clock_service)
+    reset_clock_service_return_empty(clock_service)
 
 
 @pytest.mark.asyncio
@@ -14,10 +41,10 @@ class TestClockService:
     @pytest.fixture(autouse=True)
     def setup_and_teardown(self, clock_service: MockClockService):
         print("Setup")
-        clock_service.reset()
+        reset_clock_service(clock_service)
         yield
         print("Teardown")
-        clock_service.reset()
+        reset_clock_service(clock_service)
 
     async def test_start_and_stop(self, clock_service):
         # Should not raise

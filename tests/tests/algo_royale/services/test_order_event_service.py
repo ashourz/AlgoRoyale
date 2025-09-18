@@ -5,22 +5,55 @@ import pytest
 from algo_royale.models.alpaca_trading.alpaca_order import Order
 from algo_royale.models.alpaca_trading.enums.order_stream_event import OrderStreamEvent
 from algo_royale.models.alpaca_trading.order_stream_data import OrderStreamData
+from algo_royale.services.order_event_service import OrderEventService
+from tests.mocks.adapters.mock_order_stream_adapter import MockOrderStreamAdapter
+from tests.mocks.mock_loggable import MockLoggable
 from tests.mocks.services.mock_order_event_service import MockOrderEventService
 
 
 @pytest.fixture
 def order_event_service():
-    service = MockOrderEventService()
+    service = OrderEventService(
+        order_stream_adapter=MockOrderStreamAdapter(),
+        logger=MockLoggable(),
+    )
     yield service
+
+
+def set_order_event_service_raise_exception(
+    order_event_service: OrderEventService, value: bool
+):
+    order_event_service.order_stream_adapter.set_raise_exception(value)
+
+
+def reset_order_event_service_raise_exception(order_event_service: OrderEventService):
+    order_event_service.order_stream_adapter.reset_raise_exception()
+
+
+def set_order_event_service_return_empty(
+    order_event_service: OrderEventService, value: bool
+):
+    order_event_service.order_stream_adapter.set_return_empty(value)
+
+
+def reset_order_event_service_return_empty(order_event_service: OrderEventService):
+    order_event_service.order_stream_adapter.reset_return_empty()
+
+
+def reset_order_event_service(order_event_service: OrderEventService):
+    reset_order_event_service_raise_exception(order_event_service)
+    reset_order_event_service_return_empty(order_event_service)
 
 
 @pytest.mark.asyncio
 class TestOrderEventService:
     @pytest.fixture(autouse=True)
     def setup_and_teardown(self, order_event_service: MockOrderEventService):
-        order_event_service.reset()
+        print("Setup")
+        reset_order_event_service(order_event_service)
         yield
-        order_event_service.reset()
+        print("Teardown")
+        reset_order_event_service(order_event_service)
 
     async def test_async_subscribe(self, order_event_service: MockOrderEventService):
         async def sample_callback(event):

@@ -173,7 +173,7 @@ class FeatureEngineeringStageCoordinator(StageCoordinator):
         ],
     ):
         """Write processed data to disk."""
-        return await self.data_writer.write_symbol_strategy_data_factory(
+        return await self.data_writer.async_write_symbol_strategy_data_factory(
             stage=stage,
             symbol_strategy_data_factory=processed_data,
             start_date=self.start_date,

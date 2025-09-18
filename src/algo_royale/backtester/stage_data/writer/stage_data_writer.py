@@ -1,5 +1,4 @@
 from math import ceil
-from pathlib import Path
 from typing import AsyncIterator, Optional
 
 import pandas as pd
@@ -7,10 +6,8 @@ import pandas as pd
 from algo_royale.backtester.enums.backtest_stage import BacktestStage
 from algo_royale.backtester.stage_data.stage_data_manager import (
     StageDataManager,
-    mockStageDataManager,
 )
 from algo_royale.logging.loggable import Loggable
-from algo_royale.logging.logger_factory import mockLogger
 
 
 class StageDataWriter:
@@ -40,7 +37,7 @@ class StageDataWriter:
         gen: AsyncIterator[pd.DataFrame],
         start_date: Optional[str] = None,
         end_date: Optional[str] = None,
-    ) -> list[str]:
+    ) -> None:
         """
         Asynchronously write multiple data batches to CSV files.
         """
@@ -66,7 +63,7 @@ class StageDataWriter:
         page_idx: int,
         start_date: Optional[str] = None,
         end_date: Optional[str] = None,
-    ) -> list[str]:
+    ) -> None:
         """
         Save the results DataFrame to CSV files, splitting if necessary.
         """
@@ -118,20 +115,3 @@ class StageDataWriter:
                 raise
 
         return filepaths
-
-
-def mockStageDataWriter(
-    data_dir: Path,
-) -> StageDataWriter:
-    """
-    Creates a mock StageDataWriter for testing purposes.
-    """
-    logger = mockLogger()
-    stage_data_manager = mockStageDataManager(
-        data_dir=data_dir,
-        logger=logger,
-    )
-    return StageDataWriter(
-        stage_data_manager=stage_data_manager,
-        logger=logger,
-    )

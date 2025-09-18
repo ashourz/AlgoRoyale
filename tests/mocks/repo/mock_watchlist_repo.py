@@ -24,6 +24,11 @@ class MockWatchlistRepo(WatchlistRepo):
     def reset_watchlist(self):
         self.test_watchlist = ["AAPL", "GOOGL", "MSFT"]
 
+    def reset(self):
+        self.reset_return_empty()
+        self.reset_raise_exception()
+        self.reset_watchlist()
+
     def load_watchlist(self) -> list[str]:
         if self.raise_exception:
             raise FileNotFoundError("Simulated exception in load_watchlist")

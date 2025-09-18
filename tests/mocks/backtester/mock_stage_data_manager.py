@@ -10,6 +10,10 @@ class MockStageDataManager(StageDataManager):
         self._mock_files = {}
         self._mock_deleted = set()
 
+    def reset(self):
+        self._mock_files.clear()
+        self._mock_deleted.clear()
+
     # Optionally override methods for more controlled test behavior
     def write_file(self, *args, **kwargs):
         # Assume the last positional argument is the content

@@ -30,7 +30,7 @@ class SymbolStrategyDataWriter:
         self.data_writer = data_writer
         self.logger = logger
 
-    async def write_symbol_strategy_data_factory(
+    async def async_write_symbol_strategy_data_factory(
         self,
         stage: BacktestStage,
         symbol_strategy_data_factory: Dict[
