@@ -99,9 +99,9 @@ class TestLedgerService:
     async def test_submit_equity_order(self, ledger_service: LedgerService):
         order = EquityBaseOrder(
             symbol="AAPL",
-            qty=10,
             side="buy",
-            type="market",
+            order_class="simple",
+            order_type="market",
             time_in_force="day",
             extended_hours=False,
             client_order_id="client_order_1",

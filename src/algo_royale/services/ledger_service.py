@@ -78,9 +78,9 @@ class LedgerService:
             self.enriched_data_service.insert_enriched_data(
                 order_id=order_id, enriched_data=enriched_data
             )
-            self.logger.info(f"Submitted order {order.id}.")
+            self.logger.info(f"Submitted order {order} | {order_id}.")
         except Exception as e:
-            self.logger.error(f"Error submitting order {order.id}: {e}")
+            self.logger.error(f"Error submitting order {order}: {e}")
 
     def update_order(
         self,
