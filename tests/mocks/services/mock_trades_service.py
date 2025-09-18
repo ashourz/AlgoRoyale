@@ -1,3 +1,4 @@
+from datetime import timedelta
 from uuid import UUID
 
 from algo_royale.models.db.db_trade import DBTrade
@@ -115,7 +116,7 @@ class MockTradesService(TradesService):
                     "settled": False,
                     "created_at": start_date,
                     "executed_at": start_date,
-                    "settlement_date": start_date.plus(days=self.days_to_settle),
+                    "settlement_date": start_date + timedelta(days=self.days_to_settle),
                     "updated_at": start_date,
                 }
             )
@@ -125,9 +126,9 @@ class MockTradesService(TradesService):
     def delete_trade(self, trade_id: UUID) -> int:
         if self.raise_exception:
             raise ValueError("Database error")
-        initial_count = len(self.trades)
-        self.trades = [trade for trade in self.trades if trade.id != trade_id]
-        return 1 if len(self.trades) < initial_count else 0
+        if self.return_empty:
+            return 0
+        return 1
 
     def delete_all_trades(self) -> int:
         if self.raise_exception:

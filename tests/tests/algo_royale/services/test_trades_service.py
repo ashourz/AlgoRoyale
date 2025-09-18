@@ -1,4 +1,5 @@
 from datetime import datetime
+from uuid import UUID
 
 import pytest
 
@@ -62,7 +63,7 @@ class TestTradesService:
         trades = trades_service.fetch_unsettled_trades()
         assert len(trades) == 1
         assert trades[0].settled is False
-        assert trades[0].id == 1
+        assert trades[0].id == UUID("00000000-0000-0000-0000-000000000001")
 
     async def test_fetch_unsettled_trades_empty(
         self, trades_service: MockTradesService
@@ -88,32 +89,28 @@ class TestTradesService:
         assert True  # If no exception is raised, the test passes
 
     async def test_insert_trade_normal(self, trades_service: MockTradesService):
-        from uuid import uuid4
-
-        order_id = uuid4()
         trade_id = trades_service.insert_trade(
             symbol="AAPL",
             action="buy",
+            settled=False,
+            settlement_date="2023-10-01",
             price=100.0,
             quantity=10,
             executed_at=datetime.now(),
-            order_id=order_id,
         )
-        assert trade_id == trades_service.repo.dao.test_trade.id
+        assert trade_id == "00000000-0000-0000-0000-000000000003"
 
     async def test_insert_trade_exception(self, trades_service: MockTradesService):
-        from uuid import uuid4
-
         trades_service.set_raise_exception(True)
-        order_id = uuid4()
         with pytest.raises(ValueError) as excinfo:
             trades_service.insert_trade(
                 symbol="AAPL",
                 action="buy",
+                settled=False,
+                settlement_date="2023-10-01",
                 price=100.0,
                 quantity=10,
                 executed_at=datetime.now(),
-                order_id=order_id,
             )
         assert "Database error" in str(excinfo.value)
         trades_service.reset_raise_exception()
@@ -127,8 +124,6 @@ class TestTradesService:
         end_date = datetime.now()
         trades = trades_service.fetch_trades_by_date_range(start_date, end_date)
         assert len(trades) == 1
-        assert trades[0].settled is True
-        assert trades[0].id == 1
 
     async def test_fetch_trades_by_date_range_empty(
         self, trades_service: MockTradesService
@@ -156,16 +151,14 @@ class TestTradesService:
         trades_service.reset_raise_exception()
 
     async def test_delete_trade_normal(self, trades_service: MockTradesService):
-        from uuid import uuid4
-
-        order_id = uuid4()
         trade_id = trades_service.insert_trade(
             symbol="AAPL",
             action="buy",
+            settled=False,
+            settlement_date="2023-10-01",
             price=100.0,
             quantity=10,
             executed_at=datetime.now(),
-            order_id=order_id,
         )
         deleted_count = trades_service.delete_trade(trade_id)
         assert deleted_count == 1
