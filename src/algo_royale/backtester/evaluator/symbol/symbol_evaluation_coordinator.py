@@ -50,8 +50,19 @@ class SymbolEvaluationCoordinator:
                     self.logger.debug(f"Checking strategy directory: {strat_dir}")
                     eval_path = strat_dir / self.evaluation_json_filename
                     if eval_path.exists():
-                        with open(eval_path) as f:
-                            loaded_results = json.load(f)
+                        try:
+                            with open(eval_path) as f:
+                                loaded_results = json.load(f)
+                        except json.JSONDecodeError as e:
+                            self.logger.warning(
+                                f"Invalid JSON in {eval_path}: {e}. Skipping."
+                            )
+                            continue
+                        except Exception as e:
+                            self.logger.warning(
+                                f"Error reading {eval_path}: {e}. Skipping."
+                            )
+                            continue
                         if not self._validate_input_report(loaded_results):
                             self.logger.warning(
                                 f"Invalid evaluation report for {symbol} in {strat_dir}. Skipping."
