@@ -50,7 +50,10 @@ class PipelineCoordinator:
         try:
             self.logger.info("Starting Backtest Pipeline...")
             # Run the pipeline stages in sequence
-            await self.run_pipeline()
+            pipeline_result = await self.run_pipeline()
+            if pipeline_result is False:
+                self.logger.error("Backtest pipeline failed in run_pipeline.")
+                return False
             self.logger.info("Backtest Pipeline completed successfully.")
             return True
         except Exception as e:
