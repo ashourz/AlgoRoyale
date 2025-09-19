@@ -4,7 +4,6 @@ import os
 from algo_royale.logging.custom_rotating_file_handler import CustomRotatingFileHandler
 from algo_royale.logging.loggable import Loggable
 from algo_royale.logging.logger_env import LoggerEnv
-from algo_royale.logging.logger_type import LoggerType
 from algo_royale.utils.path_utils import get_project_root
 
 PROJECT_ROOT = get_project_root()
@@ -55,7 +54,5 @@ def mockLogger() -> logging.Logger:
     """
     from algo_royale.logging.logger_env import LoggerEnv
 
-    logger: Loggable = LoggerFactory.get_base_logger(
-        logger_type=LoggerType.TESTING, environment=LoggerEnv.TEST
-    )
+    logger: Loggable = LoggerFactory.get_base_logger(environment=LoggerEnv.TEST)
     return logger

@@ -297,11 +297,3 @@ class PortfolioBacktestEvaluator(BacktestEvaluator):
         if losses == 0:
             return np.inf
         return float(gains / losses)
-
-
-def mockPortfolioBacktestEvaluator() -> PortfolioBacktestEvaluator:
-    """Creates a mock PortfolioBacktestEvaluator for testing purposes."""
-    from algo_royale.logging.logger_factory import mockLogger
-
-    logger: Loggable = mockLogger()
-    return PortfolioBacktestEvaluator(logger=logger)

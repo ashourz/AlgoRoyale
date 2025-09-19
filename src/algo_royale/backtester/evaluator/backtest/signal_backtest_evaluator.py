@@ -152,7 +152,7 @@ class SignalBacktestEvaluator(BacktestEvaluator):
                 return 0.0
             excess_returns = returns - risk_free_rate
             std = np.std(excess_returns, ddof=1)
-            if std == 0:
+            if np.isclose(std, 0):
                 return 0.0
             return np.mean(excess_returns) / std
         except Exception as e:
@@ -170,11 +170,3 @@ class SignalBacktestEvaluator(BacktestEvaluator):
         except Exception as e:
             self.logger.error(f"Max drawdown calculation failed: {e}")
             return 0.0
-
-
-def mockSignalBacktestEvaluator() -> SignalBacktestEvaluator:
-    """Creates a mock SignalBacktestEvaluator for testing purposes."""
-    from algo_royale.logging.logger_factory import mockLogger
-
-    logger: Loggable = mockLogger()
-    return SignalBacktestEvaluator(logger=logger)

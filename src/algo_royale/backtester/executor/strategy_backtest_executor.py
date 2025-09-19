@@ -1,5 +1,4 @@
 import asyncio
-from pathlib import Path
 from typing import AsyncIterator, Callable, Dict
 
 import pandas as pd
@@ -10,13 +9,11 @@ from algo_royale.backtester.column_names.strategy_columns import (
 from algo_royale.backtester.enums.backtest_stage import BacktestStage
 from algo_royale.backtester.stage_data.stage_data_manager import (
     StageDataManager,
-    mockStageDataManager,
 )
 from algo_royale.backtester.strategy.signal.base_signal_strategy import (
     BaseSignalStrategy,
 )
 from algo_royale.logging.loggable import Loggable
-from algo_royale.logging.logger_factory import mockLogger
 
 
 class StrategyBacktestExecutor:
@@ -294,14 +291,3 @@ class StrategyBacktestExecutor:
             )
 
         return df
-
-
-def mockStrategyBacktestExecutor(data_dir: Path) -> StrategyBacktestExecutor:
-    """
-    Mock implementation of StrategyBacktestExecutor for testing purposes.
-    """
-    logger = mockLogger()
-    stage_data_manager = mockStageDataManager(data_dir=data_dir)
-    return StrategyBacktestExecutor(
-        stage_data_manager=stage_data_manager, logger=logger
-    )

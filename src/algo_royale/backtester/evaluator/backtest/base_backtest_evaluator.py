@@ -45,11 +45,3 @@ class BacktestEvaluator(ABC):
     @abstractmethod
     def _evaluate_signals(self, signals_df: pd.DataFrame) -> dict:
         pass
-
-
-def mockBacktestEvaluator() -> BacktestEvaluator:
-    """Creates a mock BacktestEvaluator for testing purposes."""
-    from algo_royale.logging.logger_factory import mockLogger
-
-    logger: Loggable = mockLogger()
-    return BacktestEvaluator(logger=logger)

@@ -3,6 +3,8 @@ from enum import Enum
 
 
 class LoggerType(Enum):
+    # TESTING
+    TESTING = ("TESTING", logging.DEBUG)
     ## DATABASE
     DATABASE = ("DATABASE", logging.ERROR)
 

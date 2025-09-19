@@ -5,7 +5,6 @@ import pandas as pd
 from algo_royale.backtester.enums.backtest_stage import BacktestStage
 from algo_royale.backtester.stage_data.stage_data_manager import StageDataManager
 from algo_royale.logging.loggable import Loggable
-from algo_royale.logging.logger_factory import mockLogger
 
 
 class StageDataPreparer:
@@ -25,25 +24,53 @@ class StageDataPreparer:
         self.logger: Loggable = logger
         self.stage_data_manager: StageDataManager = stage_data_manager
 
-    async def normalize_stream(self, stage, iterator_factory):
-        iterator = iterator_factory()
-        if not hasattr(iterator, "__aiter__"):
-            self.logger.error(f"Expected async iterator, got {type(iterator)}")
-            raise TypeError(f"Expected async iterator, got {type(iterator)}")
+    async def normalize_stream(
+        self, stage, iterator_factory, symbol=None, strategy_name=None
+    ):
         try:
-            async for df in iterator:
-                # Validate DataFrame columns
-                missing_columns = [
-                    col for col in stage.input_columns if col not in df.columns
-                ]
-                if missing_columns:
-                    self.logger.error(
-                        f"Missing required columns: {missing_columns} in DataFrame for stage: {stage}"
-                    )
-                    continue  # Skip invalid DataFrame
-                yield df
+            try:
+                iterator = iterator_factory()
+            except Exception as e:
+                self.logger.error(
+                    f"Exception during iterator_factory() in normalize_stream: {e}"
+                )
+                self.stage_data_manager.write_error_file(
+                    stage=stage,
+                    strategy_name=strategy_name,
+                    symbol=symbol,
+                    filename="normalize_stream",
+                    error_message=f"Exception during iterator_factory() in normalize_stream: {e}",
+                )
+                raise
+            if not hasattr(iterator, "__aiter__"):
+                self.logger.error(f"Expected async iterator, got {type(iterator)}")
+                raise TypeError(f"Expected async iterator, got {type(iterator)}")
+            try:
+                async for df in iterator:
+                    # Validate DataFrame columns
+                    missing_columns = [
+                        col for col in stage.input_columns if col not in df.columns
+                    ]
+                    if missing_columns:
+                        self.logger.error(
+                            f"Missing required columns: {missing_columns} in DataFrame for stage: {stage}"
+                        )
+                        continue  # Skip invalid DataFrame
+                    yield df
+            except Exception as e:
+                self.logger.error(
+                    f"Exception during async iteration in normalize_stream: {e}"
+                )
+                self.stage_data_manager.write_error_file(
+                    stage=stage,
+                    strategy_name=strategy_name,
+                    symbol=symbol,
+                    filename="normalize_stream",
+                    error_message=f"Exception during async iteration in normalize_stream: {e}",
+                )
+                raise
         finally:
-            if hasattr(iterator, "aclose"):
+            if "iterator" in locals() and hasattr(iterator, "aclose"):
                 await iterator.aclose()
 
     def normalize_stage_data(
@@ -62,8 +89,12 @@ class StageDataPreparer:
                     self.logger.info(
                         f"Calling factory for {symbol}, df_iter_factory={df_iter_factory}"
                     )
+                    # Pass symbol and strategy_name for error reporting in normalize_stream
                     return self.normalize_stream(
-                        stage=stage, iterator_factory=df_iter_factory
+                        stage=stage,
+                        iterator_factory=df_iter_factory,
+                        symbol=symbol,
+                        strategy_name=strategy_name,
                     )
                 except Exception as e:
                     self.logger.error(
@@ -83,10 +114,3 @@ class StageDataPreparer:
             f"Data prepared for stage:{stage} | strategy:{strategy_name} with {len(prepared_data)} symbols"
         )
         return prepared_data
-
-
-def mockStageDataPreparer() -> StageDataPreparer:
-    """Creates a mock StageDataPreparer for testing purposes."""
-
-    logger: Loggable = mockLogger()
-    return StageDataPreparer(logger=logger)
