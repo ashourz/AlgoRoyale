@@ -16,9 +16,7 @@ def stage_data_loader():
     """Fixture for a StageDataLoader instance with mocked dependencies."""
     loader = StageDataLoader(
         logger=MockLoggable(),
-        stage_data_manager=MockStageDataManager(
-            data_dir=MagicMock(),
-        ),
+        stage_data_manager=MockStageDataManager(),
         watchlist_repo=MockWatchlistRepo(),
     )
     yield loader

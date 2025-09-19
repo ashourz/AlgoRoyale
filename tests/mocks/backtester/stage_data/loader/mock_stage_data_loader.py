@@ -1,5 +1,3 @@
-from unittest.mock import MagicMock
-
 from algo_royale.backtester.stage_data.loader.stage_data_loader import StageDataLoader
 from tests.mocks.backtester.mock_stage_data_manager import MockStageDataManager
 from tests.mocks.mock_loggable import MockLoggable
@@ -10,7 +8,7 @@ class MockStageDataLoader(StageDataLoader):
     def __init__(self):
         super().__init__(
             logger=MockLoggable(),
-            stage_data_manager=MockStageDataManager(data_dir=MagicMock()),
+            stage_data_manager=MockStageDataManager(),
             watchlist_repo=MockWatchlistRepo(),
         )
         self.base_watchlist = ["AAPL", "MSFT", "GOOGL"]

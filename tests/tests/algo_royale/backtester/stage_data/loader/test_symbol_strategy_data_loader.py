@@ -1,5 +1,4 @@
 from datetime import datetime
-from unittest.mock import MagicMock
 
 import pytest
 
@@ -20,9 +19,7 @@ logger = MockLoggable()
 def loader():
     """Fixture for a SymbolStrategyDataLoader instance with mocked dependencies."""
     loader = SymbolStrategyDataLoader(
-        stage_data_manager=MockStageDataManager(
-            data_dir=MagicMock(),
-        ),
+        stage_data_manager=MockStageDataManager(),
         stage_data_loader=MockStageDataLoader(),
         logger=MockLoggable(),
     )

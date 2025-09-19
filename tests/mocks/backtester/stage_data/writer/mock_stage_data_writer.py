@@ -1,5 +1,3 @@
-from unittest.mock import MagicMock
-
 from algo_royale.backtester.stage_data.writer.stage_data_writer import StageDataWriter
 from tests.mocks.backtester.mock_stage_data_manager import MockStageDataManager
 from tests.mocks.mock_loggable import MockLoggable
@@ -9,7 +7,7 @@ class MockStageDataWriter(StageDataWriter):
     def __init__(self):
         super().__init__(
             logger=MockLoggable(),
-            stage_data_manager=MockStageDataManager(data_dir=MagicMock()),
+            stage_data_manager=MockStageDataManager(),
             max_rows_per_file=1000,  # Default value for testing
         )
         self.raise_exception = False

@@ -1,5 +1,3 @@
-from unittest.mock import MagicMock
-
 import pytest
 
 from algo_royale.backtester.stage_data.writer.symbol_strategy_data_writer import (
@@ -18,9 +16,7 @@ logger = MockLoggable()
 def writer():
     """Fixture for a SymbolStrategyDataWriter instance with mocked dependencies."""
     writer = SymbolStrategyDataWriter(
-        stage_data_manager=MockStageDataManager(
-            data_dir=MagicMock(),
-        ),
+        stage_data_manager=MockStageDataManager(),
         data_writer=MockStageDataWriter(),
         logger=MockLoggable(),
     )
