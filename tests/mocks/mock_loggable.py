@@ -1,19 +1,36 @@
 # Minimal mock logger implementing Loggable protocol
+
+
 class MockLoggable:
+    def __init__(self):
+        self.messages = []
+
     def debug(self, msg, *args, **kwargs):
-        print(f"DEBUG: {msg}")
+        m = f"DEBUG: {msg}"
+        print(m)
+        self.messages.append(m)
 
     def info(self, msg, *args, **kwargs):
-        print(f"INFO: {msg}")
+        m = f"INFO: {msg}"
+        print(m)
+        self.messages.append(m)
 
     def warning(self, msg, *args, **kwargs):
-        print(f"WARNING: {msg}")
+        m = f"WARNING: {msg}"
+        print(m)
+        self.messages.append(m)
 
     def error(self, msg, *args, **kwargs):
-        print(f"ERROR: {msg}")
+        m = f"ERROR: {msg}"
+        print(m)
+        self.messages.append(m)
 
     def critical(self, msg, *args, **kwargs):
-        print(f"CRITICAL: {msg}")
+        m = f"CRITICAL: {msg}"
+        print(m)
+        self.messages.append(m)
 
     def exception(self, msg, *args, **kwargs):
-        print(f"EXCEPTION: {msg}")
+        m = f"EXCEPTION: {msg}"
+        print(m)
+        self.messages.append(m)
