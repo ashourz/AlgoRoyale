@@ -40,8 +40,12 @@ class PortfolioCrossWindowEvaluator:
             if not opt_path.exists():
                 self.logger.warning(f"No optimization result found: {opt_path}")
                 continue
-            with open(opt_path) as f:
-                opt_json = json.load(f)
+            try:
+                with open(opt_path) as f:
+                    opt_json = json.load(f)
+            except json.JSONDecodeError:
+                self.logger.error(f"Invalid JSON in {opt_path}, skipping file.")
+                continue
             # Defensive: ensure opt_json is a dict
             if not isinstance(opt_json, dict):
                 self.logger.error(

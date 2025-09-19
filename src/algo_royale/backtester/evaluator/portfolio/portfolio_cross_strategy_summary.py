@@ -23,6 +23,9 @@ class PortfolioCrossStrategySummary:
         self,
         symbol_dir: Path,
     ):
+        if not symbol_dir.is_dir():
+            self.logger.warning(f"Provided symbol_dir is not a directory: {symbol_dir}")
+            return None
         strategy_results = []
         for strategy_dir in sorted(symbol_dir.iterdir()):
             if not strategy_dir.is_dir():
@@ -34,8 +37,12 @@ class PortfolioCrossStrategySummary:
             if not eval_path.exists():
                 self.logger.warning(f"No evaluation_result.json found: {eval_path}")
                 continue
-            with open(eval_path) as f:
-                eval_json = json.load(f)
+            try:
+                with open(eval_path) as f:
+                    eval_json = json.load(f)
+            except json.JSONDecodeError:
+                self.logger.error(f"Invalid JSON in {eval_path}, skipping file.")
+                continue
             eval_json["strategy"] = strategy_dir.name
             strategy_results.append(eval_json)
 
