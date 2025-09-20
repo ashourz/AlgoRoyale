@@ -1,7 +1,7 @@
 import asyncio
 
 from algo_royale.backtester.pipeline.pipeline_coordinator import PipelineCoordinator
-from algo_royale.di import application_container
+from algo_royale.logging.logger_env import LoggerEnv
 
 
 async def async_cli(coordinator: PipelineCoordinator):
@@ -12,9 +12,11 @@ async def async_cli(coordinator: PipelineCoordinator):
 
 def cli():
     """Synchronous CLI wrapper"""
+    from algo_royale.di.application_container import ApplicationContainer
 
+    application_container = ApplicationContainer(environment=LoggerEnv.PROD)
     coordinator = (
-        application_container.backtest_pipeline_container.pipeline_coordinator()
+        application_container.backtest_pipeline_container().pipeline_coordinator()
     )
     asyncio.run(async_cli(coordinator))
 

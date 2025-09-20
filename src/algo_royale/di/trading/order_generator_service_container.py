@@ -32,15 +32,13 @@ class OrderGeneratorServiceContainer(containers.DeclarativeContainer):
     registry_container: RegistryContainer = providers.DependenciesContainer()
     logger_container = providers.DependenciesContainer()
 
-    is_live: bool = providers.Object(False)
-
     market_data_streamer = providers.Singleton(
         MarketDataRawStreamer,
         stream_adapter=adapter_container.market_data_stream_adapter,
         logger=logger_container.provides_logger(
             logger_type=LoggerType.MARKET_DATA_RAW_STREAMER
         ),
-        is_live=is_live,
+        is_live=config.environment.is_live(),
     )
 
     enriched_data_streamer = providers.Singleton(

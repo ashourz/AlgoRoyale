@@ -22,7 +22,7 @@ class LoggerFactory:
     _loggers = {}
 
     @staticmethod
-    def get_base_logger(environment: LoggerEnv = LoggerEnv.BACKTEST) -> logging.Logger:
+    def get_base_logger(environment: LoggerEnv) -> logging.Logger:
         logger_name = environment.value
         if logger_name in LoggerFactory._loggers:
             return LoggerFactory._loggers[logger_name]

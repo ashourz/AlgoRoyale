@@ -1,20 +1,23 @@
 from dependency_injector import containers, providers
 
 from algo_royale.clients.db.database import Database
+from algo_royale.di.logger_container import LoggerContainer
+from algo_royale.logging.logger_type import LoggerType
 
 
 class DBContainer(containers.DeclarativeContainer):
     config = providers.Configuration()
     secrets = providers.Configuration()
+    logger_container: LoggerContainer = providers.DependenciesContainer()
 
     database = providers.Singleton(
         Database,
-        db_name=config.db.connection.dbname,
-        db_user=config.db.connection.user,
+        db_name=config.db.connection.db_name,
+        db_user=config.db.connection.db_user,
         db_password=secrets.db.connection.password,
         db_host=config.db.connection.host,
         db_port=config.db.connection.port,
-        logger=config.logger_trading,
+        logger=logger_container.provides_logger(logger_type=LoggerType.DATABASE),
     )
 
     db_connection = providers.Callable(lambda db: db.connection_context(), db=database)

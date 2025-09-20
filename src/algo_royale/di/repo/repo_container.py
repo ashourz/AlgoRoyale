@@ -17,8 +17,12 @@ class RepoContainer(containers.DeclarativeContainer):
     config: providers.Configuration = providers.Configuration()
     secrets: providers.Configuration = providers.Configuration()
     logger_container: LoggerContainer = providers.Singleton()
-
-    db_container = providers.Container(DBContainer, config=config, secrets=secrets)
+    db_container = providers.Container(
+        DBContainer,
+        config=config,
+        secrets=secrets,
+        logger_container=logger_container,
+    )
 
     dao_container = providers.Container(
         DAOContainer,

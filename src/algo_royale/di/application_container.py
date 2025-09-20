@@ -11,14 +11,40 @@ from algo_royale.di.logger_container import LoggerContainer
 from algo_royale.di.repo.repo_container import RepoContainer
 from algo_royale.di.stage_data_container import StageDataContainer
 from algo_royale.di.trading.trading_container import TradingContainer
+from algo_royale.logging.logger_env import LoggerEnv
 from algo_royale.logging.logger_type import LoggerType
 from algo_royale.services.clock_service import ClockService
 
 
 class ApplicationContainer(containers.DeclarativeContainer):
-    config = providers.Configuration(ini_files=["config.ini"])
-    secrets = providers.Configuration(ini_files=["secrets.ini"])
-    logger_container = LoggerContainer()
+    environment = providers.Object(LoggerEnv)
+
+    @staticmethod
+    def _get_ini_files(environment):
+        env = environment.value.lower()
+        if env == "prod":
+            return ["env_config_prod.ini"], ["env_secrets_prod.ini"]
+        elif env == "test":
+            return ["env_config_test.ini"], ["env_secrets_test.ini"]
+        else:
+            raise ValueError(f"Unsupported environment: {environment}")
+
+    config = providers.Configuration(
+        ini_files=providers.Callable(
+            lambda environment: ApplicationContainer._get_ini_files(environment)[0],
+            environment=environment,
+        )
+    )
+    secrets = providers.Configuration(
+        ini_files=providers.Callable(
+            lambda environment: ApplicationContainer._get_ini_files(environment)[1],
+            environment=environment,
+        )
+    )
+    logger_container = providers.Container(
+        LoggerContainer,
+        environment=environment,
+    )
 
     repo_container = providers.Container(
         RepoContainer,
@@ -90,6 +116,3 @@ class ApplicationContainer(containers.DeclarativeContainer):
         ledger_service_container=ledger_service_container,
         logger_container=logger_container,
     )
-
-
-application_container = ApplicationContainer()

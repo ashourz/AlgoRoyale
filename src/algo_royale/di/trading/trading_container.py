@@ -49,7 +49,7 @@ class TradingContainer(containers.DeclarativeContainer):
         ledger_service_container=ledger_service_container,
         registry_container=registry_container,
         logger_container=logger_container,
-        is_live=providers.Object(False),
+        is_live=config.environment.is_live(),
     )
 
     live_order_generator_service_container = providers.Container(
@@ -60,7 +60,7 @@ class TradingContainer(containers.DeclarativeContainer):
         ledger_service_container=ledger_service_container,
         registry_container=registry_container,
         logger_container=logger_container,
-        is_live=providers.Object(True),
+        is_live=config.environment.is_live(),
     )
 
     test_market_session_container = providers.Container(

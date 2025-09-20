@@ -3,7 +3,17 @@
 import logging
 from typing import Protocol, runtime_checkable
 
-from algo_royale.logging.logger_type import LoggerType
+from algo_royale.logging.env_logger_type_integration import EnvLoggerTypeIntegration
+from algo_royale.logging.env_logger_type_prod import EnvLoggerTypeProd
+from algo_royale.logging.env_logger_type_test import EnvLoggerTypeTest
+from algo_royale.logging.env_logger_type_unit import EnvLoggerTypeUnit
+
+ENV_LOGGER_TYPE_CLASS_MAP = {
+    "unit": EnvLoggerTypeUnit,
+    "integration": EnvLoggerTypeIntegration,
+    "test": EnvLoggerTypeTest,
+    "prod": EnvLoggerTypeProd,
+}
 
 
 @runtime_checkable
@@ -17,7 +27,7 @@ class Loggable(Protocol):
 
 
 class TaggableLogger(Loggable):
-    def __init__(self, base_logger: logging.Logger, logger_type: LoggerType):
+    def __init__(self, base_logger: logging.Logger, logger_type):
         self._logger = base_logger
         self._logger_type = logger_type
         self._log_level = logger_type.log_level
