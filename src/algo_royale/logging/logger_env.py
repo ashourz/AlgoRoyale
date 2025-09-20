@@ -1,7 +1,7 @@
 from enum import Enum
 
 
-class LoggerEnv(Enum):
+class ApplicationEnv(Enum):
     # TRADING = "trading"
     # BACKTEST = "backtest"
 

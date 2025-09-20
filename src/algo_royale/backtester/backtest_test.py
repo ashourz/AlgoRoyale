@@ -1,7 +1,7 @@
 import asyncio
 
 from algo_royale.backtester.pipeline.pipeline_coordinator import PipelineCoordinator
-from algo_royale.logging.logger_env import LoggerEnv
+from algo_royale.logging.logger_env import ApplicationEnv
 
 
 async def async_cli(coordinator: PipelineCoordinator):
@@ -14,7 +14,11 @@ def cli():
     """Synchronous CLI wrapper"""
     from algo_royale.di.application_container import ApplicationContainer
 
-    application_container = ApplicationContainer(environment=LoggerEnv.TEST)
+    application_container = ApplicationContainer(environment=ApplicationEnv.TEST)
+    # Initialize and run DB migrations
+    db_container = application_container.repo_container().db_container()
+    db_container.run_migrations()
+
     coordinator = (
         application_container.backtest_pipeline_container().pipeline_coordinator()
     )

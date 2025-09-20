@@ -11,13 +11,13 @@ from algo_royale.di.logger_container import LoggerContainer
 from algo_royale.di.repo.repo_container import RepoContainer
 from algo_royale.di.stage_data_container import StageDataContainer
 from algo_royale.di.trading.trading_container import TradingContainer
-from algo_royale.logging.logger_env import LoggerEnv
+from algo_royale.logging.logger_env import ApplicationEnv
 from algo_royale.logging.logger_type import LoggerType
 from algo_royale.services.clock_service import ClockService
 
 
 class ApplicationContainer(containers.DeclarativeContainer):
-    environment = providers.Object(LoggerEnv)
+    environment = providers.Object(ApplicationEnv)
 
     @staticmethod
     def _get_ini_files(environment):

@@ -37,11 +37,11 @@ This will:
 
 import os
 
-from algo_royale.logging.logger_env import LoggerEnv
+from algo_royale.logging.logger_env import ApplicationEnv
 from algo_royale.logging.logger_factory import LoggerFactory
 from algo_royale.visualization import app
 
-logger = LoggerFactory.get_base_logger(LoggerEnv.PROD)
+logger = LoggerFactory.get_base_logger(ApplicationEnv.PROD)
 
 
 def set_environment_variables():

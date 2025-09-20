@@ -1,11 +1,9 @@
 from pathlib import Path
 
-from algo_royale.logging.logger_env import LoggerEnv
-
-logger = LoggerFactory.get_base_logger(LoggerEnv.TRADING)  # noqa: F821
+from algo_royale.logging.loggable import Loggable
 
 
-def apply_migrations(conn):
+def apply_migrations(conn, logger: Loggable):
     """
     Apply the pending migrations to the database.
     """

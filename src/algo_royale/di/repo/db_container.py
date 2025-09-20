@@ -10,6 +10,11 @@ class DBContainer(containers.DeclarativeContainer):
     secrets = providers.Configuration()
     logger_container: LoggerContainer = providers.DependenciesContainer()
 
+    logger = providers.Factory(
+        logger_container.provides_logger,
+        logger_type=LoggerType.DATABASE,
+    )
+
     database = providers.Singleton(
         Database,
         db_name=config.db.connection.db_name,
@@ -17,7 +22,15 @@ class DBContainer(containers.DeclarativeContainer):
         db_password=secrets.db.connection.password,
         db_host=config.db.connection.host,
         db_port=config.db.connection.port,
-        logger=logger_container.provides_logger(logger_type=LoggerType.DATABASE),
+        logger=logger,
     )
 
     db_connection = providers.Callable(lambda db: db.connection_context(), db=database)
+
+    def run_migrations(self):
+        from algo_royale.clients.db.migrations import migration_manager
+
+        db = self.database()
+        conn = db.connect(create_if_not_exists=True)
+        migration_manager.apply_migrations(conn, logger=self.logger())
+        conn.close()

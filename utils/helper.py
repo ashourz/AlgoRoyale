@@ -1,10 +1,10 @@
 import os
 from pathlib import Path
 
-from algo_royale.logging.logger_env import LoggerEnv
+from algo_royale.logging.logger_env import ApplicationEnv
 from algo_royale.logging.logger_factory import LoggerFactory
 
-logger = LoggerFactory.get_base_logger(LoggerEnv.PROD)
+logger = LoggerFactory.get_base_logger(ApplicationEnv.PROD)
 
 
 def find_project_root(starting_directory, target_folder_name="AlgoRoyale"):

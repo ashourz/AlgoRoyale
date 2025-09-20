@@ -5,26 +5,26 @@ from algo_royale.logging.env_logger_type_prod import EnvLoggerTypeProd
 from algo_royale.logging.env_logger_type_test import EnvLoggerTypeTest
 from algo_royale.logging.env_logger_type_unit import EnvLoggerTypeUnit
 from algo_royale.logging.loggable import TaggableLogger
-from algo_royale.logging.logger_env import LoggerEnv
+from algo_royale.logging.logger_env import ApplicationEnv
 from algo_royale.logging.logger_factory import LoggerFactory
 from algo_royale.logging.logger_type import LoggerType
 
 
 class LoggerContainer(containers.DeclarativeContainer):
-    environment = providers.Object(LoggerEnv)
+    environment = providers.Object(ApplicationEnv)
     base_logger_backtest = providers.Singleton(
         LoggerFactory.get_base_logger, environment=environment
     )
 
     @staticmethod
-    def get_env_logger_type(environment: LoggerEnv):
-        if environment == LoggerEnv.UNIT:
+    def get_env_logger_type(environment: ApplicationEnv):
+        if environment == ApplicationEnv.UNIT:
             return EnvLoggerTypeUnit
-        elif environment == LoggerEnv.INTEGRATION:
+        elif environment == ApplicationEnv.INTEGRATION:
             return EnvLoggerTypeIntegration
-        elif environment == LoggerEnv.TEST:
+        elif environment == ApplicationEnv.TEST:
             return EnvLoggerTypeTest
-        elif environment == LoggerEnv.PROD:
+        elif environment == ApplicationEnv.PROD:
             return EnvLoggerTypeProd
         else:
             raise ValueError(f"Unsupported environment: {environment}")
@@ -42,5 +42,5 @@ class LoggerContainer(containers.DeclarativeContainer):
         return provider()
 
 
-unit_logger_container = LoggerContainer(environment=LoggerEnv.UNIT)
-integration_logger_container = LoggerContainer(environment=LoggerEnv.INTEGRATION)
+unit_logger_container = LoggerContainer(environment=ApplicationEnv.UNIT)
+integration_logger_container = LoggerContainer(environment=ApplicationEnv.INTEGRATION)

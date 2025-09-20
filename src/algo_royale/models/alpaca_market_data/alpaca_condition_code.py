@@ -4,10 +4,10 @@ from typing import Any, Dict
 
 from pydantic import RootModel
 
-from algo_royale.logging.logger_env import LoggerEnv
+from algo_royale.logging.logger_env import ApplicationEnv
 from algo_royale.logging.logger_factory import LoggerFactory
 
-logger = LoggerFactory.get_base_logger(LoggerEnv.TRADING)
+logger = LoggerFactory.get_base_logger(ApplicationEnv.TRADING)
 
 
 class ConditionCodeMap(RootModel[Dict[str, str]]):
