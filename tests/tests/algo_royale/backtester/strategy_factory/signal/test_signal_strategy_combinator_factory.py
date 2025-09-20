@@ -9,7 +9,9 @@ from tests.mocks.mock_loggable import MockLoggable
 class TestSignalStrategyCombinatorFactory:
     def setup_method(self):
         self.logger = MockLoggable()
-        self.factory = MockSignalStrategyCombinatorFactory("/tmp/combinators.json", self.logger, self.logger)
+        self.factory = MockSignalStrategyCombinatorFactory(
+            "/tmp/combinators.json", self.logger, self.logger
+        )
 
     def test_get_combinator_normal(self):
         try:
