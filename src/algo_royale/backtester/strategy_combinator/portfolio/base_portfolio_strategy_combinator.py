@@ -8,6 +8,12 @@ from algo_royale.logging.loggable import Loggable
 
 
 class PortfolioStrategyCombinator:
+    @classmethod
+    def get_strategy_classes(cls):
+        if getattr(cls, "strategy_class", None) is not None:
+            return [cls.strategy_class]
+        return []
+
     """
     Base class to generate all combinations of portfolio strategy classes.
     Subclass and set the class attribute `strategy_class` to a strategy class.

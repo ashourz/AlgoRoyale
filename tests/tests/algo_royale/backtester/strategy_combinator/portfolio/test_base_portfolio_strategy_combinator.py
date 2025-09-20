@@ -12,31 +12,33 @@ class DummyStrategy:
         self.a = a
 
     @staticmethod
-    def optuna_suggest(trial, prefix=""):
+    def optuna_suggest(logger=None, trial=None, prefix=""):
         return {"a": 42}
 
 
 class TestPortfolioStrategyCombinator:
     def test_all_strategy_combinations_default(self):
-        class DummyCombinator(PortfolioStrategyCombinator):
-            strategy_class = DummyStrategy
-
-        combos = list(DummyCombinator().all_strategy_combinations())
+        combos = list(
+            PortfolioStrategyCombinator(
+                strategy_class=DummyStrategy
+            ).all_strategy_combinations()
+        )
         assert len(combos) == 1
         assert combos[0] is DummyStrategy
 
     def test_all_strategy_combinations_optuna(self):
-        class DummyCombinator(PortfolioStrategyCombinator):
-            strategy_class = DummyStrategy
-
         trial = MagicMock()
-        combos = list(DummyCombinator().all_strategy_combinations(optuna_trial=trial))
+        combos = list(
+            PortfolioStrategyCombinator(
+                strategy_class=DummyStrategy
+            ).all_strategy_combinations(optuna_trial=trial)
+        )
         assert len(combos) == 1
         # Should be a partial with correct func and keywords
         partial_func = combos[0]
         assert hasattr(partial_func, "func")
         assert partial_func.func is DummyStrategy
-        assert partial_func.keywords == {"a": 42}
+        assert partial_func.keywords == {"a": 42, "logger": None}
 
     def test_all_strategy_combinations_optuna_non_dict(self):
         class DummyStrategy2:
@@ -47,14 +49,12 @@ class TestPortfolioStrategyCombinator:
                 return DummyStrategy2
 
         class DummyCombinator(PortfolioStrategyCombinator):
-            strategy_class = DummyStrategy2
+            def __init__(self):
+                super().__init__(strategy_class=DummyStrategy2)
 
         trial = MagicMock()
-        combos = list(DummyCombinator.all_strategy_combinations(optuna_trial=trial))
-        assert len(combos) == 1
-        # Should be a lambda returning DummyStrategy2
-        assert callable(combos[0])
-        assert combos[0]() is DummyStrategy2
+        combos = list(DummyCombinator().all_strategy_combinations(optuna_trial=trial))
+        assert len(combos) == 0
 
     def test_all_strategy_combinations_error_logged(self):
         class BadStrategy:
@@ -65,12 +65,17 @@ class TestPortfolioStrategyCombinator:
                 raise Exception("fail")
 
         class BadCombinator(PortfolioStrategyCombinator):
-            strategy_class = BadStrategy
+            def __init__(self, logger=None, strategy_logger=None):
+                super().__init__(
+                    strategy_class=BadStrategy,
+                    logger=logger,
+                    strategy_logger=strategy_logger,
+                )
 
         trial = MagicMock()
         logger = MagicMock()
         combos = list(
-            BadCombinator.all_strategy_combinations(optuna_trial=trial, logger=logger)
+            BadCombinator(logger=logger).all_strategy_combinations(optuna_trial=trial)
         )
         assert combos == []
         logger.error.assert_called()

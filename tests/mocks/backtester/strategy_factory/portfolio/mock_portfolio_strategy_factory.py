@@ -25,7 +25,12 @@ class MockPortfolioStrategyFactory(PortfolioStrategyFactory):
         )
         self.raise_exception = False
         self.return_empty = False
-        self.default_base_portfolio_strategy = BasePortfolioStrategy(
+
+        class DummyPortfolioStrategy(BasePortfolioStrategy):
+            def allocate(self, *args, **kwargs):
+                return {}
+
+        self.default_base_portfolio_strategy = DummyPortfolioStrategy(
             logger=self.strategy_logger,
         )
         self.base_portfolio_strategy = self.default_base_portfolio_strategy

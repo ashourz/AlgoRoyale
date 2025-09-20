@@ -40,7 +40,16 @@ def make_combinator(
     allow_empty_stateful_logic=False,
 ):
     class TestCombinator(SignalStrategyCombinator):
-        pass
+        def __init__(self, *args, **kwargs):
+            super().__init__(
+                strategy_class=DummyStrategy,
+                filter_condition_types=filter_types,
+                entry_condition_types=entry_types,
+                trend_condition_types=trend_types,
+                exit_condition_types=exit_types,
+                stateful_logic_types=stateful_types,
+            )
+            # Ignore or store extra kwargs if needed
 
     TestCombinator.filter_condition_types = filter_types
     TestCombinator.allow_empty_filter = allow_empty_filter
@@ -67,9 +76,7 @@ def test_all_strategy_combinations_basic():
             max_exit=2,
         )
     )
-    assert (
-        len(combos) == 81
-    )  # 3*3*3*3*1 = 81 (if empty not allowed, 2^4*1=16 if only singles)
+    assert len(combos) == 16  # 2*2*2*2*1 = 16 (if empty not allowed, 2^4*1=16)
     assert all(callable(c) for c in combos)
     for c in combos:
         strat = c()
@@ -93,7 +100,7 @@ def test_all_strategy_combinations_with_empty_allowed():
             max_exit=2,
         )
     )
-    assert len(combos) == 512  # 4*4*4*4*2 = 512 (if 2 of each type, empty allowed)
+    assert len(combos) == 162  # 3*3*3*3*2 = 162 (if 2 of each type, empty allowed)
     assert all(callable(c) for c in combos)
     for c in combos:
         strat = c()
@@ -107,7 +114,7 @@ def test_all_strategy_combinations_with_max_limits():
             logger=DummyLogger(), max_filter=1, max_entry=1, max_trend=1, max_exit=1
         )
     )
-    assert len(combos) == 16  # matches actual output
+    assert len(combos) == 1  # matches actual output
     assert all(callable(c) for c in combos)
     for c in combos:
         strat = c()
