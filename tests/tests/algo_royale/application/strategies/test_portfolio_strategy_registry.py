@@ -1,23 +1,40 @@
-import os
-import tempfile
 import json
+import os
+
 import pytest
-from unittest.mock import MagicMock
-from algo_royale.application.strategies.portfolio_strategy_registry import PortfolioStrategyRegistry
+
+from algo_royale.application.strategies.portfolio_strategy_registry import (
+    PortfolioStrategyRegistry,
+)
 from tests.mocks.mock_loggable import MockLoggable
+
 
 class MockSymbolService:
     pass
+
 
 class MockStageDataManager:
     def get_directory_path(self, base_dir, symbol):
         path = os.path.join(base_dir, symbol)
         os.makedirs(path, exist_ok=True)
-        return type('PathLike', (), {'mkdir': lambda self, **kwargs: None, 'exists': lambda self: True, 'stat': lambda self: type('stat', (), {'st_size': 1})(), '__truediv__': lambda self, other: self, 'name': symbol, 'iterdir': lambda self: []})()
+        return type(
+            "PathLike",
+            (),
+            {
+                "mkdir": lambda self, **kwargs: None,
+                "exists": lambda self: True,
+                "stat": lambda self: type("stat", (), {"st_size": 1})(),
+                "__truediv__": lambda self, other: self,
+                "name": symbol,
+                "iterdir": lambda self: [],
+            },
+        )()
+
 
 class MockPortfolioStrategyFactory:
     def build_buffered_strategy(self, strategy_class, params):
         return f"BufferedStrategy({strategy_class}, {params})"
+
 
 @pytest.fixture
 def registry(tmp_path):
@@ -32,13 +49,18 @@ def registry(tmp_path):
         logger=MockLoggable(),
     )
 
+
 class TestPortfolioStrategyRegistry:
     def test_get_buffered_portfolio_strategy_none(self, registry):
         result = registry.get_buffered_portfolio_strategy(["AAPL"])
         assert result is None
 
     def test_get_buffered_portfolio_strategy_exception(self, registry, monkeypatch):
-        monkeypatch.setattr(registry, '_get_symbols_dir_name', lambda symbols: (_ for _ in ()).throw(Exception("fail")))
+        monkeypatch.setattr(
+            registry,
+            "_get_symbols_dir_name",
+            lambda symbols: (_ for _ in ()).throw(Exception("fail")),
+        )
         result = registry.get_buffered_portfolio_strategy(["AAPL"])
         assert result is None
 
@@ -51,7 +73,7 @@ class TestPortfolioStrategyRegistry:
         assert isinstance(registry.portfolio_strategy_map, dict)
 
     def test_sync_viable_strategy_params_exception(self, registry, monkeypatch):
-        monkeypatch.setattr(registry, 'portfolio_strategy_map', {"AAPL": object()})
+        monkeypatch.setattr(registry, "portfolio_strategy_map", {"AAPL": object()})
         registry.viable_strategies_path = "/invalid/path/viable_strategies.json"
         registry._sync_viable_strategy_params()  # Should not raise
 
@@ -60,7 +82,11 @@ class TestPortfolioStrategyRegistry:
         assert result is None or isinstance(result, dict)
 
     def test_get_buffered_portfolio_strategy_unknown_class(self, registry, monkeypatch):
-        monkeypatch.setattr(registry, 'portfolio_strategy_map', {"AAPL": {"name": "Unknown", "params": {}}})
+        monkeypatch.setattr(
+            registry,
+            "portfolio_strategy_map",
+            {"AAPL": {"name": "Unknown", "params": {}}},
+        )
         result = registry.get_buffered_portfolio_strategy(["AAPL"])
         assert result is None
 
