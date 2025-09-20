@@ -1,7 +1,7 @@
 from dependency_injector import containers, providers
 
 from algo_royale.backtester.pipeline.pipeline_coordinator import PipelineCoordinator
-from algo_royale.di.adapter_container import AdapterContainer
+from algo_royale.di.adapter.adapter_container import AdapterContainer
 from algo_royale.di.backtest.data_prep_coordinator_container import (
     DataPrepCoordinatorContainer,
 )
@@ -12,7 +12,7 @@ from algo_royale.di.backtest.signal_backtest_container import SignalBacktestCont
 from algo_royale.di.factory_container import FactoryContainer
 from algo_royale.di.feature_engineering_container import FeatureEngineeringContainer
 from algo_royale.di.logger_container import LoggerContainer
-from algo_royale.di.repo_container import RepoContainer
+from algo_royale.di.repo.repo_container import RepoContainer
 from algo_royale.di.stage_data_container import StageDataContainer
 from algo_royale.logging.logger_type import LoggerType
 

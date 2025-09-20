@@ -37,7 +37,7 @@ class SymbolHoldTracker:
         queue_size: int = -1,
     ) -> AsyncSubscriber | None:
         try:
-            async_subscriber = await self._symbol_hold_pubsub.subscribe(
+            async_subscriber = self._symbol_hold_pubsub.subscribe(
                 event_type=self.event_type, callback=callback, queue_size=queue_size
             )
             if async_subscriber:
@@ -61,7 +61,7 @@ class SymbolHoldTracker:
         self, callback: Callable[[dict[str, SymbolHoldStatus]], None]
     ) -> AsyncSubscriber | None:
         try:
-            async_subscriber = await self._roster_hold_pubsub.subscribe(
+            async_subscriber = self._roster_hold_pubsub.subscribe(
                 self.event_type, callback
             )
             if async_subscriber:
