@@ -1,3 +1,6 @@
+from algo_royale.backtester.data_preparer.asset_matrix_preparer import (
+    AssetMatrixPreparer,
+)
 from algo_royale.backtester.strategy.portfolio.base_portfolio_strategy import (
     BasePortfolioStrategy,
 )
@@ -9,7 +12,10 @@ from algo_royale.logging.loggable import Loggable
 
 class PortfolioStrategyFactory:
     def __init__(
-        self, asset_matrix_preparer, logger: Loggable, strategy_logger: Loggable
+        self,
+        asset_matrix_preparer: AssetMatrixPreparer,
+        logger: Loggable,
+        strategy_logger: Loggable,
     ):
         """
         Initialize the PortfolioStrategyFactory with a strategy and asset matrix preparer.
@@ -37,7 +43,7 @@ class PortfolioStrategyFactory:
 
     def build_buffered_strategy(
         self, strategy_class: type[BasePortfolioStrategy], params: dict
-    ) -> BasePortfolioStrategy | None:
+    ) -> BufferedPortfolioStrategy | None:
         """
         Build a new instance of the buffered portfolio strategy.
         """

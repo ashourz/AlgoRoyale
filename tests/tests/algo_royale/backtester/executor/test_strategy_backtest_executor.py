@@ -67,7 +67,7 @@ async def test_run_backtest_success(
 
     data = {"AAPL": lambda: df_iter()}
     executor = StrategyBacktestExecutor(mock_stage_data_manager, mock_logger)
-    results = await executor.run_backtest_async([mock_strategy], data)
+    results = await executor.async_run_backtest([mock_strategy], data)
     # Only valid pages should be included in results
     assert "AAPL" in results
     # Both pages are valid, so expect 2 results
@@ -83,7 +83,7 @@ async def test_run_backtest_success(
 @pytest.mark.asyncio
 async def test_run_backtest_empty_data(mock_stage_data_manager, mock_logger):
     executor = StrategyBacktestExecutor(mock_stage_data_manager, mock_logger)
-    results = await executor.run_backtest_async([], {})
+    results = await executor.async_run_backtest([], {})
     assert results == {}
 
 
@@ -104,7 +104,7 @@ async def test_run_backtest_skips_done(
 
     data = {"AAPL": lambda: df_iter()}
     executor = StrategyBacktestExecutor(mock_stage_data_manager, mock_logger)
-    results = await executor.run_backtest_async([mock_strategy], data)
+    results = await executor.async_run_backtest([mock_strategy], data)
     assert results == {"AAPL": []}
 
 
@@ -145,7 +145,7 @@ async def test_run_backtest_handles_page_exception(
 
     data = {"AAPL": lambda: df_iter()}
     executor = StrategyBacktestExecutor(mock_stage_data_manager, mock_logger)
-    results = await executor.run_backtest_async([mock_strategy], data)
+    results = await executor.async_run_backtest([mock_strategy], data)
     # Only the valid page should be included in results
     assert "AAPL" in results
     assert len(results["AAPL"]) == 1
@@ -170,7 +170,7 @@ async def test_run_backtest_extreme_values(mock_stage_data_manager, mock_logger)
 
     data = {"AAPL": lambda: df_iter()}
     executor = StrategyBacktestExecutor(mock_stage_data_manager, mock_logger)
-    results = await executor.run_backtest_async([], data)
+    results = await executor.async_run_backtest([], data)
     assert results == {"AAPL": []}  # Expect no results for extreme values
 
 
@@ -187,5 +187,5 @@ async def test_run_backtest_invalid_prices(mock_stage_data_manager, mock_logger)
 
     data = {"AAPL": lambda: df_iter()}
     executor = StrategyBacktestExecutor(mock_stage_data_manager, mock_logger)
-    results = await executor.run_backtest_async([], data)
+    results = await executor.async_run_backtest([], data)
     assert results == {"AAPL": []}  # Expect no results for invalid prices

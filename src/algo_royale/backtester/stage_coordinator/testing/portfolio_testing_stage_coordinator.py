@@ -150,7 +150,7 @@ class PortfolioTestingStageCoordinator(BaseTestingStageCoordinator):
             # Instantiate strategy with filtered_params
             strategy = strategy_class(logger=self.strategy_logger, **optimized_params)
             # Run backtest using the pre-configured executor
-            backtest_results = self.executor.run_backtest(
+            backtest_results = self.executor.async_run_backtest(
                 strategy,
                 test_portfolio_matrix,
             )

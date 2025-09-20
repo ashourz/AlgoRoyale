@@ -51,7 +51,7 @@ def test_portfolio_backtest_executor_basic(
     )
     data = make_test_data()
     strat = DummyStrategy()
-    results = executor.run_backtest(strat, data)
+    results = executor.async_run_backtest(strat, data)
     assert "portfolio_values" in results
     assert "cash_history" in results
     assert "holdings_history" in results
@@ -72,7 +72,7 @@ def test_portfolio_backtest_executor_trades():
     executor = PortfolioBacktestExecutor(logger=MagicMock(), initial_balance=1000)
     data = make_test_data()
     strat = DummyStrategy()
-    results = executor.run_backtest(strat, data)
+    results = executor.async_run_backtest(strat, data)
     # Should have at least one buy transaction
     buy_trades = [t for t in results["transactions"] if t["action"] == "buy"]
     assert len(buy_trades) > 0

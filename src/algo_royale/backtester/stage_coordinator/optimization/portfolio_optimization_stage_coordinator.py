@@ -247,7 +247,7 @@ class PortfolioOptimizationStageCoordinator(BaseOptimizationStageCoordinator):
             self.logger.info(
                 f"Running backtest for strategy {strategy.get_id()} on data from {df.index.min()} to {df.index.max()}"
             )
-            backtest_results = self.executor.run_backtest(strategy, df)
+            backtest_results = self.executor.async_run_backtest(strategy, df)
             self.logger.debug(
                 f"Backtest results for strategy {strategy.get_id()}: {backtest_results}"
             )

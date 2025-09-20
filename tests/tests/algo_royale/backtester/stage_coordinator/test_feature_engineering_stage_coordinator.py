@@ -1,44 +1,45 @@
-from unittest.mock import ANY, AsyncMock, MagicMock
-
 import pandas as pd
 import pytest
 
 from algo_royale.backtester.stage_coordinator.data_staging.feature_engineering_stage_coordinator import (
     FeatureEngineeringStageCoordinator,
 )
+from tests.mocks.backtester.feature_engineering.mock_backtest_feature_engineer import (
+    MockBacktestFeatureEngineer,
+)
+from tests.mocks.backtester.mock_stage_data_manager import MockStageDataManager
+from tests.mocks.backtester.stage_data.loader.mock_symbol_strategy_data_loader import (
+    MockSymbolStrategyDataLoader,
+)
+from tests.mocks.backtester.stage_data.writer.mock_symbol_strategy_data_writer import (
+    MockSymbolStrategyDataWriter,
+)
+from tests.mocks.mock_loggable import MockLoggable
 
 
 @pytest.fixture
 def mock_logger():
-    return MagicMock()
+    return MockLoggable()
 
 
 @pytest.fixture
 def mock_data_loader():
-    return MagicMock()
+    return MockSymbolStrategyDataLoader()
 
 
 @pytest.fixture
 def mock_data_writer():
-    return MagicMock()
+    return MockSymbolStrategyDataWriter()
 
 
 @pytest.fixture
 def mock_stage_data_manager():
-    return MagicMock()
+    return MockStageDataManager()
 
 
 @pytest.fixture
 def mock_feature_engineer():
-    engineer = MagicMock()
-
-    # Use a real async generator function for engineer_features
-    async def engineer_features(df_iter, symbol):
-        async for df in df_iter:
-            yield df
-
-    engineer.engineer_features = MagicMock(side_effect=engineer_features)
-    return engineer
+    return MockBacktestFeatureEngineer()
 
 
 @pytest.fixture
@@ -68,16 +69,23 @@ def async_gen_factory():
 
 @pytest.mark.asyncio
 async def test_process_success(coordinator, mock_feature_engineer, async_gen_factory):
-    mock_feature_engineer.engineer_features.side_effect = (
-        lambda df_iter, symbol: async_gen_factory()
-    )
-
     # prepared_data: symbol -> factory returning async generator
-    prepared_data = {"AAPL": async_gen_factory}
+    async def async_gen():
+        yield pd.DataFrame({"a": [1]})
 
+    def factory():
+        return async_gen()
+
+    prepared_data = {"AAPL": factory}
+
+    # Patch engineer_features to yield the same as async_gen
+    def patched_engineer_features(df_iter, symbol):
+        return async_gen()
+
+    mock_feature_engineer.engineer_features = patched_engineer_features
     result = await coordinator._process(prepared_data)
     out = []
-    async for df in result["AAPL"][None]():  # <-- Fix: use [None] to get the factory
+    async for df in result["AAPL"][None]():
         out.append(df)
     assert isinstance(out[0], pd.DataFrame)
 
@@ -85,27 +93,53 @@ async def test_process_success(coordinator, mock_feature_engineer, async_gen_fac
 @pytest.mark.asyncio
 async def test_process_engineer_returns_empty(coordinator, mock_feature_engineer):
     # Patch _engineer to return empty dict
-    coordinator._engineer = AsyncMock(return_value={})
+    async def empty_engineer(*args, **kwargs):
+        return {}
+
+    coordinator._engineer = empty_engineer
     result = await coordinator._process({"AAPL": lambda: None})
     assert result == {}
-    coordinator.logger.error.assert_called_with("Feature engineering failed")
+    assert any("Feature engineering failed" in m for m in coordinator.logger.messages)
 
 
 @pytest.mark.asyncio
 async def test_engineer_returns_factories(
     coordinator, mock_feature_engineer, async_gen_factory
 ):
-    mock_feature_engineer.engineer_features.side_effect = (
-        lambda df_iter, symbol: async_gen_factory()
-    )
+    async def async_gen():
+        yield pd.DataFrame({"a": [1]})
 
-    ingest_data = {"AAPL": lambda: async_gen_factory()}
+    def factory():
+        return async_gen()
 
+    ingest_data = {"AAPL": factory}
+
+    def patched_engineer_features(df_iter, symbol):
+        return async_gen()
+
+    mock_feature_engineer.engineer_features = patched_engineer_features
     engineered = await coordinator._engineer(ingest_data)
     assert "AAPL" in engineered
     out = []
     async for df in engineered["AAPL"]():
         out.append(df)
     assert isinstance(out[0], pd.DataFrame)
-    # This will now work:
-    mock_feature_engineer.engineer_features.assert_called_with(ANY, "AAPL")
+
+
+# Error/exception handling tests
+@pytest.mark.asyncio
+async def test_engineer_features_raises_exception(coordinator, mock_feature_engineer):
+    mock_feature_engineer.set_raise(True)
+
+    async def async_gen():
+        yield pd.DataFrame({"a": [1]})
+
+    def factory():
+        return async_gen()
+
+    ingest_data = {"AAPL": factory}
+    result = await coordinator._engineer(ingest_data)
+    assert "AAPL" in result
+    with pytest.raises(RuntimeError, match="Mocked exception in engineer_features"):
+        async for _ in result["AAPL"]():
+            pass

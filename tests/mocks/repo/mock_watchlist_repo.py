@@ -3,8 +3,14 @@ from tests.mocks.mock_loggable import MockLoggable
 
 
 class MockWatchlistRepo(WatchlistRepo):
-    def __init__(self):
-        self.logger = MockLoggable()
+    def __init__(self, watchlist_path: str = "mock_watchlist.txt", logger=None):
+        if logger is None:
+            logger = MockLoggable()
+        # Simulate file not found error for sentinel paths (to match real WatchlistRepo)
+        if watchlist_path == "nonexistent.txt":
+            raise FileNotFoundError(f"Watchlist file not found at: {watchlist_path}")
+        self.watchlist_path = watchlist_path
+        self.logger = logger
         self.test_watchlist = ["AAPL", "GOOGL", "MSFT"]
         self.return_empty = False
         self.raise_exception = False

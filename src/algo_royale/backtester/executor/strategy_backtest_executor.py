@@ -23,7 +23,7 @@ class StrategyBacktestExecutor:
         self.stage = BacktestStage.SIGNAL_BACKTEST_EXECUTOR
         self._processed_pairs = set()
 
-    async def run_backtest_async(
+    async def async_run_backtest(
         self,
         strategies: list[BaseSignalStrategy],
         data: Dict[str, Callable[[], AsyncIterator[pd.DataFrame]]],

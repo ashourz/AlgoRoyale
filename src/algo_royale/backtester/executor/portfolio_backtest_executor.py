@@ -15,7 +15,6 @@ from algo_royale.backtester.strategy.portfolio.base_portfolio_strategy import (
     BasePortfolioStrategy,
 )
 from algo_royale.logging.loggable import Loggable
-from algo_royale.logging.logger_factory import mockLogger
 
 
 class PortfolioBacktestExecutor:
@@ -50,7 +49,7 @@ class PortfolioBacktestExecutor:
         self.slippage = slippage
         self.settlement_days = int(settlement_days)
 
-    def run_backtest(
+    def async_run_backtest(
         self,
         strategy: BasePortfolioStrategy,
         data: pd.DataFrame,
@@ -486,23 +485,3 @@ class PortfolioBacktestExecutor:
                 f"Error validating output data for PortfolioBacktestExecutor: {e}"
             )
             return False
-
-
-def mockPortfolioBacktestExecutor(
-    initial_balance: float = 1_000_000.0,
-    transaction_cost: float = 0.0,
-    min_lot: int = 1,
-    leverage: float = 1.0,
-    slippage: float = 0.0,
-) -> PortfolioBacktestExecutor:
-    """
-    Create a mock PortfolioBacktestExecutor for testing purposes.
-    """
-    return PortfolioBacktestExecutor(
-        logger=mockLogger(),
-        initial_balance=initial_balance,
-        transaction_cost=transaction_cost,
-        min_lot=min_lot,
-        leverage=leverage,
-        slippage=slippage,
-    )

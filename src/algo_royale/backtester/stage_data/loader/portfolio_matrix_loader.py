@@ -245,7 +245,7 @@ class PortfolioMatrixLoader:
             # Run the backtest
             result: Dict[
                 str, list[pd.DataFrame]
-            ] = await self.executor.run_backtest_async(
+            ] = await self.executor.async_run_backtest(
                 [strategy], {symbol: feature_data_loader}
             )
             self.logger.info(

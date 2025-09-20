@@ -6,8 +6,8 @@ from typing import Any, AsyncIterator, Callable, Dict, Optional
 import pandas as pd
 
 from algo_royale.backtester.enums.backtest_stage import BacktestStage
-from algo_royale.backtester.evaluator.backtest.base_backtest_evaluator import (
-    BacktestEvaluator,
+from algo_royale.backtester.evaluator.backtest.signal_backtest_evaluator import (
+    SignalBacktestEvaluator,
 )
 from algo_royale.backtester.executor.strategy_backtest_executor import (
     StrategyBacktestExecutor,
@@ -60,7 +60,7 @@ class SignalStrategyOptimizationStageCoordinator(BaseOptimizationStageCoordinato
         logger: Loggable,
         stage_data_manager: StageDataManager,
         strategy_executor: StrategyBacktestExecutor,
-        strategy_evaluator: BacktestEvaluator,
+        strategy_evaluator: SignalBacktestEvaluator,
         strategy_combinator_factory: SignalStrategyCombinatorFactory,
         optimization_root: str,
         optimization_json_filename: str,
@@ -272,7 +272,7 @@ class SignalStrategyOptimizationStageCoordinator(BaseOptimizationStageCoordinato
         async def data_factory():
             yield df
 
-        raw_results = await self.executor.run_backtest_async(
+        raw_results = await self.executor.async_run_backtest(
             [strategy], {symbol: data_factory}
         )
         self.logger.debug(f"Raw backtest results: line count: {len(raw_results)}")

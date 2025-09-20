@@ -1,6 +1,5 @@
 from datetime import datetime
 from unittest import mock
-from unittest.mock import AsyncMock, MagicMock
 
 import pandas as pd
 import pytest
@@ -9,75 +8,62 @@ from algo_royale.backtester.enums.backtest_stage import BacktestStage
 from algo_royale.backtester.stage_coordinator.testing.signal_strategy_testing_stage_coordinator import (
     SignalStrategyTestingStageCoordinator,
 )
+from tests.mocks.backtester.evaluator.backtest.mock_signal_backtest_evaluator import (
+    MockSignalBacktestEvaluator,
+)
+from tests.mocks.backtester.executor.mock_strategy_backtest_executor import (
+    MockStrategyBacktestExecutor,
+)
+from tests.mocks.backtester.mock_stage_data_manager import MockStageDataManager
+from tests.mocks.backtester.stage_data.loader.mock_symbol_strategy_data_loader import (
+    MockSymbolStrategyDataLoader,
+)
+from tests.mocks.backtester.strategy_factory.portfolio.mock_portfolio_strategy_combinator_factory import (
+    MockPortfolioStrategyCombinatorFactory,
+)
+from tests.mocks.mock_loggable import MockLoggable
 
 
 @pytest.fixture
 def mock_loader():
-    return MagicMock()
-
-
-@pytest.fixture
-def mock_preparer():
-    return MagicMock()
-
-
-@pytest.fixture
-def mock_writer():
-    return MagicMock()
-
-
-@pytest.fixture
-def mock_manager(tmp_path):
-    mgr = MagicMock()
-    # Patch get_directory_path to return a real temp directory
-    mgr.get_directory_path.side_effect = (
-        lambda base_dir=None,
-        stage=None,
-        symbol=None,
-        strategy_name=None,
-        start_date=None,
-        end_date=None: tmp_path
-        / f"{stage.name if stage else 'default_stage'}_{strategy_name if strategy_name else 'default_strategy'}_{symbol if symbol else 'default_symbol'}"
-    )
-    return mgr
+    return MockSymbolStrategyDataLoader()
 
 
 @pytest.fixture
 def mock_logger():
-    logger = MagicMock()
-    logger.warning = MagicMock()
-    logger.info = MagicMock()
-    logger.debug = MagicMock()
-    logger.error = MagicMock()
-    return logger
+    return MockLoggable()
+
+
+@pytest.fixture
+def mock_manager():
+    return MockStageDataManager()
 
 
 @pytest.fixture
 def mock_executor():
-    exec = MagicMock()
-    exec.run_backtest = AsyncMock(
-        return_value={"AAPL": [pd.DataFrame({"result": [1]})]}
-    )
-    return exec
+    return MockStrategyBacktestExecutor()
 
 
 @pytest.fixture
 def mock_evaluator():
-    eval = MagicMock()
-    eval.evaluate.return_value = {"sharpe": 2.0}
-    return eval
+    return MockSignalBacktestEvaluator()
 
 
 @pytest.fixture
 def mock_factory():
-    fac = MagicMock()
-    fac.build_strategy.return_value = MagicMock()
-    return fac
+    class DummyFactory:
+        def build_strategy(self, *args, **kwargs):
+            class DummyStrategy:
+                pass
+
+            return DummyStrategy()
+
+    return DummyFactory()
 
 
 @pytest.fixture
 def mock_combinator_factory():
-    return MagicMock()
+    return MockPortfolioStrategyCombinatorFactory()
 
 
 def test_init_success(
