@@ -33,6 +33,9 @@ class MockPortfolioBacktestExecutor(PortfolioBacktestExecutor):
         self.return_none = False
         self.result = {"mock": True}
 
+    def reset_raise_exception(self):
+        self.raise_exception = False
+
     async def async_run_backtest(
         self,
         strategy: BasePortfolioStrategy,

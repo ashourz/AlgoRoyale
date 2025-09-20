@@ -8,6 +8,7 @@ class MockPortfolioStrategyOptimizerFactory(PortfolioStrategyOptimizerFactory):
         self.should_raise = False
         self.should_return_none = False
         self.return_value = {"mock": True}
+        self.raise_exception = False
 
     def set_raise(self, value: bool):
         self.should_raise = value
@@ -17,6 +18,12 @@ class MockPortfolioStrategyOptimizerFactory(PortfolioStrategyOptimizerFactory):
 
     def set_return_value(self, value):
         self.return_value = value
+
+    def reset_raise_exception(self):
+        self.should_raise = False
+
+    def set_raise_exception(self, value: bool):
+        self.raise_exception = value
 
     def create(self, *args, **kwargs):
         if self.should_raise:

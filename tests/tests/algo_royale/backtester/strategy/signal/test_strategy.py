@@ -10,6 +10,7 @@ from algo_royale.backtester.strategy.signal.conditions.base_strategy_condition i
 from algo_royale.backtester.strategy.signal.stateful_logic.base_stateful_logic import (
     StatefulLogic,
 )
+from tests.mocks.mock_loggable import MockLoggable
 
 
 class DummyCondition(StrategyCondition):
@@ -61,6 +62,7 @@ def test_required_columns():
         trend_conditions=[DummyCondition("b")],
         entry_conditions=[DummyCondition("a")],
         exit_conditions=[DummyCondition("b")],
+        logger=MockLoggable(),
     )
     cols = strat.required_columns
     assert set(cols) == {"a", "b"}
@@ -73,6 +75,7 @@ def test_apply_filters_and_trend():
         trend_conditions=[DummyCondition("b", value=True)],
         entry_conditions=[DummyCondition("a", value=True)],
         exit_conditions=[DummyCondition("b", value=False)],
+        logger=MockLoggable(),
     )
     signals = strat._apply_strategy(df)
     assert all(signals == "buy")
@@ -83,6 +86,7 @@ def test_apply_entry_exit():
     strat = BaseSignalStrategy(
         entry_conditions=[DummyCondition("a", value=True)],
         exit_conditions=[DummyCondition("b", value=True)],
+        logger=MockLoggable(),
     )
     entry = strat._apply_entry(df)
     exit_ = strat._apply_exit(df)
@@ -92,7 +96,9 @@ def test_apply_entry_exit():
 
 def test_generate_signals_missing_column():
     df = pd.DataFrame({"a": [1, 2, 3]})
-    strat = BaseSignalStrategy(entry_conditions=[DummyCondition("b")])
+    strat = BaseSignalStrategy(
+        entry_conditions=[DummyCondition("b")], logger=MockLoggable()
+    )
     result = strat.generate_signals(df)
     assert all(result[SignalStrategyColumns.ENTRY_SIGNAL] == "hold")
     assert all(result[SignalStrategyColumns.EXIT_SIGNAL] == "hold")
@@ -103,6 +109,7 @@ def test_generate_signals_with_stateful_logic():
     strat = BaseSignalStrategy(
         entry_conditions=[DummyCondition("a", value=True)],
         stateful_logic=DummyStatefulLogic(),
+        logger=MockLoggable(),
     )
     result = strat.generate_signals(df)
     assert all(result[SignalStrategyColumns.ENTRY_SIGNAL] == "buy")
@@ -112,6 +119,7 @@ def test_get_description_and_hash_id():
     strat = BaseSignalStrategy(
         entry_conditions=[DummyCondition("a", value=True)],
         exit_conditions=[DummyCondition("b", value=False)],
+        logger=MockLoggable(),
     )
     desc = strat.get_description()
     hash_id = strat.get_hash_id()

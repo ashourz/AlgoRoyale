@@ -5,11 +5,13 @@ from tests.mocks.mock_loggable import MockLoggable
 
 
 class MockSignalStrategyCombinatorFactory(SignalStrategyCombinatorFactory):
-    def __init__(self):
-        self.logger = MockLoggable()
-        self.strategy_logger = MockLoggable()
+    def __init__(self, combinator_list_path=None, logger=None, strategy_logger=None):
+        # Accept the same arguments as the real factory, but allow them to be optional for test flexibility
+        self.logger = logger or MockLoggable()
+        self.strategy_logger = strategy_logger or MockLoggable()
+        # Use a dummy path if not provided
         super().__init__(
-            combinator_list_path="mock/path",
+            combinator_list_path=combinator_list_path or "mock/path",
             logger=self.logger,
         )
         self.raise_exception = False

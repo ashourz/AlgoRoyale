@@ -13,6 +13,12 @@ from tests.mocks.mock_loggable import MockLoggable
 
 
 class MockStrategyBacktestExecutor(StrategyBacktestExecutor):
+    def reset_raise_exception(self):
+        self.raise_exception = False
+
+    def reset_return_none(self):
+        self.return_none = False
+
     def __init__(self):
         self.stage_data_manager = MockStageDataManager()
         self.logger = MockLoggable()

@@ -5,6 +5,12 @@ from tests.mocks.mock_loggable import MockLoggable
 
 
 class MockSignalBacktestEvaluator(SignalBacktestEvaluator):
+    def reset_raise_exception(self):
+        self.raise_exception = False
+
+    def reset_return_none(self):
+        self.return_none = False
+
     def __init__(self):
         self.logger = MockLoggable()
         super().__init__(logger=self.logger)

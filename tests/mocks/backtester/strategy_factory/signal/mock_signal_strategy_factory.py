@@ -23,6 +23,12 @@ from tests.mocks.mock_loggable import MockLoggable
 
 
 class MockSignalStrategyFactory(SignalStrategyFactory):
+    def reset_raise_exception(self):
+        self.raise_exception = False
+
+    def reset_return_none(self):
+        self.return_empty = False
+
     def __init__(self):
         self.logger = MockLoggable()
         self.strategy_logger = MockLoggable()

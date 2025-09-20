@@ -4,6 +4,18 @@ from algo_royale.backtester.optimizer.signal.signal_strategy_optimizer_factory i
 
 
 class MockSignalStrategyOptimizerFactory(SignalStrategyOptimizerFactory):
+    def set_raise_exception(self, value: bool):
+        self.should_raise = value
+
+    def set_return_none(self, value: bool):
+        self.should_return_none = value
+
+    def reset_raise_exception(self):
+        self.should_raise = False
+
+    def reset_return_none(self):
+        self.should_return_none = False
+
     def __init__(self):
         self.should_raise = False
         self.should_return_none = False
@@ -11,9 +23,6 @@ class MockSignalStrategyOptimizerFactory(SignalStrategyOptimizerFactory):
 
     def set_raise(self, value: bool):
         self.should_raise = value
-
-    def set_return_none(self, value: bool):
-        self.should_return_none = value
 
     def set_return_value(self, value):
         self.return_value = value

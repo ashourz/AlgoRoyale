@@ -41,10 +41,10 @@ def test_all_possible_conditions_with_params():
     ids = [logic.get_id() for logic in logics]
     assert all(isinstance(i, str) for i in ids)
     expected = {
-        "DummyLogicWithParams(alpha=0.1,beta=1)",
-        "DummyLogicWithParams(alpha=0.1,beta=2)",
-        "DummyLogicWithParams(alpha=0.2,beta=1)",
-        "DummyLogicWithParams(alpha=0.2,beta=2)",
+        "DummyLogicWithParams(alpha=0.1,beta=1,logger=None)",
+        "DummyLogicWithParams(alpha=0.1,beta=2,logger=None)",
+        "DummyLogicWithParams(alpha=0.2,beta=1,logger=None)",
+        "DummyLogicWithParams(alpha=0.2,beta=2,logger=None)",
     }
     assert set(ids) == expected
 

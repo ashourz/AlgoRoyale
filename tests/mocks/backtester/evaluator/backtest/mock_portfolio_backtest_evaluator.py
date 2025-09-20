@@ -26,6 +26,9 @@ class MockPortfolioBacktestEvaluator(PortfolioBacktestEvaluator):
         self.return_none = False
         self.result = {"mock": True}
 
+    def reset_raise_exception(self):
+        self.raise_exception = False
+
     def evaluate(self, *args, **kwargs):
         if self.raise_exception:
             raise Exception("Mocked exception in evaluate")

@@ -50,10 +50,10 @@ def test_all_possible_conditions_with_params():
     assert all(isinstance(i, str) for i in ids)
     # Ensure all parameter combinations are present
     expected = {
-        "DummyConditionWithParams(threshold=1,window=10)",
-        "DummyConditionWithParams(threshold=1,window=20)",
-        "DummyConditionWithParams(threshold=2,window=10)",
-        "DummyConditionWithParams(threshold=2,window=20)",
+        "DummyConditionWithParams(logger=None,threshold=1,window=10)",
+        "DummyConditionWithParams(logger=None,threshold=1,window=20)",
+        "DummyConditionWithParams(logger=None,threshold=2,window=10)",
+        "DummyConditionWithParams(logger=None,threshold=2,window=20)",
     }
     assert set(ids) == expected
 

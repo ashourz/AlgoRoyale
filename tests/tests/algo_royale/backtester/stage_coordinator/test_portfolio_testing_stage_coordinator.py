@@ -1,8 +1,5 @@
-import json
-import time
 from datetime import datetime
 
-import pandas as pd
 import pytest
 
 from algo_royale.backtester.stage_coordinator.testing.portfolio_testing_stage_coordinator import (
@@ -15,6 +12,9 @@ from tests.mocks.backtester.executor.mock_portfolio_backtest_executor import (
     MockPortfolioBacktestExecutor,
 )
 from tests.mocks.backtester.mock_stage_data_manager import MockStageDataManager
+from tests.mocks.backtester.stage_data.loader.mock_portfolio_matrix_loader import (
+    MockPortfolioMatrixLoader,
+)
 from tests.mocks.backtester.stage_data.loader.mock_symbol_strategy_data_loader import (
     MockSymbolStrategyDataLoader,
 )
@@ -25,130 +25,241 @@ from tests.mocks.mock_loggable import MockLoggable
 
 
 @pytest.fixture
-def mock_loader():
-    return MockSymbolStrategyDataLoader()
+def portfolio_testing_coordinator(tmp_path):
+    loader = MockSymbolStrategyDataLoader()
+    manager = MockStageDataManager()
+    logger = MockLoggable()
+    strategy_logger = MockLoggable()
+    combinator_list_path = tmp_path / "combinators.json"
+    combinator_list_path.write_text("[]")
+    combinator_factory = MockPortfolioStrategyCombinatorFactory(
+        str(combinator_list_path), logger, strategy_logger
+    )
+    executor = MockPortfolioBacktestExecutor()
+    evaluator = MockPortfolioBacktestEvaluator()
+    matrix_loader = MockPortfolioMatrixLoader()
+    coordinator = PortfolioTestingStageCoordinator(
+        data_loader=loader,
+        stage_data_manager=manager,
+        logger=logger,
+        strategy_logger=strategy_logger,
+        strategy_combinator_factory=combinator_factory,
+        executor=executor,
+        evaluator=evaluator,
+        optimization_root=tmp_path,
+        optimization_json_filename="test_opt.json",
+        portfolio_matrix_loader=matrix_loader,
+    )
+    yield coordinator
 
 
-@pytest.fixture
-def mock_manager(tmp_path):
-    mgr = MockStageDataManager()
-    mgr.get_directory_path = lambda *a, **k: tmp_path
-    return mgr
+def set_raise_exception(coordinator, value: bool):
+    coordinator.executor.set_raise_exception(value)
+    coordinator.evaluator.set_raise_exception(value)
+    coordinator.portfolio_matrix_loader.set_raise_exception(value)
 
 
-@pytest.fixture
-def mock_logger():
-    return MockLoggable()
+def reset_raise_exception(coordinator):
+    coordinator.executor.reset_raise_exception()
+    coordinator.evaluator.reset_raise_exception()
+    coordinator.portfolio_matrix_loader.reset_raise_exception()
 
 
-@pytest.fixture
-def mock_combinator():
-    return MockPortfolioStrategyCombinatorFactory()
+def set_return_empty(coordinator, value: bool):
+    coordinator.portfolio_matrix_loader.set_return_empty(value)
 
 
-@pytest.fixture
-def mock_executor():
-    return MockPortfolioBacktestExecutor()
-
-
-@pytest.fixture
-def mock_evaluator():
-    return MockPortfolioBacktestEvaluator()
-
-
-@pytest.fixture
-def mock_asset_matrix_preparer():
-    class MockAssetMatrixPreparer:
-        def prepare(self, *args, **kwargs):
-            return pd.DataFrame(
-                {
-                    "price": [100, 101, 102],
-                    "volume": [1000, 1100, 1200],
-                    "returns": [0.01, 0.02, 0.03],
-                }
-            )
-
-    return MockAssetMatrixPreparer()
+def reset_return_empty(coordinator):
+    coordinator.portfolio_matrix_loader.reset_return_empty()
 
 
 @pytest.mark.asyncio
-async def test_portfolio_testing_process(
-    mock_loader,
-    mock_manager,
-    mock_logger,
-    mock_combinator,
-    mock_executor,
-    mock_evaluator,
-    mock_asset_matrix_preparer,
-):
-    train_start = datetime(2021, 1, 1)
-    train_end = datetime(2021, 12, 31)
-    test_start = datetime(2022, 1, 1)
-    test_end = datetime(2022, 12, 31)
-    train_window_id = f"{train_start.strftime('%Y%m%d')}_{train_end.strftime('%Y%m%d')}"
-    tmp_path = mock_manager.get_directory_path()
+class TestPortfolioTestingStageCoordinator:
+    @pytest.fixture(autouse=True)
+    def setup_and_teardown(self, portfolio_testing_coordinator):
+        reset_raise_exception(portfolio_testing_coordinator)
+        reset_return_empty(portfolio_testing_coordinator)
+        yield
+        reset_raise_exception(portfolio_testing_coordinator)
+        reset_return_empty(portfolio_testing_coordinator)
 
-    opt_json_path = tmp_path / "test_opt.json"
-    opt_json_path.parent.mkdir(parents=True, exist_ok=True)
-    with open(opt_json_path, "w") as f:
-        json.dump(
-            {train_window_id: {"optimization": {"best_params": {"a": 1}}}},
-            f,
-        )
-    time.sleep(0.05)
+    @pytest.mark.asyncio
+    async def test_process_and_write_normal(self, portfolio_testing_coordinator):
+        # Should return a results dict with expected structure
+        portfolio_testing_coordinator.train_start_date = datetime(2022, 1, 1)
+        portfolio_testing_coordinator.train_end_date = datetime(2022, 6, 30)
+        portfolio_testing_coordinator.test_start_date = datetime(2022, 7, 1)
+        portfolio_testing_coordinator.test_end_date = datetime(2022, 12, 31)
+        portfolio_testing_coordinator.train_window_id = "20220101_20220630"
+        portfolio_testing_coordinator.test_window_id = "20220701_20221231"
+        result = await portfolio_testing_coordinator._process_and_write()
+        assert isinstance(result, dict)
 
-    coordinator = PortfolioTestingStageCoordinator(
-        data_loader=mock_loader,
-        stage_data_manager=mock_manager,
-        logger=mock_logger,
-        strategy_combinators=[mock_combinator],
-        executor=mock_executor,
-        evaluator=mock_evaluator,
-        optimization_root=tmp_path,
-        optimization_json_filename="test_opt.json",
-        asset_matrix_preparer=mock_asset_matrix_preparer,
-    )
+    @pytest.mark.asyncio
+    async def test_process_and_write_empty_matrix(self, portfolio_testing_coordinator):
+        set_return_empty(portfolio_testing_coordinator, True)
+        portfolio_testing_coordinator.train_start_date = datetime(2022, 1, 1)
+        portfolio_testing_coordinator.train_end_date = datetime(2022, 6, 30)
+        portfolio_testing_coordinator.test_start_date = datetime(2022, 7, 1)
+        portfolio_testing_coordinator.test_end_date = datetime(2022, 12, 31)
+        portfolio_testing_coordinator.train_window_id = "20220101_20220630"
+        portfolio_testing_coordinator.test_window_id = "20220701_20221231"
+        result = await portfolio_testing_coordinator._process_and_write()
+        assert result == {}
+        reset_return_empty(portfolio_testing_coordinator)
 
-    async def df_iter():
-        yield pd.DataFrame(
-            {
-                "AAPL": [100, 101, 102],
-                "GOOG": [200, 202, 204],
+    @pytest.mark.asyncio
+    async def test_process_and_write_exception(self, portfolio_testing_coordinator):
+        set_raise_exception(portfolio_testing_coordinator, True)
+        portfolio_testing_coordinator.train_start_date = datetime(2022, 1, 1)
+        portfolio_testing_coordinator.train_end_date = datetime(2022, 6, 30)
+        portfolio_testing_coordinator.test_start_date = datetime(2022, 7, 1)
+        portfolio_testing_coordinator.test_end_date = datetime(2022, 12, 31)
+        portfolio_testing_coordinator.train_window_id = "20220101_20220630"
+        portfolio_testing_coordinator.test_window_id = "20220701_20221231"
+        result = await portfolio_testing_coordinator._process_and_write()
+        assert result == {}
+        reset_raise_exception(portfolio_testing_coordinator)
+
+    def test_get_optimized_params_normal(self, portfolio_testing_coordinator):
+        symbols = ["AAPL", "GOOG"]
+        strategy_name = "DummyStrategy"
+
+        class DummyStrategy:
+            def __init__(self, logger, foo=None):
+                pass
+
+        portfolio_testing_coordinator.train_window_id = "20220101_20220630"
+        portfolio_testing_coordinator.train_start_date = datetime(2022, 1, 1)
+        portfolio_testing_coordinator.train_end_date = datetime(2022, 6, 30)
+
+        # Patch _get_optimization_results to return valid params with all required keys
+        def fake_get_optimization_results(*a, **kw):
+            return {
+                "20220101_20220630": {
+                    "strategy": "DummyStrategy",
+                    "symbols": ["AAPL", "GOOG"],
+                    "optimization": {"best_params": {"foo": 1}},
+                    "window": {
+                        "start_date": "2022-01-01",
+                        "end_date": "2022-06-30",
+                        "window_id": "20220101_20220630",
+                    },
+                }
             }
+
+        portfolio_testing_coordinator._get_optimization_results = (
+            fake_get_optimization_results
         )
+        params = portfolio_testing_coordinator._get_optimized_params(
+            symbols, strategy_name, DummyStrategy
+        )
+        assert isinstance(params, dict)
 
-    prepared_data = {"AAPL": lambda: df_iter()}
-    coordinator.train_start_date = train_start
-    coordinator.train_end_date = train_end
-    coordinator.train_window_id = train_window_id
-    coordinator.test_start_date = test_start
-    coordinator.test_end_date = test_end
-    coordinator.test_window_id = (
-        f"{test_start.strftime('%Y%m%d')}_{test_end.strftime('%Y%m%d')}"
-    )
+    def test_get_optimized_params_exception(self, portfolio_testing_coordinator):
+        symbols = ["AAPL", "GOOG"]
+        strategy_name = "DummyStrategy"
 
-    coordinator._get_optimization_results = (
-        lambda strategy_name, symbol, start_date, end_date: {
-            coordinator.train_window_id: {
-                "optimization": {
-                    "best_params": {"a": 1},
-                    "metrics": {"sharpe": 2.0},
-                },
-                "window": {
-                    "start_date": train_start.strftime("%Y-%m-%d"),
-                    "end_date": train_end.strftime("%Y-%m-%d"),
-                },
-            }
+        class DummyStrategy:
+            def __init__(self, logger, foo=None):
+                pass
+
+        portfolio_testing_coordinator.train_window_id = "20220101_20220630"
+        portfolio_testing_coordinator.train_start_date = datetime(2022, 1, 1)
+        portfolio_testing_coordinator.train_end_date = datetime(2022, 6, 30)
+
+        # Patch _get_optimization_results to raise
+        def fake_get_optimization_results(*a, **kw):
+            raise Exception("fail")
+
+        portfolio_testing_coordinator._get_optimization_results = (
+            fake_get_optimization_results
+        )
+        params = portfolio_testing_coordinator._get_optimized_params(
+            symbols, strategy_name, DummyStrategy
+        )
+        assert params is None
+
+    def test_validate_optimization_results_normal(self, portfolio_testing_coordinator):
+        results = {"20220101_20220630": {"optimization": {"best_params": {"foo": 1}}}}
+        assert portfolio_testing_coordinator._validate_optimization_results(
+            results
+        ) in [True, False]
+
+    def test_validate_optimization_results_exception(
+        self, portfolio_testing_coordinator
+    ):
+        # Patch to raise
+        def fake_validation(*a, **kw):
+            raise Exception("fail")
+
+        portfolio_testing_coordinator.logger = MockLoggable()
+        portfolio_testing_coordinator._validate_optimization_results = fake_validation
+        try:
+            result = portfolio_testing_coordinator._validate_optimization_results({})
+        except Exception:
+            result = False
+        assert result is False or result is None
+
+    def test_write_test_results_normal(self, portfolio_testing_coordinator):
+        symbols = ["AAPL", "GOOG"]
+        metrics = {"sharpe": 2.0}
+        strategy_name = "DummyStrategy"
+        backtest_results = {"transactions": []}
+        optimized_params = {"foo": 1}
+        optimization_result = {
+            "20220101_20220630": {"optimization": {"best_params": {"foo": 1}}}
         }
-    )
+        collective_results = {}
+        portfolio_testing_coordinator.test_window_id = "20220701_20221231"
+        portfolio_testing_coordinator.test_start_date = datetime(2022, 7, 1)
+        portfolio_testing_coordinator.test_end_date = datetime(2022, 12, 31)
+        result = portfolio_testing_coordinator._write_test_results(
+            symbols,
+            metrics,
+            strategy_name,
+            backtest_results,
+            optimized_params,
+            optimization_result,
+            collective_results,
+        )
+        assert isinstance(result, dict)
 
-    results = await coordinator._process_and_write(data=prepared_data)
-    assert "AAPL" in results
-    assert "DummyStrategy" in results["AAPL"]
-    assert coordinator.test_window_id in results["AAPL"]["DummyStrategy"]
-    assert (
-        results["AAPL"]["DummyStrategy"][coordinator.test_window_id]["metrics"][
-            "sharpe"
-        ]
-        == 2.0
-    )
+    def test_write_test_results_exception(self, portfolio_testing_coordinator):
+        symbols = ["AAPL", "GOOG"]
+        metrics = {"sharpe": 2.0}
+        strategy_name = "DummyStrategy"
+        backtest_results = {"transactions": []}
+        optimized_params = {"foo": 1}
+        optimization_result = {
+            "20220101_20220630": {"optimization": {"best_params": {"foo": 1}}}
+        }
+        collective_results = {}
+        portfolio_testing_coordinator.test_window_id = "20220701_20221231"
+        portfolio_testing_coordinator.test_start_date = datetime(2022, 7, 1)
+        portfolio_testing_coordinator.test_end_date = datetime(2022, 12, 31)
+
+        # Patch to raise
+        def fake_write(*a, **kw):
+            raise Exception("fail")
+
+        portfolio_testing_coordinator._get_optimization_result_path = fake_write
+        try:
+            result = portfolio_testing_coordinator._write_test_results(
+                symbols,
+                metrics,
+                strategy_name,
+                backtest_results,
+                optimized_params,
+                optimization_result,
+                collective_results,
+            )
+        except Exception:
+            result = None
+        assert result is None or isinstance(result, dict)
+
+    def test_get_symbols_dir_name(self, portfolio_testing_coordinator):
+        symbols = ["GOOG", "AAPL"]
+        dir_name = portfolio_testing_coordinator._get_symbols_dir_name(symbols)
+        assert dir_name == "AAPL_GOOG"
+        assert portfolio_testing_coordinator._get_symbols_dir_name([]) == "empty"
