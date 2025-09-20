@@ -47,7 +47,7 @@ class PortfolioMatrixLoader:
         self.stage_data_manager = stage_data_manager
         self.stage_data_loader = stage_data_loader
         self.strategy_factory = strategy_factory
-        self.data_dir = data_dir
+        self.data_dir = Path(data_dir)
         self.optimization_root = Path(optimization_root)
         if not self.optimization_root.is_dir():
             ## Create the directory if it does not exist

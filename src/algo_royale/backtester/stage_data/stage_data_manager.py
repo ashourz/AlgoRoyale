@@ -16,8 +16,8 @@ class StageDataManager:
     It also provides methods to list files in a directory and clear directories.
     """
 
-    def __init__(self, data_dir: Path, logger: Loggable):
-        self.base_dir = data_dir
+    def __init__(self, data_dir: str, logger: Loggable):
+        self.base_dir = Path(data_dir)
         self.logger = logger
 
     def get_file_path(

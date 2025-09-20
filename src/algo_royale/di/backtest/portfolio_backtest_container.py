@@ -31,7 +31,7 @@ from algo_royale.backtester.walkforward.walk_forward_coordinator import (
     WalkForwardCoordinator,
 )
 from algo_royale.logging.logger_type import LoggerType
-from algo_royale.utils.path_utils import get_data_dir
+from algo_royale.utils.path_utils import get_project_root
 
 
 class PortfolioBacktestContainer(containers.DeclarativeContainer):
@@ -43,6 +43,11 @@ class PortfolioBacktestContainer(containers.DeclarativeContainer):
     signal_backtest_container = providers.DependenciesContainer()
     data_prep_coordinator_container = providers.DependenciesContainer()
     logger_container = providers.DependenciesContainer()
+
+    def get_data_dir(config) -> str:
+        return get_project_root() / config.data.dir.root()
+
+    data_dir = providers.Callable(get_data_dir, config=config)
 
     portfolio_executor = providers.Singleton(
         PortfolioBacktestExecutor,
@@ -77,7 +82,7 @@ class PortfolioBacktestContainer(containers.DeclarativeContainer):
         stage_data_manager=stage_data_container.stage_data_manager,
         stage_data_loader=stage_data_container.stage_data_loader,
         strategy_factory=factory_container.signal_strategy_factory,
-        data_dir=get_data_dir(),
+        data_dir=data_dir,
         optimization_root=config.backtester.signal.paths.signal_optimization_root_path,
         signal_summary_json_filename=config.backtester.signal.filenames.signal_summary_json_filename,
         symbol_signals_filename=config.backtester.signal.filenames.symbol_signals_filename,

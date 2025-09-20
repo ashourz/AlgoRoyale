@@ -1,9 +1,11 @@
 from dependency_injector import containers, providers
 
-from algo_royale.logging.env_logger_type_integration import EnvLoggerTypeIntegration
-from algo_royale.logging.env_logger_type_prod import EnvLoggerTypeProd
-from algo_royale.logging.env_logger_type_test import EnvLoggerTypeTest
-from algo_royale.logging.env_logger_type_unit import EnvLoggerTypeUnit
+from algo_royale.logging.env_logger_type_dev_integration import (
+    EnvLoggerTypeDevIntegration,
+)
+from algo_royale.logging.env_logger_type_dev_unit import EnvLoggerTypeDevUnit
+from algo_royale.logging.env_logger_type_prod_live import EnvLoggerTypeProdLive
+from algo_royale.logging.env_logger_type_prod_paper import EnvLoggerTypeProdPaper
 from algo_royale.logging.loggable import TaggableLogger
 from algo_royale.logging.logger_env import ApplicationEnv
 from algo_royale.logging.logger_factory import LoggerFactory
@@ -18,14 +20,14 @@ class LoggerContainer(containers.DeclarativeContainer):
 
     @staticmethod
     def get_env_logger_type(environment: ApplicationEnv):
-        if environment == ApplicationEnv.UNIT:
-            return EnvLoggerTypeUnit
-        elif environment == ApplicationEnv.INTEGRATION:
-            return EnvLoggerTypeIntegration
-        elif environment == ApplicationEnv.TEST:
-            return EnvLoggerTypeTest
-        elif environment == ApplicationEnv.PROD:
-            return EnvLoggerTypeProd
+        if environment == ApplicationEnv.PROD_LIVE:
+            return EnvLoggerTypeProdLive
+        elif environment == ApplicationEnv.PROD_PAPER:
+            return EnvLoggerTypeProdPaper
+        elif environment == ApplicationEnv.DEV_INTEGRATION:
+            return EnvLoggerTypeDevUnit
+        elif environment == ApplicationEnv.DEV_INTEGRATION:
+            return EnvLoggerTypeDevIntegration
         else:
             raise ValueError(f"Unsupported environment: {environment}")
 
@@ -42,5 +44,7 @@ class LoggerContainer(containers.DeclarativeContainer):
         return provider()
 
 
-unit_logger_container = LoggerContainer(environment=ApplicationEnv.UNIT)
-integration_logger_container = LoggerContainer(environment=ApplicationEnv.INTEGRATION)
+dev_unit_logger_container = LoggerContainer(environment=ApplicationEnv.DEV_UNIT)
+dev_integration_logger_container = LoggerContainer(
+    environment=ApplicationEnv.DEV_INTEGRATION
+)

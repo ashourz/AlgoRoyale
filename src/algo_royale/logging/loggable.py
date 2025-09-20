@@ -3,18 +3,6 @@
 import logging
 from typing import Protocol, runtime_checkable
 
-from algo_royale.logging.env_logger_type_integration import EnvLoggerTypeIntegration
-from algo_royale.logging.env_logger_type_prod import EnvLoggerTypeProd
-from algo_royale.logging.env_logger_type_test import EnvLoggerTypeTest
-from algo_royale.logging.env_logger_type_unit import EnvLoggerTypeUnit
-
-ENV_LOGGER_TYPE_CLASS_MAP = {
-    "unit": EnvLoggerTypeUnit,
-    "integration": EnvLoggerTypeIntegration,
-    "test": EnvLoggerTypeTest,
-    "prod": EnvLoggerTypeProd,
-}
-
 
 @runtime_checkable
 class Loggable(Protocol):

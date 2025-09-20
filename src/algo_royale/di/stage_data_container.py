@@ -14,7 +14,7 @@ from algo_royale.backtester.strategy.signal.manager.symbol_strategy_manager impo
     SymbolStrategyManager,
 )
 from algo_royale.logging.logger_type import LoggerType
-from algo_royale.utils.path_utils import get_data_dir
+from algo_royale.utils.path_utils import get_project_root
 
 
 class StageDataContainer(containers.DeclarativeContainer):
@@ -22,9 +22,14 @@ class StageDataContainer(containers.DeclarativeContainer):
     logger_container = providers.DependenciesContainer()
     watchlist_repo = providers.Singleton()
 
+    def get_data_dir(config) -> str:
+        return get_project_root() / config.data.dir.root()
+
+    data_dir = providers.Callable(get_data_dir, config=config)
+
     stage_data_manager = providers.Singleton(
         StageDataManager,
-        data_dir=get_data_dir(),
+        data_dir=data_dir,
         logger=logger_container.provides_logger(
             logger_type=LoggerType.STAGE_DATA_MANAGER
         ),
@@ -57,7 +62,7 @@ class StageDataContainer(containers.DeclarativeContainer):
 
     symbol_strategy_manager = providers.Singleton(
         SymbolStrategyManager,
-        data_dir=get_data_dir(),
+        data_dir=data_dir,
         stage_data_manager=stage_data_manager,
         symbol_strategy_evaluation_filename=config.backtester.signal.filenames.signal_evaluation_json_filename,
         logger=logger_container.provides_logger(

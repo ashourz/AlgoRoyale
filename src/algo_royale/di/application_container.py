@@ -22,10 +22,14 @@ class ApplicationContainer(containers.DeclarativeContainer):
     @staticmethod
     def _get_ini_files(environment):
         env = environment.value.lower()
-        if env == "prod":
+        if env == ApplicationEnv.PROD_LIVE:
             return ["env_config_prod.ini"], ["env_secrets_prod.ini"]
-        elif env == "test":
-            return ["env_config_test.ini"], ["env_secrets_test.ini"]
+        elif env == ApplicationEnv.PROD_PAPER:
+            return ["env_config_prod_paper.ini"], ["env_secrets_prod_paper.ini"]
+        elif env == ApplicationEnv.DEV_INTEGRATION:
+            return ["env_config_dev_integration.ini"], [
+                "env_secrets_dev_integration.ini"
+            ]
         else:
             raise ValueError(f"Unsupported environment: {environment}")
 
