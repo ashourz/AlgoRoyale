@@ -6,6 +6,7 @@ import pandas as pd
 from algo_royale.backtester.strategy.portfolio.risk_parity_portfolio_strategy import (
     RiskParityPortfolioStrategy,
 )
+from tests.mocks.mock_loggable import MockLoggable
 
 
 def test_risk_parity_basic():
@@ -18,7 +19,9 @@ def test_risk_parity_basic():
         index=pd.date_range("2023-01-01", periods=4),
     )
     signals = returns.copy()
-    strategy = RiskParityPortfolioStrategy(window=2, max_iter=100, tol=1e-6)
+    strategy = RiskParityPortfolioStrategy(
+        window=2, max_iter=100, tol=1e-6, logger=MockLoggable()
+    )
     weights = strategy.allocate(signals, returns)
     assert weights.shape == returns.shape
     for i, row in weights.iterrows():
@@ -41,8 +44,12 @@ def test_risk_parity_param_effect():
         index=pd.date_range("2023-01-01", periods=4),
     )
     signals = returns.copy()
-    strategy1 = RiskParityPortfolioStrategy(window=2, max_iter=100, tol=1e-6)
-    strategy2 = RiskParityPortfolioStrategy(window=2, max_iter=200, tol=1e-8)
+    strategy1 = RiskParityPortfolioStrategy(
+        window=2, max_iter=100, tol=1e-6, logger=MockLoggable()
+    )
+    strategy2 = RiskParityPortfolioStrategy(
+        window=2, max_iter=200, tol=1e-8, logger=MockLoggable()
+    )
     w1 = strategy1.allocate(signals, returns)
     w2 = strategy2.allocate(signals, returns)
     if not (np.allclose(w1.values, 0) or np.allclose(w2.values, 0)):
@@ -54,7 +61,9 @@ def test_risk_parity_all_zero_returns():
         0, index=pd.date_range("2023-01-01", periods=3), columns=["A", "B"]
     )
     signals = returns.copy()
-    strategy = RiskParityPortfolioStrategy(window=2, max_iter=100, tol=1e-6)
+    strategy = RiskParityPortfolioStrategy(
+        window=2, max_iter=100, tol=1e-6, logger=MockLoggable()
+    )
     weights = strategy.allocate(signals, returns)
     # Accept either all-zero weights or any valid allocation (sum to 1, all >= 0)
     for i, row in weights.iterrows():

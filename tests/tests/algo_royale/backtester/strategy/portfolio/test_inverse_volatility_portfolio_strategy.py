@@ -6,6 +6,7 @@ import pandas as pd
 from algo_royale.backtester.strategy.portfolio.inverse_volatility_portfolio_strategy import (
     InverseVolatilityPortfolioStrategy,
 )
+from tests.mocks.mock_loggable import MockLoggable
 
 
 def test_inverse_volatility_basic():
@@ -18,7 +19,7 @@ def test_inverse_volatility_basic():
         index=pd.date_range("2023-01-01", periods=4),
     )
     signals = returns.copy()
-    strategy = InverseVolatilityPortfolioStrategy(lookback=2)
+    strategy = InverseVolatilityPortfolioStrategy(lookback=2, logger=MockLoggable())
     weights = strategy.allocate(signals, returns)
     assert weights.shape == returns.shape
     for i, row in weights.iterrows():
@@ -36,7 +37,7 @@ def test_inverse_volatility_all_zero_returns():
         0, index=pd.date_range("2023-01-01", periods=3), columns=["A", "B"]
     )
     signals = returns.copy()
-    strategy = InverseVolatilityPortfolioStrategy(lookback=2)
+    strategy = InverseVolatilityPortfolioStrategy(lookback=2, logger=MockLoggable())
     weights = strategy.allocate(signals, returns)
     # Accept either all-zero weights or any valid allocation (sum to 1, all >= 0)
     for i, row in weights.iterrows():

@@ -6,6 +6,7 @@ import pandas as pd
 from algo_royale.backtester.strategy.portfolio.minimum_variance_portfolio_strategy import (
     MinimumVariancePortfolioStrategy,
 )
+from tests.mocks.mock_loggable import MockLoggable
 
 
 def test_minimum_variance_basic():
@@ -18,7 +19,7 @@ def test_minimum_variance_basic():
         index=pd.date_range("2023-01-01", periods=4),
     )
     signals = returns.copy()
-    strategy = MinimumVariancePortfolioStrategy(lookback=2)
+    strategy = MinimumVariancePortfolioStrategy(lookback=2, logger=MockLoggable())
     weights = strategy.allocate(signals, returns)
     assert weights.shape == returns.shape
     for i, row in weights.iterrows():
@@ -36,7 +37,7 @@ def test_minimum_variance_single_asset():
         {"A": [0.01, 0.02, 0.01]}, index=pd.date_range("2023-01-01", periods=3)
     )
     signals = returns.copy()
-    strategy = MinimumVariancePortfolioStrategy(lookback=2)
+    strategy = MinimumVariancePortfolioStrategy(lookback=2, logger=MockLoggable())
     weights = strategy.allocate(signals, returns)
     for i, row in weights.iterrows():
         s = row.sum()
@@ -52,7 +53,7 @@ def test_minimum_variance_all_zero_returns():
         0, index=pd.date_range("2023-01-01", periods=3), columns=["A", "B"]
     )
     signals = returns.copy()
-    strategy = MinimumVariancePortfolioStrategy(lookback=2)
+    strategy = MinimumVariancePortfolioStrategy(lookback=2, logger=MockLoggable())
     weights = strategy.allocate(signals, returns)
     # Accept either all-zero weights or any valid allocation (sum to 1, all >= 0)
     for i, row in weights.iterrows():

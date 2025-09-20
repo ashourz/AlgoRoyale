@@ -6,6 +6,7 @@ import pandas as pd
 from algo_royale.backtester.strategy.portfolio.winner_takes_all_portfolio_strategy import (
     WinnerTakesAllPortfolioStrategy,
 )
+from tests.mocks.mock_loggable import MockLoggable
 
 
 def test_winner_takes_all_basic():
@@ -19,7 +20,7 @@ def test_winner_takes_all_basic():
     )
     signals = returns.copy()
     strategy = WinnerTakesAllPortfolioStrategy(
-        use_signals=True, move_to_cash_at_end_of_day=False
+        use_signals=True, move_to_cash_at_end_of_day=False, logger=MockLoggable()
     )
     weights = strategy.allocate(signals, returns)
     assert weights.shape == returns.shape
@@ -46,7 +47,7 @@ def test_winner_takes_all_move_to_cash():
     )
     signals = returns.copy()
     strategy = WinnerTakesAllPortfolioStrategy(
-        use_signals=True, move_to_cash_at_end_of_day=True
+        use_signals=True, move_to_cash_at_end_of_day=True, logger=MockLoggable()
     )
     weights = strategy.allocate(signals, returns)
     assert (weights.iloc[-1] == 0.0).all()
@@ -58,7 +59,7 @@ def test_winner_takes_all_all_zero_returns():
     )
     signals = returns.copy()
     strategy = WinnerTakesAllPortfolioStrategy(
-        use_signals=True, move_to_cash_at_end_of_day=False
+        use_signals=True, move_to_cash_at_end_of_day=False, logger=MockLoggable()
     )
     weights = strategy.allocate(signals, returns)
     assert (weights == 0).all().all()

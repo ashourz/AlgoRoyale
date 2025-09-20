@@ -6,6 +6,7 @@ import pandas as pd
 from algo_royale.backtester.strategy.portfolio.max_sharpe_portfolio_strategy import (
     MaxSharpePortfolioStrategy,
 )
+from tests.mocks.mock_loggable import MockLoggable
 
 
 def test_max_sharpe_basic():
@@ -18,7 +19,9 @@ def test_max_sharpe_basic():
         index=pd.date_range("2023-01-01", periods=4),
     )
     signals = returns.copy()
-    strategy = MaxSharpePortfolioStrategy(lookback=2, risk_free_rate=0.0)
+    strategy = MaxSharpePortfolioStrategy(
+        lookback=2, risk_free_rate=0.0, logger=MockLoggable()
+    )
     weights = strategy.allocate(signals, returns)
     assert weights.shape == returns.shape
     # Allow for all-zero weights if optimizer fails
@@ -44,8 +47,12 @@ def test_max_sharpe_risk_free_param():
         index=pd.date_range("2023-01-01", periods=4),
     )
     signals = returns.copy()
-    strategy1 = MaxSharpePortfolioStrategy(lookback=2, risk_free_rate=0.0)
-    strategy2 = MaxSharpePortfolioStrategy(lookback=2, risk_free_rate=0.05)
+    strategy1 = MaxSharpePortfolioStrategy(
+        lookback=2, risk_free_rate=0.0, logger=MockLoggable()
+    )
+    strategy2 = MaxSharpePortfolioStrategy(
+        lookback=2, risk_free_rate=0.05, logger=MockLoggable()
+    )
     w1 = strategy1.allocate(signals, returns)
     w2 = strategy2.allocate(signals, returns)
     # Allow for all-zero weights (optimizer failure), but if both are nonzero, they should differ
@@ -58,7 +65,9 @@ def test_max_sharpe_all_zero_returns():
         0, index=pd.date_range("2023-01-01", periods=3), columns=["A", "B"]
     )
     signals = returns.copy()
-    strategy = MaxSharpePortfolioStrategy(lookback=2, risk_free_rate=0.0)
+    strategy = MaxSharpePortfolioStrategy(
+        lookback=2, risk_free_rate=0.0, logger=MockLoggable()
+    )
     weights = strategy.allocate(signals, returns)
     # Accept either all-zero weights or any valid allocation (sum to 1, all >= 0)
     for i, row in weights.iterrows():

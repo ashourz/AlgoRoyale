@@ -4,6 +4,7 @@ import pandas as pd
 from algo_royale.backtester.strategy.portfolio.equal_weight_portfolio_strategy import (
     EqualWeightPortfolioStrategy,
 )
+from tests.mocks.mock_loggable import MockLoggable
 
 
 def test_equal_weight_portfolio_strategy_basic():
@@ -19,7 +20,7 @@ def test_equal_weight_portfolio_strategy_basic():
         },
         index=pd.date_range("2023-01-01", periods=3),
     )
-    strategy = EqualWeightPortfolioStrategy()
+    strategy = EqualWeightPortfolioStrategy(logger=MockLoggable())
     weights = strategy.allocate(signals, returns)
     # Check shape
     assert weights.shape == signals.shape
