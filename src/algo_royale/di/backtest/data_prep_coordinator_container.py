@@ -18,13 +18,11 @@ class DataPrepCoordinatorContainer(containers.DeclarativeContainer):
     """Stage Coordinator Container"""
 
     config = providers.Configuration()
-    logger_container: LoggerContainer = providers.DependenciesContainer()
-    stage_data_container: StageDataContainer = providers.DependenciesContainer()
-    feature_engineering_container: FeatureEngineeringContainer = (
-        providers.DependenciesContainer()
-    )
-    adapter_container: AdapterContainer = providers.DependenciesContainer()
-    repo_container: RepoContainer = providers.DependenciesContainer()
+    logger_container: LoggerContainer
+    stage_data_container: StageDataContainer
+    feature_engineering_container: FeatureEngineeringContainer
+    adapter_container: AdapterContainer
+    repo_container: RepoContainer
 
     data_ingest_stage_coordinator = providers.Singleton(
         DataIngestStageCoordinator,

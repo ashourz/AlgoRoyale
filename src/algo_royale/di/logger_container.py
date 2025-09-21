@@ -16,24 +16,26 @@ class LoggerContainer(containers.DeclarativeContainer):
     environment = providers.Object(ApplicationEnv)
     logger_factory = providers.Singleton(LoggerFactory, environment=environment)
 
-    def get_logger(self, logger_type: LoggerType):
-        if self.environment == ApplicationEnv.PROD_LIVE:
+    @staticmethod
+    def get_logger(environment, logger_factory, logger_type: LoggerType):
+        if environment == ApplicationEnv.PROD_LIVE:
             env_logger_type_enum = EnvLoggerTypeProdLive
-        elif self.environment == ApplicationEnv.PROD_PAPER:
+        elif environment == ApplicationEnv.PROD_PAPER:
             env_logger_type_enum = EnvLoggerTypeProdPaper
-        elif self.environment == ApplicationEnv.DEV_UNIT:
+        elif environment == ApplicationEnv.DEV_UNIT:
             env_logger_type_enum = EnvLoggerTypeDevUnit
-        elif self.environment == ApplicationEnv.DEV_INTEGRATION:
+        elif environment == ApplicationEnv.DEV_INTEGRATION:
             env_logger_type_enum = EnvLoggerTypeDevIntegration
         else:
-            raise ValueError(f"Unsupported environment: {self.environment}")
+            raise ValueError(f"Unsupported environment: {environment}")
         env_logger_type = getattr(env_logger_type_enum, logger_type.name)
-        base_logger = self.logger_factory().get_base_logger()
+        base_logger = logger_factory().get_base_logger()
         return TaggableLogger(base_logger=base_logger, logger_type=env_logger_type)
 
     logger = providers.DelegatedFactory(
         get_logger,
-        logger_type=providers.Dependency(instance_of=LoggerType),
+        environment=environment,
+        logger_factory=logger_factory,
     )
 
 

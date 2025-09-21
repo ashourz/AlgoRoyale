@@ -9,11 +9,7 @@ class DBContainer(containers.DeclarativeContainer):
     config = providers.Configuration()
     secrets = providers.Configuration()
     logger_container: LoggerContainer = providers.DependenciesContainer()
-
-    logger = providers.Factory(
-        logger_container.logger,
-        logger_type=LoggerType.DATABASE,
-    )
+    logger = logger_container.logger.provider(logger_type=LoggerType.DATABASE)
 
     database = providers.Singleton(
         Database,
