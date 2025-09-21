@@ -6,7 +6,7 @@ class TestAlpacaCorporateActionClientIntegration:
     @classmethod
     def setup_class(cls):
         # Use the integration environment for real endpoint testing
-        cls.container = ApplicationContainer(environment=ApplicationEnv.INTEGRATION)
+        cls.container = ApplicationContainer(environment=ApplicationEnv.DEV_INTEGRATION)
         cls.client = (
             cls.container.adapter_container()
             .client_container()

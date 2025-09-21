@@ -41,7 +41,7 @@ class TradingContainer(containers.DeclarativeContainer):
     )
 
     ## TODO: ENSURE PROPOGATION OF is_live FLAG IS PERFORMED CORRECTLY
-    test_order_generator_service_container = providers.Container(
+    order_generator_service_container = providers.Container(
         OrderGeneratorServiceContainer,
         adapter_container=adapter_container,
         repo_container=repo_container,
@@ -49,46 +49,21 @@ class TradingContainer(containers.DeclarativeContainer):
         ledger_service_container=ledger_service_container,
         registry_container=registry_container,
         logger_container=logger_container,
-        is_live=config.environment.is_live(),
     )
 
-    live_order_generator_service_container = providers.Container(
-        OrderGeneratorServiceContainer,
-        adapter_container=adapter_container,
-        repo_container=repo_container,
-        feature_engineering_container=feature_engineering_container,
-        ledger_service_container=ledger_service_container,
-        registry_container=registry_container,
-        logger_container=logger_container,
-        is_live=config.environment.is_live(),
-    )
-
-    test_market_session_container = providers.Container(
+    market_session_container = providers.Container(
         MarketSessionContainer,
         logger_container=logger_container,
         ledger_service_container=ledger_service_container,
-        order_generator_service_container=test_order_generator_service_container,
+        order_generator_service_container=order_generator_service_container,
     )
 
-    live_market_session_container = providers.Container(
-        MarketSessionContainer,
-        logger_container=logger_container,
-        ledger_service_container=ledger_service_container,
-        order_generator_service_container=live_order_generator_service_container,
-    )
-
-    test_trade_orchestrator = providers.Singleton(
+    trade_orchestrator = providers.Singleton(
         TradeOrchestrator,
         clock_service=clock_service,
-        market_session_service=test_market_session_container.market_session_service,
-        logger=logger_container.logger(logger_type=LoggerType.TEST_TRADE_ORCHESTRATOR),
-        premarket_open_duration_minutes=providers.Object(5),
-    )
-
-    live_trade_orchestrator = providers.Singleton(
-        TradeOrchestrator,
-        clock_service=clock_service,
-        market_session_service=live_market_session_container.market_session_service,
-        logger=logger_container.logger(logger_type=LoggerType.LIVE_TRADE_ORCHESTRATOR),
+        market_session_service=market_session_container.market_session_service,
+        logger=logger_container.logger.provider(
+            logger_type=LoggerType.TRADE_ORCHESTRATOR
+        ),
         premarket_open_duration_minutes=providers.Object(5),
     )

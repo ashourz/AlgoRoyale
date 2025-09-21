@@ -31,7 +31,9 @@ class DataPrepCoordinatorContainer(containers.DeclarativeContainer):
         data_loader=stage_data_container.stage_data_loader,
         data_writer=stage_data_container.symbol_strategy_data_writer,
         data_manager=stage_data_container.stage_data_manager,
-        logger=logger_container.logger(logger_type=LoggerType.BACKTEST_DATA_INGEST),
+        logger=logger_container.logger.provider(
+            logger_type=LoggerType.BACKTEST_DATA_INGEST
+        ),
         quote_adapter=adapter_container.quote_adapter,
         watchlist_repo=repo_container.watchlist_repo,
     )
@@ -41,7 +43,7 @@ class DataPrepCoordinatorContainer(containers.DeclarativeContainer):
         data_loader=stage_data_container.symbol_strategy_data_loader,
         data_writer=stage_data_container.symbol_strategy_data_writer,
         data_manager=stage_data_container.stage_data_manager,
-        logger=logger_container.logger(
+        logger=logger_container.logger.provider(
             logger_type=LoggerType.BACKTEST_FEATURE_ENGINEERING
         ),
         feature_engineer=feature_engineering_container.backtest_feature_engineer,

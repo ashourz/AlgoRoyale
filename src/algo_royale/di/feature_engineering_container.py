@@ -25,7 +25,7 @@ class FeatureEngineeringContainer(containers.DeclarativeContainer):
     backtest_feature_engineer = providers.Singleton(
         BacktestFeatureEngineer,
         feature_engineering_func=feature_engineering_func,
-        logger=logger_container.logger(
+        logger=logger_container.logger.provider(
             logger_type=LoggerType.BACKTEST_FEATURE_ENGINEERING
         ),
         max_lookback=FeatureEngineeringColumns.get_max_lookback_from_columns(),
@@ -33,5 +33,7 @@ class FeatureEngineeringContainer(containers.DeclarativeContainer):
 
     feature_engineer = providers.Singleton(
         FeatureEngineer,
-        logger=logger_container.logger(logger_type=LoggerType.FEATURE_ENGINEER),
+        logger=logger_container.logger.provider(
+            logger_type=LoggerType.FEATURE_ENGINEER
+        ),
     )

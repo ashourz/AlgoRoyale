@@ -56,6 +56,7 @@ class BacktestPipelineContainer(containers.DeclarativeContainer):
         factory_container=factory_container,
         logger_container=logger_container,
     )
+
     pipeline_coordinator = providers.Singleton(
         PipelineCoordinator,
         signal_strategy_walk_forward_coordinator=signal_backtest_container.signal_strategy_walk_forward_coordinator,
@@ -63,5 +64,7 @@ class BacktestPipelineContainer(containers.DeclarativeContainer):
         signal_strategy_evaluation_coordinator=signal_backtest_container.strategy_evaluation_coordinator,
         symbol_evaluation_coordinator=signal_backtest_container.symbol_evaluation_coordinator,
         portfolio_evaluation_coordinator=portfolio_backtest_container.portfolio_evaluation_coordinator,
-        logger=logger_container.logger(logger_type=LoggerType.PIPELINE_COORDINATOR),
+        logger=logger_container.logger.provider(
+            logger_type=LoggerType.PIPELINE_COORDINATOR
+        ),
     )

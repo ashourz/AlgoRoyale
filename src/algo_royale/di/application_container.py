@@ -33,18 +33,15 @@ class ApplicationContainer(containers.DeclarativeContainer):
         else:
             raise ValueError(f"Unsupported environment: {environment}")
 
-    config = providers.Configuration(
-        ini_files=providers.Callable(
-            lambda environment: ApplicationContainer._get_ini_files(environment)[0],
-            environment=environment,
-        )
-    )
-    secrets = providers.Configuration(
-        ini_files=providers.Callable(
-            lambda environment: ApplicationContainer._get_ini_files(environment)[1],
-            environment=environment,
-        )
-    )
+    config = providers.Configuration()
+    secrets = providers.Configuration()
+
+    @classmethod
+    def setup_configs(cls):
+        ini_files, secret_files = cls._get_ini_files(cls.environment())
+        cls.config.from_ini(*ini_files)
+        cls.secrets.from_ini(*secret_files)
+
     logger_container = providers.Container(
         LoggerContainer,
         environment=environment,
@@ -67,7 +64,7 @@ class ApplicationContainer(containers.DeclarativeContainer):
     clock_service = providers.Singleton(
         ClockService,
         clock_adapter=adapter_container.clock_adapter,
-        logger=logger_container.logger(logger_type=LoggerType.CLOCK_SERVICE),
+        logger=logger_container.logger.provider(logger_type=LoggerType.CLOCK_SERVICE),
     )
 
     stage_data_container = providers.Container(

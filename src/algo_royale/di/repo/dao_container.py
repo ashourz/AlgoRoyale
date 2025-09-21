@@ -21,26 +21,30 @@ class DAOContainer(containers.DeclarativeContainer):
         DataStreamSessionDAO,
         connection=db_container.db_connection,
         sql_dir=sql_dir,
-        logger=logger_container.logger(logger_type=LoggerType.DATA_STREAM_SESSION_DAO),
+        logger=logger_container.logger.provider(
+            logger_type=LoggerType.DATA_STREAM_SESSION_DAO
+        ),
     )
 
     enriched_data_dao = providers.Singleton(
         EnrichedDataDAO,
         connection=db_container.db_connection,
         sql_dir=sql_dir,
-        logger=logger_container.logger(logger_type=LoggerType.ENRICHED_DATA_DAO),
+        logger=logger_container.logger.provider(
+            logger_type=LoggerType.ENRICHED_DATA_DAO
+        ),
     )
 
     trade_dao = providers.Singleton(
         TradeDAO,
         connection=db_container.db_connection,
         sql_dir=sql_dir,
-        logger=logger_container.logger(logger_type=LoggerType.TRADE_DAO),
+        logger=logger_container.logger.provider(logger_type=LoggerType.TRADE_DAO),
     )
 
     order_dao = providers.Singleton(
         OrderDAO,
         connection=db_container.db_connection,
         sql_dir=sql_dir,
-        logger=logger_container.logger(logger_type=LoggerType.ORDER_DAO),
+        logger=logger_container.logger.provider(logger_type=LoggerType.ORDER_DAO),
     )
