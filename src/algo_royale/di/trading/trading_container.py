@@ -81,9 +81,7 @@ class TradingContainer(containers.DeclarativeContainer):
         TradeOrchestrator,
         clock_service=clock_service,
         market_session_service=test_market_session_container.market_session_service,
-        logger=logger_container.provides_logger(
-            logger_type=LoggerType.TEST_TRADE_ORCHESTRATOR
-        ),
+        logger=logger_container.logger(logger_type=LoggerType.TEST_TRADE_ORCHESTRATOR),
         premarket_open_duration_minutes=providers.Object(5),
     )
 
@@ -91,8 +89,6 @@ class TradingContainer(containers.DeclarativeContainer):
         TradeOrchestrator,
         clock_service=clock_service,
         market_session_service=live_market_session_container.market_session_service,
-        logger=logger_container.provides_logger(
-            logger_type=LoggerType.LIVE_TRADE_ORCHESTRATOR
-        ),
+        logger=logger_container.logger(logger_type=LoggerType.LIVE_TRADE_ORCHESTRATOR),
         premarket_open_duration_minutes=providers.Object(5),
     )

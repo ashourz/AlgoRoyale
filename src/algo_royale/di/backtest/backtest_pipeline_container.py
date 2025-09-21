@@ -63,7 +63,5 @@ class BacktestPipelineContainer(containers.DeclarativeContainer):
         signal_strategy_evaluation_coordinator=signal_backtest_container.strategy_evaluation_coordinator,
         symbol_evaluation_coordinator=signal_backtest_container.symbol_evaluation_coordinator,
         portfolio_evaluation_coordinator=portfolio_backtest_container.portfolio_evaluation_coordinator,
-        logger=logger_container.provides_logger(
-            logger_type=LoggerType.PIPELINE_COORDINATOR
-        ),
+        logger=logger_container.logger(logger_type=LoggerType.PIPELINE_COORDINATOR),
     )

@@ -23,9 +23,7 @@ class MarketSessionContainer(containers.DeclarativeContainer):
         ledger_service=ledger_service_container.ledger_service,
         symbol_hold_service=order_generator_service_container.symbol_hold_service,
         order_generator_service=order_generator_service_container.order_generator_service,
-        logger=logger_container.provides_logger(
-            logger_type=LoggerType.ORDER_EXECUTION_SERVICE
-        ),
+        logger=logger_container.logger(logger_type=LoggerType.ORDER_EXECUTION_SERVICE),
     )
 
     order_monitor_service = providers.Singleton(
@@ -33,9 +31,7 @@ class MarketSessionContainer(containers.DeclarativeContainer):
         ledger_service=ledger_service_container.ledger_service,
         order_event_service=order_generator_service_container.order_event_service,
         trades_service=ledger_service_container.trades_service,
-        logger=logger_container.provides_logger(
-            logger_type=LoggerType.ORDER_MONITOR_SERVICE
-        ),
+        logger=logger_container.logger(logger_type=LoggerType.ORDER_MONITOR_SERVICE),
     )
 
     market_session_service = providers.Singleton(
@@ -48,7 +44,5 @@ class MarketSessionContainer(containers.DeclarativeContainer):
         ledger_service=ledger_service_container.ledger_service,
         order_execution_service=order_execution_service,
         order_monitor_service=order_monitor_service,
-        logger=logger_container.provides_logger(
-            logger_type=LoggerType.MARKET_SESSION_SERVICE
-        ),
+        logger=logger_container.logger(logger_type=LoggerType.MARKET_SESSION_SERVICE),
     )

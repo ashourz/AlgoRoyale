@@ -30,33 +30,25 @@ class StageDataContainer(containers.DeclarativeContainer):
     stage_data_manager = providers.Singleton(
         StageDataManager,
         data_dir=data_dir,
-        logger=logger_container.provides_logger(
-            logger_type=LoggerType.STAGE_DATA_MANAGER
-        ),
+        logger=logger_container.logger(logger_type=LoggerType.STAGE_DATA_MANAGER),
     )
 
     stage_data_preparer = providers.Singleton(
         StageDataPreparer,
         stage_data_manager=stage_data_manager,
-        logger=logger_container.provides_logger(
-            logger_type=LoggerType.STAGE_DATA_PREPARER
-        ),
+        logger=logger_container.logger(logger_type=LoggerType.STAGE_DATA_PREPARER),
     )
 
     stage_data_loader = providers.Singleton(
         StageDataLoader,
-        logger=logger_container.provides_logger(
-            logger_type=LoggerType.STAGE_DATA_LOADER
-        ),
+        logger=logger_container.logger(logger_type=LoggerType.STAGE_DATA_LOADER),
         stage_data_manager=stage_data_manager,
         watchlist_repo=watchlist_repo,
     )
 
     stage_data_writer = providers.Singleton(
         StageDataWriter,
-        logger=logger_container.provides_logger(
-            logger_type=LoggerType.STAGE_DATA_WRITER
-        ),
+        logger=logger_container.logger(logger_type=LoggerType.STAGE_DATA_WRITER),
         stage_data_manager=stage_data_manager,
     )
 
@@ -65,7 +57,7 @@ class StageDataContainer(containers.DeclarativeContainer):
         data_dir=data_dir,
         stage_data_manager=stage_data_manager,
         symbol_strategy_evaluation_filename=config.backtester.signal.filenames.signal_evaluation_json_filename,
-        logger=logger_container.provides_logger(
+        logger=logger_container.logger(
             logger_type=LoggerType.SYMBOL_STRATEGY_DATA_MANAGER
         ),
     )
@@ -74,7 +66,7 @@ class StageDataContainer(containers.DeclarativeContainer):
         SymbolStrategyDataLoader,
         stage_data_manager=stage_data_manager,
         stage_data_loader=stage_data_loader,
-        logger=logger_container.provides_logger(
+        logger=logger_container.logger(
             logger_type=LoggerType.SYMBOL_STRATEGY_DATA_LOADER
         ),
     )
@@ -83,7 +75,7 @@ class StageDataContainer(containers.DeclarativeContainer):
         SymbolStrategyDataWriter,
         stage_data_manager=stage_data_manager,
         data_writer=stage_data_writer,
-        logger=logger_container.provides_logger(
+        logger=logger_container.logger(
             logger_type=LoggerType.SYMBOL_STRATEGY_DATA_WRITER
         ),
     )

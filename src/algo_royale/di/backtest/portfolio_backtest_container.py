@@ -56,21 +56,21 @@ class PortfolioBacktestContainer(containers.DeclarativeContainer):
         min_lot=config.backtester.portfolio.minimum_lot_size,
         leverage=config.backtester.portfolio.leverage,
         slippage=config.backtester.portfolio.slippage,
-        logger=logger_container.provides_logger(
+        logger=logger_container.logger(
             logger_type=LoggerType.PORTFOLIO_BACKTEST_EXECUTOR
         ),
     )
 
     portfolio_evaluator = providers.Singleton(
         PortfolioBacktestEvaluator,
-        logger=logger_container.provides_logger(
+        logger=logger_container.logger(
             logger_type=LoggerType.PORTFOLIO_BACKTEST_EVALUATOR
         ),
     )
 
     portfolio_asset_matrix_preparer = providers.Singleton(
         AssetMatrixPreparer,
-        logger=logger_container.provides_logger(
+        logger=logger_container.logger(
             logger_type=LoggerType.PORTFOLIO_ASSET_MATRIX_PREPARER
         ),
     )
@@ -86,9 +86,7 @@ class PortfolioBacktestContainer(containers.DeclarativeContainer):
         optimization_root=config.backtester.signal.paths.signal_optimization_root_path,
         signal_summary_json_filename=config.backtester.signal.filenames.signal_summary_json_filename,
         symbol_signals_filename=config.backtester.signal.filenames.symbol_signals_filename,
-        logger=logger_container.provides_logger(
-            logger_type=LoggerType.PORTFOLIO_MATRIX_LOADER
-        ),
+        logger=logger_container.logger(logger_type=LoggerType.PORTFOLIO_MATRIX_LOADER),
     )
 
     portfolio_optimization_stage_coordinator = providers.Singleton(
@@ -97,9 +95,7 @@ class PortfolioBacktestContainer(containers.DeclarativeContainer):
         stage_data_manager=stage_data_container.stage_data_manager,
         executor=portfolio_executor,
         evaluator=portfolio_evaluator,
-        logger=logger_container.provides_logger(
-            logger_type=LoggerType.PORTFOLIO_OPTIMIZATION
-        ),
+        logger=logger_container.logger(logger_type=LoggerType.PORTFOLIO_OPTIMIZATION),
         strategy_combinator_factory=factory_container.portfolio_strategy_combinator_factory,
         optimization_root=config.backtester.portfolio.paths.portfolio_optimization_root_path,
         optimization_json_filename=config.backtester.portfolio.filenames.portfolio_optimization_json_filename,
@@ -114,10 +110,8 @@ class PortfolioBacktestContainer(containers.DeclarativeContainer):
         stage_data_manager=stage_data_container.stage_data_manager,
         executor=portfolio_executor,
         evaluator=portfolio_evaluator,
-        logger=logger_container.provides_logger(
-            logger_type=LoggerType.PORTFOLIO_TESTING
-        ),
-        strategy_logger=logger_container.provides_logger(
+        logger=logger_container.logger(logger_type=LoggerType.PORTFOLIO_TESTING),
+        strategy_logger=logger_container.logger(
             logger_type=LoggerType.PORTFOLIO_STRATEGY
         ),
         strategy_combinator_factory=factory_container.portfolio_strategy_combinator_factory,
@@ -134,14 +128,12 @@ class PortfolioBacktestContainer(containers.DeclarativeContainer):
         feature_engineering_stage_coordinator=data_prep_coordinator_container.feature_engineering_stage_coordinator,
         optimization_stage_coordinator=portfolio_optimization_stage_coordinator,
         testing_stage_coordinator=portfolio_testing_stage_coordinator,
-        logger=logger_container.provides_logger(
-            logger_type=LoggerType.PORTFOLIO_WALK_FORWARD
-        ),
+        logger=logger_container.logger(logger_type=LoggerType.PORTFOLIO_WALK_FORWARD),
     )
 
     portfolio_cross_window_evaluator = providers.Singleton(
         PortfolioCrossWindowEvaluator,
-        logger=logger_container.provides_logger(
+        logger=logger_container.logger(
             logger_type=LoggerType.PORTFOLIO_CROSS_WINDOW_EVALUATOR
         ),
         window_json_filename=config.backtester.portfolio.filenames.portfolio_optimization_json_filename,
@@ -150,7 +142,7 @@ class PortfolioBacktestContainer(containers.DeclarativeContainer):
 
     portfolio_cross_strategy_summary = providers.Singleton(
         PortfolioCrossStrategySummary,
-        logger=logger_container.provides_logger(
+        logger=logger_container.logger(
             logger_type=LoggerType.PORTFOLIO_CROSS_STRATEGY_SUMMARY
         ),
         evaluation_filename=config.backtester.portfolio.filenames.portfolio_strategy_evaluation_json_filename,
@@ -159,9 +151,7 @@ class PortfolioBacktestContainer(containers.DeclarativeContainer):
     # Portfolio evaluation coordinator
     portfolio_evaluation_coordinator = providers.Singleton(
         PortfolioEvaluationCoordinator,
-        logger=logger_container.provides_logger(
-            logger_type=LoggerType.PORTFOLIO_EVALUATION
-        ),
+        logger=logger_container.logger(logger_type=LoggerType.PORTFOLIO_EVALUATION),
         cross_window_evaluator=portfolio_cross_window_evaluator,
         cross_strategy_summary=portfolio_cross_strategy_summary,
         optimization_root=config.backtester.portfolio.paths.portfolio_optimization_root_path,

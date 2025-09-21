@@ -19,22 +19,23 @@ class TaggedLoggerAdapter(logging.LoggerAdapter):
 
 
 class LoggerFactory:
-    _loggers = {}
+    def __init__(self, environment: ApplicationEnv):
+        self.environment = environment
+        self._loggers = {}
 
-    @staticmethod
-    def get_base_logger(environment: ApplicationEnv) -> logging.Logger:
-        logger_name = environment.value
-        if logger_name in LoggerFactory._loggers:
-            return LoggerFactory._loggers[logger_name]
+    def get_base_logger(self) -> logging.Logger:
+        logger_name = self.environment.value
+        if logger_name in self._loggers:
+            return self._loggers[logger_name]
 
         logger = logging.getLogger(logger_name)
         logger.setLevel(logging.DEBUG)  # Allow all logs, filter in wrapper
         logger.propagate = False
 
-        log_dir = os.path.join(BASE_LOG_DIR, environment.value)
+        log_dir = os.path.join(BASE_LOG_DIR, self.environment.value)
         os.makedirs(log_dir, exist_ok=True)
 
-        log_file = os.path.join(log_dir, f"{environment.value}.log")
+        log_file = os.path.join(log_dir, f"{self.environment.value}.log")
         file_handler = CustomRotatingFileHandler(
             log_file, maxBytes=10_000_000, backupCount=100
         )
@@ -44,7 +45,7 @@ class LoggerFactory:
         file_handler.setFormatter(formatter)
         logger.addHandler(file_handler)
 
-        LoggerFactory._loggers[logger_name] = logger
+        self._loggers[logger_name] = logger
         return logger
 
 
@@ -54,5 +55,5 @@ def mockLogger() -> logging.Logger:
     """
     from algo_royale.logging.logger_env import ApplicationEnv
 
-    logger: Loggable = LoggerFactory.get_base_logger(environment=ApplicationEnv.TEST)
+    logger: Loggable = LoggerFactory(ApplicationEnv.DEV_UNIT).get_base_logger()
     return logger

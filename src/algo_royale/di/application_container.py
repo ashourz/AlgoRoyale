@@ -23,7 +23,7 @@ class ApplicationContainer(containers.DeclarativeContainer):
     def _get_ini_files(environment):
         env = environment.value.lower()
         if env == ApplicationEnv.PROD_LIVE:
-            return ["env_config_prod.ini"], ["env_secrets_prod.ini"]
+            return ["env_config_prod_live.ini"], ["env_secrets_prod_live.ini"]
         elif env == ApplicationEnv.PROD_PAPER:
             return ["env_config_prod_paper.ini"], ["env_secrets_prod_paper.ini"]
         elif env == ApplicationEnv.DEV_INTEGRATION:
@@ -67,7 +67,7 @@ class ApplicationContainer(containers.DeclarativeContainer):
     clock_service = providers.Singleton(
         ClockService,
         clock_adapter=adapter_container.clock_adapter,
-        logger=logger_container.provides_logger(logger_type=LoggerType.CLOCK_SERVICE),
+        logger=logger_container.logger(logger_type=LoggerType.CLOCK_SERVICE),
     )
 
     stage_data_container = providers.Container(

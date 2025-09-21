@@ -4,11 +4,6 @@ from typing import Any, Dict
 
 from pydantic import RootModel
 
-from algo_royale.logging.logger_env import ApplicationEnv
-from algo_royale.logging.logger_factory import LoggerFactory
-
-logger = LoggerFactory.get_base_logger(ApplicationEnv.TRADING)
-
 
 class ConditionCodeMap(RootModel[Dict[str, str]]):
     """
@@ -45,12 +40,3 @@ class ConditionCodeMap(RootModel[Dict[str, str]]):
             ConditionCodeMap: A new instance of the model.
         """
         return cls.parse_obj(raw_data)
-
-
-# Example usage
-if __name__ == "__main__":
-    raw_data = {"@": "Regular Sale", "A": "Acquisition", "B": "Bunched Trade"}
-
-    condition_map = ConditionCodeMap.from_raw(raw_data)
-    logger.info(condition_map.describe("A"))  # Output: Acquisition
-    logger.info(condition_map.describe("Z"))  # Output: Unknown condition code

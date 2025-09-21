@@ -11,7 +11,7 @@ class DBContainer(containers.DeclarativeContainer):
     logger_container: LoggerContainer = providers.DependenciesContainer()
 
     logger = providers.Factory(
-        logger_container.provides_logger,
+        logger_container.logger,
         logger_type=LoggerType.DATABASE,
     )
 
