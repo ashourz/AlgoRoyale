@@ -29,6 +29,7 @@ class TradingContainer(containers.DeclarativeContainer):
     factory_container: FactoryContainer = providers.DependenciesContainer()
     ledger_service_container: LedgerServiceContainer = providers.DependenciesContainer()
     logger_container: LoggerContainer = providers.DependenciesContainer()
+
     clock_service: ClockService = providers.Dependency()
 
     registry_container = providers.Container(
@@ -62,8 +63,8 @@ class TradingContainer(containers.DeclarativeContainer):
         TradeOrchestrator,
         clock_service=clock_service,
         market_session_service=market_session_container.market_session_service,
-        logger=logger_container.logger.provider(
-            logger_type=LoggerType.TRADE_ORCHESTRATOR
+        logger=providers.Factory(
+            logger_container.logger, logger_type=LoggerType.TRADE_ORCHESTRATOR
         ),
         premarket_open_duration_minutes=providers.Object(5),
     )

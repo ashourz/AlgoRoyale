@@ -27,8 +27,8 @@ class RegistryContainer(containers.DeclarativeContainer):
         evaluation_json_filename=config.backtester.signal.filenames.signal_evaluation_json_filename,
         viable_strategies_path=config.trading.paths.viable_signal_strategies_path,
         signal_strategy_factory=factory_container.signal_strategy_factory,
-        logger=logger_container.logger.provider(
-            logger_type=LoggerType.SIGNAL_STRATEGY_REGISTRY
+        logger=providers.Factory(
+            logger_container.logger, logger_type=LoggerType.SIGNAL_STRATEGY_REGISTRY
         ),
         combined_buy_threshold=config.trading.combined_buy_threshold,
         combined_sell_threshold=config.trading.combined_sell_threshold,
@@ -41,7 +41,7 @@ class RegistryContainer(containers.DeclarativeContainer):
         evaluation_json_filename=config.backtester.portfolio.filenames.portfolio_strategy_evaluation_json_filename,
         viable_strategies_path=config.trading.paths.viable_portfolio_strategies_path,
         portfolio_strategy_factory=factory_container.portfolio_strategy_factory,
-        logger=logger_container.logger.provider(
-            logger_type=LoggerType.PORTFOLIO_STRATEGY_REGISTRY
+        logger=providers.Factory(
+            logger_container.logger, logger_type=LoggerType.PORTFOLIO_STRATEGY_REGISTRY
         ),
     )

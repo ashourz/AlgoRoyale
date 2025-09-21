@@ -39,98 +39,117 @@ class AdapterContainer(containers.DeclarativeContainer):
     corporate_action_adapter = providers.Singleton(
         CorporateActionAdapter,
         client=client_container.alpaca_corporate_action_client,
-        logger=logger_container.logger.provider(
-            logger_type=LoggerType.CORPORATE_ACTION_ADAPTER
+        logger=providers.Factory(
+            logger_container.logger, logger_type=LoggerType.CORPORATE_ACTION_ADAPTER
         ),
     )
 
     news_adapter = providers.Singleton(
         NewsAdapter,
         client=client_container.alpaca_news_client,
-        logger=logger_container.logger.provider(logger_type=LoggerType.NEWS_ADAPTER),
+        logger=providers.Factory(
+            logger_container.logger, logger_type=LoggerType.NEWS_ADAPTER
+        ),
     )
 
     quote_adapter = providers.Singleton(
         QuoteAdapter,
         client=client_container.alpaca_stock_client,
-        logger=logger_container.logger.provider(logger_type=LoggerType.QUOTE_ADAPTER),
+        logger=providers.Factory(
+            logger_container.logger,
+            logger_type=LoggerType.QUOTE_ADAPTER,
+        ),
     )
 
     screener_adapter = providers.Singleton(
         ScreenerAdapter,
         client=client_container.alpaca_screener_client,
-        logger=logger_container.logger.provider(
-            logger_type=LoggerType.SCREENER_ADAPTER
+        logger=providers.Factory(
+            logger_container.logger, logger_type=LoggerType.SCREENER_ADAPTER
         ),
     )
 
     stream_adapter = providers.Singleton(
         StreamAdapter,
         stream_client=client_container.alpaca_stream_client,
-        logger=logger_container.logger.provider(logger_type=LoggerType.STREAM_ADAPTER),
+        logger=providers.Factory(
+            logger_container.logger, logger_type=LoggerType.STREAM_ADAPTER
+        ),
     )
 
     ## TRADE ADAPTERS
     account_adapter = providers.Singleton(
         AccountAdapter,
         client=client_container.alpaca_account_client,
-        logger=logger_container.logger.provider(logger_type=LoggerType.ACCOUNT_ADAPTER),
+        logger=providers.Factory(
+            logger_container.logger,
+            logger_type=LoggerType.ACCOUNT_ADAPTER,
+        ),
     )
 
     assets_adapter = providers.Singleton(
         AssetsAdapter,
         client=client_container.alpaca_assets_client,
-        logger=logger_container.logger.provider(logger_type=LoggerType.ASSETS_ADAPTER),
+        logger=providers.Factory(
+            logger_container.logger,
+            logger_type=LoggerType.ASSETS_ADAPTER,
+        ),
     )
 
     calendar_adapter = providers.Singleton(
         CalendarAdapter,
         client=client_container.alpaca_calendar_client,
-        logger=logger_container.logger.provider(
-            logger_type=LoggerType.CALENDAR_ADAPTER
+        logger=providers.Factory(
+            logger_container.logger,
+            logger_type=LoggerType.CALENDAR_ADAPTER,
         ),
     )
 
     clock_adapter = providers.Singleton(
         ClockAdapter,
         client=client_container.alpaca_clock_client,
-        logger=logger_container.logger.provider(logger_type=LoggerType.CLOCK_ADAPTER),
+        logger=providers.Factory(
+            logger_container.logger,
+            logger_type=LoggerType.CLOCK_ADAPTER,
+        ),
     )
 
     order_stream_adapter = providers.Singleton(
         OrderStreamAdapter,
         order_stream_client=client_container.alpaca_order_stream_client,
-        logger=logger_container.logger.provider(
-            logger_type=LoggerType.ORDER_STREAM_ADAPTER
+        logger=providers.Factory(
+            logger_container.logger, logger_type=LoggerType.ORDER_STREAM_ADAPTER
         ),
     )
 
     orders_adapter = providers.Singleton(
         OrdersAdapter,
         client=client_container.alpaca_orders_client,
-        logger=logger_container.logger.provider(logger_type=LoggerType.ORDERS_ADAPTER),
+        logger=providers.Factory(
+            logger_container.logger, logger_type=LoggerType.ORDERS_ADAPTER
+        ),
     )
 
     portfolio_adapter = providers.Singleton(
         PortfolioAdapter,
         client=client_container.alpaca_portfolio_client,
-        logger=logger_container.logger.provider(
-            logger_type=LoggerType.PORTFOLIO_ADAPTER
+        logger=providers.Factory(
+            logger_container.logger, logger_type=LoggerType.PORTFOLIO_ADAPTER
         ),
     )
 
     positions_adapter = providers.Singleton(
         PositionsAdapter,
         client=client_container.alpaca_positions_client,
-        logger=logger_container.logger.provider(
-            logger_type=LoggerType.POSITIONS_ADAPTER
+        logger=providers.Factory(
+            logger_container.logger, logger_type=LoggerType.POSITIONS_ADAPTER
         ),
     )
 
     watchlist_adapter = providers.Singleton(
         WatchlistAdapter,
         client=client_container.alpaca_watchlist_client,
-        logger=logger_container.logger.provider(
-            logger_type=LoggerType.WATCHLIST_ADAPTER
+        logger=providers.Factory(
+            logger_container.logger, logger_type=LoggerType.WATCHLIST_ADAPTER
         ),
     )

@@ -19,12 +19,14 @@ from algo_royale.logging.logger_type import LoggerType
 
 class BacktestPipelineContainer(containers.DeclarativeContainer):
     config = providers.Configuration()
-    stage_data_container: StageDataContainer
-    feature_engineering_container: FeatureEngineeringContainer
-    factory_container: FactoryContainer
-    adapter_container: AdapterContainer
-    repo_container: RepoContainer
-    logger_container: LoggerContainer
+    stage_data_container: StageDataContainer = providers.DependenciesContainer()
+    feature_engineering_container: FeatureEngineeringContainer = (
+        providers.DependenciesContainer()
+    )
+    factory_container: FactoryContainer = providers.DependenciesContainer()
+    adapter_container: AdapterContainer = providers.DependenciesContainer()
+    repo_container: RepoContainer = providers.DependenciesContainer()
+    logger_container: LoggerContainer = providers.DependenciesContainer()
 
     data_prep_coordinator_container = providers.Container(
         DataPrepCoordinatorContainer,
@@ -62,7 +64,7 @@ class BacktestPipelineContainer(containers.DeclarativeContainer):
         signal_strategy_evaluation_coordinator=signal_backtest_container.strategy_evaluation_coordinator,
         symbol_evaluation_coordinator=signal_backtest_container.symbol_evaluation_coordinator,
         portfolio_evaluation_coordinator=portfolio_backtest_container.portfolio_evaluation_coordinator,
-        logger=logger_container.logger.provider(
-            logger_type=LoggerType.PIPELINE_COORDINATOR
+        logger=providers.Factory(
+            logger_container.logger, logger_type=LoggerType.PIPELINE_COORDINATOR
         ),
     )

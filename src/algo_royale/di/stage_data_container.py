@@ -13,14 +13,16 @@ from algo_royale.backtester.stage_data.writer.symbol_strategy_data_writer import
 from algo_royale.backtester.strategy.signal.manager.symbol_strategy_manager import (
     SymbolStrategyManager,
 )
+from algo_royale.di.logger_container import LoggerContainer
+from algo_royale.di.repo.repo_container import RepoContainer
 from algo_royale.logging.logger_type import LoggerType
 from algo_royale.utils.path_utils import get_project_root
 
 
 class StageDataContainer(containers.DeclarativeContainer):
     config = providers.Configuration()
-    logger_container = providers.DependenciesContainer()
-    watchlist_repo = providers.Singleton()
+    logger_container: LoggerContainer = providers.DependenciesContainer()
+    repo_container: RepoContainer = providers.DependenciesContainer()
 
     def get_data_dir(config) -> str:
         return get_project_root() / config.data.dir.root()
@@ -30,8 +32,8 @@ class StageDataContainer(containers.DeclarativeContainer):
     stage_data_manager = providers.Singleton(
         StageDataManager,
         data_dir=data_dir,
-        logger=logger_container.logger.provider(
-            logger_type=LoggerType.STAGE_DATA_MANAGER
+        logger=providers.Factory(
+            logger_container.logger, logger_type=LoggerType.STAGE_DATA_MANAGER
         ),
     )
 
@@ -39,25 +41,25 @@ class StageDataContainer(containers.DeclarativeContainer):
         providers.Singleton(
             StageDataPreparer,
             stage_data_manager=stage_data_manager,
-            logger=logger_container.logger.provider(
-                logger_type=LoggerType.STAGE_DATA_PREPARER
+            logger=providers.Factory(
+                logger_container.logger, logger_type=LoggerType.STAGE_DATA_PREPARER
             ),
         ),
     )
 
     stage_data_loader = providers.Singleton(
         StageDataLoader,
-        logger=logger_container.logger.provider(
-            logger_type=LoggerType.STAGE_DATA_LOADER
+        logger=providers.Factory(
+            logger_container.logger, logger_type=LoggerType.STAGE_DATA_LOADER
         ),
         stage_data_manager=stage_data_manager,
-        watchlist_repo=watchlist_repo,
+        watchlist_repo=repo_container.watchlist_repo,
     )
 
     stage_data_writer = providers.Singleton(
         StageDataWriter,
-        logger=logger_container.logger.provider(
-            logger_type=LoggerType.STAGE_DATA_WRITER
+        logger=providers.Factory(
+            logger_container.logger, logger_type=LoggerType.STAGE_DATA_WRITER
         ),
         stage_data_manager=stage_data_manager,
     )
@@ -67,8 +69,8 @@ class StageDataContainer(containers.DeclarativeContainer):
         data_dir=data_dir,
         stage_data_manager=stage_data_manager,
         symbol_strategy_evaluation_filename=config.backtester.signal.filenames.signal_evaluation_json_filename,
-        logger=logger_container.logger.provider(
-            logger_type=LoggerType.SYMBOL_STRATEGY_DATA_MANAGER
+        logger=providers.Factory(
+            logger_container.logger, logger_type=LoggerType.SYMBOL_STRATEGY_DATA_MANAGER
         ),
     )
 
@@ -76,8 +78,8 @@ class StageDataContainer(containers.DeclarativeContainer):
         SymbolStrategyDataLoader,
         stage_data_manager=stage_data_manager,
         stage_data_loader=stage_data_loader,
-        logger=logger_container.logger.provider(
-            logger_type=LoggerType.SYMBOL_STRATEGY_DATA_LOADER
+        logger=providers.Factory(
+            logger_container.logger, logger_type=LoggerType.SYMBOL_STRATEGY_DATA_LOADER
         ),
     )
 
@@ -85,7 +87,7 @@ class StageDataContainer(containers.DeclarativeContainer):
         SymbolStrategyDataWriter,
         stage_data_manager=stage_data_manager,
         data_writer=stage_data_writer,
-        logger=logger_container.logger.provider(
-            logger_type=LoggerType.SYMBOL_STRATEGY_DATA_WRITER
+        logger=providers.Factory(
+            logger_container.logger, logger_type=LoggerType.SYMBOL_STRATEGY_DATA_WRITER
         ),
     )

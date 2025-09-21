@@ -18,28 +18,30 @@ class LedgerServiceContainer(containers.DeclarativeContainer):
     adapter_container: AdapterContainer = providers.DependenciesContainer()
     repo_container: RepoContainer = providers.DependenciesContainer()
     logger_container: LoggerContainer = providers.DependenciesContainer()
-    clock_service: ClockService = providers.Dependency()
+    clock_service: ClockService = providers.Dependency(ClockService)
 
     account_cash_service = providers.Singleton(
         AccountCashService,
         cash_adapter=adapter_container.account_cash_adapter,
-        logger=logger_container.logger.provider(
-            logger_type=LoggerType.ACCOUNT_CASH_SERVICE
+        logger=providers.Factory(
+            logger_container.logger, logger_type=LoggerType.ACCOUNT_CASH_SERVICE
         ),
     )
 
     enriched_data_service = providers.Singleton(
         EnrichedDataService,
         enriched_data_repo=adapter_container.enriched_data_repo,
-        logger=logger_container.logger.provider(
-            logger_type=LoggerType.ENRICHED_DATA_SERVICE
+        logger=providers.Factory(
+            logger_container.logger, logger_type=LoggerType.ENRICHED_DATA_SERVICE
         ),
     )
 
     order_service = providers.Singleton(
         OrderService,
         order_adapter=adapter_container.order_adapter,
-        logger=logger_container.logger.provider(logger_type=LoggerType.ORDER_SERVICE),
+        logger=providers.Factory(
+            logger_container.logger, logger_type=LoggerType.ORDER_SERVICE
+        ),
     )
 
     order_service = providers.Singleton(
@@ -47,7 +49,9 @@ class LedgerServiceContainer(containers.DeclarativeContainer):
         order_adapter=adapter_container.order_adapter,
         order_repo=repo_container.order_repo,
         trade_repo=repo_container.trades_repo,
-        logger=logger_container.logger.provider(logger_type=LoggerType.ORDER_SERVICE),
+        logger=providers.Factory(
+            logger_container.logger, logger_type=LoggerType.ORDER_SERVICE
+        ),
         user_id=config.db.user.id,
         account_id=config.db.user.account_id,
     )
@@ -56,7 +60,9 @@ class LedgerServiceContainer(containers.DeclarativeContainer):
         TradesService,
         account_adapter=adapter_container.account_adapter,
         trade_repo=repo_container.trades_repo,
-        logger=logger_container.logger.provider(logger_type=LoggerType.TRADE_SERVICE),
+        logger=providers.Factory(
+            logger_container.logger, logger_type=LoggerType.TRADE_SERVICE
+        ),
         user_id=config.db.user.id,
         account_id=config.db.user.account_id,
         days_to_settle=config.tradeing.days_to_settle,
@@ -66,8 +72,8 @@ class LedgerServiceContainer(containers.DeclarativeContainer):
         PositionsService,
         positions_adapter=adapter_container.positions_adapter,
         trade_repo=repo_container.trades_repo,
-        logger=logger_container.logger.provider(
-            logger_type=LoggerType.POSITION_SERVICE
+        logger=providers.Factory(
+            logger_container.logger, logger_type=LoggerType.POSITION_SERVICE
         ),
         user_id=config.db.user.id,
         account_id=config.db.user.account_id,
@@ -80,5 +86,7 @@ class LedgerServiceContainer(containers.DeclarativeContainer):
         trades_service=trades_service,
         position_service=positions_service,
         enriched_data_service=enriched_data_service,
-        logger=logger_container.logger.provider(logger_type=LoggerType.LEDGER_SERVICE),
+        logger=providers.Factory(
+            logger_container.logger, logger_type=LoggerType.LEDGER_SERVICE
+        ),
     )

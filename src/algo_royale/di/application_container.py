@@ -64,14 +64,17 @@ class ApplicationContainer(containers.DeclarativeContainer):
     clock_service = providers.Singleton(
         ClockService,
         clock_adapter=adapter_container.clock_adapter,
-        logger=logger_container.logger.provider(logger_type=LoggerType.CLOCK_SERVICE),
+        logger=providers.Factory(
+            logger_container.logger,
+            logger_type=LoggerType.CLOCK_SERVICE,
+        ),
     )
 
     stage_data_container = providers.Container(
         StageDataContainer,
         config=config,
         logger_container=logger_container,
-        watchlist_repo=repo_container.watchlist_repo,
+        repo_container=repo_container,
     )
 
     factory_container = providers.Container(
@@ -116,4 +119,5 @@ class ApplicationContainer(containers.DeclarativeContainer):
         factory_container=factory_container,
         ledger_service_container=ledger_service_container,
         logger_container=logger_container,
+        clock_service=clock_service,
     )

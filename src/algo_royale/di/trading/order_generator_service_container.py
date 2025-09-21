@@ -12,6 +12,7 @@ from algo_royale.application.symbols.symbol_hold_tracker import SymbolHoldTracke
 from algo_royale.di.adapter.adapter_container import AdapterContainer
 from algo_royale.di.feature_engineering_container import FeatureEngineeringContainer
 from algo_royale.di.ledger_service_container import LedgerServiceContainer
+from algo_royale.di.logger_container import LoggerContainer
 from algo_royale.di.repo.repo_container import RepoContainer
 from algo_royale.di.trading.registry_container import RegistryContainer
 from algo_royale.logging.logger_type import LoggerType
@@ -30,13 +31,13 @@ class OrderGeneratorServiceContainer(containers.DeclarativeContainer):
     )
     ledger_service_container: LedgerServiceContainer = providers.DependenciesContainer()
     registry_container: RegistryContainer = providers.DependenciesContainer()
-    logger_container = providers.DependenciesContainer()
+    logger_container: LoggerContainer = providers.DependenciesContainer()
 
     market_data_streamer = providers.Singleton(
         MarketDataRawStreamer,
         stream_adapter=adapter_container.market_data_stream_adapter,
-        logger=logger_container.logger.provider(
-            logger_type=LoggerType.MARKET_DATA_RAW_STREAMER
+        logger=providers.Factory(
+            logger_container.logger, logger_type=LoggerType.MARKET_DATA_RAW_STREAMER
         ),
         is_live=config.environment.is_live(),
     )
@@ -45,8 +46,9 @@ class OrderGeneratorServiceContainer(containers.DeclarativeContainer):
         MarketDataEnrichedStreamer,
         feature_engineer=feature_engineering_container.feature_engineer,
         market_data_streamer=market_data_streamer,
-        logger=logger_container.logger.provider(
-            logger_type=LoggerType.MARKET_DATA_ENRICHED_STREAMER
+        logger=providers.Factory(
+            logger_container.logger,
+            logger_type=LoggerType.MARKET_DATA_ENRICHED_STREAMER,
         ),
     )
 
@@ -54,8 +56,8 @@ class OrderGeneratorServiceContainer(containers.DeclarativeContainer):
         SignalGenerator,
         enriched_data_streamer=enriched_data_streamer,
         strategy_registry=registry_container.signal_strategy_registry,
-        logger=logger_container.logger.provider(
-            logger_type=LoggerType.SIGNAL_GENERATOR
+        logger=providers.Factory(
+            logger_container.logger, logger_type=LoggerType.SIGNAL_GENERATOR
         ),
     )
 
@@ -63,28 +65,32 @@ class OrderGeneratorServiceContainer(containers.DeclarativeContainer):
         OrderGenerator,
         signal_generator=signal_generator,
         portfolio_strategy_registry=registry_container.portfolio_strategy_registry,
-        logger=logger_container.logger.provider(logger_type=LoggerType.ORDER_GENERATOR),
+        logger=providers.Factory(
+            logger_container.logger, logger_type=LoggerType.ORDER_GENERATOR
+        ),
     )
 
     symbol_service = providers.Singleton(
         SymbolService,
         watchlist_repo=repo_container.watchlist_repo,
         positions_service=ledger_service_container.positions_service,
-        logger=logger_container.logger.provider(logger_type=LoggerType.SYMBOL_SERVICE),
+        logger=providers.Factory(
+            logger_container.logger, logger_type=LoggerType.SYMBOL_SERVICE
+        ),
     )
 
     order_event_service = providers.Singleton(
         OrderEventService,
         order_stream_adapter=adapter_container.order_stream_adapter,
-        logger=logger_container.logger.provider(
-            logger_type=LoggerType.ORDER_EVENT_SERVICE
+        logger=providers.Factory(
+            logger_container.logger, logger_type=LoggerType.ORDER_EVENT_SERVICE
         ),
     )
 
     symbol_hold_tracker = providers.Factory(
         SymbolHoldTracker,
-        logger=logger_container.logger.provider(
-            logger_type=LoggerType.SYMBOL_HOLD_TRACKER
+        logger=providers.Factory(
+            logger_container.logger, logger_type=LoggerType.SYMBOL_HOLD_TRACKER
         ),
     )
 
@@ -96,8 +102,8 @@ class OrderGeneratorServiceContainer(containers.DeclarativeContainer):
         order_event_service=order_event_service,
         positions_service=ledger_service_container.positions_service,
         trades_service=ledger_service_container.trades_service,
-        logger=logger_container.logger.provider(
-            logger_type=LoggerType.SYMBOL_HOLD_SERVICE
+        logger=providers.Factory(
+            logger_container.logger, logger_type=LoggerType.SYMBOL_HOLD_SERVICE
         ),
         post_fill_delay_seconds=config.trading.post_fill_delay_seconds,
     )
@@ -106,7 +112,7 @@ class OrderGeneratorServiceContainer(containers.DeclarativeContainer):
         OrderGeneratorService,
         order_generator=order_generator,
         symbol_hold_service=symbol_hold_service,
-        logger=logger_container.logger.provider(
-            logger_type=LoggerType.ORDER_GENERATOR_SERVICE
+        logger=providers.Factory(
+            logger_container.logger, logger_type=LoggerType.ORDER_GENERATOR_SERVICE
         ),
     )

@@ -27,49 +27,53 @@ class FactoryContainer(containers.DeclarativeContainer):
 
     signal_strategy_factory = providers.Singleton(
         SignalStrategyFactory,
-        logger=logger_container.logger.provider(
-            logger_type=LoggerType.SIGNAL_STRATEGY_FACTORY
+        logger=providers.Factory(
+            logger_container.logger, logger_type=LoggerType.SIGNAL_STRATEGY_FACTORY
         ),
-        strategy_logger=logger_container.logger.provider(
-            logger_type=LoggerType.SIGNAL_STRATEGY
+        strategy_logger=providers.Factory(
+            logger_container.logger, logger_type=LoggerType.SIGNAL_STRATEGY
         ),
     )
 
     signal_strategy_combinator_factory = providers.Singleton(
         SignalStrategyCombinatorFactory,
         combinator_list_path=config.backtester.paths.signal_strategy_combinators,
-        logger=logger_container.logger.provider(
-            logger_type=LoggerType.SIGNAL_STRATEGY_COMBINATOR_FACTORY
+        logger=providers.Factory(
+            logger_container.logger,
+            logger_type=LoggerType.SIGNAL_STRATEGY_COMBINATOR_FACTORY,
         ),
     )
 
     signal_strategy_optimizer_factory = providers.Singleton(
         SignalStrategyOptimizerFactoryImpl,
-        logger=logger_container.logger.provider(
-            logger_type=LoggerType.SIGNAL_STRATEGY_OPTIMIZER_FACTORY
+        logger=providers.Factory(
+            logger_container.logger,
+            logger_type=LoggerType.SIGNAL_STRATEGY_OPTIMIZER_FACTORY,
         ),
-        strategy_logger=logger_container.logger.provider(
-            logger_type=LoggerType.SIGNAL_STRATEGY
+        strategy_logger=providers.Factory(
+            logger_container.logger, logger_type=LoggerType.SIGNAL_STRATEGY
         ),
     )
 
     portfolio_strategy_combinator_factory = providers.Singleton(
         PortfolioStrategyCombinatorFactory,
         combinator_list_path=config.backtester.paths.portfolio_strategy_combinators,
-        logger=logger_container.logger.provider(
-            logger_type=LoggerType.PORTFOLIO_STRATEGY_COMBINATOR_FACTORY
+        logger=providers.Factory(
+            logger_container.logger,
+            logger_type=LoggerType.PORTFOLIO_STRATEGY_COMBINATOR_FACTORY,
         ),
-        strategy_logger=logger_container.logger.provider(
-            logger_type=LoggerType.PORTFOLIO_STRATEGY
+        strategy_logger=providers.Factory(
+            logger_container.logger, logger_type=LoggerType.PORTFOLIO_STRATEGY
         ),
     )
 
     portfolio_strategy_optimizer_factory = providers.Singleton(
         PortfolioStrategyOptimizerFactoryImpl,
-        logger=logger_container.logger.provider(
-            logger_type=LoggerType.PORTFOLIO_STRATEGY_OPTIMIZER_FACTORY
+        logger=providers.Factory(
+            logger_container.logger,
+            logger_type=LoggerType.PORTFOLIO_STRATEGY_OPTIMIZER_FACTORY,
         ),
-        strategy_logger=logger_container.logger.provider(
-            logger_type=LoggerType.PORTFOLIO_STRATEGY
+        strategy_logger=providers.Factory(
+            logger_container.logger, logger_type=LoggerType.PORTFOLIO_STRATEGY
         ),
     )

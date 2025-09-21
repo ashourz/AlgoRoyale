@@ -11,6 +11,8 @@ from algo_royale.clients.alpaca.alpaca_market_data.alpaca_news_client import (
 )
 from algo_royale.di import application_container
 from algo_royale.di.adapter.adapter_container import AdapterContainer
+from algo_royale.logging.logger_env import ApplicationEnv
+from algo_royale.models.alpaca_market_data.alpaca_news import News, NewsResponse
 
 # Set up logging (prints to console)
 logging.basicConfig(level=logging.DEBUG)
@@ -19,7 +21,9 @@ logger = logging.getLogger(__name__)
 
 @pytest.fixture(scope="class")
 def alpaca_client():
-    application: application_container.ApplicationContainer = application_container()
+    application = application_container.ApplicationContainer(
+        environment=ApplicationEnv.DEV_INTEGRATION
+    )
     adapters: AdapterContainer = application.adapter_container()
     news_adapter: NewsAdapter = adapters.news_adapter()
     client: AlpacaNewsClient = news_adapter.client()

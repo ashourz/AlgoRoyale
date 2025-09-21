@@ -18,19 +18,21 @@ class DataPrepCoordinatorContainer(containers.DeclarativeContainer):
     """Stage Coordinator Container"""
 
     config = providers.Configuration()
-    logger_container: LoggerContainer
-    stage_data_container: StageDataContainer
-    feature_engineering_container: FeatureEngineeringContainer
-    adapter_container: AdapterContainer
-    repo_container: RepoContainer
+    logger_container: LoggerContainer = providers.DependenciesContainer()
+    stage_data_container: StageDataContainer = providers.DependenciesContainer()
+    feature_engineering_container: FeatureEngineeringContainer = (
+        providers.DependenciesContainer()
+    )
+    adapter_container: AdapterContainer = providers.DependenciesContainer()
+    repo_container: RepoContainer = providers.DependenciesContainer()
 
     data_ingest_stage_coordinator = providers.Singleton(
         DataIngestStageCoordinator,
         data_loader=stage_data_container.stage_data_loader,
         data_writer=stage_data_container.symbol_strategy_data_writer,
         data_manager=stage_data_container.stage_data_manager,
-        logger=logger_container.logger.provider(
-            logger_type=LoggerType.BACKTEST_DATA_INGEST
+        logger=providers.Factory(
+            logger_container.logger, logger_type=LoggerType.BACKTEST_DATA_INGEST
         ),
         quote_adapter=adapter_container.quote_adapter,
         watchlist_repo=repo_container.watchlist_repo,
@@ -41,8 +43,8 @@ class DataPrepCoordinatorContainer(containers.DeclarativeContainer):
         data_loader=stage_data_container.symbol_strategy_data_loader,
         data_writer=stage_data_container.symbol_strategy_data_writer,
         data_manager=stage_data_container.stage_data_manager,
-        logger=logger_container.logger.provider(
-            logger_type=LoggerType.BACKTEST_FEATURE_ENGINEERING
+        logger=providers.Factory(
+            logger_container.logger, logger_type=LoggerType.BACKTEST_FEATURE_ENGINEERING
         ),
         feature_engineer=feature_engineering_container.backtest_feature_engineer,
     )

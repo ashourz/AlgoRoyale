@@ -24,6 +24,12 @@ from algo_royale.backtester.stage_coordinator.testing.signal_strategy_testing_st
 from algo_royale.backtester.walkforward.walk_forward_coordinator import (
     WalkForwardCoordinator,
 )
+from algo_royale.di.backtest.data_prep_coordinator_container import (
+    DataPrepCoordinatorContainer,
+)
+from algo_royale.di.factory_container import FactoryContainer
+from algo_royale.di.logger_container import LoggerContainer
+from algo_royale.di.stage_data_container import StageDataContainer
 from algo_royale.logging.logger_type import LoggerType
 
 
@@ -31,22 +37,24 @@ class SignalBacktestContainer(containers.DeclarativeContainer):
     """Signal Backtest Container"""
 
     config = providers.Configuration()
-    factory_container = providers.DependenciesContainer()
-    stage_data_container = providers.DependenciesContainer()
-    data_prep_coordinator_container = providers.DependenciesContainer()
-    logger_container = providers.DependenciesContainer()
+    factory_container: FactoryContainer = providers.DependenciesContainer()
+    stage_data_container: StageDataContainer = providers.DependenciesContainer()
+    data_prep_coordinator_container: DataPrepCoordinatorContainer = (
+        providers.DependenciesContainer()
+    )
+    logger_container: LoggerContainer = providers.DependenciesContainer()
 
     signal_strategy_executor = providers.Singleton(
         StrategyBacktestExecutor,
         stage_data_manager=stage_data_container.stage_data_manager,
-        logger=logger_container.logger.provider(
-            logger_type=LoggerType.SIGNAL_STRATEGY_EXECUTOR
+        logger=providers.Factory(
+            logger_container.logger, logger_type=LoggerType.SIGNAL_STRATEGY_EXECUTOR
         ),
     )
     signal_strategy_evaluator = providers.Singleton(
         SignalBacktestEvaluator,
-        logger=logger_container.logger.provider(
-            logger_type=LoggerType.SIGNAL_STRATEGY_EVALUATOR
+        logger=providers.Factory(
+            logger_container.logger, logger_type=LoggerType.SIGNAL_STRATEGY_EVALUATOR
         ),
     )
 
@@ -54,8 +62,8 @@ class SignalBacktestContainer(containers.DeclarativeContainer):
         SignalStrategyOptimizationStageCoordinator,
         data_loader=stage_data_container.symbol_strategy_data_loader,
         stage_data_manager=stage_data_container.stage_data_manager,
-        logger=logger_container.logger.provider(
-            logger_type=LoggerType.SIGNAL_STRATEGY_OPTIMIZATION
+        logger=providers.Factory(
+            logger_container.logger, logger_type=LoggerType.SIGNAL_STRATEGY_OPTIMIZATION
         ),
         strategy_combinator_factory=factory_container.signal_strategy_combinator_factory,
         strategy_executor=signal_strategy_executor,
@@ -73,8 +81,8 @@ class SignalBacktestContainer(containers.DeclarativeContainer):
         strategy_executor=signal_strategy_executor,
         strategy_evaluator=signal_strategy_evaluator,
         strategy_factory=factory_container.signal_strategy_factory,
-        logger=logger_container.logger.provider(
-            logger_type=LoggerType.SIGNAL_STRATEGY_TESTING
+        logger=providers.Factory(
+            logger_container.logger, logger_type=LoggerType.SIGNAL_STRATEGY_TESTING
         ),
         strategy_combinator_factory=factory_container.signal_strategy_combinator_factory,
         optimization_root=config.backtester.signal.paths.signal_optimization_root_path,
@@ -83,8 +91,8 @@ class SignalBacktestContainer(containers.DeclarativeContainer):
 
     strategy_evaluation_coordinator = providers.Singleton(
         SignalStrategyEvaluationCoordinator,
-        logger=logger_container.logger.provider(
-            logger_type=LoggerType.SIGNAL_STRATEGY_EVALUATION
+        logger=providers.Factory(
+            logger_container.logger, logger_type=LoggerType.SIGNAL_STRATEGY_EVALUATION
         ),
         optimization_root=config.backtester.signal.paths.signal_optimization_root_path,
         evaluation_type=StrategyEvaluationType.BOTH,
@@ -98,8 +106,8 @@ class SignalBacktestContainer(containers.DeclarativeContainer):
         evaluation_json_filename=config.backtester.signal.filenames.signal_evaluation_json_filename,
         summary_json_filename=config.backtester.signal.filenames.signal_summary_json_filename,
         viability_threshold=config.backtester.signal.signal_evaluation_viability_threshold,
-        logger=logger_container.logger.provider(
-            logger_type=LoggerType.SYMBOL_EVALUATION
+        logger=providers.Factory(
+            logger_container.logger, logger_type=LoggerType.SYMBOL_EVALUATION
         ),
     )
 
@@ -111,7 +119,7 @@ class SignalBacktestContainer(containers.DeclarativeContainer):
         feature_engineering_stage_coordinator=data_prep_coordinator_container.feature_engineering_stage_coordinator,
         optimization_stage_coordinator=strategy_optimization_stage_coordinator,
         testing_stage_coordinator=strategy_testing_stage_coordinator,
-        logger=logger_container.logger.provider(
-            logger_type=LoggerType.SIGNAL_STRATEGY_WALK_FORWARD
+        logger=providers.Factory(
+            logger_container.logger, logger_type=LoggerType.SIGNAL_STRATEGY_WALK_FORWARD
         ),
     )

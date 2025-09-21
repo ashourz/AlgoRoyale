@@ -29,7 +29,7 @@ class LoggerContainer(containers.DeclarativeContainer):
         else:
             raise ValueError(f"Unsupported environment: {environment}")
         env_logger_type = getattr(env_logger_type_enum, logger_type.name)
-        base_logger = logger_factory().get_base_logger()
+        base_logger = logger_factory.get_base_logger()
         return TaggableLogger(base_logger=base_logger, logger_type=env_logger_type)
 
     logger = providers.DelegatedFactory(
