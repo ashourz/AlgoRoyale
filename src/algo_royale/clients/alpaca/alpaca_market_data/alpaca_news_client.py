@@ -43,7 +43,7 @@ class AlpacaNewsClient(AlpacaBaseClient):
         """Subclasses must define a name for logging and ID purposes"""
         return "AlpacaNewsClient"
 
-    async def fetch_news(
+    async def async_fetch_news(
         self,
         symbols: Optional[Union[str, list[str]]] = None,
         start_date: Optional[datetime] = None,

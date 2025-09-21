@@ -41,7 +41,7 @@ class NewsAdapter:
         Fetch recent news articles for a given symbol or list of symbols.
         Returns up to `limit` results.
         """
-        return await self.client.fetch_news(
+        return await self.client.async_fetch_news(
             symbols=symbols,
             include_content=include_content,
             exclude_contentless=exclude_contentless,
@@ -59,6 +59,6 @@ class NewsAdapter:
         """
         Fetch news articles for the given symbol(s) between start and end dates.
         """
-        return await self.client.fetch_news(
+        return await self.client.async_fetch_news(
             symbols=symbols, start_date=start_date, end_date=end_date, page_limit=limit
         )

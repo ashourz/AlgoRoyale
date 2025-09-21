@@ -25,7 +25,7 @@ class StageDataContainer(containers.DeclarativeContainer):
     repo_container: RepoContainer = providers.DependenciesContainer()
 
     def get_data_dir(config) -> str:
-        return get_project_root() / config.data.dir.root()
+        return get_project_root() / config.data_dir.root()
 
     data_dir = providers.Callable(get_data_dir, config=config)
 
@@ -68,7 +68,7 @@ class StageDataContainer(containers.DeclarativeContainer):
         SymbolStrategyManager,
         data_dir=data_dir,
         stage_data_manager=stage_data_manager,
-        symbol_strategy_evaluation_filename=config.backtester.signal.filenames.signal_evaluation_json_filename,
+        symbol_strategy_evaluation_filename=config.backtester_signal_filenames.signal_evaluation_json_filename,
         logger=providers.Factory(
             logger_container.logger, logger_type=LoggerType.SYMBOL_STRATEGY_DATA_MANAGER
         ),

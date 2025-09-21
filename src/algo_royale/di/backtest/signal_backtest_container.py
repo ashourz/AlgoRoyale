@@ -68,10 +68,10 @@ class SignalBacktestContainer(containers.DeclarativeContainer):
         strategy_combinator_factory=factory_container.signal_strategy_combinator_factory,
         strategy_executor=signal_strategy_executor,
         strategy_evaluator=signal_strategy_evaluator,
-        optimization_root=config.backtester.signal.paths.signal_optimization_root_path,
-        optimization_json_filename=config.backtester.signal.filenames.signal_optimization_json_filename,
+        optimization_root=config.backtester_signal_paths.signal_optimization_root_path,
+        optimization_json_filename=config.backtester_signal_filenames.signal_optimization_json_filename,
         signal_strategy_optimizer_factory=factory_container.signal_strategy_optimizer_factory,
-        optimization_n_trials=config.backtester.signal.optimization_n_trials,
+        optimization_n_trials=config.backtester_signal.optimization_n_trials,
     )
 
     strategy_testing_stage_coordinator = providers.Singleton(
@@ -85,8 +85,8 @@ class SignalBacktestContainer(containers.DeclarativeContainer):
             logger_container.logger, logger_type=LoggerType.SIGNAL_STRATEGY_TESTING
         ),
         strategy_combinator_factory=factory_container.signal_strategy_combinator_factory,
-        optimization_root=config.backtester.signal.paths.signal_optimization_root_path,
-        optimization_json_filename=config.backtester.signal.filenames.signal_optimization_json_filename,
+        optimization_root=config.backtester_signal_paths.signal_optimization_root_path,
+        optimization_json_filename=config.backtester_signal_filenames.signal_optimization_json_filename,
     )
 
     strategy_evaluation_coordinator = providers.Singleton(
@@ -94,18 +94,18 @@ class SignalBacktestContainer(containers.DeclarativeContainer):
         logger=providers.Factory(
             logger_container.logger, logger_type=LoggerType.SIGNAL_STRATEGY_EVALUATION
         ),
-        optimization_root=config.backtester.signal.paths.signal_optimization_root_path,
+        optimization_root=config.backtester_signal_paths.signal_optimization_root_path,
         evaluation_type=StrategyEvaluationType.BOTH,
-        optimization_json_filename=config.backtester.signal.filenames.signal_optimization_json_filename,
-        evaluation_json_filename=config.backtester.signal.filenames.signal_evaluation_json_filename,
+        optimization_json_filename=config.backtester_signal_filenames.signal_optimization_json_filename,
+        evaluation_json_filename=config.backtester_signal_filenames.signal_evaluation_json_filename,
     )
 
     symbol_evaluation_coordinator = providers.Singleton(
         SymbolEvaluationCoordinator,
-        optimization_root=config.backtester.signal.paths.signal_optimization_root_path,
-        evaluation_json_filename=config.backtester.signal.filenames.signal_evaluation_json_filename,
-        summary_json_filename=config.backtester.signal.filenames.signal_summary_json_filename,
-        viability_threshold=config.backtester.signal.signal_evaluation_viability_threshold,
+        optimization_root=config.backtester_signal_paths.signal_optimization_root_path,
+        evaluation_json_filename=config.backtester_signal_filenames.signal_evaluation_json_filename,
+        summary_json_filename=config.backtester_signal_filenames.signal_summary_json_filename,
+        viability_threshold=config.backtester_signal.signal_evaluation_viability_threshold,
         logger=providers.Factory(
             logger_container.logger, logger_type=LoggerType.SYMBOL_EVALUATION
         ),

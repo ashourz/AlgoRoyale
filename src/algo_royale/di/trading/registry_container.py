@@ -24,8 +24,8 @@ class RegistryContainer(containers.DeclarativeContainer):
         SignalStrategyRegistry,
         symbol_service=ledger_service_container.symbol_service,
         stage_data_manager=stage_data_container.stage_data_manager,
-        evaluation_json_filename=config.backtester.signal.filenames.signal_evaluation_json_filename,
-        viable_strategies_path=config.trading.paths.viable_signal_strategies_path,
+        evaluation_json_filename=config.backtester_signal_filenames.signal_evaluation_json_filename,
+        viable_strategies_path=config.trading_paths.viable_signal_strategies_path,
         signal_strategy_factory=factory_container.signal_strategy_factory,
         logger=providers.Factory(
             logger_container.logger, logger_type=LoggerType.SIGNAL_STRATEGY_REGISTRY
@@ -38,8 +38,8 @@ class RegistryContainer(containers.DeclarativeContainer):
         PortfolioStrategyRegistry,
         symbol_service=ledger_service_container.symbol_service,
         stage_data_manager=stage_data_container.stage_data_manager,
-        evaluation_json_filename=config.backtester.portfolio.filenames.portfolio_strategy_evaluation_json_filename,
-        viable_strategies_path=config.trading.paths.viable_portfolio_strategies_path,
+        evaluation_json_filename=config.backtester_portfolio_filenames.portfolio_strategy_evaluation_json_filename,
+        viable_strategies_path=config.trading_paths.viable_portfolio_strategies_path,
         portfolio_strategy_factory=factory_container.portfolio_strategy_factory,
         logger=providers.Factory(
             logger_container.logger, logger_type=LoggerType.PORTFOLIO_STRATEGY_REGISTRY

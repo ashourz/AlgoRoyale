@@ -56,17 +56,17 @@ class PortfolioBacktestContainer(containers.DeclarativeContainer):
     logger_container: LoggerContainer = providers.DependenciesContainer()
 
     def get_data_dir(config) -> str:
-        return get_project_root() / config.data.dir.root()
+        return get_project_root() / config.data_dir.root()
 
     data_dir = providers.Callable(get_data_dir, config=config)
 
     portfolio_executor = providers.Singleton(
         PortfolioBacktestExecutor,
-        initial_balance=config.backtester.portfolio.initial_portfolio_value,
-        transaction_cost=config.backtester.portfolio.transaction_costs,
-        min_lot=config.backtester.portfolio.minimum_lot_size,
-        leverage=config.backtester.portfolio.leverage,
-        slippage=config.backtester.portfolio.slippage,
+        initial_balance=config.backtester_portfolio.initial_portfolio_value,
+        transaction_cost=config.backtester_portfolio.transaction_costs,
+        min_lot=config.backtester_portfolio.minimum_lot_size,
+        leverage=config.backtester_portfolio.leverage,
+        slippage=config.backtester_portfolio.slippage,
         logger=providers.Factory(
             logger_container.logger, logger_type=LoggerType.PORTFOLIO_BACKTEST_EXECUTOR
         ),
@@ -95,9 +95,9 @@ class PortfolioBacktestContainer(containers.DeclarativeContainer):
         stage_data_loader=stage_data_container.stage_data_loader,
         strategy_factory=factory_container.signal_strategy_factory,
         data_dir=data_dir,
-        optimization_root=config.backtester.signal.paths.signal_optimization_root_path,
-        signal_summary_json_filename=config.backtester.signal.filenames.signal_summary_json_filename,
-        symbol_signals_filename=config.backtester.signal.filenames.symbol_signals_filename,
+        optimization_root=config.backtester_signal_paths.signal_optimization_root_path,
+        signal_summary_json_filename=config.backtester_signal_filenames.signal_summary_json_filename,
+        symbol_signals_filename=config.backtester_signal_filenames.symbol_signals_filename,
         logger=providers.Factory(
             logger_container.logger, logger_type=LoggerType.PORTFOLIO_MATRIX_LOADER
         ),
@@ -113,11 +113,11 @@ class PortfolioBacktestContainer(containers.DeclarativeContainer):
             logger_container.logger, logger_type=LoggerType.PORTFOLIO_OPTIMIZATION
         ),
         strategy_combinator_factory=factory_container.portfolio_strategy_combinator_factory,
-        optimization_root=config.backtester.portfolio.paths.portfolio_optimization_root_path,
-        optimization_json_filename=config.backtester.portfolio.filenames.portfolio_optimization_json_filename,
+        optimization_root=config.backtester_portfolio_paths.portfolio_optimization_root_path,
+        optimization_json_filename=config.backtester_portfolio_filenames.portfolio_optimization_json_filename,
         portfolio_matrix_loader=portfolio_matrix_loader,
         portfolio_strategy_optimizer_factory=factory_container.portfolio_strategy_optimizer_factory,
-        optimization_n_trials=config.backtester.portfolio.optimization_n_trials,
+        optimization_n_trials=config.backtester_portfolio.optimization_n_trials,
     )
 
     portfolio_testing_stage_coordinator = providers.Singleton(
@@ -133,8 +133,8 @@ class PortfolioBacktestContainer(containers.DeclarativeContainer):
             logger_container.logger, logger_type=LoggerType.PORTFOLIO_STRATEGY
         ),
         strategy_combinator_factory=factory_container.portfolio_strategy_combinator_factory,
-        optimization_root=config.backtester.portfolio.paths.portfolio_optimization_root_path,
-        optimization_json_filename=config.backtester.portfolio.filenames.portfolio_optimization_json_filename,
+        optimization_root=config.backtester_portfolio_paths.portfolio_optimization_root_path,
+        optimization_json_filename=config.backtester_portfolio_filenames.portfolio_optimization_json_filename,
         portfolio_matrix_loader=portfolio_matrix_loader,
     )
 
@@ -157,8 +157,8 @@ class PortfolioBacktestContainer(containers.DeclarativeContainer):
             logger_container.logger,
             logger_type=LoggerType.PORTFOLIO_CROSS_WINDOW_EVALUATOR,
         ),
-        window_json_filename=config.backtester.portfolio.filenames.portfolio_optimization_json_filename,
-        output_filename=config.backtester.portfolio.filenames.portfolio_strategy_evaluation_json_filename,
+        window_json_filename=config.backtester_portfolio_filenames.portfolio_optimization_json_filename,
+        output_filename=config.backtester_portfolio_filenames.portfolio_strategy_evaluation_json_filename,
     )
 
     portfolio_cross_strategy_summary = providers.Singleton(
@@ -167,8 +167,8 @@ class PortfolioBacktestContainer(containers.DeclarativeContainer):
             logger_container.logger,
             logger_type=LoggerType.PORTFOLIO_CROSS_STRATEGY_SUMMARY,
         ),
-        evaluation_filename=config.backtester.portfolio.filenames.portfolio_strategy_evaluation_json_filename,
-        output_filename=config.backtester.portfolio.filenames.portfolio_summary_json_filename,
+        evaluation_filename=config.backtester_portfolio_filenames.portfolio_strategy_evaluation_json_filename,
+        output_filename=config.backtester_portfolio_filenames.portfolio_summary_json_filename,
     )
     # Portfolio evaluation coordinator
     portfolio_evaluation_coordinator = providers.Singleton(
@@ -178,6 +178,6 @@ class PortfolioBacktestContainer(containers.DeclarativeContainer):
         ),
         cross_window_evaluator=portfolio_cross_window_evaluator,
         cross_strategy_summary=portfolio_cross_strategy_summary,
-        optimization_root=config.backtester.portfolio.paths.portfolio_optimization_root_path,
-        viability_threshold=config.backtester.portfolio.strategy_viability_threshold,
+        optimization_root=config.backtester_portfolio_paths.portfolio_optimization_root_path,
+        viability_threshold=config.backtester_portfolio.strategy_viability_threshold,
     )

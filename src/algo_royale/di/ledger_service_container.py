@@ -52,8 +52,8 @@ class LedgerServiceContainer(containers.DeclarativeContainer):
         logger=providers.Factory(
             logger_container.logger, logger_type=LoggerType.ORDER_SERVICE
         ),
-        user_id=config.db.user.id,
-        account_id=config.db.user.account_id,
+        user_id=config.db_user.id,
+        account_id=config.db_user.account_id,
     )
 
     trades_service = providers.Singleton(
@@ -63,8 +63,8 @@ class LedgerServiceContainer(containers.DeclarativeContainer):
         logger=providers.Factory(
             logger_container.logger, logger_type=LoggerType.TRADE_SERVICE
         ),
-        user_id=config.db.user.id,
-        account_id=config.db.user.account_id,
+        user_id=config.db_user.id,
+        account_id=config.db_user.account_id,
         days_to_settle=config.tradeing.days_to_settle,
     )
 
@@ -75,8 +75,8 @@ class LedgerServiceContainer(containers.DeclarativeContainer):
         logger=providers.Factory(
             logger_container.logger, logger_type=LoggerType.POSITION_SERVICE
         ),
-        user_id=config.db.user.id,
-        account_id=config.db.user.account_id,
+        user_id=config.db_user.id,
+        account_id=config.db_user.account_id,
     )
 
     ledger_service = providers.Singleton(

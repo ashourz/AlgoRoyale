@@ -37,8 +37,8 @@ class RepoContainer(containers.DeclarativeContainer):
         logger=providers.Factory(
             logger_container.logger, logger_type=LoggerType.DATA_STREAM_SESSION_REPO
         ),
-        user_id=config.db.user.id,
-        account_id=config.db.user.account_id,
+        user_id=config.db_user.id,
+        account_id=config.db_user.account_id,
     )
 
     enriched_data_repo = providers.Singleton(
@@ -47,8 +47,8 @@ class RepoContainer(containers.DeclarativeContainer):
         logger=providers.Factory(
             logger_container.logger, logger_type=LoggerType.ENRICHED_DATA_REPO
         ),
-        user_id=config.db.user.id,
-        account_id=config.db.user.account_id,
+        user_id=config.db_user.id,
+        account_id=config.db_user.account_id,
     )
 
     trade_repo = providers.Singleton(
@@ -57,8 +57,8 @@ class RepoContainer(containers.DeclarativeContainer):
         logger=providers.Factory(
             logger_container.logger, logger_type=LoggerType.TRADE_REPO
         ),
-        user_id=config.db.user.id,
-        account_id=config.db.user.account_id,
+        user_id=config.db_user.id,
+        account_id=config.db_user.account_id,
     )
 
     order_repo = providers.Singleton(
@@ -67,13 +67,13 @@ class RepoContainer(containers.DeclarativeContainer):
         logger=providers.Factory(
             logger_container.logger, logger_type=LoggerType.ORDER_REPO
         ),
-        user_id=config.db.user.id,
-        account_id=config.db.user.account_id,
+        user_id=config.db_user.id,
+        account_id=config.db_user.account_id,
     )
 
     watchlist_repo = providers.Singleton(
         WatchlistRepo,
-        watchlist_path=config.backtester.paths.watchlist_path,
+        watchlist_path=config.backtester_paths.watchlist_path,
         logger=providers.Factory(
             logger_container.logger, logger_type=LoggerType.WATCHLIST_REPO
         ),

@@ -13,15 +13,15 @@ class DBContainer(containers.DeclarativeContainer):
 
     database = providers.Singleton(
         Database,
-        db_name=config.db.connection.db_name,
-        db_user=config.db.connection.db_user,
-        db_password=secrets.db.connection.password,
-        db_host=config.db.connection.host,
-        db_port=config.db.connection.port,
+        db_name=config.db_connection.db_name,
+        db_user=config.db_connection.db_user,
+        db_password=secrets.db_connection.password,
+        db_host=config.db_connection.host,
+        db_port=config.db_connection.port,
         logger=logger,
     )
 
-    db_connection = providers.Callable(lambda db: db.connection_context(), db=database)
+    db_connection = providers.Callable(lambda db: db_connection_context(), db=database)
 
     def run_migrations(self):
         from algo_royale.clients.db.migrations import migration_manager

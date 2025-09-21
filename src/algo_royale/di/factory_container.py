@@ -37,7 +37,7 @@ class FactoryContainer(containers.DeclarativeContainer):
 
     signal_strategy_combinator_factory = providers.Singleton(
         SignalStrategyCombinatorFactory,
-        combinator_list_path=config.backtester.paths.signal_strategy_combinators,
+        combinator_list_path=config.backtester_paths.signal_strategy_combinators,
         logger=providers.Factory(
             logger_container.logger,
             logger_type=LoggerType.SIGNAL_STRATEGY_COMBINATOR_FACTORY,
@@ -57,7 +57,7 @@ class FactoryContainer(containers.DeclarativeContainer):
 
     portfolio_strategy_combinator_factory = providers.Singleton(
         PortfolioStrategyCombinatorFactory,
-        combinator_list_path=config.backtester.paths.portfolio_strategy_combinators,
+        combinator_list_path=config.backtester_paths.portfolio_strategy_combinators,
         logger=providers.Factory(
             logger_container.logger,
             logger_type=LoggerType.PORTFOLIO_STRATEGY_COMBINATOR_FACTORY,

@@ -59,14 +59,14 @@ class ClientContainer(containers.DeclarativeContainer):
             logger_container.logger,
             logger_type=LoggerType.ALPACA_CORPORATE_ACTION_CLIENT,
         ),
-        base_url=config.alpaca.urls.data.v1(),
+        base_url=config.alpaca_urls.data.v1(),
         api_key=secrets.alpaca.api_key(),
         api_secret=secrets.alpaca.api_secret(),
-        api_key_header=config.alpaca.headers.api_key(),
-        api_secret_header=config.alpaca.headers.api_secret(),
-        http_timeout=config.alpaca.params.get("http_timeout", 10),
-        reconnect_delay=config.alpaca.params.get("reconnect_delay", 5),
-        keep_alive_timeout=config.alpaca.params.get("keep_alive_timeout", 20),
+        api_key_header=config.alpaca_headers.api_key(),
+        api_secret_header=config.alpaca_headers.api_secret(),
+        http_timeout=config.alpaca_params.get("http_timeout", 10),
+        reconnect_delay=config.alpaca_params.get("reconnect_delay", 5),
+        keep_alive_timeout=config.alpaca_params.get("keep_alive_timeout", 20),
     )
 
     alpaca_news_client = providers.Factory(
@@ -74,14 +74,14 @@ class ClientContainer(containers.DeclarativeContainer):
         logger=providers.Factory(
             logger_container.logger, logger_type=LoggerType.ALPACA_NEWS_CLIENT
         ),
-        base_url=config.alpaca.urls.data.v1beta1(),
+        base_url=config.alpaca_urls.data.v1beta1(),
         api_key=secrets.alpaca.api_key(),
         api_secret=secrets.alpaca.api_secret(),
-        api_key_header=config.alpaca.headers.api_key(),
-        api_secret_header=config.alpaca.headers.api_secret(),
-        http_timeout=config.alpaca.params.get("http_timeout", 10),
-        reconnect_delay=config.alpaca.params.get("reconnect_delay", 5),
-        keep_alive_timeout=config.alpaca.params.get("keep_alive_timeout", 20),
+        api_key_header=config.alpaca_headers.api_key(),
+        api_secret_header=config.alpaca_headers.api_secret(),
+        http_timeout=config.alpaca_params.get("http_timeout", 10),
+        reconnect_delay=config.alpaca_params.get("reconnect_delay", 5),
+        keep_alive_timeout=config.alpaca_params.get("keep_alive_timeout", 20),
     )
 
     alpaca_screener_client = providers.Factory(
@@ -89,14 +89,14 @@ class ClientContainer(containers.DeclarativeContainer):
         logger=providers.Factory(
             logger_container.logger, logger_type=LoggerType.ALPACA_SCREENER_CLIENT
         ),
-        base_url=config.alpaca.urls.data.v1beta1(),
+        base_url=config.alpaca_urls.data.v1beta1(),
         api_key=secrets.alpaca.api_key(),
         api_secret=secrets.alpaca.api_secret(),
-        api_key_header=config.alpaca.headers.api_key(),
-        api_secret_header=config.alpaca.headers.api_secret(),
-        http_timeout=config.alpaca.params.get("http_timeout", 10),
-        reconnect_delay=config.alpaca.params.get("reconnect_delay", 5),
-        keep_alive_timeout=config.alpaca.params.get("keep_alive_timeout", 20),
+        api_key_header=config.alpaca_headers.api_key(),
+        api_secret_header=config.alpaca_headers.api_secret(),
+        http_timeout=config.alpaca_params.get("http_timeout", 10),
+        reconnect_delay=config.alpaca_params.get("reconnect_delay", 5),
+        keep_alive_timeout=config.alpaca_params.get("keep_alive_timeout", 20),
     )
 
     alpaca_stock_client = providers.Factory(
@@ -104,14 +104,14 @@ class ClientContainer(containers.DeclarativeContainer):
         logger=providers.Factory(
             logger_container.logger, logger_type=LoggerType.ALPACA_STOCK_CLIENT
         ),
-        base_url=config.alpaca.urls.data.v2(),
+        base_url=config.alpaca_urls.data.v2(),
         api_key=secrets.alpaca.api_key(),
         api_secret=secrets.alpaca.api_secret(),
-        api_key_header=config.alpaca.headers.api_key(),
-        api_secret_header=config.alpaca.headers.api_secret(),
-        http_timeout=config.alpaca.params.get("http_timeout", 10),
-        reconnect_delay=config.alpaca.params.get("reconnect_delay", 5),
-        keep_alive_timeout=config.alpaca.params.get("keep_alive_timeout", 20),
+        api_key_header=config.alpaca_headers.api_key(),
+        api_secret_header=config.alpaca_headers.api_secret(),
+        http_timeout=config.alpaca_params.get("http_timeout", 10),
+        reconnect_delay=config.alpaca_params.get("reconnect_delay", 5),
+        keep_alive_timeout=config.alpaca_params.get("keep_alive_timeout", 20),
     )
 
     alpaca_stream_client = providers.Factory(
@@ -119,14 +119,14 @@ class ClientContainer(containers.DeclarativeContainer):
         logger=providers.Factory(
             logger_container.logger, logger_type=LoggerType.ALPACA_STREAM_CLIENT
         ),
-        base_url=config.alpaca.urls.data.stream.v2(),
+        base_url=config.alpaca_urls.data.stream.v2(),
         api_key=secrets.alpaca.api_key(),
         api_secret=secrets.alpaca.api_secret(),
-        api_key_header=config.alpaca.headers.api_key(),
-        api_secret_header=config.alpaca.headers.api_secret(),
-        http_timeout=config.alpaca.params.get("http_timeout", 10),
-        reconnect_delay=config.alpaca.params.get("reconnect_delay", 5),
-        keep_alive_timeout=config.alpaca.params.get("keep_alive_timeout", 20),
+        api_key_header=config.alpaca_headers.api_key(),
+        api_secret_header=config.alpaca_headers.api_secret(),
+        http_timeout=config.alpaca_params.get("http_timeout", 10),
+        reconnect_delay=config.alpaca_params.get("reconnect_delay", 5),
+        keep_alive_timeout=config.alpaca_params.get("keep_alive_timeout", 20),
     )
 
     alpaca_account_client = providers.Factory(
@@ -134,14 +134,14 @@ class ClientContainer(containers.DeclarativeContainer):
         logger=providers.Factory(
             logger_container.logger, logger_type=LoggerType.ALPACA_ACCOUNT_CLIENT
         ),
-        base_url=config.alpaca.urls.trading(),
+        base_url=config.alpaca_urls.trading(),
         api_key=secrets.alpaca.api_key(),
         api_secret=secrets.alpaca.api_secret(),
-        api_key_header=config.alpaca.headers.api_key(),
-        api_secret_header=config.alpaca.headers.api_secret(),
-        http_timeout=config.alpaca.params.get("http_timeout", 10),
-        reconnect_delay=config.alpaca.params.get("reconnect_delay", 5),
-        keep_alive_timeout=config.alpaca.params.get("keep_alive_timeout", 20),
+        api_key_header=config.alpaca_headers.api_key(),
+        api_secret_header=config.alpaca_headers.api_secret(),
+        http_timeout=config.alpaca_params.get("http_timeout", 10),
+        reconnect_delay=config.alpaca_params.get("reconnect_delay", 5),
+        keep_alive_timeout=config.alpaca_params.get("keep_alive_timeout", 20),
     )
 
     alpaca_assets_client = providers.Factory(
@@ -149,14 +149,14 @@ class ClientContainer(containers.DeclarativeContainer):
         logger=providers.Factory(
             logger_container.logger, logger_type=LoggerType.ALPACA_ASSETS_CLIENT
         ),
-        base_url=config.alpaca.urls.trading(),
+        base_url=config.alpaca_urls.trading(),
         api_key=secrets.alpaca.api_key(),
         api_secret=secrets.alpaca.api_secret(),
-        api_key_header=config.alpaca.headers.api_key(),
-        api_secret_header=config.alpaca.headers.api_secret(),
-        http_timeout=config.alpaca.params.get("http_timeout", 10),
-        reconnect_delay=config.alpaca.params.get("reconnect_delay", 5),
-        keep_alive_timeout=config.alpaca.params.get("keep_alive_timeout", 20),
+        api_key_header=config.alpaca_headers.api_key(),
+        api_secret_header=config.alpaca_headers.api_secret(),
+        http_timeout=config.alpaca_params.get("http_timeout", 10),
+        reconnect_delay=config.alpaca_params.get("reconnect_delay", 5),
+        keep_alive_timeout=config.alpaca_params.get("keep_alive_timeout", 20),
     )
 
     alpaca_calendar_client = providers.Factory(
@@ -164,14 +164,14 @@ class ClientContainer(containers.DeclarativeContainer):
         logger=providers.Factory(
             logger_container.logger, logger_type=LoggerType.ALPACA_CALENDAR_CLIENT
         ),
-        base_url=config.alpaca.urls.trading(),
+        base_url=config.alpaca_urls.trading(),
         api_key=secrets.alpaca.api_key(),
         api_secret=secrets.alpaca.api_secret(),
-        api_key_header=config.alpaca.headers.api_key(),
-        api_secret_header=config.alpaca.headers.api_secret(),
-        http_timeout=config.alpaca.params.get("http_timeout", 10),
-        reconnect_delay=config.alpaca.params.get("reconnect_delay", 5),
-        keep_alive_timeout=config.alpaca.params.get("keep_alive_timeout", 20),
+        api_key_header=config.alpaca_headers.api_key(),
+        api_secret_header=config.alpaca_headers.api_secret(),
+        http_timeout=config.alpaca_params.get("http_timeout", 10),
+        reconnect_delay=config.alpaca_params.get("reconnect_delay", 5),
+        keep_alive_timeout=config.alpaca_params.get("keep_alive_timeout", 20),
     )
 
     alpaca_clock_client = providers.Factory(
@@ -179,14 +179,14 @@ class ClientContainer(containers.DeclarativeContainer):
         logger=providers.Factory(
             logger_container.logger, logger_type=LoggerType.ALPACA_CLOCK_CLIENT
         ),
-        base_url=config.alpaca.urls.trading(),
+        base_url=config.alpaca_urls.trading(),
         api_key=secrets.alpaca.api_key(),
         api_secret=secrets.alpaca.api_secret(),
-        api_key_header=config.alpaca.headers.api_key(),
-        api_secret_header=config.alpaca.headers.api_secret(),
-        http_timeout=config.alpaca.params.get("http_timeout", 10),
-        reconnect_delay=config.alpaca.params.get("reconnect_delay", 5),
-        keep_alive_timeout=config.alpaca.params.get("keep_alive_timeout", 20),
+        api_key_header=config.alpaca_headers.api_key(),
+        api_secret_header=config.alpaca_headers.api_secret(),
+        http_timeout=config.alpaca_params.get("http_timeout", 10),
+        reconnect_delay=config.alpaca_params.get("reconnect_delay", 5),
+        keep_alive_timeout=config.alpaca_params.get("keep_alive_timeout", 20),
     )
 
     alpaca_orders_client = providers.Factory(
@@ -194,14 +194,14 @@ class ClientContainer(containers.DeclarativeContainer):
         logger=providers.Factory(
             logger_container.logger, logger_type=LoggerType.ALPACA_ORDERS_CLIENT
         ),
-        base_url=config.alpaca.urls.trading(),
+        base_url=config.alpaca_urls.trading(),
         api_key=secrets.alpaca.api_key(),
         api_secret=secrets.alpaca.api_secret(),
-        api_key_header=config.alpaca.headers.api_key(),
-        api_secret_header=config.alpaca.headers.api_secret(),
-        http_timeout=config.alpaca.params.get("http_timeout", 10),
-        reconnect_delay=config.alpaca.params.get("reconnect_delay", 5),
-        keep_alive_timeout=config.alpaca.params.get("keep_alive_timeout", 20),
+        api_key_header=config.alpaca_headers.api_key(),
+        api_secret_header=config.alpaca_headers.api_secret(),
+        http_timeout=config.alpaca_params.get("http_timeout", 10),
+        reconnect_delay=config.alpaca_params.get("reconnect_delay", 5),
+        keep_alive_timeout=config.alpaca_params.get("keep_alive_timeout", 20),
     )
 
     alpaca_portfolio_client = providers.Factory(
@@ -209,14 +209,14 @@ class ClientContainer(containers.DeclarativeContainer):
         logger=providers.Factory(
             logger_container.logger, logger_type=LoggerType.ALPACA_PORTFOLIO_CLIENT
         ),
-        base_url=config.alpaca.urls.trading(),
+        base_url=config.alpaca_urls.trading(),
         api_key=secrets.alpaca.api_key(),
         api_secret=secrets.alpaca.api_secret(),
-        api_key_header=config.alpaca.headers.api_key(),
-        api_secret_header=config.alpaca.headers.api_secret(),
-        http_timeout=config.alpaca.params.get("http_timeout", 10),
-        reconnect_delay=config.alpaca.params.get("reconnect_delay", 5),
-        keep_alive_timeout=config.alpaca.params.get("keep_alive_timeout", 20),
+        api_key_header=config.alpaca_headers.api_key(),
+        api_secret_header=config.alpaca_headers.api_secret(),
+        http_timeout=config.alpaca_params.get("http_timeout", 10),
+        reconnect_delay=config.alpaca_params.get("reconnect_delay", 5),
+        keep_alive_timeout=config.alpaca_params.get("keep_alive_timeout", 20),
     )
 
     alpaca_positions_client = providers.Factory(
@@ -224,14 +224,14 @@ class ClientContainer(containers.DeclarativeContainer):
         logger=providers.Factory(
             logger_container.logger, logger_type=LoggerType.ALPACA_POSITIONS_CLIENT
         ),
-        base_url=config.alpaca.urls.trading(),
+        base_url=config.alpaca_urls.trading(),
         api_key=secrets.alpaca.api_key(),
         api_secret=secrets.alpaca.api_secret(),
-        api_key_header=config.alpaca.headers.api_key(),
-        api_secret_header=config.alpaca.headers.api_secret(),
-        http_timeout=config.alpaca.params.get("http_timeout", 10),
-        reconnect_delay=config.alpaca.params.get("reconnect_delay", 5),
-        keep_alive_timeout=config.alpaca.params.get("keep_alive_timeout", 20),
+        api_key_header=config.alpaca_headers.api_key(),
+        api_secret_header=config.alpaca_headers.api_secret(),
+        http_timeout=config.alpaca_params.get("http_timeout", 10),
+        reconnect_delay=config.alpaca_params.get("reconnect_delay", 5),
+        keep_alive_timeout=config.alpaca_params.get("keep_alive_timeout", 20),
     )
 
     alpaca_watchlist_client = providers.Factory(
@@ -239,14 +239,14 @@ class ClientContainer(containers.DeclarativeContainer):
         logger=providers.Factory(
             logger_container.logger, logger_type=LoggerType.ALPACA_WATCHLIST_CLIENT
         ),
-        base_url=config.alpaca.urls.trading(),
+        base_url=config.alpaca_urls.trading(),
         api_key=secrets.alpaca.api_key(),
         api_secret=secrets.alpaca.api_secret(),
-        api_key_header=config.alpaca.headers.api_key(),
-        api_secret_header=config.alpaca.headers.api_secret(),
-        http_timeout=config.alpaca.params.get("http_timeout", 10),
-        reconnect_delay=config.alpaca.params.get("reconnect_delay", 5),
-        keep_alive_timeout=config.alpaca.params.get("keep_alive_timeout", 20),
+        api_key_header=config.alpaca_headers.api_key(),
+        api_secret_header=config.alpaca_headers.api_secret(),
+        http_timeout=config.alpaca_params.get("http_timeout", 10),
+        reconnect_delay=config.alpaca_params.get("reconnect_delay", 5),
+        keep_alive_timeout=config.alpaca_params.get("keep_alive_timeout", 20),
     )
 
     alpaca_order_stream_client = providers.Factory(
@@ -254,12 +254,12 @@ class ClientContainer(containers.DeclarativeContainer):
         logger=providers.Factory(
             logger_container.logger, logger_type=LoggerType.ALPACA_ORDER_STREAM_CLIENT
         ),
-        base_url=config.alpaca.urls.trading.stream(),
+        base_url=config.alpaca_urls.trading.stream(),
         api_key=secrets.alpaca.api_key(),
         api_secret=secrets.alpaca.api_secret(),
-        api_key_header=config.alpaca.headers.api_key(),
-        api_secret_header=config.alpaca.headers.api_secret(),
-        http_timeout=config.alpaca.params.get("http_timeout", 10),
-        reconnect_delay=config.alpaca.params.get("reconnect_delay", 5),
-        keep_alive_timeout=config.alpaca.params.get("keep_alive_timeout", 20),
+        api_key_header=config.alpaca_headers.api_key(),
+        api_secret_header=config.alpaca_headers.api_secret(),
+        http_timeout=config.alpaca_params.get("http_timeout", 10),
+        reconnect_delay=config.alpaca_params.get("reconnect_delay", 5),
+        keep_alive_timeout=config.alpaca_params.get("keep_alive_timeout", 20),
     )
