@@ -39,8 +39,8 @@ class OrderAction(ABC):
 
 
 class OrderRepo:
-    def __init__(self, order_dao: OrderDAO, logger: Logger):
-        self.dao = order_dao
+    def __init__(self, dao: OrderDAO, logger: Logger):
+        self.dao = dao
         self.logger = logger
 
     def fetch_order_by_id(

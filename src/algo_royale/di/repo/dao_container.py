@@ -17,7 +17,7 @@ class DAOContainer:
         self.db_container = db_container
         self.logger_container = logger_container
 
-        self.sql_dir = self.config.db_paths.sql_dir
+        self.sql_dir = self.config["db_paths"]["sql_dir"]
 
         self.data_stream_session_dao = DataStreamSessionDAO(
             connection=self.db_container.db_connection,

@@ -25,7 +25,7 @@ class StageDataContainer:
         self.logger_container = logger_container
         self.repo_container = repo_container
 
-        self.data_dir = get_project_root() / self.config.data_dir.root()
+        self.data_dir = get_project_root() / self.config["data_dir"]["root"]
 
         self.stage_data_manager = StageDataManager(
             data_dir=self.data_dir,
@@ -59,7 +59,9 @@ class StageDataContainer:
         self.symbol_strategy_manager = SymbolStrategyManager(
             data_dir=self.data_dir,
             stage_data_manager=self.stage_data_manager,
-            symbol_strategy_evaluation_filename=self.config.backtester_signal_filenames.signal_evaluation_json_filename,
+            symbol_strategy_evaluation_filename=self.config[
+                "backtester_signal_filenames"
+            ]["signal_evaluation_json_filename"],
             logger=self.logger_container.logger(
                 logger_type=LoggerType.SYMBOL_STRATEGY_DATA_MANAGER
             ),

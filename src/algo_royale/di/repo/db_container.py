@@ -10,11 +10,11 @@ class DBContainer:
         self.logger_container = logger_container
         self.logger = self.logger_container.logger(logger_type=LoggerType.DATABASE)
         self.database = Database(
-            db_name=self.config.db_connection.db_name,
-            db_user=self.config.db_connection.db_user,
-            db_password=self.secrets.db_connection.password,
-            db_host=self.config.db_connection.host,
-            db_port=self.config.db_connection.port,
+            db_name=self.config["db_connection"]["db_name"],
+            db_user=self.config["db_connection"]["db_user"],
+            db_password=self.secrets["db_connection"]["password"],
+            db_host=self.config["db_connection"]["host"],
+            db_port=int(self.config["db_connection"]["port"]),
             logger=self.logger,
         )
 

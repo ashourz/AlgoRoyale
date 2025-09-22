@@ -35,8 +35,6 @@ class RepoContainer:
             logger=self.logger_container.logger(
                 logger_type=LoggerType.DATA_STREAM_SESSION_REPO
             ),
-            user_id=self.config.db_user.id,
-            account_id=self.config.db_user.account_id,
         )
 
         self.enriched_data_repo = EnrichedDataRepo(
@@ -44,25 +42,23 @@ class RepoContainer:
             logger=self.logger_container.logger(
                 logger_type=LoggerType.ENRICHED_DATA_REPO
             ),
-            user_id=self.config.db_user.id,
-            account_id=self.config.db_user.account_id,
+            user_id=self.config["db_user"]["id"],
+            account_id=self.config["db_user"]["account_id"],
         )
 
         self.trade_repo = TradeRepo(
             dao=self.dao_container.trade_dao,
             logger=self.logger_container.logger(logger_type=LoggerType.TRADE_REPO),
-            user_id=self.config.db_user.id,
-            account_id=self.config.db_user.account_id,
+            user_id=self.config["db_user"]["id"],
+            account_id=self.config["db_user"]["account_id"],
         )
 
         self.order_repo = OrderRepo(
             dao=self.dao_container.order_dao,
             logger=self.logger_container.logger(logger_type=LoggerType.ORDER_REPO),
-            user_id=self.config.db_user.id,
-            account_id=self.config.db_user.account_id,
         )
 
         self.watchlist_repo = WatchlistRepo(
-            watchlist_path=self.config.backtester_paths.watchlist_path,
+            watchlist_path=self.config["backtester_paths"]["watchlist_path"],
             logger=self.logger_container.logger(logger_type=LoggerType.WATCHLIST_REPO),
         )

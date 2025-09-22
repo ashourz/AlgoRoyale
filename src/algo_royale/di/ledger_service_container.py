@@ -73,7 +73,7 @@ class LedgerServiceContainer:
         )
 
         self.symbol_service = SymbolService(
-            watchlist_repo=self.repo_container.watchlist_repo(),
+            watchlist_repo=self.repo_container.watchlist_repo,
             positions_service=self.positions_service,
             logger=self.logger_container.logger(logger_type=LoggerType.SYMBOL_SERVICE),
         )

@@ -37,7 +37,7 @@ class AdapterContainer:
             secrets=self.secrets,
             logger_container=self.logger_container,
         )
-        self.enriched_data_repo = self.repo_container.enriched_data_repo()
+        self.enriched_data_repo = self.repo_container.enriched_data_repo
 
         # Initialize client_container as an attribute
         self.client_container = ClientContainer(

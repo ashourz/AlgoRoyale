@@ -12,7 +12,7 @@ class MockOrderRepo(OrderRepo):
         self.logger = MockLoggable()
         self.user_id = "user_1"
         self.account_id = "account_1"
-        super().__init__(order_dao=self.dao, logger=self.logger)
+        super().__init__(dao=self.dao, logger=self.logger)
         self._return_empty = False
         self._raise_exception = False
 
