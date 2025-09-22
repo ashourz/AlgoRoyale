@@ -38,7 +38,11 @@ class SignalStrategyRegistry:
         self.signal_strategy_factory = signal_strategy_factory
         self.logger = logger
         self.combined_buy_threshold = combined_buy_threshold
+        if not (0 <= self.combined_buy_threshold <= 1):
+            raise ValueError("combined_buy_threshold must be between 0 and 1")
         self.combined_sell_threshold = combined_sell_threshold
+        if not (0 <= self.combined_sell_threshold <= 1):
+            raise ValueError("combined_sell_threshold must be between 0 and 1")
         self.symbol_strategy_map = {}
         self._load_existing_viable_strategy_params()
 

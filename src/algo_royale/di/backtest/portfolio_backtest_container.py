@@ -53,13 +53,15 @@ class PortfolioBacktestContainer:
         self.data_dir = get_project_root() / self.config["data_dir"]["root"]
 
         self.portfolio_executor = PortfolioBacktestExecutor(
-            initial_balance=self.config["backtester_portfolio"][
-                "initial_portfolio_value"
-            ],
-            transaction_cost=self.config["backtester_portfolio"]["transaction_costs"],
-            min_lot=self.config["backtester_portfolio"]["minimum_lot_size"],
-            leverage=self.config["backtester_portfolio"]["leverage"],
-            slippage=self.config["backtester_portfolio"]["slippage"],
+            initial_balance=float(
+                self.config["backtester_portfolio"]["initial_portfolio_value"]
+            ),
+            transaction_cost=float(
+                self.config["backtester_portfolio"]["transaction_costs"]
+            ),
+            min_lot=float(self.config["backtester_portfolio"]["minimum_lot_size"]),
+            leverage=float(self.config["backtester_portfolio"]["leverage"]),
+            slippage=float(self.config["backtester_portfolio"]["slippage"]),
             logger=self.logger_container.logger(
                 logger_type=LoggerType.PORTFOLIO_BACKTEST_EXECUTOR
             ),
@@ -115,9 +117,9 @@ class PortfolioBacktestContainer:
             ],
             portfolio_matrix_loader=self.portfolio_matrix_loader,
             portfolio_strategy_optimizer_factory=self.factory_container.portfolio_strategy_optimizer_factory,
-            optimization_n_trials=self.config["backtester_portfolio"][
-                "optimization_n_trials"
-            ],
+            optimization_n_trials=int(
+                self.config["backtester_portfolio"]["optimization_n_trials"]
+            ),
         )
 
         self.portfolio_testing_stage_coordinator = PortfolioTestingStageCoordinator(
@@ -186,7 +188,7 @@ class PortfolioBacktestContainer:
             optimization_root=self.config["backtester_portfolio_paths"][
                 "portfolio_optimization_root_path"
             ],
-            viability_threshold=self.config["backtester_portfolio"][
-                "strategy_viability_threshold"
-            ],
+            viability_threshold=float(
+                self.config["backtester_portfolio"]["strategy_viability_threshold"]
+            ),
         )

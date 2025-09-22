@@ -62,9 +62,9 @@ class ClientContainer:
             api_secret=self.secrets["alpaca"]["api_secret"],
             api_key_header=self.config["alpaca_headers"]["api_key"],
             api_secret_header=self.config["alpaca_headers"]["api_secret"],
-            http_timeout=self.config["alpaca_params"]["http_timeout"],
-            reconnect_delay=self.config["alpaca_params"]["reconnect_delay"],
-            keep_alive_timeout=self.config["alpaca_params"]["keep_alive_timeout"],
+            http_timeout=int(self.config["alpaca_params"]["http_timeout"]),
+            reconnect_delay=int(self.config["alpaca_params"]["reconnect_delay"]),
+            keep_alive_timeout=int(self.config["alpaca_params"]["keep_alive_timeout"]),
         )
 
         self.alpaca_news_client = AlpacaNewsClient(
@@ -76,9 +76,9 @@ class ClientContainer:
             api_secret=self.secrets["alpaca"]["api_secret"],
             api_key_header=self.config["alpaca_headers"]["api_key"],
             api_secret_header=self.config["alpaca_headers"]["api_secret"],
-            http_timeout=self.config["alpaca_params"]["http_timeout"],
-            reconnect_delay=self.config["alpaca_params"]["reconnect_delay"],
-            keep_alive_timeout=self.config["alpaca_params"]["keep_alive_timeout"],
+            http_timeout=int(self.config["alpaca_params"]["http_timeout"]),
+            reconnect_delay=int(self.config["alpaca_params"]["reconnect_delay"]),
+            keep_alive_timeout=int(self.config["alpaca_params"]["keep_alive_timeout"]),
         )
 
         self.alpaca_screener_client = AlpacaScreenerClient(
@@ -90,9 +90,9 @@ class ClientContainer:
             api_secret=self.secrets["alpaca"]["api_secret"],
             api_key_header=self.config["alpaca_headers"]["api_key"],
             api_secret_header=self.config["alpaca_headers"]["api_secret"],
-            http_timeout=self.config["alpaca_params"]["http_timeout"],
-            reconnect_delay=self.config["alpaca_params"]["reconnect_delay"],
-            keep_alive_timeout=self.config["alpaca_params"]["keep_alive_timeout"],
+            http_timeout=int(self.config["alpaca_params"]["http_timeout"]),
+            reconnect_delay=int(self.config["alpaca_params"]["reconnect_delay"]),
+            keep_alive_timeout=int(self.config["alpaca_params"]["keep_alive_timeout"]),
         )
 
         self.alpaca_stock_client = AlpacaStockClient(
@@ -104,9 +104,9 @@ class ClientContainer:
             api_secret=self.secrets["alpaca"]["api_secret"],
             api_key_header=self.config["alpaca_headers"]["api_key"],
             api_secret_header=self.config["alpaca_headers"]["api_secret"],
-            http_timeout=self.config["alpaca_params"]["http_timeout"],
-            reconnect_delay=self.config["alpaca_params"]["reconnect_delay"],
-            keep_alive_timeout=self.config["alpaca_params"]["keep_alive_timeout"],
+            http_timeout=int(self.config["alpaca_params"]["http_timeout"]),
+            reconnect_delay=int(self.config["alpaca_params"]["reconnect_delay"]),
+            keep_alive_timeout=int(self.config["alpaca_params"]["keep_alive_timeout"]),
         )
 
         self.alpaca_stream_client = AlpacaStreamClient(
@@ -118,9 +118,9 @@ class ClientContainer:
             api_secret=self.secrets["alpaca"]["api_secret"],
             api_key_header=self.config["alpaca_headers"]["api_key"],
             api_secret_header=self.config["alpaca_headers"]["api_secret"],
-            http_timeout=self.config["alpaca_params"]["http_timeout"],
-            reconnect_delay=self.config["alpaca_params"]["reconnect_delay"],
-            keep_alive_timeout=self.config["alpaca_params"]["keep_alive_timeout"],
+            http_timeout=int(self.config["alpaca_params"]["http_timeout"]),
+            reconnect_delay=int(self.config["alpaca_params"]["reconnect_delay"]),
+            keep_alive_timeout=int(self.config["alpaca_params"]["keep_alive_timeout"]),
         )
 
         self.alpaca_account_client = AlpacaAccountClient(
@@ -132,9 +132,9 @@ class ClientContainer:
             api_secret=self.secrets["alpaca"]["api_secret"],
             api_key_header=self.config["alpaca_headers"]["api_key"],
             api_secret_header=self.config["alpaca_headers"]["api_secret"],
-            http_timeout=self.config["alpaca_params"]["http_timeout"],
-            reconnect_delay=self.config["alpaca_params"]["reconnect_delay"],
-            keep_alive_timeout=self.config["alpaca_params"]["keep_alive_timeout"],
+            http_timeout=int(self.config["alpaca_params"]["http_timeout"]),
+            reconnect_delay=int(self.config["alpaca_params"]["reconnect_delay"]),
+            keep_alive_timeout=int(self.config["alpaca_params"]["keep_alive_timeout"]),
         )
 
         self.alpaca_assets_client = AlpacaAssetsClient(
@@ -146,9 +146,9 @@ class ClientContainer:
             api_secret=self.secrets["alpaca"]["api_secret"],
             api_key_header=self.config["alpaca_headers"]["api_key"],
             api_secret_header=self.config["alpaca_headers"]["api_secret"],
-            http_timeout=self.config["alpaca_params"]["http_timeout"],
-            reconnect_delay=self.config["alpaca_params"]["reconnect_delay"],
-            keep_alive_timeout=self.config["alpaca_params"]["keep_alive_timeout"],
+            http_timeout=int(self.config["alpaca_params"]["http_timeout"]),
+            reconnect_delay=int(self.config["alpaca_params"]["reconnect_delay"]),
+            keep_alive_timeout=int(self.config["alpaca_params"]["keep_alive_timeout"]),
         )
 
         self.alpaca_calendar_client = AlpacaCalendarClient(
@@ -160,9 +160,9 @@ class ClientContainer:
             api_secret=self.secrets["alpaca"]["api_secret"],
             api_key_header=self.config["alpaca_headers"]["api_key"],
             api_secret_header=self.config["alpaca_headers"]["api_secret"],
-            http_timeout=self.config["alpaca_params"]["http_timeout"],
-            reconnect_delay=self.config["alpaca_params"]["reconnect_delay"],
-            keep_alive_timeout=self.config["alpaca_params"]["keep_alive_timeout"],
+            http_timeout=int(self.config["alpaca_params"]["http_timeout"]),
+            reconnect_delay=int(self.config["alpaca_params"]["reconnect_delay"]),
+            keep_alive_timeout=int(self.config["alpaca_params"]["keep_alive_timeout"]),
         )
 
         self.alpaca_clock_client = AlpacaClockClient(
@@ -174,9 +174,9 @@ class ClientContainer:
             api_secret=self.secrets["alpaca"]["api_secret"],
             api_key_header=self.config["alpaca_headers"]["api_key"],
             api_secret_header=self.config["alpaca_headers"]["api_secret"],
-            http_timeout=self.config["alpaca_params"]["http_timeout"],
-            reconnect_delay=self.config["alpaca_params"]["reconnect_delay"],
-            keep_alive_timeout=self.config["alpaca_params"]["keep_alive_timeout"],
+            http_timeout=int(self.config["alpaca_params"]["http_timeout"]),
+            reconnect_delay=int(self.config["alpaca_params"]["reconnect_delay"]),
+            keep_alive_timeout=int(self.config["alpaca_params"]["keep_alive_timeout"]),
         )
 
         self.alpaca_orders_client = AlpacaOrdersClient(
@@ -188,9 +188,9 @@ class ClientContainer:
             api_secret=self.secrets["alpaca"]["api_secret"],
             api_key_header=self.config["alpaca_headers"]["api_key"],
             api_secret_header=self.config["alpaca_headers"]["api_secret"],
-            http_timeout=self.config["alpaca_params"]["http_timeout"],
-            reconnect_delay=self.config["alpaca_params"]["reconnect_delay"],
-            keep_alive_timeout=self.config["alpaca_params"]["keep_alive_timeout"],
+            http_timeout=int(self.config["alpaca_params"]["http_timeout"]),
+            reconnect_delay=int(self.config["alpaca_params"]["reconnect_delay"]),
+            keep_alive_timeout=int(self.config["alpaca_params"]["keep_alive_timeout"]),
         )
 
         self.alpaca_portfolio_client = AlpacaPortfolioClient(
@@ -202,9 +202,9 @@ class ClientContainer:
             api_secret=self.secrets["alpaca"]["api_secret"],
             api_key_header=self.config["alpaca_headers"]["api_key"],
             api_secret_header=self.config["alpaca_headers"]["api_secret"],
-            http_timeout=self.config["alpaca_params"]["http_timeout"],
-            reconnect_delay=self.config["alpaca_params"]["reconnect_delay"],
-            keep_alive_timeout=self.config["alpaca_params"]["keep_alive_timeout"],
+            http_timeout=int(self.config["alpaca_params"]["http_timeout"]),
+            reconnect_delay=int(self.config["alpaca_params"]["reconnect_delay"]),
+            keep_alive_timeout=int(self.config["alpaca_params"]["keep_alive_timeout"]),
         )
 
         self.alpaca_positions_client = AlpacaPositionsClient(
@@ -216,9 +216,9 @@ class ClientContainer:
             api_secret=self.secrets["alpaca"]["api_secret"],
             api_key_header=self.config["alpaca_headers"]["api_key"],
             api_secret_header=self.config["alpaca_headers"]["api_secret"],
-            http_timeout=self.config["alpaca_params"]["http_timeout"],
-            reconnect_delay=self.config["alpaca_params"]["reconnect_delay"],
-            keep_alive_timeout=self.config["alpaca_params"]["keep_alive_timeout"],
+            http_timeout=int(self.config["alpaca_params"]["http_timeout"]),
+            reconnect_delay=int(self.config["alpaca_params"]["reconnect_delay"]),
+            keep_alive_timeout=int(self.config["alpaca_params"]["keep_alive_timeout"]),
         )
 
         self.alpaca_watchlist_client = AlpacaWatchlistClient(
@@ -230,9 +230,9 @@ class ClientContainer:
             api_secret=self.secrets["alpaca"]["api_secret"],
             api_key_header=self.config["alpaca_headers"]["api_key"],
             api_secret_header=self.config["alpaca_headers"]["api_secret"],
-            http_timeout=self.config["alpaca_params"]["http_timeout"],
-            reconnect_delay=self.config["alpaca_params"]["reconnect_delay"],
-            keep_alive_timeout=self.config["alpaca_params"]["keep_alive_timeout"],
+            http_timeout=int(self.config["alpaca_params"]["http_timeout"]),
+            reconnect_delay=int(self.config["alpaca_params"]["reconnect_delay"]),
+            keep_alive_timeout=int(self.config["alpaca_params"]["keep_alive_timeout"]),
         )
 
         self.alpaca_order_stream_client = AlpacaOrderStreamClient(
@@ -244,7 +244,7 @@ class ClientContainer:
             api_secret=self.secrets["alpaca"]["api_secret"],
             api_key_header=self.config["alpaca_headers"]["api_key"],
             api_secret_header=self.config["alpaca_headers"]["api_secret"],
-            http_timeout=self.config["alpaca_params"]["http_timeout"],
-            reconnect_delay=self.config["alpaca_params"]["reconnect_delay"],
-            keep_alive_timeout=self.config["alpaca_params"]["keep_alive_timeout"],
+            http_timeout=int(self.config["alpaca_params"]["http_timeout"]),
+            reconnect_delay=int(self.config["alpaca_params"]["reconnect_delay"]),
+            keep_alive_timeout=int(self.config["alpaca_params"]["keep_alive_timeout"]),
         )

@@ -68,9 +68,9 @@ class SignalBacktestContainer:
                 "signal_optimization_json_filename"
             ],
             signal_strategy_optimizer_factory=self.factory_container.signal_strategy_optimizer_factory,
-            optimization_n_trials=self.config["backtester_signal"][
-                "optimization_n_trials"
-            ],
+            optimization_n_trials=int(
+                self.config["backtester_signal"]["optimization_n_trials"]
+            ),
         )
         self.strategy_testing_stage_coordinator = SignalStrategyTestingStageCoordinator(
             data_loader=self.stage_data_container.symbol_strategy_data_loader,
@@ -114,9 +114,11 @@ class SignalBacktestContainer:
             summary_json_filename=self.config["backtester_signal_filenames"][
                 "signal_summary_json_filename"
             ],
-            viability_threshold=self.config["backtester_signal"][
-                "signal_evaluation_viability_threshold"
-            ],
+            viability_threshold=float(
+                self.config["backtester_signal"][
+                    "signal_evaluation_viability_threshold"
+                ]
+            ),
             logger=self.logger_container.logger(
                 logger_type=LoggerType.SYMBOL_EVALUATION
             ),

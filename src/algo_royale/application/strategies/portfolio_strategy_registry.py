@@ -29,7 +29,11 @@ class PortfolioStrategyRegistry:
     ):
         self.symbol_manager = symbol_service
         self.stage_data_manager = stage_data_manager
+        if not evaluation_json_filename:
+            raise ValueError("evaluation_json_filename must be provided")
         self.evaluation_json_filename = evaluation_json_filename
+        if not viable_strategies_path:
+            raise ValueError("viable_strategies_path must be provided")
         self.viable_strategies_path = Path(viable_strategies_path)
         self.portfolio_strategy_factory = portfolio_strategy_factory
         self.logger = logger

@@ -35,8 +35,12 @@ class RegistryContainer:
             logger=self.logger_container.logger(
                 logger_type=LoggerType.SIGNAL_STRATEGY_REGISTRY
             ),
-            combined_buy_threshold=self.config["trading"]["combined_buy_threshold"],
-            combined_sell_threshold=self.config["trading"]["combined_sell_threshold"],
+            combined_buy_threshold=float(
+                self.config["trading"]["combined_buy_threshold"]
+            ),
+            combined_sell_threshold=float(
+                self.config["trading"]["combined_sell_threshold"]
+            ),
         )
 
         self.portfolio_strategy_registry = PortfolioStrategyRegistry(

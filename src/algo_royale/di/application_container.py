@@ -24,11 +24,17 @@ class ApplicationContainer:
         config_parser = configparser.ConfigParser()
         config_parser.read(self.environment.config_ini_path)
         self.config = self._to_dict(config_parser)
-
+        if self.config == {}:
+            raise ValueError(
+                f"Config file at {self.environment.config_ini_path} is empty or invalid."
+            )
         secrets_parser = configparser.ConfigParser()
         secrets_parser.read(self.environment.secrets_ini_path)
         self.secrets = self._to_dict(secrets_parser)
-
+        if self.secrets == {}:
+            raise ValueError(
+                f"Secrets file at {self.environment.secrets_ini_path} is empty or invalid."
+            )
         self.logger_container = LoggerContainer(environment=self.environment)
 
         self.repo_container = RepoContainer(

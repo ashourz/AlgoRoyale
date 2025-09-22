@@ -50,7 +50,7 @@ class LedgerServiceContainer:
             logger=self.logger_container.logger(logger_type=LoggerType.TRADE_SERVICE),
             user_id=self.config["db_user"]["id"],
             account_id=self.config["db_user"]["account_id"],
-            days_to_settle=self.config.get("tradeing", {}).get("days_to_settle"),
+            days_to_settle=int(self.config["trading"]["days_to_settle"]),
         )
 
         self.positions_service = PositionsService(

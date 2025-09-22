@@ -38,7 +38,7 @@ class OrderGeneratorServiceContainer:
             logger=self.logger_container.logger(
                 logger_type=LoggerType.MARKET_DATA_RAW_STREAMER
             ),
-            is_live=self.config["environment"]["is_live"],
+            is_live=bool(self.config["environment"]["is_live"]),
         )
 
         self.enriched_data_streamer = MarketDataEnrichedStreamer(
@@ -92,7 +92,9 @@ class OrderGeneratorServiceContainer:
             logger=self.logger_container.logger(
                 logger_type=LoggerType.SYMBOL_HOLD_SERVICE
             ),
-            post_fill_delay_seconds=self.config["trading"]["post_fill_delay_seconds"],
+            post_fill_delay_seconds=float(
+                self.config["trading"]["post_fill_delay_seconds"]
+            ),
         )
 
         self.order_generator_service = OrderGeneratorService(

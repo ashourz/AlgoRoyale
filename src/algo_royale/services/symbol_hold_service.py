@@ -45,7 +45,7 @@ class SymbolHoldService:
         positions_service: PositionsService,
         trades_service: TradesService,
         logger: Logger,
-        post_fill_delay_seconds: float,  ## TODO: move to config as 60
+        post_fill_delay_seconds: float,
     ):
         self.symbol_service = symbol_service
         self.symbol_hold_tracker = symbol_hold_tracker
