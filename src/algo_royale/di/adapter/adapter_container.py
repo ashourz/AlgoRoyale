@@ -1,5 +1,3 @@
-from dependency_injector import containers, providers
-
 from algo_royale.adapters.market_data.corporate_action_adapter import (
     CorporateActionAdapter,
 )
@@ -20,136 +18,131 @@ from algo_royale.di.adapter.client_container import ClientContainer
 from algo_royale.di.logger_container import LoggerContainer
 from algo_royale.logging.logger_type import LoggerType
 
+# Refactored AdapterContainer to assign sub-containers and adapters as attributes in __init__
 
-class AdapterContainer(containers.DeclarativeContainer):
+
+class AdapterContainer:
     """Adapter Container"""
 
-    config = providers.Configuration()
-    secrets = providers.Configuration()
-    logger_container: LoggerContainer = providers.DependenciesContainer()
+    def __init__(self, config, secrets, logger_container: LoggerContainer):
+        self.config = config
+        self.secrets = secrets
+        self.logger_container = logger_container
 
-    client_container = providers.Container(
-        ClientContainer,
-        config=config,
-        secrets=secrets,
-        logger_container=logger_container,
-    )
+        # REPOS (from RepoContainer)
+        from algo_royale.di.repo.repo_container import RepoContainer
 
-    ## MARKET DATA ADAPTERS
-    corporate_action_adapter = providers.Singleton(
-        CorporateActionAdapter,
-        client=client_container.alpaca_corporate_action_client,
-        logger=providers.Factory(
-            logger_container.logger, logger_type=LoggerType.CORPORATE_ACTION_ADAPTER
-        ),
-    )
+        self.repo_container = RepoContainer(
+            config=self.config,
+            secrets=self.secrets,
+            logger_container=self.logger_container,
+        )
+        self.enriched_data_repo = self.repo_container.enriched_data_repo()
 
-    news_adapter = providers.Singleton(
-        NewsAdapter,
-        client=client_container.alpaca_news_client,
-        logger=providers.Factory(
-            logger_container.logger, logger_type=LoggerType.NEWS_ADAPTER
-        ),
-    )
+        # Initialize client_container as an attribute
+        self.client_container = ClientContainer(
+            config=self.config,
+            secrets=self.secrets,
+            logger_container=self.logger_container,
+        )
 
-    quote_adapter = providers.Singleton(
-        QuoteAdapter,
-        client=client_container.alpaca_stock_client,
-        logger=providers.Factory(
-            logger_container.logger,
-            logger_type=LoggerType.QUOTE_ADAPTER,
-        ),
-    )
+        # MARKET DATA ADAPTERS
+        self.corporate_action_adapter = CorporateActionAdapter(
+            client=self.client_container.alpaca_corporate_action_client,
+            logger=self.logger_container.logger(
+                logger_type=LoggerType.CORPORATE_ACTION_ADAPTER
+            ),
+        )
 
-    screener_adapter = providers.Singleton(
-        ScreenerAdapter,
-        client=client_container.alpaca_screener_client,
-        logger=providers.Factory(
-            logger_container.logger, logger_type=LoggerType.SCREENER_ADAPTER
-        ),
-    )
+        self.news_adapter = NewsAdapter(
+            client=self.client_container.alpaca_news_client,
+            logger=self.logger_container.logger(logger_type=LoggerType.NEWS_ADAPTER),
+        )
 
-    stream_adapter = providers.Singleton(
-        StreamAdapter,
-        stream_client=client_container.alpaca_stream_client,
-        logger=providers.Factory(
-            logger_container.logger, logger_type=LoggerType.STREAM_ADAPTER
-        ),
-    )
+        self.quote_adapter = QuoteAdapter(
+            alpaca_stock_client=self.client_container.alpaca_stock_client,
+            logger=self.logger_container.logger(logger_type=LoggerType.QUOTE_ADAPTER),
+        )
 
-    ## TRADE ADAPTERS
-    account_adapter = providers.Singleton(
-        AccountAdapter,
-        client=client_container.alpaca_account_client,
-        logger=providers.Factory(
-            logger_container.logger,
-            logger_type=LoggerType.ACCOUNT_ADAPTER,
-        ),
-    )
+        self.screener_adapter = ScreenerAdapter(
+            client=self.client_container.alpaca_screener_client,
+            logger=self.logger_container.logger(
+                logger_type=LoggerType.SCREENER_ADAPTER
+            ),
+        )
 
-    assets_adapter = providers.Singleton(
-        AssetsAdapter,
-        client=client_container.alpaca_assets_client,
-        logger=providers.Factory(
-            logger_container.logger,
-            logger_type=LoggerType.ASSETS_ADAPTER,
-        ),
-    )
+        self.stream_adapter = StreamAdapter(
+            stream_client=self.client_container.alpaca_stream_client,
+            logger=self.logger_container.logger(logger_type=LoggerType.STREAM_ADAPTER),
+        )
 
-    calendar_adapter = providers.Singleton(
-        CalendarAdapter,
-        client=client_container.alpaca_calendar_client,
-        logger=providers.Factory(
-            logger_container.logger,
-            logger_type=LoggerType.CALENDAR_ADAPTER,
-        ),
-    )
+        # TRADE ADAPTERS
 
-    clock_adapter = providers.Singleton(
-        ClockAdapter,
-        client=client_container.alpaca_clock_client,
-        logger=providers.Factory(
-            logger_container.logger,
-            logger_type=LoggerType.CLOCK_ADAPTER,
-        ),
-    )
+        self.account_adapter = AccountAdapter(
+            client=self.client_container.alpaca_account_client,
+            logger=self.logger_container.logger(logger_type=LoggerType.ACCOUNT_ADAPTER),
+        )
 
-    order_stream_adapter = providers.Singleton(
-        OrderStreamAdapter,
-        order_stream_client=client_container.alpaca_order_stream_client,
-        logger=providers.Factory(
-            logger_container.logger, logger_type=LoggerType.ORDER_STREAM_ADAPTER
-        ),
-    )
+        # AccountCashAdapter wiring
+        from algo_royale.adapters.account_cash_adapter import AccountCashAdapter
 
-    orders_adapter = providers.Singleton(
-        OrdersAdapter,
-        client=client_container.alpaca_orders_client,
-        logger=providers.Factory(
-            logger_container.logger, logger_type=LoggerType.ORDERS_ADAPTER
-        ),
-    )
+        self.account_cash_adapter = AccountCashAdapter(
+            account_adapter=self.account_adapter,
+            logger=self.logger_container.logger(logger_type=LoggerType.ACCOUNT_ADAPTER),
+        )
 
-    portfolio_adapter = providers.Singleton(
-        PortfolioAdapter,
-        client=client_container.alpaca_portfolio_client,
-        logger=providers.Factory(
-            logger_container.logger, logger_type=LoggerType.PORTFOLIO_ADAPTER
-        ),
-    )
+        self.assets_adapter = AssetsAdapter(
+            assets_client=self.client_container.alpaca_assets_client,
+            logger=self.logger_container.logger(logger_type=LoggerType.ASSETS_ADAPTER),
+        )
 
-    positions_adapter = providers.Singleton(
-        PositionsAdapter,
-        client=client_container.alpaca_positions_client,
-        logger=providers.Factory(
-            logger_container.logger, logger_type=LoggerType.POSITIONS_ADAPTER
-        ),
-    )
+        self.calendar_adapter = CalendarAdapter(
+            calendar_client=self.client_container.alpaca_calendar_client,
+            logger=self.logger_container.logger(
+                logger_type=LoggerType.CALENDAR_ADAPTER
+            ),
+        )
 
-    watchlist_adapter = providers.Singleton(
-        WatchlistAdapter,
-        client=client_container.alpaca_watchlist_client,
-        logger=providers.Factory(
-            logger_container.logger, logger_type=LoggerType.WATCHLIST_ADAPTER
-        ),
-    )
+        self.clock_adapter = ClockAdapter(
+            clock_client=self.client_container.alpaca_clock_client,
+            logger=self.logger_container.logger(logger_type=LoggerType.CLOCK_ADAPTER),
+        )
+
+        self.order_stream_adapter = OrderStreamAdapter(
+            order_stream_client=self.client_container.alpaca_order_stream_client,
+            logger=self.logger_container.logger(
+                logger_type=LoggerType.ORDER_STREAM_ADAPTER
+            ),
+        )
+
+        self.orders_adapter = OrdersAdapter(
+            client=self.client_container.alpaca_orders_client,
+            logger=self.logger_container.logger(logger_type=LoggerType.ORDERS_ADAPTER),
+        )
+
+        # Alias for compatibility with code expecting order_adapter
+        self.order_adapter = self.orders_adapter
+
+        # Alias for compatibility with code expecting order_adapter
+        self.order_adapter = self.orders_adapter
+
+        self.portfolio_adapter = PortfolioAdapter(
+            client=self.client_container.alpaca_portfolio_client,
+            logger=self.logger_container.logger(
+                logger_type=LoggerType.PORTFOLIO_ADAPTER
+            ),
+        )
+
+        self.positions_adapter = PositionsAdapter(
+            client=self.client_container.alpaca_positions_client,
+            logger=self.logger_container.logger(
+                logger_type=LoggerType.POSITIONS_ADAPTER
+            ),
+        )
+
+        self.watchlist_adapter = WatchlistAdapter(
+            client=self.client_container.alpaca_watchlist_client,
+            logger=self.logger_container.logger(
+                logger_type=LoggerType.WATCHLIST_ADAPTER
+            ),
+        )

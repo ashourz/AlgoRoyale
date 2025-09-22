@@ -1,4 +1,4 @@
-from dependency_injector import containers, providers
+import configparser
 
 from algo_royale.di.adapter.adapter_container import AdapterContainer
 from algo_royale.di.backtest.backtest_pipeline_container import (
@@ -14,65 +14,57 @@ from algo_royale.di.trading.trading_container import TradingContainer
 from algo_royale.logging.logger_env import ApplicationEnv
 from algo_royale.logging.logger_type import LoggerType
 from algo_royale.services.clock_service import ClockService
-from algo_royale.utils.path_utils import get_project_root
 
 
-class ApplicationContainer(containers.DynamicContainer):
-    def __init__(self, environment=ApplicationEnv):
-        super().__init__()
-        self.environment = providers.Object(environment)
-        self.config = providers.Configuration()
-        self.secrets = providers.Configuration()
+class ApplicationContainer:
+    def __init__(self, environment: ApplicationEnv):
+        self.environment = environment
 
-        self.logger_container = providers.Container(
-            LoggerContainer,
-            environment=self.environment,
-        )
+        # Load config and secrets as dicts
+        config_parser = configparser.ConfigParser()
+        config_parser.read(self.environment.config_ini_path)
+        self.config = self._to_dict(config_parser)
 
-        self.repo_container = providers.Container(
-            RepoContainer,
+        secrets_parser = configparser.ConfigParser()
+        secrets_parser.read(self.environment.secrets_ini_path)
+        self.secrets = self._to_dict(secrets_parser)
+
+        self.logger_container = LoggerContainer(environment=self.environment)
+
+        self.repo_container = RepoContainer(
             config=self.config,
             secrets=self.secrets,
             logger_container=self.logger_container,
         )
 
-        self.adapter_container = providers.Container(
-            AdapterContainer,
+        self.adapter_container = AdapterContainer(
             config=self.config,
             secrets=self.secrets,
             logger_container=self.logger_container,
         )
 
-        self.clock_service = providers.Singleton(
-            ClockService,
+        self.clock_service = ClockService(
             clock_adapter=self.adapter_container.clock_adapter,
-            logger=providers.Factory(
-                self.logger_container.logger,
-                logger_type=LoggerType.CLOCK_SERVICE,
-            ),
+            logger=self.logger_container.logger(logger_type=LoggerType.CLOCK_SERVICE),
         )
 
-        self.stage_data_container = providers.Container(
-            StageDataContainer,
+        self.stage_data_container = StageDataContainer(
             config=self.config,
             logger_container=self.logger_container,
             repo_container=self.repo_container,
         )
 
-        self.factory_container = providers.Container(
-            FactoryContainer,
+        self.factory_container = FactoryContainer(
             config=self.config,
             logger_container=self.logger_container,
         )
 
-        self.feature_engineering_container = providers.Container(
-            FeatureEngineeringContainer,
+        self.feature_engineering_container = FeatureEngineeringContainer(
             config=self.config,
             logger_container=self.logger_container,
         )
 
-        self.backtest_pipeline_container = providers.Container(
-            BacktestPipelineContainer,
+        self.backtest_pipeline_container = BacktestPipelineContainer(
             config=self.config,
             stage_data_container=self.stage_data_container,
             feature_engineering_container=self.feature_engineering_container,
@@ -82,8 +74,7 @@ class ApplicationContainer(containers.DynamicContainer):
             logger_container=self.logger_container,
         )
 
-        self.ledger_service_container = providers.Container(
-            LedgerServiceContainer,
+        self.ledger_service_container = LedgerServiceContainer(
             config=self.config,
             adapter_container=self.adapter_container,
             repo_container=self.repo_container,
@@ -91,8 +82,7 @@ class ApplicationContainer(containers.DynamicContainer):
             clock_service=self.clock_service,
         )
 
-        self.trading_container = providers.Container(
-            TradingContainer,
+        self.trading_container = TradingContainer(
             config=self.config,
             adapter_container=self.adapter_container,
             repo_container=self.repo_container,
@@ -104,21 +94,9 @@ class ApplicationContainer(containers.DynamicContainer):
             clock_service=self.clock_service,
         )
 
-    def _get_ini_files(self, environment):
-        env = environment.value.lower()
-        if env == ApplicationEnv.PROD_LIVE.value.lower():
-            return "env_config_prod_live.ini", "env_secrets_prod_live.ini"
-        elif env == ApplicationEnv.PROD_PAPER.value.lower():
-            return "env_config_prod_paper.ini", "env_secrets_prod_paper.ini"
-        elif env == ApplicationEnv.DEV_INTEGRATION.value.lower():
-            return "env_config_dev_integration.ini", "env_secrets_dev_integration.ini"
-        else:
-            raise ValueError(f"Unsupported environment: {environment}")
-
-    def setup_configs(self):
-        ini_file, secret_file = self._get_ini_files(self.environment())
-        config_dir = get_project_root() / "src/algo_royale/config"
-        ini_file = config_dir / ini_file
-        secret_file = config_dir / secret_file
-        self.config.from_ini(ini_file)
-        self.secrets.from_ini(secret_file)
+    def _to_dict(self, config_parser):
+        # Convert ConfigParser to a nested dict for compatibility
+        result = {}
+        for section in config_parser.sections():
+            result[section] = dict(config_parser.items(section))
+        return result

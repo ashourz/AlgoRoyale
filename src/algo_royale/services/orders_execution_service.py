@@ -13,7 +13,6 @@ from algo_royale.logging.loggable import Loggable
 from algo_royale.services.ledger_service import LedgerService
 from algo_royale.services.order_generator_service import OrderGeneratorService
 from algo_royale.services.symbol_hold_service import SymbolHoldService
-from algo_royale.services.trades_service import TradesService
 
 
 ##TODO: add days to settle to config
@@ -29,7 +28,7 @@ class OrderExecutionService:
         self.symbol_hold_service = symbol_hold_service
         self.symbol_holds = QueuedAsyncSymbolHold(logger=logger)
         self.order_generator_service = order_generator_service
-        self.trade_service = TradesService(logger=logger)
+        self.trades_service = ledger_service.trades_service
         self.logger = logger
         self.symbol_order_subscribers: dict[str, list[AsyncSubscriber]] = {}
         self._executor_on: bool = False

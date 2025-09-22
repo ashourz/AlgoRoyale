@@ -1,32 +1,31 @@
-from dependency_injector import containers, providers
-
 from algo_royale.clients.db.database import Database
 from algo_royale.di.logger_container import LoggerContainer
 from algo_royale.logging.logger_type import LoggerType
 
 
-class DBContainer(containers.DeclarativeContainer):
-    config = providers.Configuration()
-    secrets = providers.Configuration()
-    logger_container: LoggerContainer = providers.DependenciesContainer()
-    logger = providers.Factory(logger_container.logger, logger_type=LoggerType.DATABASE)
+class DBContainer:
+    def __init__(self, config, secrets, logger_container: LoggerContainer):
+        self.config = config
+        self.secrets = secrets
+        self.logger_container = logger_container
+        self.logger = self.logger_container.logger(logger_type=LoggerType.DATABASE)
+        self.database = Database(
+            db_name=self.config.db_connection.db_name,
+            db_user=self.config.db_connection.db_user,
+            db_password=self.secrets.db_connection.password,
+            db_host=self.config.db_connection.host,
+            db_port=self.config.db_connection.port,
+            logger=self.logger,
+        )
 
-    database = providers.Singleton(
-        Database,
-        db_name=config.db_connection.db_name,
-        db_user=config.db_connection.db_user,
-        db_password=secrets.db_connection.password,
-        db_host=config.db_connection.host,
-        db_port=config.db_connection.port,
-        logger=logger,
-    )
-
-    db_connection = providers.Callable(lambda db: db_connection_context(), db=database)
+    @property
+    def db_connection(self):
+        return self.database.connection_context()
 
     def run_migrations(self):
         from algo_royale.clients.db.migrations import migration_manager
 
-        db = self.database()
+        db = self.database
         conn = db.connect(create_if_not_exists=True)
-        migration_manager.apply_migrations(conn, logger=self.logger())
+        migration_manager.apply_migrations(conn, logger=self.logger)
         conn.close()

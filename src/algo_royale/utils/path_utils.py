@@ -12,3 +12,8 @@ def get_project_root() -> Path:
                 "Could not find pyproject.toml in any parent directory!"
             )
         current = current.parent  # Go up one level
+
+
+def get_config_dir() -> Path:
+    """Get the config directory path."""
+    return get_project_root() / "src/algo_royale/config"

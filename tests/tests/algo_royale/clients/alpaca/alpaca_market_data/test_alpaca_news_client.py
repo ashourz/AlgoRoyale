@@ -3,6 +3,9 @@
 
 import pytest
 
+from algo_royale.clients.alpaca.alpaca_market_data.alpaca_news_client import (
+    AlpacaNewsClient,
+)
 from algo_royale.models.alpaca_market_data.alpaca_news import News, NewsResponse
 from tests.mocks.clients.alpaca.mock_alpaca_news_client import MockAlpacaNewsClient
 from tests.mocks.mock_loggable import MockLoggable
@@ -19,10 +22,10 @@ async def alpaca_client():
 
 @pytest.mark.asyncio
 class TestAlpacaNewsClient:
-    async def test_fetch_news(self, alpaca_client):
+    async def test_fetch_news(self, alpaca_client: AlpacaNewsClient):
         """Test fetching news data from Alpaca using a mock response."""
         symbols = ["AAPL"]
-        result = await alpaca_client.fetch_news(
+        result = await alpaca_client.async_fetch_news(
             symbols=symbols,
             # start_date=start_date,
             # end_date=end_date

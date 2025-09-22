@@ -1,5 +1,3 @@
-from dependency_injector import containers, providers
-
 from algo_royale.clients.db.dao.data_stream_session_dao import DataStreamSessionDAO
 from algo_royale.clients.db.dao.enriched_data_dao import EnrichedDataDAO
 from algo_royale.clients.db.dao.order_dao import OrderDAO
@@ -9,46 +7,42 @@ from algo_royale.di.repo.db_container import DBContainer
 from algo_royale.logging.logger_type import LoggerType
 
 
-class DAOContainer(containers.DeclarativeContainer):
+class DAOContainer:
     """Data Access Object (DAO) Container"""
 
-    config = providers.Configuration()
-    db_container: DBContainer = providers.DependenciesContainer()
-    logger_container: LoggerContainer = providers.DependenciesContainer()
+    def __init__(
+        self, config, db_container: DBContainer, logger_container: LoggerContainer
+    ):
+        self.config = config
+        self.db_container = db_container
+        self.logger_container = logger_container
 
-    sql_dir = config.db_paths.sql_dir
-    data_stream_session_dao = providers.Singleton(
-        DataStreamSessionDAO,
-        connection=db_container.db_connection,
-        sql_dir=sql_dir,
-        logger=providers.Factory(
-            logger_container.logger, logger_type=LoggerType.DATA_STREAM_SESSION_DAO
-        ),
-    )
+        self.sql_dir = self.config.db_paths.sql_dir
 
-    enriched_data_dao = providers.Singleton(
-        EnrichedDataDAO,
-        connection=db_container.db_connection,
-        sql_dir=sql_dir,
-        logger=providers.Factory(
-            logger_container.logger, logger_type=LoggerType.ENRICHED_DATA_DAO
-        ),
-    )
+        self.data_stream_session_dao = DataStreamSessionDAO(
+            connection=self.db_container.db_connection,
+            sql_dir=self.sql_dir,
+            logger=self.logger_container.logger(
+                logger_type=LoggerType.DATA_STREAM_SESSION_DAO
+            ),
+        )
 
-    trade_dao = providers.Singleton(
-        TradeDAO,
-        connection=db_container.db_connection,
-        sql_dir=sql_dir,
-        logger=providers.Factory(
-            logger_container.logger, logger_type=LoggerType.TRADE_DAO
-        ),
-    )
+        self.enriched_data_dao = EnrichedDataDAO(
+            connection=self.db_container.db_connection,
+            sql_dir=self.sql_dir,
+            logger=self.logger_container.logger(
+                logger_type=LoggerType.ENRICHED_DATA_DAO
+            ),
+        )
 
-    order_dao = providers.Singleton(
-        OrderDAO,
-        connection=db_container.db_connection,
-        sql_dir=sql_dir,
-        logger=providers.Factory(
-            logger_container.logger, logger_type=LoggerType.ORDER_DAO
-        ),
-    )
+        self.trade_dao = TradeDAO(
+            connection=self.db_container.db_connection,
+            sql_dir=self.sql_dir,
+            logger=self.logger_container.logger(logger_type=LoggerType.TRADE_DAO),
+        )
+
+        self.order_dao = OrderDAO(
+            connection=self.db_container.db_connection,
+            sql_dir=self.sql_dir,
+            logger=self.logger_container.logger(logger_type=LoggerType.ORDER_DAO),
+        )

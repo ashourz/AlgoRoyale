@@ -1,5 +1,3 @@
-from dependency_injector import containers, providers
-
 from algo_royale.logging.env_logger_type_dev_integration import (
     EnvLoggerTypeDevIntegration,
 )
@@ -12,9 +10,10 @@ from algo_royale.logging.logger_factory import LoggerFactory
 from algo_royale.logging.logger_type import LoggerType
 
 
-class LoggerContainer(containers.DeclarativeContainer):
-    environment = providers.Object(ApplicationEnv)
-    logger_factory = providers.Singleton(LoggerFactory, environment=environment)
+class LoggerContainer:
+    def __init__(self, environment: ApplicationEnv):
+        self.environment = environment
+        self.logger_factory = LoggerFactory(environment=environment)
 
     @staticmethod
     def get_logger(environment, logger_factory, logger_type: LoggerType):
@@ -32,11 +31,8 @@ class LoggerContainer(containers.DeclarativeContainer):
         base_logger = logger_factory.get_base_logger()
         return TaggableLogger(base_logger=base_logger, logger_type=env_logger_type)
 
-    logger = providers.DelegatedFactory(
-        get_logger,
-        environment=environment,
-        logger_factory=logger_factory,
-    )
+    def logger(self, logger_type: LoggerType):
+        return self.get_logger(self.environment, self.logger_factory, logger_type)
 
 
 dev_unit_logger_container = LoggerContainer(environment=ApplicationEnv.DEV_UNIT)

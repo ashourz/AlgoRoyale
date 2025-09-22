@@ -24,7 +24,7 @@ class StreamSignalRosterObject:
         self.logger = logger
         self._pubsub = AsyncPubSub()
         self._queued_symbols_list = QueuedAsyncSymbolList(symbols=initial_symbols)
-        self._initialize_signal_data(self, symbols=initial_symbols)
+        self._initialize_signal_data(symbols=initial_symbols)
 
     def _initialize_signal_data(self, symbols: list[str]):
         """

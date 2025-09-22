@@ -4,6 +4,10 @@ from algo_royale.application.utils.queued_async_update_object import (
 
 
 class QueuedAsyncSymbolList(QueuedAsyncUpdateObject):
+    def _type_hierarchy(self):
+        # No type hierarchy needed for symbol list, return empty dict
+        return {}
+
     """
     Represents a queued async update object for a list of signal data payloads.
     This is used to process incoming signal data and generate signals for multiple symbols.

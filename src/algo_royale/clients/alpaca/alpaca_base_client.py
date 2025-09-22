@@ -40,6 +40,21 @@ class AlpacaBaseClient(ABC):
         reconnect_delay: int = 5,
         keep_alive_timeout: int = 20,
     ):
+        # Validate critical config values
+        missing = []
+        if not api_key:
+            missing.append("api_key")
+        if not api_secret:
+            missing.append("api_secret")
+        if not api_key_header:
+            missing.append("api_key_header")
+        if not api_secret_header:
+            missing.append("api_secret_header")
+        if missing:
+            raise ValueError(
+                f"Missing required Alpaca config values: {', '.join(missing)}. Check your INI files and DI wiring."
+            )
+
         # Instance-specific initialization
         self.base_url = base_url
         self.api_key = api_key

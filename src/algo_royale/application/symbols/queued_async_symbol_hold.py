@@ -5,6 +5,10 @@ from algo_royale.application.utils.queued_async_update_object import (
 
 
 class QueuedAsyncSymbolHold(QueuedAsyncUpdateObject):
+    def _type_hierarchy(self):
+        # No type hierarchy needed for symbol hold, return empty dict
+        return {}
+
     """
     Represents a queued async update object for symbol holds.
     This is used to process incoming symbol hold updates.

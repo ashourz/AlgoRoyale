@@ -1,5 +1,3 @@
-from dependency_injector import containers, providers
-
 from algo_royale.di.logger_container import LoggerContainer
 from algo_royale.di.repo.dao_container import DAOContainer
 from algo_royale.di.repo.db_container import DBContainer
@@ -11,70 +9,60 @@ from algo_royale.repo.trade_repo import TradeRepo
 from algo_royale.repo.watchlist_repo import WatchlistRepo
 
 
-class RepoContainer(containers.DeclarativeContainer):
+class RepoContainer:
     """Repository Container"""
 
-    config = providers.Configuration()
-    secrets = providers.Configuration()
-    logger_container: LoggerContainer = providers.DependenciesContainer()
-    db_container = providers.Container(
-        DBContainer,
-        config=config,
-        secrets=secrets,
-        logger_container=logger_container,
-    )
+    def __init__(self, config, secrets, logger_container: LoggerContainer):
+        self.config = config
+        self.secrets = secrets
+        self.logger_container = logger_container
 
-    dao_container = providers.Container(
-        DAOContainer,
-        config=config,
-        db_container=db_container,
-        logger_container=logger_container,
-    )
+        # Instantiate DBContainer and DAOContainer as regular classes (anticipating their refactor)
+        self.db_container = DBContainer(
+            config=self.config,
+            secrets=self.secrets,
+            logger_container=self.logger_container,
+        )
 
-    data_stream_session_repo = providers.Singleton(
-        DataStreamSessionRepo,
-        dao=dao_container.data_stream_session_dao,
-        logger=providers.Factory(
-            logger_container.logger, logger_type=LoggerType.DATA_STREAM_SESSION_REPO
-        ),
-        user_id=config.db_user.id,
-        account_id=config.db_user.account_id,
-    )
+        self.dao_container = DAOContainer(
+            config=self.config,
+            db_container=self.db_container,
+            logger_container=self.logger_container,
+        )
 
-    enriched_data_repo = providers.Singleton(
-        EnrichedDataRepo,
-        dao=dao_container.enriched_data_dao,
-        logger=providers.Factory(
-            logger_container.logger, logger_type=LoggerType.ENRICHED_DATA_REPO
-        ),
-        user_id=config.db_user.id,
-        account_id=config.db_user.account_id,
-    )
+        self.data_stream_session_repo = DataStreamSessionRepo(
+            dao=self.dao_container.data_stream_session_dao,
+            logger=self.logger_container.logger(
+                logger_type=LoggerType.DATA_STREAM_SESSION_REPO
+            ),
+            user_id=self.config.db_user.id,
+            account_id=self.config.db_user.account_id,
+        )
 
-    trade_repo = providers.Singleton(
-        TradeRepo,
-        dao=dao_container.trade_dao,
-        logger=providers.Factory(
-            logger_container.logger, logger_type=LoggerType.TRADE_REPO
-        ),
-        user_id=config.db_user.id,
-        account_id=config.db_user.account_id,
-    )
+        self.enriched_data_repo = EnrichedDataRepo(
+            dao=self.dao_container.enriched_data_dao,
+            logger=self.logger_container.logger(
+                logger_type=LoggerType.ENRICHED_DATA_REPO
+            ),
+            user_id=self.config.db_user.id,
+            account_id=self.config.db_user.account_id,
+        )
 
-    order_repo = providers.Singleton(
-        OrderRepo,
-        dao=dao_container.order_dao,
-        logger=providers.Factory(
-            logger_container.logger, logger_type=LoggerType.ORDER_REPO
-        ),
-        user_id=config.db_user.id,
-        account_id=config.db_user.account_id,
-    )
+        self.trade_repo = TradeRepo(
+            dao=self.dao_container.trade_dao,
+            logger=self.logger_container.logger(logger_type=LoggerType.TRADE_REPO),
+            user_id=self.config.db_user.id,
+            account_id=self.config.db_user.account_id,
+        )
 
-    watchlist_repo = providers.Singleton(
-        WatchlistRepo,
-        watchlist_path=config.backtester_paths.watchlist_path,
-        logger=providers.Factory(
-            logger_container.logger, logger_type=LoggerType.WATCHLIST_REPO
-        ),
-    )
+        self.order_repo = OrderRepo(
+            dao=self.dao_container.order_dao,
+            logger=self.logger_container.logger(logger_type=LoggerType.ORDER_REPO),
+            user_id=self.config.db_user.id,
+            account_id=self.config.db_user.account_id,
+        )
+
+        self.watchlist_repo = WatchlistRepo(
+            watchlist_path=self.config.backtester_paths.watchlist_path,
+            logger=self.logger_container.logger(logger_type=LoggerType.WATCHLIST_REPO),
+        )
