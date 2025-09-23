@@ -38,7 +38,7 @@ class TestOrdersAdapter:
 
     async def test_delete_order_by_client_order_id(self, orders_adapter):
         # Should not raise
-        await orders_adapter.delete_order_by_client_order_id("client_order_id")
+        await orders_adapter.delete_order_by_id("client_order_id")
 
     async def test_delete_all_orders(self, orders_adapter):
         result = await orders_adapter.delete_all_orders()
