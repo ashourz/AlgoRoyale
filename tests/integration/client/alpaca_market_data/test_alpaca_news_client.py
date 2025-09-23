@@ -1,6 +1,5 @@
 # src: tests/integration/client/test_alpaca_client.py
 
-import logging
 from datetime import datetime, timezone
 
 import pytest
@@ -12,18 +11,20 @@ from algo_royale.di.application_container import ApplicationContainer
 from algo_royale.logging.logger_env import ApplicationEnv
 from algo_royale.models.alpaca_market_data.alpaca_news import News, NewsResponse
 
-# Set up logging (prints to console)
-logging.basicConfig(level=logging.DEBUG)
-logger = logging.getLogger(__name__)
 
-
-@pytest.fixture(scope="class")
-def alpaca_client():
+@pytest.fixture
+async def alpaca_client():
     application = ApplicationContainer(environment=ApplicationEnv.DEV_INTEGRATION)
     adapter = application.adapter_container
     client_container = adapter.client_container
     client = client_container.alpaca_news_client
-    return client
+    try:
+        yield client
+    finally:
+        if hasattr(client, "aclose"):
+            await client.aclose()
+        elif hasattr(client, "close"):
+            client.close()
 
 
 @pytest.mark.asyncio
