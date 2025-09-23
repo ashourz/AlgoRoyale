@@ -28,6 +28,6 @@ class TestAlpacaPortfolioClientIntegration:
     async def test_get_portfolio_performance(
         self, alpaca_client: AlpacaPortfolioClient
     ):
-        response = await alpaca_client.get_portfolio_performance()
+        response = await alpaca_client.fetch_portfolio_history()
         assert response is not None
         assert isinstance(response, PortfolioPerformance)

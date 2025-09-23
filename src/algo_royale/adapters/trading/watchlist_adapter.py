@@ -26,7 +26,7 @@ class WatchlistAdapter:
         Returns:
             - WatchlistListResponse object or None if no response.
         """
-        return await self.client.get_all_watchlists()
+        return await self.client.fetch_all_watchlists()
 
     async def get_watchlist_by_id(self, watchlist_id: str) -> Optional[Watchlist]:
         """
@@ -38,7 +38,7 @@ class WatchlistAdapter:
         Returns:
             - Watchlist object or None if no response.
         """
-        return await self.client.get_watchlist_by_id(watchlist_id)
+        return await self.client.fetch_watchlist_by_id(watchlist_id)
 
     async def get_watchlist_by_name(self, name: str) -> Optional[Watchlist]:
         """
@@ -50,7 +50,7 @@ class WatchlistAdapter:
         Returns:
             - Watchlist object or None if no response.
         """
-        return await self.client.get_watchlist_by_name(name)
+        return await self.client.fetch_watchlist_by_name(name)
 
     async def create_watchlist(
         self, name: str, symbols: Optional[list[str]] = None

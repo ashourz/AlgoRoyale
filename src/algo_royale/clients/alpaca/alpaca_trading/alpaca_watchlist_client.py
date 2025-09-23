@@ -47,7 +47,7 @@ class AlpacaWatchlistClient(AlpacaBaseClient):
         """Subclasses must define a name for logging and ID purposes"""
         return "AlpacaWatchlistClient"
 
-    async def get_all_watchlists(self) -> Optional[WatchlistListResponse]:
+    async def fetch_all_watchlists(self) -> Optional[WatchlistListResponse]:
         """
         Gets all watchlists for an account.
         """
@@ -58,7 +58,7 @@ class AlpacaWatchlistClient(AlpacaBaseClient):
 
         return WatchlistListResponse.from_raw(response)
 
-    async def get_watchlist_by_id(
+    async def fetch_watchlist_by_id(
         self,
         watchlist_id: str,
     ) -> Optional[Watchlist]:
@@ -98,7 +98,7 @@ class AlpacaWatchlistClient(AlpacaBaseClient):
             )
             raise AlpacaWatchlistNotFoundException(e.message)
 
-    async def get_watchlist_by_name(
+    async def fetch_watchlist_by_name(
         self,
         name: str,
     ) -> Optional[Watchlist]:

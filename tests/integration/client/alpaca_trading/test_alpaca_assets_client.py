@@ -26,12 +26,14 @@ async def alpaca_client():
 @pytest.mark.asyncio
 class TestAlpacaAssetsClientIntegration:
     async def test_get_assets(self, alpaca_client: AlpacaAssetsClient):
-        response = await alpaca_client.get_assets()
+        response = await alpaca_client.fetch_assets()
         assert response is not None
         assert isinstance(response, list)
         if response:
             assert isinstance(response[0], Asset)
 
     async def test_get_asset_by_symbol(self, alpaca_client: AlpacaAssetsClient):
-        response = await alpaca_client.get_asset_by_symbol("AAPL")
+        response = await alpaca_client.fetch_asset_by_symbol_or_id(
+            symbol_or_asset_id="AAPL"
+        )
         assert response is None or isinstance(response, Asset)

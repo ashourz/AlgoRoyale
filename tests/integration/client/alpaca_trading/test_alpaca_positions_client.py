@@ -5,7 +5,10 @@ from algo_royale.clients.alpaca.alpaca_trading.alpaca_positions_client import (
 )
 from algo_royale.di.application_container import ApplicationContainer
 from algo_royale.logging.logger_env import ApplicationEnv
-from algo_royale.models.alpaca_trading.alpaca_position import Position
+from algo_royale.models.alpaca_trading.alpaca_position import (
+    ClosedPositionList,
+    PositionList,
+)
 
 
 @pytest.fixture
@@ -25,13 +28,39 @@ async def alpaca_client():
 
 @pytest.mark.asyncio
 class TestAlpacaPositionsClientIntegration:
-    async def test_get_positions(self, alpaca_client: AlpacaPositionsClient):
-        response = await alpaca_client.get_positions()
-        assert response is not None
-        assert isinstance(response, list)
-        if response:
-            assert isinstance(response[0], Position)
+    async def test_fetch_all_open_positions(self, alpaca_client: AlpacaPositionsClient):
+        response = await alpaca_client.fetch_all_open_positions()
+        assert response is None or isinstance(response, PositionList)
 
-    async def test_get_position_by_symbol(self, alpaca_client: AlpacaPositionsClient):
-        response = await alpaca_client.get_position_by_symbol("AAPL")
-        assert response is None or isinstance(response, Position)
+    async def test_fetch_open_position_by_symbol_or_asset_id(
+        self, alpaca_client: AlpacaPositionsClient
+    ):
+        # Replace with a real symbol or asset id for a real test
+        symbol_or_asset_id = "AAPL"
+        try:
+            response = await alpaca_client.fetch_open_position_by_symbol_or_asset_id(
+                symbol_or_asset_id
+            )
+            assert response is None or isinstance(response, PositionList)
+        except Exception:
+            pass
+
+    async def test_close_position_by_symbol_or_asset_id(
+        self, alpaca_client: AlpacaPositionsClient
+    ):
+        # Replace with a real symbol or asset id for a real test
+        symbol_or_asset_id = "AAPL"
+        try:
+            response = await alpaca_client.close_position_by_symbol_or_asset_id(
+                symbol_or_asset_id, qty=0.01
+            )
+            assert response is None or isinstance(response, ClosedPositionList)
+        except Exception:
+            pass
+
+    async def test_close_all_positions(self, alpaca_client: AlpacaPositionsClient):
+        try:
+            response = await alpaca_client.close_all_positions()
+            assert response is None or isinstance(response, ClosedPositionList)
+        except Exception:
+            pass

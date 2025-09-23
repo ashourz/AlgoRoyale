@@ -26,7 +26,7 @@ async def alpaca_client():
 @pytest.mark.asyncio
 class TestAlpacaCalendarClientIntegration:
     async def test_get_calendar(self, alpaca_client: AlpacaCalendarClient):
-        response = await alpaca_client.get_calendar()
+        response = await alpaca_client.fetch_calendar()
         assert response is not None
         assert isinstance(response, CalendarList)
         if response.calendars:

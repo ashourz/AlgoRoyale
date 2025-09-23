@@ -64,15 +64,15 @@ class MockAlpacaWatchlistClient(AlpacaWatchlistClient):
         self._watchlists_by_name[wl.name] = wl
         return copy.deepcopy(wl)
 
-    async def get_watchlist_by_name(self, name):
+    async def fetch_watchlist_by_name(self, name):
         wl = self._watchlists_by_name.get(name)
         return copy.deepcopy(wl) if wl else None
 
-    async def get_watchlist_by_id(self, wid):
+    async def fetch_watchlist_by_id(self, wid):
         wl = self._watchlists_by_id.get(wid)
         return copy.deepcopy(wl) if wl else None
 
-    async def get_all_watchlists(self):
+    async def fetch_all_watchlists(self):
         class Resp:
             watchlists = [copy.deepcopy(wl) for wl in self._watchlists_by_id.values()]
 

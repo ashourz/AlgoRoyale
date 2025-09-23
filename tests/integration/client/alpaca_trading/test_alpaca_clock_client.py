@@ -26,6 +26,6 @@ async def alpaca_client():
 @pytest.mark.asyncio
 class TestAlpacaClockClientIntegration:
     async def test_get_clock(self, alpaca_client: AlpacaClockClient):
-        response = await alpaca_client.get_clock()
+        response = await alpaca_client.fetch_clock()
         assert response is not None
         assert isinstance(response, Clock)
