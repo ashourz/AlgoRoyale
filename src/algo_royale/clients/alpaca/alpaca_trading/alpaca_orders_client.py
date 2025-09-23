@@ -349,12 +349,12 @@ class AlpacaOrdersClient(AlpacaBaseClient):
 
         return Order.from_raw(response)
 
-    async def delete_order_by_client_order_id(
+    async def delete_order_by_id(
         self,
-        client_order_id: str,
+        order_id: str,
     ):
         """
-        Delete an order by its client_order_id.
+        Delete an order by its order_id.
 
         Returns:
             - None if the order was successfully deleted (204 No Content).
@@ -363,7 +363,7 @@ class AlpacaOrdersClient(AlpacaBaseClient):
         """
         try:
             await self.delete(
-                endpoint=f"orders/{client_order_id}",
+                endpoint=f"orders/{order_id}",
             )
         except UnprocessableOrderException as e:
             self.logger.error(

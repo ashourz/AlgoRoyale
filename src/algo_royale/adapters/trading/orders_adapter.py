@@ -188,18 +188,18 @@ class OrdersAdapter:
             new_client_order_id=new_client_order_id,
         )
 
-    async def delete_order_by_client_order_id(self, client_order_id: str):
+    async def delete_order_by_id(self, order_id: str):
         """
-        Delete an order by its client-order ID.
+        Delete an order by its order ID.
 
         Parameters:
-            - client_order_id (str): The client-assigned order ID.
+            - order_id (str): The order ID.
 
         Returns:
             - None: If the order was successfully deleted.
             - Raises ValueError: If the order status is not cancelable.
         """
-        await self.client.delete_order_by_client_order_id(client_order_id)
+        await self.client.delete_order_by_id(order_id)
 
     async def delete_all_orders(self) -> Optional[DeleteOrdersResponse]:
         """

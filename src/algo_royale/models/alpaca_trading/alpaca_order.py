@@ -195,6 +195,12 @@ class Order(BaseModel):
                 except (TypeError, ValueError):
                     pass  # Ignore conversion error and keep original
 
+        # Ensure qty and filled_qty are never None (default to 0.0)
+        if data.get("qty") is None:
+            data["qty"] = 0.0
+        if data.get("filled_qty") is None:
+            data["filled_qty"] = 0.0
+
         return cls(**data)
 
 

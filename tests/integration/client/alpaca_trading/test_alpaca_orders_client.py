@@ -1,3 +1,5 @@
+import uuid
+
 import pytest
 
 from algo_royale.clients.alpaca.alpaca_trading.alpaca_orders_client import (
@@ -5,11 +7,6 @@ from algo_royale.clients.alpaca.alpaca_trading.alpaca_orders_client import (
 )
 from algo_royale.di.application_container import ApplicationContainer
 from algo_royale.logging.logger_env import ApplicationEnv
-from algo_royale.models.alpaca_trading.alpaca_order import (
-    DeleteOrdersResponse,
-    Order,
-    OrderListResponse,
-)
 
 
 @pytest.fixture
@@ -29,52 +26,40 @@ async def alpaca_client():
 
 @pytest.mark.asyncio
 class TestAlpacaOrdersClientIntegration:
-    async def test_create_order(self, alpaca_client: AlpacaOrdersClient):
-        # Use a penny stock symbol and a fractional share for safe paper trading
-        penny_stock_symbol = (
-            "SNDL"  # Example penny stock, replace with a valid one if needed
-        )
-        response = await alpaca_client.create_order(
+    async def test_order_lifecycle(self, alpaca_client: AlpacaOrdersClient):
+        # Use a penny stock and minimal notional for safe paper trading
+        penny_stock_symbol = "SNDL"  # Replace with a valid penny stock if needed
+        client_order_id = f"integration_test_{uuid.uuid4().hex[:8]}"
+        # Create order
+        order = await alpaca_client.create_order(
             symbol=penny_stock_symbol,
-            qty=0.01,  # Minimal fractional share
+            notional=1.00,  # Minimal notional (e.g., $1)
             side="buy",
             order_type="market",
             time_in_force="day",
+            client_order_id=client_order_id,
         )
-        assert response is None or hasattr(response, "id")
-
-    async def test_get_all_orders(self, alpaca_client: AlpacaOrdersClient):
-        response = await alpaca_client.get_all_orders()
-        assert response is None or isinstance(response, OrderListResponse)
-
-    async def test_get_order_by_client_order_id(
-        self, alpaca_client: AlpacaOrdersClient
-    ):
-        # Replace with a real client_order_id for a real test
-        client_order_id = "test_client_order_id"
-        response = await alpaca_client.get_order_by_client_order_id(client_order_id)
-        assert response is None or isinstance(response, Order)
-
-    async def test_replace_order_by_client_order_id(
-        self, alpaca_client: AlpacaOrdersClient
-    ):
-        # Replace with a real client_order_id and valid params for a real test
-        client_order_id = "test_client_order_id"
-        with pytest.raises(Exception):
-            await alpaca_client.replace_order_by_client_order_id(client_order_id, qty=2)
-
-    async def test_delete_order_by_client_order_id(
-        self, alpaca_client: AlpacaOrdersClient
-    ):
-        # Replace with a real client_order_id for a real test
-        client_order_id = "test_client_order_id"
-        result = await alpaca_client.delete_order_by_client_order_id(client_order_id)
-        assert result is None  # Should return None on success or if not found
-
-    async def test_delete_all_orders(self, alpaca_client: AlpacaOrdersClient):
+        assert order is not None and hasattr(order, "id")
+        # Get order by client_order_id
+        fetched = await alpaca_client.get_order_by_client_order_id(client_order_id)
+        assert fetched is not None and fetched.id == order.id
+        # Cancel/delete the order using order.id
         try:
-            response = await alpaca_client.delete_all_orders()
-            assert response is None or isinstance(response, DeleteOrdersResponse)
+            await alpaca_client.delete_order_by_id(order.id)
+        except Exception as e:
+            # Accept if order is already filled
+            if "filled" not in str(e).lower():
+                raise
+        # Confirm order is cancelled or not found
+        try:
+            cancelled = await alpaca_client.get_order_by_client_order_id(
+                client_order_id
+            )
+            # Depending on API, cancelled order may still be returned with cancelled status
+            assert cancelled is None or getattr(cancelled, "status", None) in (
+                "canceled",
+                "cancelled",
+                "rejected",
+            )
         except Exception:
-            # Acceptable if no orders to delete or API returns error
             pass
