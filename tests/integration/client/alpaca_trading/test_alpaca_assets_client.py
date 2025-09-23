@@ -1,0 +1,37 @@
+import pytest
+
+from algo_royale.clients.alpaca.alpaca_trading.alpaca_assets_client import (
+    AlpacaAssetsClient,
+)
+from algo_royale.di.application_container import ApplicationContainer
+from algo_royale.logging.logger_env import ApplicationEnv
+from algo_royale.models.alpaca_trading.alpaca_asset import Asset
+
+
+@pytest.fixture
+async def alpaca_client():
+    application = ApplicationContainer(environment=ApplicationEnv.DEV_INTEGRATION)
+    adapter = application.adapter_container
+    client_container = adapter.client_container
+    client = client_container.alpaca_assets_client
+    try:
+        yield client
+    finally:
+        if hasattr(client, "aclose"):
+            await client.aclose()
+        elif hasattr(client, "close"):
+            client.close()
+
+
+@pytest.mark.asyncio
+class TestAlpacaAssetsClientIntegration:
+    async def test_get_assets(self, alpaca_client: AlpacaAssetsClient):
+        response = await alpaca_client.get_assets()
+        assert response is not None
+        assert isinstance(response, list)
+        if response:
+            assert isinstance(response[0], Asset)
+
+    async def test_get_asset_by_symbol(self, alpaca_client: AlpacaAssetsClient):
+        response = await alpaca_client.get_asset_by_symbol("AAPL")
+        assert response is None or isinstance(response, Asset)

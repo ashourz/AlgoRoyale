@@ -13,7 +13,7 @@ from algo_royale.models.alpaca_market_data.alpaca_corporate_action import (
 
 
 @pytest.fixture
-async def alpaca_client() -> AlpacaCorporateActionClient:
+async def alpaca_client():
     application = ApplicationContainer(environment=ApplicationEnv.DEV_INTEGRATION)
     adapter = application.adapter_container
     client_container = adapter.client_container
