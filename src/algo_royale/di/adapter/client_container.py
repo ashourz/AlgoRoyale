@@ -248,3 +248,33 @@ class ClientContainer:
             reconnect_delay=int(self.config["alpaca_params"]["reconnect_delay"]),
             keep_alive_timeout=int(self.config["alpaca_params"]["keep_alive_timeout"]),
         )
+
+    def close_all_clients(self):
+        """Close all clients that have a close or aclose method."""
+        try:
+            for client in [
+                self.alpaca_corporate_action_client,
+                self.alpaca_news_client,
+                self.alpaca_screener_client,
+                self.alpaca_stock_client,
+                self.alpaca_stream_client,
+                self.alpaca_account_client,
+                self.alpaca_assets_client,
+                self.alpaca_calendar_client,
+                self.alpaca_clock_client,
+                self.alpaca_orders_client,
+                self.alpaca_portfolio_client,
+                self.alpaca_positions_client,
+                self.alpaca_watchlist_client,
+                self.alpaca_order_stream_client,
+            ]:
+                if hasattr(client, "aclose"):
+                    import asyncio
+
+                    asyncio.run(client.aclose())
+                elif hasattr(client, "close"):
+                    client.close()
+        except Exception as e:
+            self.logger_container.logger(logger_type=LoggerType.CLIENT_CONTAINER).error(
+                f"Error closing clients: {e}"
+            )

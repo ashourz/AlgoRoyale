@@ -146,3 +146,7 @@ class AdapterContainer:
                 logger_type=LoggerType.WATCHLIST_ADAPTER
             ),
         )
+
+    def close(self):
+        """Close resources like database connections."""
+        self.client_container.close_all_clients()

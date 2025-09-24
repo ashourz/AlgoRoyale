@@ -100,6 +100,11 @@ class ApplicationContainer:
             clock_service=self.clock_service,
         )
 
+    def close(self):
+        """Close resources like database connections."""
+        self.repo_container.close()
+        self.adapter_container.close()
+
     def _to_dict(self, config_parser):
         # Convert ConfigParser to a nested dict for compatibility
         result = {}

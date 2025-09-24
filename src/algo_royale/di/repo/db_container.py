@@ -19,13 +19,40 @@ class DBContainer:
         )
 
     @property
-    def db_connection(self):
-        return self.database.connection_context()
+    def db_connection(self, create_if_not_exists=False):
+        try:
+            if (
+                not hasattr(self, "_shared_connection")
+                or self._shared_connection is None
+                or self._shared_connection.closed
+            ):
+                self._shared_connection = self.database.connect(
+                    create_if_not_exists=create_if_not_exists
+                )
+            return self._shared_connection
+        except Exception as e:
+            self.logger.error(f"Error getting DB connection: {e}")
+            raise e
+
+    def close(self):
+        try:
+            if (
+                hasattr(self, "_shared_connection")
+                and self._shared_connection
+                and not self._shared_connection.closed
+            ):
+                self._shared_connection.close()
+        except Exception as e:
+            self.logger.error(f"Error closing DB connection: {e}")
 
     def run_migrations(self):
-        from algo_royale.clients.db.migrations import migration_manager
+        try:
+            from algo_royale.clients.db.migrations import migration_manager
 
-        db = self.database
-        conn = db.connect(create_if_not_exists=True)
-        migration_manager.apply_migrations(conn, logger=self.logger)
-        conn.close()
+            db = self.database
+            conn = db.connect(create_if_not_exists=True)
+            migration_manager.apply_migrations(conn, logger=self.logger)
+            conn.close()
+        except Exception as e:
+            self.logger.error(f"Error running migrations: {e}")
+            raise e

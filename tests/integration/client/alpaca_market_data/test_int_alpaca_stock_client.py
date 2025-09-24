@@ -25,11 +25,7 @@ async def alpaca_client():
     try:
         yield client
     finally:
-        # Ensure the underlying HTTP client is closed if possible
-        if hasattr(client, "aclose"):
-            await client.aclose()
-        elif hasattr(client, "close"):
-            client.close()
+        client_container.close_all_clients()
 
 
 @pytest.mark.asyncio

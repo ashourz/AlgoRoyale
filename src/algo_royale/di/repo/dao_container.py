@@ -17,32 +17,32 @@ class DAOContainer:
         self.db_container = db_container
         self.logger_container = logger_container
 
-        self.sql_dir = self.config["db_paths"]["sql_dir"]
+        shared_connection = self.db_container.db_connection
 
         self.data_stream_session_dao = DataStreamSessionDAO(
-            connection=self.db_container.db_connection,
-            sql_dir=self.sql_dir,
+            connection=shared_connection,
+            sql_dir=self.config["db_paths"]["sql_dir_data_stream_session"],
             logger=self.logger_container.logger(
                 logger_type=LoggerType.DATA_STREAM_SESSION_DAO
             ),
         )
 
         self.enriched_data_dao = EnrichedDataDAO(
-            connection=self.db_container.db_connection,
-            sql_dir=self.sql_dir,
+            connection=shared_connection,
+            sql_dir=self.config["db_paths"]["sql_dir_enriched_data"],
             logger=self.logger_container.logger(
                 logger_type=LoggerType.ENRICHED_DATA_DAO
             ),
         )
 
         self.trade_dao = TradeDAO(
-            connection=self.db_container.db_connection,
-            sql_dir=self.sql_dir,
+            connection=shared_connection,
+            sql_dir=self.config["db_paths"]["sql_dir_trades"],
             logger=self.logger_container.logger(logger_type=LoggerType.TRADE_DAO),
         )
 
         self.order_dao = OrderDAO(
-            connection=self.db_container.db_connection,
-            sql_dir=self.sql_dir,
+            connection=shared_connection,
+            sql_dir=self.config["db_paths"]["sql_dir_orders"],
             logger=self.logger_container.logger(logger_type=LoggerType.ORDER_DAO),
         )

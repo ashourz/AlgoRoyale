@@ -62,3 +62,7 @@ class RepoContainer:
             watchlist_path=self.config["backtester_paths"]["watchlist_path"],
             logger=self.logger_container.logger(logger_type=LoggerType.WATCHLIST_REPO),
         )
+
+    def close(self):
+        """Close resources like database connections."""
+        self.db_container.close()
