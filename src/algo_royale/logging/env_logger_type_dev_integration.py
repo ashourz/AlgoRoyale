@@ -4,7 +4,7 @@ from enum import Enum
 
 class EnvLoggerTypeDevIntegration(Enum):
     ## DATABASE
-    DATABASE = ("DEV_INTEGRATION_DATABASE", logging.ERROR)
+    DATABASE = ("DEV_INTEGRATION_DATABASE", logging.DEBUG)
 
     ## DAOS
     DATA_STREAM_SESSION_DAO = ("DEV_INTEGRATION_DATA_STREAM_SESSION_DAO", logging.ERROR)

@@ -11,12 +11,13 @@ from algo_royale.repo.order_repo import DBOrderStatus
 def repo():
     application = ApplicationContainer(environment=ApplicationEnv.DEV_INTEGRATION)
     # Ensure the database and tables exist
+    db_container = application.repo_container.db_container
+    db_container.register_user()
     application.repo_container.db_container.db_connection(create_if_not_exists=True)
     repo = application.repo_container.order_repo
     yield repo
     # Add cleanup if available: repo.dao.delete_all_orders()
-    db = application.repo_container.db_container
-    db.close()
+    db_container.close()
 
 
 def test_order_repo_methods(repo):

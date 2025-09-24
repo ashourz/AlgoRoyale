@@ -11,12 +11,13 @@ from algo_royale.logging.logger_env import ApplicationEnv
 def repo():
     application = ApplicationContainer(environment=ApplicationEnv.DEV_INTEGRATION)
     # Ensure the database and tables exist
+    db_container = application.repo_container.db_container
+    db_container.register_user()
     application.repo_container.db_container.db_connection(create_if_not_exists=True)
     repo = application.repo_container.enriched_data_repo
     yield repo
     repo.delete_all_enriched_data()
-    db = application.repo_container.db_container
-    db.close()
+    db_container.close()
 
 
 def test_enriched_data_lifecycle(repo):
