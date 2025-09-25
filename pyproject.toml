@@ -44,7 +44,7 @@ optuna = "^4.3.0"
 # ]
 dependency_injector = "^4.46.0"      # For dependency injection in Python applications.
 apscheduler = "^3.8.1"               # For scheduling tasks in Python applications.
-
+psutil = "^5.8.0"                   # For system and process utilities.
 # Development dependencies (tools you need for development, not production).
 # These are optional and can be installed separately if needed.
 # You can use `poetry add --dev <package-name>` to add them later.
