@@ -1,3 +1,4 @@
+from datetime import datetime
 from uuid import UUID
 
 from pydantic import BaseModel
@@ -50,7 +51,7 @@ class DBEnrichedData(BaseModel):
 
     id: UUID
     order_id: UUID
-    market_timestamp: str
+    market_timestamp: datetime
     symbol: str
     market: str
     volume: float

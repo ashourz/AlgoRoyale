@@ -19,10 +19,8 @@ def repo(environment_setup: bool, application: ApplicationContainer):
 
 def test_order_repo_methods(repo):
     order_id = uuid4()
-    user_id = "test_user"
-    account_id = "test_account"
     # Fetch by id
-    orders = repo.fetch_order_by_id(order_id, user_id, account_id)
+    orders = repo.fetch_order_by_id(order_id)
     assert isinstance(orders, list)
     # Fetch by status
     orders_by_status = repo.fetch_orders_by_status([DBOrderStatus.NEW])

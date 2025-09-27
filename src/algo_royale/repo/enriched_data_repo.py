@@ -10,7 +10,7 @@ class EnrichedDataRepo:
         self.dao = dao
         self.logger = logger
 
-    def fetch_enriched_data_by_order_id(self, order_id: UUID) -> list[DBEnrichedData]:  # noqa: F821
+    def fetch_enriched_data_by_order_id(self, order_id: UUID) -> list[DBEnrichedData]:
         """
         Fetch enriched data for a specific order ID.
         :param order_id: The ID of the order to fetch enriched data for.
