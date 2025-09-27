@@ -19,9 +19,10 @@ class DatabaseAdmin:
         db_port,
         logger,
     ):
-        self.user_manager = UserManager(
-            master_db_name, master_db_user, master_db_password, db_host, db_port, logger
-        )
+        self.master_db_name = master_db_name
+        self.master_db_user = master_db_user
+        self.master_db_password = master_db_password
+        self.user_manager = UserManager(logger=logger)
         self.process_manager = ProcessManager(logger=logger)
         self.database_manager = DatabaseManager(
             db_host=db_host, db_port=db_port, logger=logger
@@ -32,8 +33,11 @@ class DatabaseAdmin:
         self.logger = logger
 
     def setup_environment(
-        self, db_name, db_user, db_password, service_name="postgresql-x64-13"
+        self, db_name, db_user, db_password, service_name="postgresql-x64-18"
     ):
+        self.logger.debug(
+            "[setup_environment] Checking if Postgres service is running..."
+        )
         if not self.process_manager.is_postgres_running(self.db_host, self.db_port):
             self.logger.info("Postgres service not running. Attempting to start...")
             started = self.process_manager.start_postgres_service(service_name)
@@ -42,14 +46,39 @@ class DatabaseAdmin:
                     f"Could not start PostgreSQL service '{service_name}' on {self.db_host}:{self.db_port}"
                 )
             self.logger.info("Postgres service started.")
-        self.user_manager.create_user(username=db_user, password=db_password)
+        self.logger.info("✅ PostgreSQL service is running.")
+        self.logger.debug("[setup_environment] Getting master DB connection...")
+        master_db_connection = self.get_master_db_connection()
+        self.logger.debug("[setup_environment] Creating or updating user...")
+        self.user_manager.create_user(
+            master_db_connection=master_db_connection,
+            username=db_user,
+            password=db_password,
+        )
+        self.logger.info("✅ User created.")
+        self.logger.debug("[setup_environment] Creating database if not exists...")
         self.database_manager.create_database(
-            master_db_connection=self.get_master_db_connection(),
+            master_db_connection=master_db_connection,
             db_name=db_name,
             create_if_not_exists=True,
         )
-        self.run_migrations()
-        self.user_manager.grant_privileges(db_name=db_name, username=db_user)
+        self.logger.info("✅ Database created.")
+        self.logger.debug("[setup_environment] Running migrations...")
+        self.run_migrations(
+            db_connection=self.get_db_connection(
+                db_name=db_name, username=db_user, password=db_password
+            )
+        )
+        self.logger.info("✅ Migrations completed.")
+        self.logger.debug("[setup_environment] Granting privileges...")
+        self.user_manager.grant_privileges(
+            master_db_connection=master_db_connection,
+            db_name=db_name,
+            username=db_user,
+        )
+        self.logger.info("✅ Privileges granted.")
+        master_db_connection.close()
+        self.logger.info("✅ Database environment setup complete.")
 
     def run_migrations(self, db_connection: psycopg2.extensions.connection):
         try:
@@ -64,7 +93,7 @@ class DatabaseAdmin:
         self,
         retries: int = 3,
         delay: int = 2,
-    ):
+    ) -> psycopg2.extensions.connection:
         """
         Create a new database.
         """
@@ -81,6 +110,7 @@ class DatabaseAdmin:
                     port=self.db_port,
                 )
                 conn.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
+                return conn
             except psycopg2.OperationalError as e:
                 attempt += 1
                 self.logger.error(

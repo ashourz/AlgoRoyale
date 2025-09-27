@@ -10,6 +10,9 @@ class DBContainer:
         self.secrets = secrets
         self.logger_container = logger_container
         self.logger = self.logger_container.logger(logger_type=LoggerType.DATABASE)
+        self.logger.debug(
+            f"DBContainer initialized with user={self.config['db_connection']['db_user']} db={self.config['db_connection']['db_name']}"
+        )
 
     @property
     def database_admin(self) -> DatabaseAdmin:
