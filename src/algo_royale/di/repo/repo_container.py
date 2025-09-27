@@ -50,8 +50,6 @@ class RepoContainer:
             logger=self.logger_container.logger(
                 logger_type=LoggerType.ENRICHED_DATA_REPO
             ),
-            user_id=self.config["db_user"]["id"],
-            account_id=self.config["db_user"]["account_id"],
         )
 
     @property

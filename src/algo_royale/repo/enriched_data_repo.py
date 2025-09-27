@@ -6,13 +6,9 @@ from algo_royale.models.db.db_enriched_data import DBEnrichedData
 
 
 class EnrichedDataRepo:
-    def __init__(
-        self, dao: EnrichedDataDAO, logger: Loggable, user_id: str, account_id: str
-    ):
+    def __init__(self, dao: EnrichedDataDAO, logger: Loggable):
         self.dao = dao
         self.logger = logger
-        self.user_id = user_id
-        self.account_id = account_id
 
     def fetch_enriched_data_by_order_id(self, order_id: UUID) -> list[DBEnrichedData]:  # noqa: F821
         """
@@ -33,9 +29,7 @@ class EnrichedDataRepo:
         :param enriched_data: A dictionary containing the enriched data.
         :return: The ID of the newly inserted enriched data, or -1 if the insertion failed.
         """
-        return self.dao.insert_enriched_data(
-            order_id, enriched_data, self.user_id, self.account_id
-        )
+        return self.dao.insert_enriched_data(order_id, enriched_data)
 
     def delete_all_enriched_data(self) -> int:
         """

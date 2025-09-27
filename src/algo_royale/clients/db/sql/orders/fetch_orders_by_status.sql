@@ -1,5 +1,5 @@
 SELECT *
 FROM orders
-WHERE status IN (%s)
+WHERE status = ANY(%s)
 ORDER BY created_at DESC
 LIMIT %s OFFSET %s;

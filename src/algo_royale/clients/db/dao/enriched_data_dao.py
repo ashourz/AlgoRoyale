@@ -20,31 +20,30 @@ class EnrichedDataDAO(BaseDAO):
             return []
         return [DBEnrichedData.from_tuple(row) for row in rows]
 
-    def insert_enriched_data(
-        self,
-        order_id: UUID,
-        enriched_data: dict,
-        user_id: str,
-        account_id: str,
-    ) -> int:
+    def insert_enriched_data(self, order_id: UUID, enriched_data: dict) -> int:
         """
         Insert enriched data for a specific order.
         :param order_id: The ID of the order to associate with the enriched data.
         :param enriched_data: A dictionary containing the enriched data.
-        :param user_id: The ID of the user who owns the order.
-        :param account_id: The ID of the account associated with the order.
         :return: The ID of the newly inserted enriched data, or -1 if the insertion failed.
         """
         # Prepare the values in the correct order as expected by the SQL file
-        values = [
-            str(order_id)
-        ]  # Add all expected enriched_data fields in the correct order
-        enriched_fields = DBEnrichedData.columns()[2:]  # Skip 'id' and 'order_id'
-
+        # Use all columns except 'id' (which is auto-incremented)
+        self.logger.debug(f"Inserting enriched data for order_id {order_id}.")
+        enriched_fields = DBEnrichedData.columns()[1:]  # Skip only 'id'
+        values = []
         for field in enriched_fields:
-            values.append(enriched_data.get(field))
-        # Optionally add user_id and account_id if your table expects them
-        values.extend([user_id, account_id])
+            if field == "order_id":
+                values.append(str(order_id))
+            else:
+                values.append(enriched_data.get(field))
+        sql_query = self._load_sql("insert_enriched_data.sql")
+        num_placeholders = sql_query.count("%s")
+        self.logger.debug(f"SQL Query: {sql_query}")
+        self.logger.debug(f"Number of %s placeholders: {num_placeholders}")
+        self.logger.debug(f"Enriched fields: {enriched_fields}")
+        self.logger.debug(f"Values count: {len(values)}")
+        self.logger.debug(f"Values: {values}")
         inserted_id = self.insert("insert_enriched_data.sql", tuple(values))
         if not inserted_id:
             self.logger.error(
@@ -58,5 +57,5 @@ class EnrichedDataDAO(BaseDAO):
         Delete all enriched data from the database.
         :return: The number of rows deleted.
         """
-        delete_count = self.execute("delete_all_enriched_data.sql")
+        delete_count = self.delete("delete_all_enriched_data.sql")
         return delete_count or -1

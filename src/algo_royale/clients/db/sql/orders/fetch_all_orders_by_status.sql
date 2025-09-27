@@ -1,2 +1,2 @@
-SELECT * FROM orders WHERE status IN (%s);
+SELECT * FROM orders WHERE status = ANY(%s);
 -- Fetch all orders by status
