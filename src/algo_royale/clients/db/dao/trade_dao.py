@@ -50,7 +50,7 @@ class TradeDAO(BaseDAO):
 
     def fetch_trades_by_order_id(self, order_id: UUID) -> list[DBTrade]:
         """Fetch trades by order ID."""
-        rows = self.fetch("get_trades_by_order_id.sql", (order_id,))
+        rows = self.fetch("get_trades_by_order_id.sql", (str(order_id),))
         return [DBTrade.from_tuple(row) for row in rows]
 
     def insert_trade(
@@ -88,7 +88,7 @@ class TradeDAO(BaseDAO):
                 price,
                 quantity,
                 executed_at,
-                order_id,
+                str(order_id),
                 user_id,
                 account_id,
             ),
@@ -104,26 +104,26 @@ class TradeDAO(BaseDAO):
         """Update all settled trades in the database.
         :return: The number of updated trade records, or -1 if the update failed.
         """
-        updated_ids = self.update("update_settled_trades.sql", (settlement_datetime,))
-        if not updated_ids:
+        update_count = self.update("update_settled_trades.sql", (settlement_datetime,))
+        if not update_count:
             self.logger.error("Failed to update settled trades.")
             return -1
-        return len(updated_ids)
+        return update_count
 
     def delete_trade(self, trade_id: str) -> int:
         """Delete a trade record by its ID.
         :param trade_id: The ID of the trade to delete.
         :return: The ID of the deleted trade, or -1 if the deletion failed.
         """
-        deleted_id = self.delete("delete_trade.sql", (trade_id,))
-        if not deleted_id:
+        delete_count = self.delete("delete_trade.sql", (trade_id,))
+        if not delete_count:
             self.logger.error(f"Failed to delete trade {trade_id}.")
             return -1
-        return deleted_id
+        return delete_count
 
     def delete_all_trades(self) -> int:
         """Delete all trade records.
         :return: The number of deleted trades, or -1 if the deletion failed.
         """
-        deleted_ids = self.delete("delete_all_trades.sql", ())
-        return len(deleted_ids) if deleted_ids else -1
+        delete_count = self.delete("delete_all_trades.sql", ())
+        return delete_count or -1

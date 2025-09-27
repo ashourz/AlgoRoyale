@@ -1,2 +1,2 @@
-SELECT * FROM orders WHERE id = $1 AND user_id = $2 AND account_id = $3;
+SELECT * FROM orders WHERE id = %s AND user_id = %s AND account_id = %s;
 -- This query retrieves an order by its ID, ensuring that it belongs to the specified user and

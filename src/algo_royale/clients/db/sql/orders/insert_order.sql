@@ -1,4 +1,4 @@
 INSERT INTO orders (symbol, order_type, status, action, notional, quantity, price, created_at, updated_at, user_id, account_id)
-VALUES ($1, $2, $3, $4, $5, $6, $7, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, $8, $9)
+VALUES (%s, %s, %s, %s, %s, %s, %s, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, %s, %s)
 RETURNING id; 
 -- This SQL statement inserts a new order into the orders table with the provided parameters and returns the newly created order's ID.

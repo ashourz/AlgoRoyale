@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 
 import pytest
 
@@ -19,19 +19,22 @@ def repo(environment_setup: bool, application: ApplicationContainer):
 @pytest.mark.asyncio
 async def test_data_stream_session_lifecycle(repo):
     # Insert
-    session_id = await repo.insert_data_stream_session(
+    session_id = repo.insert_data_stream_session(
         stream_type="test_stream",
         symbol="TEST",
         strategy_name="test_strategy",
         start_time=datetime.now(timezone.utc),
     )
+    session_id = session_id[0] if isinstance(session_id, tuple) else session_id
+    print(f"Inserted session ID: {session_id}")
     assert session_id != -1
     # Fetch
     sessions = repo.fetch_data_stream_session_by_timestamp(
-        datetime.now(timezone.utc) - datetime.timedelta(days=1),
-        datetime.now(timezone.utc) + datetime.timedelta(days=1),
+        start_timestamp=datetime.now(timezone.utc) - timedelta(days=1),
+        end_timestamp=datetime.now(timezone.utc) + timedelta(days=1),
     )
-    assert any(s.id == session_id for s in sessions)
+    print(f"Fetched sessions: {sessions}")
+    assert any(str(s.id) == str(session_id) for s in sessions)
     # Update
     end_time = datetime.now(timezone.utc)
     updated = repo.update_data_stream_session_end_time(session_id, end_time)

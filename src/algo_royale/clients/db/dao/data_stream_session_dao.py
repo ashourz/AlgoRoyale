@@ -54,15 +54,15 @@ class DataStreamSessionDAO(BaseDAO):
         :param end_time: The new end time for the session.
         :return: The number of rows affected by the update.
         """
-        updated_ids = self.update(
+        update_count = self.update(
             "update_data_stream_session_end_time.sql", (end_time, session_id)
         )
-        return len(updated_ids) if updated_ids else -1
+        return update_count if update_count else -1
 
     def delete_all_data_stream_session(self) -> int:
         """
         Delete all data stream sessions.
         :return: The number of rows affected by the delete.
         """
-        deleted_ids = self.delete("delete_all_data_stream_session.sql")
-        return len(deleted_ids) if deleted_ids else -1
+        delete_count = self.delete("delete_all_data_stream_session.sql")
+        return delete_count or -1

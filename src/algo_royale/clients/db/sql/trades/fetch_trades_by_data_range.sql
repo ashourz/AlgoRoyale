@@ -1,4 +1,4 @@
 SELECT * FROM trades
-WHERE trade_date >= $1 AND trade_date <= $2
+WHERE trade_date >= %s AND trade_date <= %s
 ORDER BY trade_date
-LIMIT $3 OFFSET $4;
+LIMIT %s OFFSET %s;

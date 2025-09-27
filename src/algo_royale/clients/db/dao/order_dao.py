@@ -18,7 +18,7 @@ class OrderDAO(BaseDAO):
         :param account_id: The ID of the account associated with the order.
         :return: A list representing the orders, or an empty list if not found.
         """
-        rows = self.fetch("fetch_order_by_id.sql", (order_id, user_id, account_id))
+        rows = self.fetch("fetch_order_by_id.sql", (str(order_id), user_id, account_id))
         if not rows:
             self.logger.warning(
                 f"Order with ID {order_id} not found for user {user_id}."
@@ -148,19 +148,19 @@ class OrderDAO(BaseDAO):
         :param price: The new price of the order.
         :return: The ID of the updated order, or -1 if the update failed.
         """
-        updated_id = self.update(
+        update_count = self.update(
             "update_order.sql",
             (
                 status,
                 quantity,
                 price,
-                order_id,
+                str(order_id),
             ),
         )
-        if not updated_id:
+        if not update_count:
             self.logger.error(f"Failed to update order {order_id} to status {status}.")
             return -1
-        return updated_id
+        return update_count
 
     def update_order_as_settled(self, order_id: UUID) -> int:
         """
@@ -168,14 +168,14 @@ class OrderDAO(BaseDAO):
         :param order_id: The ID of the order to update.
         :return: The ID of the updated order, or -1 if the update failed.
         """
-        updated_id = self.update(
+        update_count = self.update(
             "update_order_as_settled.sql",
-            (order_id,),
+            (str(order_id),),
         )
-        if not updated_id:
+        if not update_count:
             self.logger.error(f"Failed to update order {order_id} to settled.")
             return -1
-        return updated_id
+        return update_count
 
     def delete_order(self, order_id: UUID) -> int:
         """
@@ -183,7 +183,7 @@ class OrderDAO(BaseDAO):
         :param order_id: The ID of the order to delete.
         :return: The ID of the deleted order, or -1 if the deletion failed.
         """
-        deleted_id = self.delete("delete_order.sql", (order_id,))
+        deleted_id = self.delete("delete_order.sql", (str(order_id),))
         if not deleted_id:
             self.logger.error(f"Failed to delete order {order_id}.")
             return -1

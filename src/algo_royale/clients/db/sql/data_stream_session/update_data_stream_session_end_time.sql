@@ -1,5 +1,5 @@
 UPDATE data_stream_session
 SET
-    end_time = $5
-WHERE id = $6
+    end_time = %s
+WHERE id = %s
 RETURNING id;

@@ -10,14 +10,8 @@ def repo(environment_setup: bool, application: ApplicationContainer):
     logger.debug(f"Environment setup status: {environment_setup}")
     if not environment_setup:
         pytest.skip("Environment setup failed, skipping tests.")
-    # Ensure the database and tables exist
-    db_container = application.repo_container.db_container
-    db_container.register_user()
-    application.repo_container.db_container.db_connection(create_if_not_exists=True)
     repo = application.repo_container.watchlist_repo
     yield repo
-    # Cleanup logic if needed
-    db_container.close()
 
 
 def test_watchlist_repo_methods(repo):

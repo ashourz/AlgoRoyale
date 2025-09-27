@@ -68,6 +68,6 @@ CREATE TABLE
         bollinger_width NUMERIC(10, 4),
         gap NUMERIC(10, 4),
         high_low_ratio NUMERIC(10, 4),
-        obv NUMERIC(10, 4)
-        adl NUMERIC(10, 4),
+        obv NUMERIC(10, 4),
+        adl NUMERIC(10, 4)
     );

@@ -14,7 +14,7 @@ class EnrichedDataDAO(BaseDAO):
         :param order_id: The ID of the order to fetch enriched data for.
         :return: A list containing the enriched data, or an empty list if not found.
         """
-        rows = self.fetch("fetch_enriched_data_by_order_id.sql", (order_id,))
+        rows = self.fetch("fetch_enriched_data_by_order_id.sql", (str(order_id),))
         if not rows:
             self.logger.warning(f"No enriched data found for order_id {order_id}.")
             return []
@@ -36,8 +36,9 @@ class EnrichedDataDAO(BaseDAO):
         :return: The ID of the newly inserted enriched data, or -1 if the insertion failed.
         """
         # Prepare the values in the correct order as expected by the SQL file
-        values = [order_id]
-        # Add all expected enriched_data fields in the correct order
+        values = [
+            str(order_id)
+        ]  # Add all expected enriched_data fields in the correct order
         enriched_fields = DBEnrichedData.columns()[2:]  # Skip 'id' and 'order_id'
 
         for field in enriched_fields:
@@ -57,5 +58,5 @@ class EnrichedDataDAO(BaseDAO):
         Delete all enriched data from the database.
         :return: The number of rows deleted.
         """
-        deleted_ids = self.execute("delete_all_enriched_data.sql")
-        return len(deleted_ids) if deleted_ids else -1
+        delete_count = self.execute("delete_all_enriched_data.sql")
+        return delete_count or -1

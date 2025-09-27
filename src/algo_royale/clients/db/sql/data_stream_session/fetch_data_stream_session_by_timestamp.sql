@@ -1,1 +1,3 @@
-SELECT * FROM data_stream_session WHERE start_time >= $1 AND end_time <= $2;
+SELECT * FROM data_stream_session
+WHERE start_time >= %s
+	AND (end_time <= %s OR end_time IS NULL);

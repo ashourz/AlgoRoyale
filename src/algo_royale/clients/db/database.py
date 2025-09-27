@@ -58,3 +58,35 @@ class Database:
             raise
         finally:
             self.disconnect()
+
+    def execute_query(self, query: str, params=None):
+        """
+        Execute a SQL query.
+        """
+        with self.connection_context() as conn:
+            with conn.cursor() as cur:
+                self.logger.debug(f"Executing query: {query} with params: {params}")
+                cur.execute(query, params)
+                if query.strip().upper().startswith("SELECT"):
+                    results = cur.fetchall()
+                    self.logger.debug(f"Query results: {results}")
+                    return results
+                else:
+                    conn.commit()
+                    self.logger.info("✅ Query executed and changes committed.")
+
+    def drop_all_tables(self):
+        """
+        Drop all tables in the database. Use with caution!
+        """
+        drop_tables_query = """
+        DO $$ DECLARE
+            r RECORD;
+        BEGIN
+            FOR r IN (SELECT tablename FROM pg_tables WHERE schemaname = 'public') LOOP
+                EXECUTE 'DROP TABLE IF EXISTS ' || quote_ident(r.tablename) || ' CASCADE';
+            END LOOP;
+        END $$;
+        """
+        self.execute_query(drop_tables_query)
+        self.logger.info("✅ All tables dropped from the database.")

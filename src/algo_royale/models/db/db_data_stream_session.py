@@ -1,4 +1,5 @@
 from datetime import datetime
+from typing import Optional
 from uuid import UUID
 
 from pydantic import BaseModel
@@ -22,7 +23,7 @@ class DBDataStreamSession(BaseModel):
     symbol: str
     strategy_name: str
     start_time: datetime
-    end_time: datetime = None
+    end_time: Optional[datetime] = None
 
     @classmethod
     def columns(cls):
@@ -54,7 +55,7 @@ class DBDataStreamSession(BaseModel):
         return cls.from_dict(d)
 
     @classmethod
-    def from_dict(data: dict) -> "DBDataStreamSession":
+    def from_dict(cls, data: dict) -> "DBDataStreamSession":
         """
         Creates a DBDataStreamSession object from raw data.
 

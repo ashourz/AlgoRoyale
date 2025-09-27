@@ -76,7 +76,7 @@ class DBOrder(BaseModel):
         return cls.from_dict(d)
 
     @classmethod
-    def from_dict(data: dict) -> "DBOrder":
+    def from_dict(cls, data: dict) -> "DBOrder":
         """
         Creates a DBOrder object from raw data.
 
