@@ -42,6 +42,8 @@ class DatabaseManager:
                             self.logger.info(f"✅ Created database: {db_name}")
                         else:
                             self.logger.info(f"ℹ️ Database already exists: {db_name}")
+                break
+
             except psycopg2.OperationalError as e:
                 attempt += 1
                 self.logger.error(
