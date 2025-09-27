@@ -20,7 +20,9 @@ class MarketSessionContainer:
         self.ledger_service_container = ledger_service_container
         self.order_generator_service_container = order_generator_service_container
 
-        self.order_execution_service = OrderExecutionService(
+    @property
+    def order_execution_service(self) -> OrderExecutionService:
+        return OrderExecutionService(
             ledger_service=self.ledger_service_container.ledger_service,
             symbol_hold_service=self.order_generator_service_container.symbol_hold_service,
             order_generator_service=self.order_generator_service_container.order_generator_service,
@@ -29,7 +31,9 @@ class MarketSessionContainer:
             ),
         )
 
-        self.order_monitor_service = OrderMonitorService(
+    @property
+    def order_monitor_service(self) -> OrderMonitorService:
+        return OrderMonitorService(
             ledger_service=self.ledger_service_container.ledger_service,
             order_event_service=self.order_generator_service_container.order_event_service,
             trades_service=self.ledger_service_container.trades_service,
@@ -38,7 +42,9 @@ class MarketSessionContainer:
             ),
         )
 
-        self.market_session_service = MarketSessionService(
+    @property
+    def market_session_service(self) -> MarketSessionService:
+        return MarketSessionService(
             order_service=self.ledger_service_container.order_service,
             positions_service=self.ledger_service_container.positions_service,
             symbol_service=self.order_generator_service_container.symbol_service,

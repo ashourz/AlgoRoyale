@@ -27,21 +27,27 @@ class StageDataContainer:
 
         self.data_dir = get_project_root() / self.config["data_dir"]["root"]
 
-        self.stage_data_manager = StageDataManager(
+    @property
+    def stage_data_manager(self) -> StageDataManager:
+        return StageDataManager(
             data_dir=self.data_dir,
             logger=self.logger_container.logger(
                 logger_type=LoggerType.STAGE_DATA_MANAGER
             ),
         )
 
-        self.stage_data_preparer = StageDataPreparer(
+    @property
+    def stage_data_preparer(self) -> StageDataPreparer:
+        return StageDataPreparer(
             stage_data_manager=self.stage_data_manager,
             logger=self.logger_container.logger(
                 logger_type=LoggerType.STAGE_DATA_PREPARER
             ),
         )
 
-        self.stage_data_loader = StageDataLoader(
+    @property
+    def stage_data_loader(self) -> StageDataLoader:
+        return StageDataLoader(
             logger=self.logger_container.logger(
                 logger_type=LoggerType.STAGE_DATA_LOADER
             ),
@@ -49,14 +55,18 @@ class StageDataContainer:
             watchlist_repo=self.repo_container.watchlist_repo,
         )
 
-        self.stage_data_writer = StageDataWriter(
+    @property
+    def stage_data_writer(self) -> StageDataWriter:
+        return StageDataWriter(
             logger=self.logger_container.logger(
                 logger_type=LoggerType.STAGE_DATA_WRITER
             ),
             stage_data_manager=self.stage_data_manager,
         )
 
-        self.symbol_strategy_manager = SymbolStrategyManager(
+    @property
+    def symbol_strategy_manager(self) -> SymbolStrategyManager:
+        return SymbolStrategyManager(
             data_dir=self.data_dir,
             stage_data_manager=self.stage_data_manager,
             symbol_strategy_evaluation_filename=self.config[
@@ -67,7 +77,9 @@ class StageDataContainer:
             ),
         )
 
-        self.symbol_strategy_data_loader = SymbolStrategyDataLoader(
+    @property
+    def symbol_strategy_data_loader(self) -> SymbolStrategyDataLoader:
+        return SymbolStrategyDataLoader(
             stage_data_manager=self.stage_data_manager,
             stage_data_loader=self.stage_data_loader,
             logger=self.logger_container.logger(
@@ -75,7 +87,9 @@ class StageDataContainer:
             ),
         )
 
-        self.symbol_strategy_data_writer = SymbolStrategyDataWriter(
+    @property
+    def symbol_strategy_data_writer(self) -> SymbolStrategyDataWriter:
+        return SymbolStrategyDataWriter(
             stage_data_manager=self.stage_data_manager,
             data_writer=self.stage_data_writer,
             logger=self.logger_container.logger(

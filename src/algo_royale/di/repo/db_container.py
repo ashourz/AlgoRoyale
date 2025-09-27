@@ -10,7 +10,10 @@ class DBContainer:
         self.secrets = secrets
         self.logger_container = logger_container
         self.logger = self.logger_container.logger(logger_type=LoggerType.DATABASE)
-        self.database_admin = DatabaseAdmin(
+
+    @property
+    def database_admin(self) -> DatabaseAdmin:
+        return DatabaseAdmin(
             master_db_name=self.config["db_master_connection"]["db_name"],
             master_db_user=self.config["db_master_connection"]["db_user"],
             master_db_password=self.secrets["db_master_connection"]["password"],
@@ -18,7 +21,10 @@ class DBContainer:
             db_port=int(self.config["db_connection"]["port"]),
             logger=self.logger,
         )
-        self.database = Database(
+
+    @property
+    def database(self) -> Database:
+        return Database(
             database_admin=self.database_admin,
             db_name=self.config["db_connection"]["db_name"],
             db_user=self.config["db_connection"]["db_user"],
@@ -53,7 +59,7 @@ class DBContainer:
             raise e
 
     @property
-    def db_connection(self, create_if_not_exists=False):
+    def db_connection(self):
         self.logger.debug(
             f"db_connection property accessed with user={self.config['db_connection']['db_user']} db={self.config['db_connection']['db_name']}"
         )

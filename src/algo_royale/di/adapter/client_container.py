@@ -53,7 +53,9 @@ class ClientContainer:
         self.secrets = secrets
         self.logger_container = logger_container
 
-        self.alpaca_corporate_action_client = AlpacaCorporateActionClient(
+    @property
+    def alpaca_corporate_action_client(self) -> AlpacaCorporateActionClient:
+        return AlpacaCorporateActionClient(
             logger=self.logger_container.logger(
                 logger_type=LoggerType.ALPACA_CORPORATE_ACTION_CLIENT
             ),
@@ -67,7 +69,9 @@ class ClientContainer:
             keep_alive_timeout=int(self.config["alpaca_params"]["keep_alive_timeout"]),
         )
 
-        self.alpaca_news_client = AlpacaNewsClient(
+    @property
+    def alpaca_news_client(self) -> AlpacaNewsClient:
+        return AlpacaNewsClient(
             logger=self.logger_container.logger(
                 logger_type=LoggerType.ALPACA_NEWS_CLIENT
             ),
@@ -81,7 +85,9 @@ class ClientContainer:
             keep_alive_timeout=int(self.config["alpaca_params"]["keep_alive_timeout"]),
         )
 
-        self.alpaca_screener_client = AlpacaScreenerClient(
+    @property
+    def alpaca_screener_client(self) -> AlpacaScreenerClient:
+        return AlpacaScreenerClient(
             logger=self.logger_container.logger(
                 logger_type=LoggerType.ALPACA_SCREENER_CLIENT
             ),
@@ -95,7 +101,9 @@ class ClientContainer:
             keep_alive_timeout=int(self.config["alpaca_params"]["keep_alive_timeout"]),
         )
 
-        self.alpaca_stock_client = AlpacaStockClient(
+    @property
+    def alpaca_stock_client(self) -> AlpacaStockClient:
+        return AlpacaStockClient(
             logger=self.logger_container.logger(
                 logger_type=LoggerType.ALPACA_STOCK_CLIENT
             ),
@@ -109,7 +117,9 @@ class ClientContainer:
             keep_alive_timeout=int(self.config["alpaca_params"]["keep_alive_timeout"]),
         )
 
-        self.alpaca_stream_client = AlpacaStreamClient(
+    @property
+    def alpaca_stream_client(self) -> AlpacaStreamClient:
+        return AlpacaStreamClient(
             logger=self.logger_container.logger(
                 logger_type=LoggerType.ALPACA_STREAM_CLIENT
             ),
@@ -123,7 +133,9 @@ class ClientContainer:
             keep_alive_timeout=int(self.config["alpaca_params"]["keep_alive_timeout"]),
         )
 
-        self.alpaca_account_client = AlpacaAccountClient(
+    @property
+    def alpaca_account_client(self) -> AlpacaAccountClient:
+        return AlpacaAccountClient(
             logger=self.logger_container.logger(
                 logger_type=LoggerType.ALPACA_ACCOUNT_CLIENT
             ),
@@ -137,7 +149,9 @@ class ClientContainer:
             keep_alive_timeout=int(self.config["alpaca_params"]["keep_alive_timeout"]),
         )
 
-        self.alpaca_assets_client = AlpacaAssetsClient(
+    @property
+    def alpaca_assets_client(self) -> AlpacaAssetsClient:
+        return AlpacaAssetsClient(
             logger=self.logger_container.logger(
                 logger_type=LoggerType.ALPACA_ASSETS_CLIENT
             ),
@@ -151,7 +165,9 @@ class ClientContainer:
             keep_alive_timeout=int(self.config["alpaca_params"]["keep_alive_timeout"]),
         )
 
-        self.alpaca_calendar_client = AlpacaCalendarClient(
+    @property
+    def alpaca_calendar_client(self) -> AlpacaCalendarClient:
+        return AlpacaCalendarClient(
             logger=self.logger_container.logger(
                 logger_type=LoggerType.ALPACA_CALENDAR_CLIENT
             ),
@@ -165,7 +181,9 @@ class ClientContainer:
             keep_alive_timeout=int(self.config["alpaca_params"]["keep_alive_timeout"]),
         )
 
-        self.alpaca_clock_client = AlpacaClockClient(
+    @property
+    def alpaca_clock_client(self) -> AlpacaClockClient:
+        return AlpacaClockClient(
             logger=self.logger_container.logger(
                 logger_type=LoggerType.ALPACA_CLOCK_CLIENT
             ),
@@ -179,7 +197,9 @@ class ClientContainer:
             keep_alive_timeout=int(self.config["alpaca_params"]["keep_alive_timeout"]),
         )
 
-        self.alpaca_orders_client = AlpacaOrdersClient(
+    @property
+    def alpaca_orders_client(self) -> AlpacaOrdersClient:
+        return AlpacaOrdersClient(
             logger=self.logger_container.logger(
                 logger_type=LoggerType.ALPACA_ORDERS_CLIENT
             ),
@@ -193,7 +213,9 @@ class ClientContainer:
             keep_alive_timeout=int(self.config["alpaca_params"]["keep_alive_timeout"]),
         )
 
-        self.alpaca_portfolio_client = AlpacaPortfolioClient(
+    @property
+    def alpaca_portfolio_client(self) -> AlpacaPortfolioClient:
+        return AlpacaPortfolioClient(
             logger=self.logger_container.logger(
                 logger_type=LoggerType.ALPACA_PORTFOLIO_CLIENT
             ),
@@ -207,7 +229,9 @@ class ClientContainer:
             keep_alive_timeout=int(self.config["alpaca_params"]["keep_alive_timeout"]),
         )
 
-        self.alpaca_positions_client = AlpacaPositionsClient(
+    @property
+    def alpaca_positions_client(self) -> AlpacaPositionsClient:
+        return AlpacaPositionsClient(
             logger=self.logger_container.logger(
                 logger_type=LoggerType.ALPACA_POSITIONS_CLIENT
             ),
@@ -221,7 +245,9 @@ class ClientContainer:
             keep_alive_timeout=int(self.config["alpaca_params"]["keep_alive_timeout"]),
         )
 
-        self.alpaca_watchlist_client = AlpacaWatchlistClient(
+    @property
+    def alpaca_watchlist_client(self) -> AlpacaWatchlistClient:
+        return AlpacaWatchlistClient(
             logger=self.logger_container.logger(
                 logger_type=LoggerType.ALPACA_WATCHLIST_CLIENT
             ),
@@ -235,7 +261,9 @@ class ClientContainer:
             keep_alive_timeout=int(self.config["alpaca_params"]["keep_alive_timeout"]),
         )
 
-        self.alpaca_order_stream_client = AlpacaOrderStreamClient(
+    @property
+    def alpaca_order_stream_client(self) -> AlpacaOrderStreamClient:
+        return AlpacaOrderStreamClient(
             logger=self.logger_container.logger(
                 logger_type=LoggerType.ALPACA_ORDER_STREAM_CLIENT
             ),

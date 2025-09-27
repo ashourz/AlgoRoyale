@@ -41,18 +41,28 @@ class SignalBacktestContainer:
         self.factory_container = factory_container
         self.logger_container = logger_container
 
-        self.signal_strategy_executor = StrategyBacktestExecutor(
+    @property
+    def signal_strategy_executor(self) -> StrategyBacktestExecutor:
+        return StrategyBacktestExecutor(
             stage_data_manager=self.stage_data_container.stage_data_manager,
             logger=self.logger_container.logger(
                 logger_type=LoggerType.SIGNAL_STRATEGY_EXECUTOR
             ),
         )
-        self.signal_strategy_evaluator = SignalBacktestEvaluator(
+
+    @property
+    def signal_strategy_evaluator(self) -> SignalBacktestEvaluator:
+        return SignalBacktestEvaluator(
             logger=self.logger_container.logger(
                 logger_type=LoggerType.SIGNAL_STRATEGY_EVALUATOR
             ),
         )
-        self.strategy_optimization_stage_coordinator = SignalStrategyOptimizationStageCoordinator(
+
+    @property
+    def strategy_optimization_stage_coordinator(
+        self,
+    ) -> SignalStrategyOptimizationStageCoordinator:
+        return SignalStrategyOptimizationStageCoordinator(
             data_loader=self.stage_data_container.symbol_strategy_data_loader,
             stage_data_manager=self.stage_data_container.stage_data_manager,
             logger=self.logger_container.logger(
@@ -72,7 +82,12 @@ class SignalBacktestContainer:
                 self.config["backtester_signal"]["optimization_n_trials"]
             ),
         )
-        self.strategy_testing_stage_coordinator = SignalStrategyTestingStageCoordinator(
+
+    @property
+    def strategy_testing_stage_coordinator(
+        self,
+    ) -> SignalStrategyTestingStageCoordinator:
+        return SignalStrategyTestingStageCoordinator(
             data_loader=self.stage_data_container.symbol_strategy_data_loader,
             stage_data_manager=self.stage_data_container.stage_data_manager,
             strategy_executor=self.signal_strategy_executor,
@@ -89,7 +104,10 @@ class SignalBacktestContainer:
                 "signal_optimization_json_filename"
             ],
         )
-        self.strategy_evaluation_coordinator = SignalStrategyEvaluationCoordinator(
+
+    @property
+    def strategy_evaluation_coordinator(self) -> SignalStrategyEvaluationCoordinator:
+        return SignalStrategyEvaluationCoordinator(
             logger=self.logger_container.logger(
                 logger_type=LoggerType.SIGNAL_STRATEGY_EVALUATION
             ),
@@ -104,7 +122,10 @@ class SignalBacktestContainer:
                 "signal_evaluation_json_filename"
             ],
         )
-        self.symbol_evaluation_coordinator = SymbolEvaluationCoordinator(
+
+    @property
+    def symbol_evaluation_coordinator(self) -> SymbolEvaluationCoordinator:
+        return SymbolEvaluationCoordinator(
             optimization_root=self.config["backtester_signal_paths"][
                 "signal_optimization_root_path"
             ],
@@ -123,7 +144,10 @@ class SignalBacktestContainer:
                 logger_type=LoggerType.SYMBOL_EVALUATION
             ),
         )
-        self.signal_strategy_walk_forward_coordinator = WalkForwardCoordinator(
+
+    @property
+    def signal_strategy_walk_forward_coordinator(self) -> WalkForwardCoordinator:
+        return WalkForwardCoordinator(
             stage_data_manager=self.stage_data_container.stage_data_manager,
             stage_data_loader=self.stage_data_container.stage_data_loader,
             data_ingest_stage_coordinator=self.data_prep_coordinator_container.data_ingest_stage_coordinator,

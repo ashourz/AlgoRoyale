@@ -33,7 +33,9 @@ class OrderGeneratorServiceContainer:
         self.registry_container = registry_container
         self.logger_container = logger_container
 
-        self.market_data_streamer = MarketDataRawStreamer(
+    @property
+    def market_data_streamer(self) -> MarketDataRawStreamer:
+        return MarketDataRawStreamer(
             stream_adapter=self.adapter_container.stream_adapter,
             logger=self.logger_container.logger(
                 logger_type=LoggerType.MARKET_DATA_RAW_STREAMER
@@ -41,7 +43,9 @@ class OrderGeneratorServiceContainer:
             is_live=bool(self.config["environment"]["is_live"]),
         )
 
-        self.enriched_data_streamer = MarketDataEnrichedStreamer(
+    @property
+    def enriched_data_streamer(self) -> MarketDataEnrichedStreamer:
+        return MarketDataEnrichedStreamer(
             feature_engineer=self.feature_engineering_container.feature_engineer,
             market_data_streamer=self.market_data_streamer,
             logger=self.logger_container.logger(
@@ -49,7 +53,9 @@ class OrderGeneratorServiceContainer:
             ),
         )
 
-        self.signal_generator = SignalGenerator(
+    @property
+    def signal_generator(self) -> SignalGenerator:
+        return SignalGenerator(
             enriched_data_streamer=self.enriched_data_streamer,
             strategy_registry=self.registry_container.signal_strategy_registry,
             logger=self.logger_container.logger(
@@ -57,32 +63,43 @@ class OrderGeneratorServiceContainer:
             ),
         )
 
-        self.order_generator = OrderGenerator(
+    @property
+    def order_generator(self) -> OrderGenerator:
+        return OrderGenerator(
             signal_generator=self.signal_generator,
             portfolio_strategy_registry=self.registry_container.portfolio_strategy_registry,
             logger=self.logger_container.logger(logger_type=LoggerType.ORDER_GENERATOR),
         )
 
-        self.symbol_service = SymbolService(
+    @property
+    def symbol_service(self) -> SymbolService:
+        return SymbolService(
             watchlist_repo=self.repo_container.watchlist_repo,
             positions_service=self.ledger_service_container.positions_service,
             logger=self.logger_container.logger(logger_type=LoggerType.SYMBOL_SERVICE),
         )
 
-        self.order_event_service = OrderEventService(
+    @property
+    def order_event_service(self) -> OrderEventService:
+        return OrderEventService(
             order_stream_adapter=self.adapter_container.order_stream_adapter,
             logger=self.logger_container.logger(
                 logger_type=LoggerType.ORDER_EVENT_SERVICE
             ),
         )
 
-        self.symbol_hold_tracker = SymbolHoldTracker(
+    @property
+    def symbol_hold_tracker(self) -> SymbolHoldTracker:
+        return SymbolHoldTracker(
+            symbol_service=self.symbol_service,
             logger=self.logger_container.logger(
                 logger_type=LoggerType.SYMBOL_HOLD_TRACKER
             ),
         )
 
-        self.symbol_hold_service = SymbolHoldService(
+    @property
+    def symbol_hold_service(self) -> SymbolHoldService:
+        return SymbolHoldService(
             symbol_service=self.symbol_service,
             symbol_hold_tracker=self.symbol_hold_tracker,
             order_service=self.ledger_service_container.order_service,
@@ -97,7 +114,9 @@ class OrderGeneratorServiceContainer:
             ),
         )
 
-        self.order_generator_service = OrderGeneratorService(
+    @property
+    def order_generator_service(self) -> OrderGeneratorService:
+        return OrderGeneratorService(
             order_generator=self.order_generator,
             symbol_hold_service=self.symbol_hold_service,
             logger=self.logger_container.logger(

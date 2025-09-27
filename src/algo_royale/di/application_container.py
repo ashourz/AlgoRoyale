@@ -35,42 +35,59 @@ class ApplicationContainer:
             raise ValueError(
                 f"Secrets file at {self.environment.secrets_ini_path} is empty or invalid."
             )
-        self.logger_container = LoggerContainer(environment=self.environment)
 
-        self.repo_container = RepoContainer(
+    @property
+    def logger_container(self) -> LoggerContainer:
+        return LoggerContainer(environment=self.environment)
+
+    @property
+    def repo_container(self) -> RepoContainer:
+        return RepoContainer(
             config=self.config,
             secrets=self.secrets,
             logger_container=self.logger_container,
         )
 
-        self.adapter_container = AdapterContainer(
+    @property
+    def adapter_container(self) -> AdapterContainer:
+        return AdapterContainer(
             config=self.config,
             secrets=self.secrets,
             logger_container=self.logger_container,
         )
 
-        self.clock_service = ClockService(
+    @property
+    def clock_service(self) -> ClockService:
+        return ClockService(
             clock_adapter=self.adapter_container.clock_adapter,
             logger=self.logger_container.logger(logger_type=LoggerType.CLOCK_SERVICE),
         )
 
-        self.stage_data_container = StageDataContainer(
+    @property
+    def stage_data_container(self) -> StageDataContainer:
+        return StageDataContainer(
             config=self.config,
             logger_container=self.logger_container,
             repo_container=self.repo_container,
         )
 
-        self.factory_container = FactoryContainer(
+    @property
+    def factory_container(self) -> FactoryContainer:
+        return FactoryContainer(
             config=self.config,
             logger_container=self.logger_container,
         )
 
-        self.feature_engineering_container = FeatureEngineeringContainer(
+    @property
+    def feature_engineering_container(self) -> FeatureEngineeringContainer:
+        return FeatureEngineeringContainer(
             config=self.config,
             logger_container=self.logger_container,
         )
 
-        self.backtest_pipeline_container = BacktestPipelineContainer(
+    @property
+    def backtest_pipeline_container(self) -> BacktestPipelineContainer:
+        return BacktestPipelineContainer(
             config=self.config,
             stage_data_container=self.stage_data_container,
             feature_engineering_container=self.feature_engineering_container,
@@ -80,7 +97,9 @@ class ApplicationContainer:
             logger_container=self.logger_container,
         )
 
-        self.ledger_service_container = LedgerServiceContainer(
+    @property
+    def ledger_service_container(self) -> LedgerServiceContainer:
+        return LedgerServiceContainer(
             config=self.config,
             adapter_container=self.adapter_container,
             repo_container=self.repo_container,
@@ -88,7 +107,9 @@ class ApplicationContainer:
             clock_service=self.clock_service,
         )
 
-        self.trading_container = TradingContainer(
+    @property
+    def trading_container(self) -> TradingContainer:
+        return TradingContainer(
             config=self.config,
             adapter_container=self.adapter_container,
             repo_container=self.repo_container,

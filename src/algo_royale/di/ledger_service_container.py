@@ -1,5 +1,3 @@
-from dependency_injector import providers
-
 from algo_royale.logging.logger_type import LoggerType
 from algo_royale.services.account_cash_service import AccountCashService
 from algo_royale.services.enriched_data_service import EnrichedDataService
@@ -21,21 +19,27 @@ class LedgerServiceContainer:
         self.logger_container = logger_container
         self.clock_service = clock_service
 
-        self.account_cash_service = AccountCashService(
+    @property
+    def account_cash_service(self) -> AccountCashService:
+        return AccountCashService(
             cash_adapter=self.adapter_container.account_cash_adapter,
             logger=self.logger_container.logger(
                 logger_type=LoggerType.ACCOUNT_CASH_SERVICE
             ),
         )
 
-        self.enriched_data_service = EnrichedDataService(
+    @property
+    def enriched_data_service(self) -> EnrichedDataService:
+        return EnrichedDataService(
             enriched_data_repo=self.adapter_container.enriched_data_repo,
             logger=self.logger_container.logger(
                 logger_type=LoggerType.ENRICHED_DATA_SERVICE
             ),
         )
 
-        self.order_service = OrderService(
+    @property
+    def order_service(self) -> OrderService:
+        return OrderService(
             orders_adapter=self.adapter_container.orders_adapter,
             order_repo=self.repo_container.order_repo,
             trade_repo=self.repo_container.trade_repo,
@@ -44,7 +48,9 @@ class LedgerServiceContainer:
             account_id=self.config["db_user"]["account_id"],
         )
 
-        self.trades_service = TradesService(
+    @property
+    def trades_service(self) -> TradesService:
+        return TradesService(
             account_adapter=self.adapter_container.account_adapter,
             trade_repo=self.repo_container.trade_repo,
             logger=self.logger_container.logger(logger_type=LoggerType.TRADE_SERVICE),
@@ -53,7 +59,9 @@ class LedgerServiceContainer:
             days_to_settle=int(self.config["trading"]["days_to_settle"]),
         )
 
-        self.positions_service = PositionsService(
+    @property
+    def positions_service(self) -> PositionsService:
+        return PositionsService(
             positions_adapter=self.adapter_container.positions_adapter,
             trade_repo=self.repo_container.trade_repo,
             logger=self.logger_container.logger(
@@ -63,7 +71,9 @@ class LedgerServiceContainer:
             account_id=self.config["db_user"]["account_id"],
         )
 
-        self.ledger_service = LedgerService(
+    @property
+    def ledger_service(self) -> LedgerService:
+        return LedgerService(
             cash_service=self.account_cash_service,
             order_service=self.order_service,
             trades_service=self.trades_service,
@@ -72,24 +82,10 @@ class LedgerServiceContainer:
             logger=self.logger_container.logger(logger_type=LoggerType.LEDGER_SERVICE),
         )
 
-        self.symbol_service = SymbolService(
+    @property
+    def symbol_service(self) -> SymbolService:
+        return SymbolService(
             watchlist_repo=self.repo_container.watchlist_repo,
             positions_service=self.positions_service,
             logger=self.logger_container.logger(logger_type=LoggerType.SYMBOL_SERVICE),
-        )
-
-        self.account_cash_service = providers.Singleton(
-            AccountCashService,
-            cash_adapter=self.adapter_container.account_cash_adapter,
-            logger=self.logger_container.logger(
-                logger_type=LoggerType.ACCOUNT_CASH_SERVICE
-            ),
-        )
-
-        self.enriched_data_service = providers.Singleton(
-            EnrichedDataService,
-            enriched_data_repo=self.adapter_container.enriched_data_repo,
-            logger=self.logger_container.logger(
-                logger_type=LoggerType.ENRICHED_DATA_SERVICE,
-            ),
         )

@@ -19,9 +19,13 @@ class FeatureEngineeringContainer:
         self.config = config
         self.logger_container = logger_container
 
-        self.feature_engineering_func = partial(feature_engineering)
+    @property
+    def feature_engineering_func(self):
+        return partial(feature_engineering)
 
-        self.backtest_feature_engineer = BacktestFeatureEngineer(
+    @property
+    def backtest_feature_engineer(self) -> BacktestFeatureEngineer:
+        return BacktestFeatureEngineer(
             feature_engineering_func=self.feature_engineering_func,
             logger=self.logger_container.logger(
                 logger_type=LoggerType.BACKTEST_FEATURE_ENGINEERING
@@ -29,6 +33,8 @@ class FeatureEngineeringContainer:
             max_lookback=FeatureEngineeringColumns.get_max_lookback_from_columns(),
         )
 
-        self.feature_engineer = FeatureEngineer(
+    @property
+    def feature_engineer(self) -> FeatureEngineer:
+        return FeatureEngineer(
             logger=self.logger_container.logger(logger_type=LoggerType.FEATURE_ENGINEER)
         )

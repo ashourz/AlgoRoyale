@@ -31,7 +31,9 @@ class TradingContainer:
         self.logger_container = logger_container
         self.clock_service = clock_service
 
-        self.registry_container = RegistryContainer(
+    @property
+    def registry_container(self) -> RegistryContainer:
+        return RegistryContainer(
             config=self.config,
             factory_container=self.factory_container,
             stage_data_container=self.stage_data_container,
@@ -39,7 +41,9 @@ class TradingContainer:
             logger_container=self.logger_container,
         )
 
-        self.order_generator_service_container = OrderGeneratorServiceContainer(
+    @property
+    def order_generator_service_container(self) -> OrderGeneratorServiceContainer:
+        return OrderGeneratorServiceContainer(
             config=self.config,
             adapter_container=self.adapter_container,
             repo_container=self.repo_container,
@@ -49,13 +53,17 @@ class TradingContainer:
             logger_container=self.logger_container,
         )
 
-        self.market_session_container = MarketSessionContainer(
+    @property
+    def market_session_container(self) -> MarketSessionContainer:
+        return MarketSessionContainer(
             logger_container=self.logger_container,
             ledger_service_container=self.ledger_service_container,
             order_generator_service_container=self.order_generator_service_container,
         )
 
-        self.trade_orchestrator = TradeOrchestrator(
+    @property
+    def trade_orchestrator(self) -> TradeOrchestrator:
+        return TradeOrchestrator(
             clock_service=self.clock_service,
             market_session_service=self.market_session_container.market_session_service,
             logger=self.logger_container.logger(

@@ -1,3 +1,4 @@
+from algo_royale.adapters.account_cash_adapter import AccountCashAdapter
 from algo_royale.adapters.market_data.corporate_action_adapter import (
     CorporateActionAdapter,
 )
@@ -29,118 +30,131 @@ class AdapterContainer:
         self.secrets = secrets
         self.logger_container = logger_container
 
-        # REPOS (from RepoContainer)
-        from algo_royale.di.repo.repo_container import RepoContainer
-
-        self.repo_container = RepoContainer(
-            config=self.config,
-            secrets=self.secrets,
-            logger_container=self.logger_container,
-        )
-        self.enriched_data_repo = self.repo_container.enriched_data_repo
-
-        # Initialize client_container as an attribute
-        self.client_container = ClientContainer(
+    # Initialize client_container as an attribute
+    @property
+    def client_container(self) -> ClientContainer:
+        return ClientContainer(
             config=self.config,
             secrets=self.secrets,
             logger_container=self.logger_container,
         )
 
-        # MARKET DATA ADAPTERS
-        self.corporate_action_adapter = CorporateActionAdapter(
+    # MARKET DATA ADAPTERS
+    @property
+    def corporate_action_adapter(self) -> CorporateActionAdapter:
+        return CorporateActionAdapter(
             client=self.client_container.alpaca_corporate_action_client,
             logger=self.logger_container.logger(
                 logger_type=LoggerType.CORPORATE_ACTION_ADAPTER
             ),
         )
 
-        self.news_adapter = NewsAdapter(
+    @property
+    def news_adapter(self) -> NewsAdapter:
+        return NewsAdapter(
             client=self.client_container.alpaca_news_client,
             logger=self.logger_container.logger(logger_type=LoggerType.NEWS_ADAPTER),
         )
 
-        self.quote_adapter = QuoteAdapter(
-            alpaca_stock_client=self.client_container.alpaca_stock_client,
+    @property
+    def quote_adapter(self) -> QuoteAdapter:
+        return QuoteAdapter(
+            client=self.client_container.alpaca_quote_client,
             logger=self.logger_container.logger(logger_type=LoggerType.QUOTE_ADAPTER),
         )
 
-        self.screener_adapter = ScreenerAdapter(
+    @property
+    def screener_adapter(self) -> ScreenerAdapter:
+        return ScreenerAdapter(
             client=self.client_container.alpaca_screener_client,
             logger=self.logger_container.logger(
                 logger_type=LoggerType.SCREENER_ADAPTER
             ),
         )
 
-        self.stream_adapter = StreamAdapter(
+    @property
+    def stream_adapter(self) -> StreamAdapter:
+        return StreamAdapter(
             stream_client=self.client_container.alpaca_stream_client,
             logger=self.logger_container.logger(logger_type=LoggerType.STREAM_ADAPTER),
         )
 
-        # TRADE ADAPTERS
-
-        self.account_adapter = AccountAdapter(
+    # TRADE ADAPTERS
+    @property
+    def account_adapter(self) -> AccountAdapter:
+        return AccountAdapter(
             client=self.client_container.alpaca_account_client,
             logger=self.logger_container.logger(logger_type=LoggerType.ACCOUNT_ADAPTER),
         )
 
-        # AccountCashAdapter wiring
-        from algo_royale.adapters.account_cash_adapter import AccountCashAdapter
-
-        self.account_cash_adapter = AccountCashAdapter(
+    # AccountCashAdapter wiring
+    @property
+    def account_cash_adapter(self) -> AccountCashAdapter:
+        return AccountCashAdapter(
             account_adapter=self.account_adapter,
             logger=self.logger_container.logger(logger_type=LoggerType.ACCOUNT_ADAPTER),
         )
 
-        self.assets_adapter = AssetsAdapter(
+    @property
+    def assets_adapter(self) -> AssetsAdapter:
+        return AssetsAdapter(
             assets_client=self.client_container.alpaca_assets_client,
             logger=self.logger_container.logger(logger_type=LoggerType.ASSETS_ADAPTER),
         )
 
-        self.calendar_adapter = CalendarAdapter(
+    @property
+    def calendar_adapter(self) -> CalendarAdapter:
+        return CalendarAdapter(
             calendar_client=self.client_container.alpaca_calendar_client,
             logger=self.logger_container.logger(
                 logger_type=LoggerType.CALENDAR_ADAPTER
             ),
         )
 
-        self.clock_adapter = ClockAdapter(
+    @property
+    def clock_adapter(self) -> ClockAdapter:
+        return ClockAdapter(
             clock_client=self.client_container.alpaca_clock_client,
             logger=self.logger_container.logger(logger_type=LoggerType.CLOCK_ADAPTER),
         )
 
-        self.order_stream_adapter = OrderStreamAdapter(
+    @property
+    def order_stream_adapter(self) -> OrderStreamAdapter:
+        return OrderStreamAdapter(
             order_stream_client=self.client_container.alpaca_order_stream_client,
             logger=self.logger_container.logger(
                 logger_type=LoggerType.ORDER_STREAM_ADAPTER
             ),
         )
 
-        self.orders_adapter = OrdersAdapter(
+    @property
+    def orders_adapter(self) -> OrdersAdapter:
+        return OrdersAdapter(
             client=self.client_container.alpaca_orders_client,
             logger=self.logger_container.logger(logger_type=LoggerType.ORDERS_ADAPTER),
         )
 
-        # Alias for compatibility with code expecting order_adapter
-        self.order_adapter = self.orders_adapter
-
-        # Alias for compatibility with code expecting order_adapter
-        self.order_adapter = self.orders_adapter
-
-        self.portfolio_adapter = PortfolioAdapter(
+    @property
+    def portfolio_adapter(self) -> PortfolioAdapter:
+        return PortfolioAdapter(
             client=self.client_container.alpaca_portfolio_client,
             logger=self.logger_container.logger(
                 logger_type=LoggerType.PORTFOLIO_ADAPTER
             ),
         )
 
-        self.positions_adapter = PositionsAdapter(
+    @property
+    def positions_adapter(self) -> PositionsAdapter:
+        return PositionsAdapter(
             client=self.client_container.alpaca_positions_client,
             logger=self.logger_container.logger(
                 logger_type=LoggerType.POSITIONS_ADAPTER
             ),
         )
 
-        self.watchlist_adapter = WatchlistAdapter(
+    @property
+    def watchlist_adapter(self) -> WatchlistAdapter:
+        return WatchlistAdapter(
             client=self.client_container.alpaca_watchlist_client,
             logger=self.logger_container.logger(
                 logger_type=LoggerType.WATCHLIST_ADAPTER

@@ -52,7 +52,9 @@ class PortfolioBacktestContainer:
 
         self.data_dir = get_project_root() / self.config["data_dir"]["root"]
 
-        self.portfolio_executor = PortfolioBacktestExecutor(
+    @property
+    def portfolio_executor(self) -> PortfolioBacktestExecutor:
+        return PortfolioBacktestExecutor(
             initial_balance=float(
                 self.config["backtester_portfolio"]["initial_portfolio_value"]
             ),
@@ -67,19 +69,25 @@ class PortfolioBacktestContainer:
             ),
         )
 
-        self.portfolio_evaluator = PortfolioBacktestEvaluator(
+    @property
+    def portfolio_evaluator(self) -> PortfolioBacktestEvaluator:
+        return PortfolioBacktestEvaluator(
             logger=self.logger_container.logger(
                 logger_type=LoggerType.PORTFOLIO_BACKTEST_EVALUATOR
             ),
         )
 
-        self.portfolio_asset_matrix_preparer = AssetMatrixPreparer(
+    @property
+    def portfolio_asset_matrix_preparer(self) -> AssetMatrixPreparer:
+        return AssetMatrixPreparer(
             logger=self.logger_container.logger(
                 logger_type=LoggerType.PORTFOLIO_ASSET_MATRIX_PREPARER
             ),
         )
 
-        self.portfolio_matrix_loader = PortfolioMatrixLoader(
+    @property
+    def portfolio_matrix_loader(self) -> PortfolioMatrixLoader:
+        return PortfolioMatrixLoader(
             strategy_backtest_executor=self.signal_backtest_container.signal_strategy_executor,
             asset_matrix_preparer=self.portfolio_asset_matrix_preparer,
             stage_data_manager=self.stage_data_container.stage_data_manager,
@@ -100,7 +108,11 @@ class PortfolioBacktestContainer:
             ),
         )
 
-        self.portfolio_optimization_stage_coordinator = PortfolioOptimizationStageCoordinator(
+    @property
+    def portfolio_optimization_stage_coordinator(
+        self,
+    ) -> PortfolioOptimizationStageCoordinator:
+        return PortfolioOptimizationStageCoordinator(
             data_loader=self.stage_data_container.symbol_strategy_data_loader,
             stage_data_manager=self.stage_data_container.stage_data_manager,
             executor=self.portfolio_executor,
@@ -122,7 +134,9 @@ class PortfolioBacktestContainer:
             ),
         )
 
-        self.portfolio_testing_stage_coordinator = PortfolioTestingStageCoordinator(
+    @property
+    def portfolio_testing_stage_coordinator(self) -> PortfolioTestingStageCoordinator:
+        return PortfolioTestingStageCoordinator(
             data_loader=self.stage_data_container.symbol_strategy_data_loader,
             stage_data_manager=self.stage_data_container.stage_data_manager,
             executor=self.portfolio_executor,
@@ -143,7 +157,9 @@ class PortfolioBacktestContainer:
             portfolio_matrix_loader=self.portfolio_matrix_loader,
         )
 
-        self.portfolio_walk_forward_coordinator = WalkForwardCoordinator(
+    @property
+    def portfolio_walk_forward_coordinator(self) -> WalkForwardCoordinator:
+        return WalkForwardCoordinator(
             stage_data_manager=self.stage_data_container.stage_data_manager,
             stage_data_loader=self.stage_data_container.stage_data_loader,
             data_ingest_stage_coordinator=self.data_prep_coordinator_container.data_ingest_stage_coordinator,
@@ -155,7 +171,9 @@ class PortfolioBacktestContainer:
             ),
         )
 
-        self.portfolio_cross_window_evaluator = PortfolioCrossWindowEvaluator(
+    @property
+    def portfolio_cross_window_evaluator(self) -> PortfolioCrossWindowEvaluator:
+        return PortfolioCrossWindowEvaluator(
             logger=self.logger_container.logger(
                 logger_type=LoggerType.PORTFOLIO_CROSS_WINDOW_EVALUATOR
             ),
@@ -167,7 +185,9 @@ class PortfolioBacktestContainer:
             ],
         )
 
-        self.portfolio_cross_strategy_summary = PortfolioCrossStrategySummary(
+    @property
+    def portfolio_cross_strategy_summary(self) -> PortfolioCrossStrategySummary:
+        return PortfolioCrossStrategySummary(
             logger=self.logger_container.logger(
                 logger_type=LoggerType.PORTFOLIO_CROSS_STRATEGY_SUMMARY
             ),
@@ -179,7 +199,9 @@ class PortfolioBacktestContainer:
             ],
         )
 
-        self.portfolio_evaluation_coordinator = PortfolioEvaluationCoordinator(
+    @property
+    def portfolio_evaluation_coordinator(self) -> PortfolioEvaluationCoordinator:
+        return PortfolioEvaluationCoordinator(
             logger=self.logger_container.logger(
                 logger_type=LoggerType.PORTFOLIO_EVALUATION
             ),

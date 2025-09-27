@@ -22,7 +22,9 @@ class RegistryContainer:
         self.ledger_service_container = ledger_service_container
         self.logger_container = logger_container
 
-        self.signal_strategy_registry = SignalStrategyRegistry(
+    @property
+    def signal_strategy_registry(self) -> SignalStrategyRegistry:
+        return SignalStrategyRegistry(
             symbol_service=self.ledger_service_container.symbol_service,
             stage_data_manager=self.stage_data_container.stage_data_manager,
             evaluation_json_filename=self.config["backtester_signal_filenames"][
@@ -43,7 +45,9 @@ class RegistryContainer:
             ),
         )
 
-        self.portfolio_strategy_registry = PortfolioStrategyRegistry(
+    @property
+    def portfolio_strategy_registry(self) -> PortfolioStrategyRegistry:
+        return PortfolioStrategyRegistry(
             symbol_service=self.ledger_service_container.symbol_service,
             stage_data_manager=self.stage_data_container.stage_data_manager,
             evaluation_json_filename=self.config["backtester_portfolio_filenames"][

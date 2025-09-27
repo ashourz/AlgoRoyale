@@ -21,7 +21,9 @@ class FactoryContainer:
         self.config = config
         self.logger_container = logger_container
 
-        self.signal_strategy_factory = SignalStrategyFactory(
+    @property
+    def signal_strategy_factory(self) -> SignalStrategyFactory:
+        return SignalStrategyFactory(
             logger=self.logger_container.logger(
                 logger_type=LoggerType.SIGNAL_STRATEGY_FACTORY
             ),
@@ -30,7 +32,9 @@ class FactoryContainer:
             ),
         )
 
-        self.signal_strategy_combinator_factory = SignalStrategyCombinatorFactory(
+    @property
+    def signal_strategy_combinator_factory(self) -> SignalStrategyCombinatorFactory:
+        return SignalStrategyCombinatorFactory(
             combinator_list_path=self.config["backtester_paths"][
                 "signal_strategy_combinators"
             ],
@@ -39,7 +43,9 @@ class FactoryContainer:
             ),
         )
 
-        self.signal_strategy_optimizer_factory = SignalStrategyOptimizerFactoryImpl(
+    @property
+    def signal_strategy_optimizer_factory(self) -> SignalStrategyOptimizerFactoryImpl:
+        return SignalStrategyOptimizerFactoryImpl(
             logger=self.logger_container.logger(
                 logger_type=LoggerType.SIGNAL_STRATEGY_OPTIMIZER_FACTORY
             ),
@@ -48,7 +54,11 @@ class FactoryContainer:
             ),
         )
 
-        self.portfolio_strategy_combinator_factory = PortfolioStrategyCombinatorFactory(
+    @property
+    def portfolio_strategy_combinator_factory(
+        self,
+    ) -> PortfolioStrategyCombinatorFactory:
+        return PortfolioStrategyCombinatorFactory(
             combinator_list_path=self.config["backtester_paths"][
                 "portfolio_strategy_combinators"
             ],
@@ -60,13 +70,15 @@ class FactoryContainer:
             ),
         )
 
-        self.portfolio_strategy_optimizer_factory = (
-            PortfolioStrategyOptimizerFactoryImpl(
-                logger=self.logger_container.logger(
-                    logger_type=LoggerType.PORTFOLIO_STRATEGY_OPTIMIZER_FACTORY
-                ),
-                strategy_logger=self.logger_container.logger(
-                    logger_type=LoggerType.PORTFOLIO_STRATEGY
-                ),
-            )
+    @property
+    def portfolio_strategy_optimizer_factory(
+        self,
+    ) -> PortfolioStrategyOptimizerFactoryImpl:
+        return PortfolioStrategyOptimizerFactoryImpl(
+            logger=self.logger_container.logger(
+                logger_type=LoggerType.PORTFOLIO_STRATEGY_OPTIMIZER_FACTORY
+            ),
+            strategy_logger=self.logger_container.logger(
+                logger_type=LoggerType.PORTFOLIO_STRATEGY
+            ),
         )

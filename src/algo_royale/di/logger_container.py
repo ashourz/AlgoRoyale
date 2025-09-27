@@ -34,9 +34,3 @@ class LoggerContainer:
 
     def logger(self, logger_type: LoggerType):
         return self.get_logger(self.environment, self.logger_factory, logger_type)
-
-
-dev_unit_logger_container = LoggerContainer(environment=ApplicationEnv.DEV_UNIT)
-dev_integration_logger_container = LoggerContainer(
-    environment=ApplicationEnv.DEV_INTEGRATION
-)

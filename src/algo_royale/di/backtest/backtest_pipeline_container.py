@@ -29,7 +29,9 @@ class BacktestPipelineContainer:
         self.repo_container = repo_container
         self.logger_container = logger_container
 
-        self.data_prep_coordinator_container = DataPrepCoordinatorContainer(
+    @property
+    def data_prep_coordinator_container(self) -> DataPrepCoordinatorContainer:
+        return DataPrepCoordinatorContainer(
             config=self.config,
             logger_container=self.logger_container,
             stage_data_container=self.stage_data_container,
@@ -38,7 +40,9 @@ class BacktestPipelineContainer:
             repo_container=self.repo_container,
         )
 
-        self.signal_backtest_container = SignalBacktestContainer(
+    @property
+    def signal_backtest_container(self) -> SignalBacktestContainer:
+        return SignalBacktestContainer(
             config=self.config,
             data_prep_coordinator_container=self.data_prep_coordinator_container,
             stage_data_container=self.stage_data_container,
@@ -46,7 +50,9 @@ class BacktestPipelineContainer:
             logger_container=self.logger_container,
         )
 
-        self.portfolio_backtest_container = PortfolioBacktestContainer(
+    @property
+    def portfolio_backtest_container(self) -> PortfolioBacktestContainer:
+        return PortfolioBacktestContainer(
             config=self.config,
             data_prep_coordinator_container=self.data_prep_coordinator_container,
             stage_data_container=self.stage_data_container,
@@ -55,7 +61,9 @@ class BacktestPipelineContainer:
             logger_container=self.logger_container,
         )
 
-        self.pipeline_coordinator = PipelineCoordinator(
+    @property
+    def pipeline_coordinator(self) -> PipelineCoordinator:
+        return PipelineCoordinator(
             signal_strategy_walk_forward_coordinator=self.signal_backtest_container.signal_strategy_walk_forward_coordinator,
             portfolio_walk_forward_coordinator=self.portfolio_backtest_container.portfolio_walk_forward_coordinator,
             signal_strategy_evaluation_coordinator=self.signal_backtest_container.strategy_evaluation_coordinator,

@@ -17,27 +17,35 @@ class RepoContainer:
         self.secrets = secrets
         self.logger_container = logger_container
 
-        # Instantiate DBContainer and DAOContainer as regular classes (anticipating their refactor)
-        self.db_container = DBContainer(
+    # Instantiate DBContainer and DAOContainer as regular classes (anticipating their refactor)
+    @property
+    def db_container(self) -> DBContainer:
+        return DBContainer(
             config=self.config,
             secrets=self.secrets,
             logger_container=self.logger_container,
         )
 
-        self.dao_container = DAOContainer(
+    @property
+    def dao_container(self) -> DAOContainer:
+        return DAOContainer(
             config=self.config,
             db_container=self.db_container,
             logger_container=self.logger_container,
         )
 
-        self.data_stream_session_repo = DataStreamSessionRepo(
+    @property
+    def data_stream_session_repo(self) -> DataStreamSessionRepo:
+        return DataStreamSessionRepo(
             dao=self.dao_container.data_stream_session_dao,
             logger=self.logger_container.logger(
                 logger_type=LoggerType.DATA_STREAM_SESSION_REPO
             ),
         )
 
-        self.enriched_data_repo = EnrichedDataRepo(
+    @property
+    def enriched_data_repo(self) -> EnrichedDataRepo:
+        return EnrichedDataRepo(
             dao=self.dao_container.enriched_data_dao,
             logger=self.logger_container.logger(
                 logger_type=LoggerType.ENRICHED_DATA_REPO
@@ -46,19 +54,25 @@ class RepoContainer:
             account_id=self.config["db_user"]["account_id"],
         )
 
-        self.trade_repo = TradeRepo(
+    @property
+    def trade_repo(self) -> TradeRepo:
+        return TradeRepo(
             dao=self.dao_container.trade_dao,
             logger=self.logger_container.logger(logger_type=LoggerType.TRADE_REPO),
             user_id=self.config["db_user"]["id"],
             account_id=self.config["db_user"]["account_id"],
         )
 
-        self.order_repo = OrderRepo(
+    @property
+    def order_repo(self) -> OrderRepo:
+        return OrderRepo(
             dao=self.dao_container.order_dao,
             logger=self.logger_container.logger(logger_type=LoggerType.ORDER_REPO),
         )
 
-        self.watchlist_repo = WatchlistRepo(
+    @property
+    def watchlist_repo(self) -> WatchlistRepo:
+        return WatchlistRepo(
             watchlist_path=self.config["backtester_paths"]["watchlist_path"],
             logger=self.logger_container.logger(logger_type=LoggerType.WATCHLIST_REPO),
         )
