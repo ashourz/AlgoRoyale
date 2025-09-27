@@ -16,7 +16,11 @@ class LoggerContainer:
         self.logger_factory = LoggerFactory(environment=environment)
 
     @staticmethod
-    def get_logger(environment, logger_factory, logger_type: LoggerType):
+    def get_logger(
+        environment: ApplicationEnv,
+        logger_factory: LoggerFactory,
+        logger_type: LoggerType,
+    ):
         if environment == ApplicationEnv.PROD_LIVE:
             env_logger_type_enum = EnvLoggerTypeProdLive
         elif environment == ApplicationEnv.PROD_PAPER:
