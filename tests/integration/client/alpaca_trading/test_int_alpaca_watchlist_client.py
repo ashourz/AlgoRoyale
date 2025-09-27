@@ -19,7 +19,7 @@ async def alpaca_client():
     try:
         yield client
     finally:
-        client_container.close_all_clients()
+        await client_container.async_close_all_clients()
 
 
 @pytest.fixture

@@ -1,5 +1,7 @@
 # tests/integration/conftest.py
 
+import asyncio
+
 import pytest
 
 from algo_royale.di.application_container import ApplicationContainer
@@ -7,10 +9,17 @@ from algo_royale.logging.logger_env import ApplicationEnv
 
 
 @pytest.fixture(scope="session")
-def application():
+def event_loop():
+    loop = asyncio.new_event_loop()
+    yield loop
+    loop.close()
+
+
+@pytest.fixture(scope="session")
+async def application():
     application = ApplicationContainer(environment=ApplicationEnv.DEV_INTEGRATION)
     yield application
-    application.close()
+    await application.async_close()
 
 
 @pytest.fixture(scope="session", autouse=True)

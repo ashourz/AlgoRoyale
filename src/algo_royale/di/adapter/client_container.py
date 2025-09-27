@@ -277,8 +277,8 @@ class ClientContainer:
             keep_alive_timeout=int(self.config["alpaca_params"]["keep_alive_timeout"]),
         )
 
-    def close_all_clients(self):
-        """Close all clients that have a close or aclose method."""
+    async def async_close_all_clients(self):
+        """Async: Close all clients that have a close or aclose method."""
         try:
             for client in [
                 self.alpaca_corporate_action_client,
@@ -297,9 +297,7 @@ class ClientContainer:
                 self.alpaca_order_stream_client,
             ]:
                 if hasattr(client, "aclose"):
-                    import asyncio
-
-                    asyncio.run(client.aclose())
+                    await client.aclose()
                 elif hasattr(client, "close"):
                     client.close()
         except Exception as e:

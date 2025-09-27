@@ -31,8 +31,8 @@ def cli():
         )
         asyncio.run(async_cli(coordinator))
     finally:
-        if hasattr(application_container, "close"):
-            application_container.close()
+        if hasattr(application_container, "async_close"):
+            asyncio.run(application_container.async_close())
 
 
 if __name__ == "__main__":

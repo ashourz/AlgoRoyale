@@ -161,6 +161,6 @@ class AdapterContainer:
             ),
         )
 
-    def close(self):
+    async def async_close(self):
         """Close resources like database connections."""
-        self.client_container.close_all_clients()
+        await self.client_container.async_close_all_clients()

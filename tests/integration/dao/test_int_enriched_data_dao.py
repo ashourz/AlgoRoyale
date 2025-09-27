@@ -1,7 +1,6 @@
 import pytest
 
 from algo_royale.di.application_container import ApplicationContainer
-from algo_royale.logging.logger_env import ApplicationEnv
 
 SQL_FILES = [
     "delete_all_enriched_data.sql",
@@ -11,8 +10,11 @@ SQL_FILES = [
 
 
 @pytest.fixture
-def dao():
-    application = ApplicationContainer(environment=ApplicationEnv.DEV_INTEGRATION)
+def dao(environment_setup: bool, application: ApplicationContainer):
+    logger = application.repo_container.db_container.logger
+    logger.debug(f"Environment setup status: {environment_setup}")
+    if not environment_setup:
+        pytest.skip("Environment setup failed, skipping tests.")
     dao = application.repo_container.enriched_data_repo.dao
     yield dao
     db = application.repo_container.db_container

@@ -3,13 +3,15 @@ from uuid import uuid4
 import pytest
 
 from algo_royale.di.application_container import ApplicationContainer
-from algo_royale.logging.logger_env import ApplicationEnv
 from algo_royale.repo.order_repo import DBOrderStatus
 
 
 @pytest.fixture
-def repo():
-    application = ApplicationContainer(environment=ApplicationEnv.DEV_INTEGRATION)
+def repo(environment_setup: bool, application: ApplicationContainer):
+    logger = application.repo_container.db_container.logger
+    logger.debug(f"Environment setup status: {environment_setup}")
+    if not environment_setup:
+        pytest.skip("Environment setup failed, skipping tests.")
     # Ensure the database and tables exist
     db_container = application.repo_container.db_container
     db_container.register_user()

@@ -63,21 +63,33 @@ class DatabaseAdmin:
             create_if_not_exists=True,
         )
         self.logger.info("✅ Database created.")
-        self.logger.debug("[setup_environment] Running migrations...")
+        self.logger.debug("[setup_environment] Running migrations as master user...")
+        # Run migrations as master user (admin)
         self.run_migrations(
             db_connection=self.get_db_connection(
-                db_name=db_name, username=db_user, password=db_password
+                db_name=db_name,
+                username=self.master_db_user,
+                password=self.master_db_password,
             )
         )
         self.logger.info("✅ Migrations completed.")
-        self.logger.debug("[setup_environment] Granting privileges...")
+        self.logger.debug("[setup_environment] Granting privileges to test user...")
+        # get master connection to target db
+        target_db_connection = self.get_db_connection(
+            db_name=db_name,
+            username=self.master_db_user,
+            password=self.master_db_password,
+        )
+        target_db_connection.autocommit = True
         self.user_manager.grant_privileges(
             master_db_connection=master_db_connection,
+            target_db_connection=target_db_connection,
             db_name=db_name,
             username=db_user,
         )
         self.logger.info("✅ Privileges granted.")
         master_db_connection.close()
+        target_db_connection.close()
         self.logger.info("✅ Database environment setup complete.")
 
     def run_migrations(self, db_connection: psycopg2.extensions.connection):
