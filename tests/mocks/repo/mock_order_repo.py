@@ -31,14 +31,12 @@ class MockOrderRepo(OrderRepo):
     def reset_dao(self):
         self.dao.reset()
 
-    def fetch_order_by_id(
-        self, order_id: UUID, user_id: str, account_id: str
-    ) -> list[DBOrder]:
+    def fetch_order_by_id(self, order_id: UUID) -> list[DBOrder]:
         if self._raise_exception:
             raise ValueError("Database error")
         if self._return_empty:
             return []
-        return self.dao.fetch_order_by_id(order_id, user_id, account_id)
+        return self.dao.fetch_order_by_id(order_id, self.user_id, self.account_id)
 
     def fetch_orders_by_status(
         self, status_list: list[DBOrderStatus], limit: int = 100, offset: int = 0

@@ -66,6 +66,8 @@ class RepoContainer:
         return OrderRepo(
             dao=self.dao_container.order_dao,
             logger=self.logger_container.logger(logger_type=LoggerType.ORDER_REPO),
+            user_id=self.config["db_user"]["id"],
+            account_id=self.config["db_user"]["account_id"],
         )
 
     @property

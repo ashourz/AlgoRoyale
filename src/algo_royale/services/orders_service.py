@@ -15,14 +15,10 @@ class OrderService:
         order_repo: OrderRepo,
         trade_repo: TradeRepo,
         logger: Loggable,
-        user_id: str,
-        account_id: str,
     ):
         self.orders_adapter = orders_adapter
         self.order_repo = order_repo
         self.trade_repo = trade_repo
-        self.user_id = user_id
-        self.account_id = account_id
         self.logger = logger
 
     def fetch_orders_by_symbol_and_status(
@@ -71,9 +67,7 @@ class OrderService:
 
     def fetch_order_by_id(self, order_id: str) -> DBOrder | None:
         try:
-            orders = self.order_repo.fetch_order_by_id(
-                order_id, user_id=self.user_id, account_id=self.account_id
-            )
+            orders = self.order_repo.fetch_order_by_id(order_id)
             self.logger.info(f"Fetched order {order_id}: {orders}")
             if len(orders) > 1:
                 self.logger.info(f"Multiple orders found for {order_id}: {orders}")

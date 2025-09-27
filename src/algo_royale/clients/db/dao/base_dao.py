@@ -69,7 +69,7 @@ class BaseDAO:
                 cur.execute(query, params)
                 result = cur.fetchone()
             self.conn.commit()
-            return result
+            return result[0] if result else -1
         except Exception as e:
             self.logger.error(f"[{log_name}] Insert failed: {e}")
             self.conn.rollback()

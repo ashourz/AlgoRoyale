@@ -39,14 +39,14 @@ class OrderAction(ABC):
 
 
 class OrderRepo:
-    def __init__(self, dao: OrderDAO, logger: Logger):
+    def __init__(self, dao: OrderDAO, user_id: str, account_id: str, logger: Logger):
         self.dao = dao
+        self.user_id = user_id
+        self.account_id = account_id
         self.logger = logger
 
-    def fetch_order_by_id(
-        self, order_id: UUID, user_id: str, account_id: str
-    ) -> list[DBOrder]:
-        return self.dao.fetch_order_by_id(order_id, user_id, account_id)
+    def fetch_order_by_id(self, order_id: UUID) -> list[DBOrder]:
+        return self.dao.fetch_order_by_id(order_id, self.user_id, self.account_id)
 
     def fetch_orders_by_status(
         self, status_list: list[DBOrderStatus], limit: int = 100, offset: int = 0

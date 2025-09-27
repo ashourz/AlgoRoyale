@@ -1,13 +1,14 @@
-from uuid import uuid4
+from decimal import Decimal
 
 import pytest
 
 ## Removed unused import
 from algo_royale.di.application_container import ApplicationContainer
+from algo_royale.repo.order_repo import DBOrderStatus, OrderAction, OrderType
 
 
 @pytest.fixture
-def repo(environment_setup: bool, application: ApplicationContainer):
+def enriched_data_repo(environment_setup: bool, application: ApplicationContainer):
     logger = application.repo_container.db_container.logger
     logger.debug(f"Environment setup status: {environment_setup}")
     if not environment_setup:
@@ -17,8 +18,18 @@ def repo(environment_setup: bool, application: ApplicationContainer):
     repo.delete_all_enriched_data()
 
 
-def test_enriched_data_lifecycle(repo):
-    order_id = str(uuid4())
+@pytest.fixture
+def order_repo(environment_setup: bool, application: ApplicationContainer):
+    logger = application.repo_container.db_container.logger
+    logger.debug(f"Environment setup status: {environment_setup}")
+    if not environment_setup:
+        pytest.skip("Environment setup failed, skipping tests.")
+    repo = application.repo_container.order_repo
+    yield repo
+    repo.delete_all_orders()
+
+
+def test_enriched_data_lifecycle(enriched_data_repo, order_repo):
     enriched_data = {
         "market_timestamp": "2025-09-27 12:00:00",
         "symbol": "AAPL",
@@ -86,12 +97,22 @@ def test_enriched_data_lifecycle(repo):
         "obv": 10000.0,
         "adl": 5000.0,
     }
+    # Insert an order to link with the trade
+    order_id = order_repo.insert_order(
+        symbol="TEST",
+        order_type=OrderType.MARKET,
+        status=DBOrderStatus.FILL,
+        action=OrderAction.BUY,
+        quantity=1,
+        price=Decimal("1.23"),
+    )
+    print(f"Inserted order ID: {order_id}")
     # Insert
-    data_id = repo.insert_enriched_data(order_id, enriched_data)
+    data_id = enriched_data_repo.insert_enriched_data(order_id, enriched_data)
     assert data_id != -1
     # Fetch
-    data = repo.fetch_enriched_data_by_order_id(order_id)
+    data = enriched_data_repo.fetch_enriched_data_by_order_id(order_id)
     assert data
     # Cleanup
-    deleted = repo.delete_all_enriched_data()
+    deleted = enriched_data_repo.delete_all_enriched_data()
     assert deleted >= 1
