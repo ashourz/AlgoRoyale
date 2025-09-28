@@ -4,10 +4,10 @@ from tests.mocks.mock_loggable import MockLoggable
 
 
 class MockClockService(ClockService):
-
     async def schedule_job(self, job_name, run_time, coro_func):
         # Mock: do nothing, just return
         return None
+
     def __init__(self):
         super().__init__(
             clock_adapter=MockClockAdapter(),
@@ -19,6 +19,7 @@ class MockClockService(ClockService):
         class DummyScheduler:
             def start(self):
                 pass
+
             def shutdown(self, wait=False):
                 pass
 
