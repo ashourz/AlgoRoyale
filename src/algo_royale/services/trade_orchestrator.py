@@ -1,3 +1,5 @@
+from datetime import datetime, timedelta
+
 from algo_royale.logging.loggable import Loggable
 from algo_royale.services.clock_service import ClockService
 from algo_royale.services.market_session_service import MarketSessionService
@@ -71,3 +73,12 @@ class TradeOrchestrator:
                 run_time=market_close,
                 coro_func=self._on_market_closed,
             )
+
+    async def _get_premarket_open_utc(self, market_open_utc) -> datetime:
+        """
+        Calculate the pre-market open time in UTC.
+        """
+        premarket_open = market_open_utc - timedelta(
+            minutes=self.premarket_open_duration_minutes
+        )
+        return premarket_open

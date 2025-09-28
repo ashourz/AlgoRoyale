@@ -4,11 +4,43 @@ from tests.mocks.mock_loggable import MockLoggable
 
 
 class MockClockService(ClockService):
+
+    async def schedule_job(self, job_name, run_time, coro_func):
+        # Mock: do nothing, just return
+        return None
     def __init__(self):
         super().__init__(
             clock_adapter=MockClockAdapter(),
             logger=MockLoggable(),
         )
+
+        # Patch: add dummy scheduler with shutdown method
+
+        class DummyScheduler:
+            def start(self):
+                pass
+            def shutdown(self, wait=False):
+                pass
+
+        self.scheduler = DummyScheduler()
+
+    async def async_get_market_clock(self):
+        # Patch: return a mock object with open/close attributes
+        class MockMarketClock:
+            def __init__(self):
+                from datetime import datetime, timedelta, timezone
+
+                now = datetime.now(timezone.utc)
+                self.open = now + timedelta(minutes=1)
+                self.close = now + timedelta(hours=6)
+
+        if hasattr(self, "return_empty") and self.return_empty:
+            return None
+        return MockMarketClock()
+
+    def ensure_utc(self, dt):
+        # Patch: just return the datetime as is
+        return dt
 
     def set_return_empty(self, value: bool):
         self.clock_adapter.set_return_empty(value)
