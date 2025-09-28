@@ -1,4 +1,5 @@
 import datetime
+from uuid import UUID
 
 from algo_royale.clients.db.dao.data_stream_session_dao import DataStreamSessionDAO
 from algo_royale.logging.loggable import Loggable
@@ -29,7 +30,7 @@ class DataStreamSessionRepo:
         symbol: str,
         strategy_name: str,
         start_time: datetime,
-    ) -> int:
+    ) -> UUID | None:
         """
         Insert a new data stream session.
         :param stream_type: The type of the data stream (e.g., 'live', 'historical').
@@ -43,8 +44,8 @@ class DataStreamSessionRepo:
         )
 
     def update_data_stream_session_end_time(
-        self, session_id: int, end_time: datetime
-    ) -> int:
+        self, session_id: UUID, end_time: datetime
+    ) -> UUID | None:
         """
         Update the end time of an existing data stream session.
         :param session_id: The ID of the session to update.

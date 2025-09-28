@@ -1,3 +1,5 @@
+from uuid import UUID
+
 from algo_royale.services.enriched_data_service import EnrichedDataService
 from tests.mocks.mock_loggable import MockLoggable
 from tests.mocks.repo.mock_enriched_data_repo import MockEnrichedDataRepo
@@ -29,12 +31,12 @@ class MockEnrichedDataService(EnrichedDataService):
         self.reset_return_empty()
         self.reset_raise_exception()
 
-    def insert_enriched_data(self, order_id, enriched_data):
+    def insert_enriched_data(self, order_id, enriched_data) -> UUID | None:
         if self.raise_exception:
-            return -1
+            return None
         if self.return_empty:
-            return 0
-        return 1
+            return UUID("00000000-0000-0000-0000-000000000000")
+        return UUID("11111111-1111-1111-1111-111111111111")
 
     def fetch_enriched_data_by_order_id(self, order_id):
         if self.raise_exception:

@@ -5,6 +5,9 @@ import uuid
 
 import pytest
 
+from algo_royale.clients.alpaca.alpaca_trading.alpaca_watchlist_client import (
+    AlpacaWatchlistClient,
+)
 from algo_royale.models.alpaca_trading.alpaca_watchlist import Watchlist
 from tests.mocks.clients.alpaca.mock_alpaca_watchlist_client import (
     MockAlpacaWatchlistClient,
@@ -24,7 +27,7 @@ logger = MockLoggable()
 
 @pytest.mark.asyncio
 class TestAlpacaWatchlistClientIntegration:
-    async def test_watchlist_lifecycle(self, alpaca_client):
+    async def test_watchlist_lifecycle(self, alpaca_client: AlpacaWatchlistClient):
         """
         Full lifecycle integration test:
         - Create watchlist
@@ -60,21 +63,21 @@ class TestAlpacaWatchlistClientIntegration:
 
         # Step 2: Fetch by ID
         logger.info("🔍 Fetching watchlist by ID...")
-        fetched_by_id = await alpaca_client.get_watchlist_by_id(watchlist_id)
+        fetched_by_id = await alpaca_client.fetch_watchlist_by_id(watchlist_id)
         assert fetched_by_id is not None, "❌ Could not fetch watchlist by ID"
         assert fetched_by_id.name == original_name
         logger.info("✅ Successfully fetched watchlist by ID")
 
         # Step 3: Fetch by Name
         logger.info("🔍 Fetching watchlist by Name...")
-        fetched_by_name = await alpaca_client.get_watchlist_by_name(original_name)
+        fetched_by_name = await alpaca_client.fetch_watchlist_by_name(original_name)
         assert fetched_by_name is not None, "❌ Could not fetch watchlist by name"
         assert fetched_by_name.id == watchlist_id
         logger.info("✅ Successfully fetched watchlist by Name")
 
         # Step 4: Fetch All
         logger.info("🔍 Fetching all watchlists...")
-        response = await alpaca_client.get_all_watchlists()
+        response = await alpaca_client.fetch_all_watchlists()
         all_watchlists = response.watchlists
         assert isinstance(all_watchlists, list), "❌ Expected list of watchlists"
         assert any(w.id == watchlist_id for w in all_watchlists), (
@@ -135,13 +138,15 @@ class TestAlpacaWatchlistClientIntegration:
         # Final Check: It should not be retrievable now
         logger.info("❓ Verifying watchlist deletion...")
         try:
-            should_be_none = await alpaca_client.get_watchlist_by_id(watchlist_id)
+            should_be_none = await alpaca_client.fetch_watchlist_by_id(watchlist_id)
         except Exception:
             should_be_none = None
         assert should_be_none is None, "❌ Watchlist still exists after deletion"
         logger.info("✅ Watchlist deletion confirmed")
 
-    async def test_create_watchlist_delete_by_name(self, alpaca_client):
+    async def test_create_watchlist_delete_by_name(
+        self, alpaca_client: AlpacaWatchlistClient
+    ):
         """
         Full lifecycle integration test:
         - Create watchlist

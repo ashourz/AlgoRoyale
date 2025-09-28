@@ -86,8 +86,8 @@ class MockEnrichedDataDAO(EnrichedDataDAO):
     def fetch_enriched_data_by_order_id(self, order_id: UUID) -> list[DBEnrichedData]:
         return [self.test_enriched_data]
 
-    def insert_enriched_data(self, order_id: UUID, enriched_data: dict) -> int:
-        return 1
+    def insert_enriched_data(self, order_id: UUID, enriched_data: dict) -> UUID:
+        return self.base_enriched_data.id
 
     def delete_all_enriched_data(self) -> int:
         return 1

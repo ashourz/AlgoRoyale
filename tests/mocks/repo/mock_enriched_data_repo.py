@@ -41,7 +41,7 @@ class MockEnrichedDataRepo(EnrichedDataRepo):
             return []
         return self.dao.fetch_enriched_data_by_order_id(order_id)
 
-    def insert_enriched_data(self, order_id: UUID, enriched_data: dict) -> int:
+    def insert_enriched_data(self, order_id: UUID, enriched_data: dict) -> UUID | None:
         if self._raise_exception:
             raise ValueError("Database error")
         return self.dao.insert_enriched_data(order_id, enriched_data)

@@ -90,7 +90,7 @@ class MockTradeDAO(TradeDAO):
         order_id: UUID,
         user_id: str,
         account_id: str,
-    ) -> int:
+    ) -> UUID | None:
         return self.test_trade.id
 
     def update_settled_trades(self, settlement_datetime: datetime) -> int:

@@ -2,6 +2,9 @@ from datetime import datetime
 
 import pytest
 
+from algo_royale.clients.alpaca.alpaca_trading.alpaca_orders_client import (
+    AlpacaOrdersClient,
+)
 from algo_royale.clients.alpaca.exceptions import (
     InsufficientBuyingPowerOrSharesError,
     UnprocessableOrderException,
@@ -58,7 +61,7 @@ class TestAlpacaOrdersClientIntegration:
 
         assert isinstance(order.created_at, datetime)
 
-    async def test_create_order(self, alpaca_client):
+    async def test_create_order(self, alpaca_client: AlpacaOrdersClient):
         """Test creating a market order via Alpaca's live endpoint."""
 
         symbol = "AAPL"
@@ -108,7 +111,7 @@ class TestAlpacaOrdersClientIntegration:
         except InsufficientBuyingPowerOrSharesError:
             return None
 
-    async def test_get_all_orders(self, alpaca_client):
+    async def test_get_all_orders(self, alpaca_client: AlpacaOrdersClient):
         """Test fetching orders via Alpaca's live endpoint."""
 
         symbol = "AAPL"
@@ -176,7 +179,7 @@ class TestAlpacaOrdersClientIntegration:
         except InsufficientBuyingPowerOrSharesError:
             return None
 
-    async def test_delete_all_orders(self, alpaca_client):
+    async def test_delete_all_orders(self, alpaca_client: AlpacaOrdersClient):
         """Test deleting all orders via Alpaca's live endpoint."""
         symbol = "AAPL"
         qty = 1  # Small amount for safe testing
@@ -220,7 +223,7 @@ class TestAlpacaOrdersClientIntegration:
         except UnprocessableOrderException:
             return None
 
-    async def test_life_cycle(self, alpaca_client):
+    async def test_life_cycle(self, alpaca_client: AlpacaOrdersClient):
         """Test creating, getting, replacing, and deleting an order."""
 
         symbol = "AAPL"
@@ -249,9 +252,7 @@ class TestAlpacaOrdersClientIntegration:
             )
 
             # DELETE ORDER
-            await alpaca_client.delete_order_by_client_order_id(
-                client_order_id=get_order.id
-            )
+            await alpaca_client.delete_order_by_id(order_id=get_order.id)
         except InsufficientBuyingPowerOrSharesError:
             return None
         except UnprocessableOrderException:

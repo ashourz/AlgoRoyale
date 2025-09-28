@@ -20,7 +20,7 @@ class EnrichedDataDAO(BaseDAO):
             return []
         return [DBEnrichedData.from_tuple(row) for row in rows]
 
-    def insert_enriched_data(self, order_id: UUID, enriched_data: dict) -> int:
+    def insert_enriched_data(self, order_id: UUID, enriched_data: dict) -> UUID | None:
         """
         Insert enriched data for a specific order.
         :param order_id: The ID of the order to associate with the enriched data.
@@ -49,7 +49,7 @@ class EnrichedDataDAO(BaseDAO):
             self.logger.error(
                 f"Failed to insert enriched data for order_id {order_id}."
             )
-            return -1
+            return None
         return inserted_id
 
     def delete_all_enriched_data(self) -> int:

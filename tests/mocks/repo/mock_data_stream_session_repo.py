@@ -1,4 +1,5 @@
 import datetime
+from uuid import UUID
 
 from algo_royale.models.db.db_data_stream_session import DBDataStreamSession
 from algo_royale.repo.data_stream_session_repo import DataStreamSessionRepo
@@ -40,7 +41,7 @@ class MockDataStreamSessionRepo(DataStreamSessionRepo):
         symbol: str,
         strategy_name: str,
         start_time: datetime.datetime,
-    ) -> int:
+    ) -> UUID | None:
         if self._raise_exception:
             raise ValueError("Database error")
         return self.dao.insert_data_stream_session(
@@ -48,7 +49,7 @@ class MockDataStreamSessionRepo(DataStreamSessionRepo):
         )
 
     def update_data_stream_session_end_time(
-        self, session_id: int, end_time: datetime.datetime
+        self, session_id: UUID, end_time: datetime.datetime
     ) -> int:
         if self._raise_exception:
             raise ValueError("Database error")

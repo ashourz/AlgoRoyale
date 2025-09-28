@@ -1,4 +1,5 @@
 from datetime import datetime
+from uuid import UUID
 
 from algo_royale.clients.db.dao.data_stream_session_dao import DataStreamSessionDAO
 from algo_royale.models.db.db_data_stream_session import DBDataStreamSession
@@ -32,11 +33,11 @@ class MockDataStreamSessionDAO(DataStreamSessionDAO):
 
     def insert_data_stream_session(
         self, stream_type: str, symbol: str, strategy_name: str, start_time: datetime
-    ) -> int:
-        return 1
+    ) -> UUID | None:
+        return UUID("123e4567-e89b-12d3-a456-426614174abc")
 
     def update_data_stream_session_end_time(
-        self, session_id: int, end_time: datetime
+        self, session_id: UUID, end_time: datetime
     ) -> int:
         return 1
 

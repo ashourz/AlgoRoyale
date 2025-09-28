@@ -98,7 +98,7 @@ class OrderDAO(BaseDAO):
         price: float | None,
         user_id: str,
         account_id: str,
-    ) -> int:
+    ) -> UUID | None:
         """
         Insert a new order into the database.
         :param symbol: The stock symbol of the order.
@@ -130,7 +130,7 @@ class OrderDAO(BaseDAO):
             self.logger.error(
                 f"Failed to insert order for symbol {symbol} with action {action}."
             )
-            return -1
+            return None
         return inserted_id
 
     def update_order(

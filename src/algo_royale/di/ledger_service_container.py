@@ -44,8 +44,6 @@ class LedgerServiceContainer:
             order_repo=self.repo_container.order_repo,
             trade_repo=self.repo_container.trade_repo,
             logger=self.logger_container.logger(logger_type=LoggerType.ORDER_SERVICE),
-            user_id=self.config["db_user"]["id"],
-            account_id=self.config["db_user"]["account_id"],
         )
 
     @property

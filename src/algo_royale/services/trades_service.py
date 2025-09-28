@@ -61,7 +61,7 @@ class TradesService:
         quantity: int,
         executed_at: datetime,
         order_id: UUID,
-    ) -> int:
+    ) -> UUID | None:
         """Insert a new trade record.
         :param symbol: The stock symbol of the trade.
         :param action: The action of the trade (e.g., 'buy', 'sell').

@@ -1,4 +1,5 @@
 from datetime import datetime
+from uuid import UUID
 
 from algo_royale.clients.db.dao.base_dao import BaseDAO
 from algo_royale.models.db.db_data_stream_session import DBDataStreamSession
@@ -25,7 +26,7 @@ class DataStreamSessionDAO(BaseDAO):
 
     def insert_data_stream_session(
         self, stream_type: str, symbol: str, strategy_name: str, start_time: datetime
-    ) -> int:
+    ) -> UUID | None:
         """
         Insert a new data stream session.
         :param stream_type: The type of the data stream (e.g., 'live', 'historical').
@@ -42,11 +43,11 @@ class DataStreamSessionDAO(BaseDAO):
             self.logger.error(
                 f"Failed to insert data stream session for symbol {symbol}."
             )
-            return -1
+            return None
         return inserted_id
 
     def update_data_stream_session_end_time(
-        self, session_id: int, end_time: datetime
+        self, session_id: UUID, end_time: datetime
     ) -> int:
         """
         Update the end time of an existing data stream session.
@@ -55,7 +56,7 @@ class DataStreamSessionDAO(BaseDAO):
         :return: The number of rows affected by the update.
         """
         update_count = self.update(
-            "update_data_stream_session_end_time.sql", (end_time, session_id)
+            "update_data_stream_session_end_time.sql", (end_time, str(session_id))
         )
         return update_count if update_count else -1
 

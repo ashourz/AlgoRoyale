@@ -68,9 +68,9 @@ class MockOrderDAO(OrderDAO):
         price: float | None,
         user_id: str,
         account_id: str,
-    ) -> str:
+    ) -> UUID | None:
         # Return a unique string order ID based on symbol and notional for test realism
-        return f"mock_order_{symbol}_{notional or ''}"
+        return self.base_order.id
 
     def update_order(
         self, order_id: UUID, status: str, quantity: int, price: float

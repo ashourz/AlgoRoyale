@@ -12,7 +12,12 @@ class MockOrderRepo(OrderRepo):
         self.logger = MockLoggable()
         self.user_id = "user_1"
         self.account_id = "account_1"
-        super().__init__(dao=self.dao, logger=self.logger)
+        super().__init__(
+            dao=self.dao,
+            logger=self.logger,
+            account_id=self.account_id,
+            user_id=self.user_id,
+        )
         self._return_empty = False
         self._raise_exception = False
 
@@ -87,7 +92,7 @@ class MockOrderRepo(OrderRepo):
         notional: float | None = None,
         quantity: int | None = None,
         price: float | None = None,
-    ) -> int:
+    ) -> UUID | None:
         if self._raise_exception:
             raise ValueError("Database error")
         return self.dao.insert_order(

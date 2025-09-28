@@ -12,8 +12,6 @@ class MockOrderService(OrderService):
             order_repo=MockOrderRepo(),
             trade_repo=MockTradeRepo(),
             logger=MockLoggable(),
-            user_id="user_1",
-            account_id="account_1",
         )
 
     def set_return_empty(self, value: bool):

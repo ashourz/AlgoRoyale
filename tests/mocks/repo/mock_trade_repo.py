@@ -57,7 +57,7 @@ class MockTradeRepo(TradeRepo):
         quantity: int,
         executed_at: datetime,
         order_id: UUID,
-    ) -> int:
+    ) -> UUID | None:
         if self._raise_exception:
             raise ValueError("Database error")
         return self.dao.insert_trade(

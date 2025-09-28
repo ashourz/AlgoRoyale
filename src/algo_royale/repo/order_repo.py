@@ -108,7 +108,7 @@ class OrderRepo:
         notional: float | None = None,
         quantity: int | None = None,
         price: float | None = None,
-    ) -> int:
+    ) -> UUID | None:
         """Insert a new order record.
         :param symbol: The stock symbol of the order.
         :param order_type: The type of the order (e.g., 'market', 'limit').

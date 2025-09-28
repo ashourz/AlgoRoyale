@@ -64,7 +64,7 @@ class TradeDAO(BaseDAO):
         order_id: UUID,
         user_id: str,
         account_id: str,
-    ) -> int:
+    ) -> UUID | None:
         """Insert a new trade record.
         :param symbol: The stock symbol of the trade.
         :param market: The market where the trade occurred (e.g., 'NYSE', 'NASDAQ').
@@ -97,7 +97,7 @@ class TradeDAO(BaseDAO):
             self.logger.error(
                 f"Failed to insert trade for symbol {symbol} with action {action}."
             )
-            return -1
+            return None
         return returned_id
 
     def update_settled_trades(self, settlement_datetime: datetime) -> int:
@@ -110,7 +110,7 @@ class TradeDAO(BaseDAO):
             return -1
         return update_count
 
-    def delete_trade(self, trade_id: str) -> int:
+    def delete_trade(self, trade_id: UUID) -> int:
         """Delete a trade record by its ID.
         :param trade_id: The ID of the trade to delete.
         :return: The ID of the deleted trade, or -1 if the deletion failed.

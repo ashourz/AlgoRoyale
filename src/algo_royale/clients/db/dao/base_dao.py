@@ -1,5 +1,6 @@
 ## db\dao\base_dao.py
 import os
+from uuid import UUID
 
 import psycopg2
 
@@ -55,7 +56,7 @@ class BaseDAO:
             self.conn.rollback()
             raise
 
-    def insert(self, sql_file: str, params=None, log_name="insert") -> int:
+    def insert(self, sql_file: str, params=None, log_name="insert") -> UUID | None:
         """
         Insert a new record into the database.
         :param sql_file: The SQL file containing the insert query.
@@ -69,7 +70,7 @@ class BaseDAO:
                 cur.execute(query, params)
                 result = cur.fetchone()
             self.conn.commit()
-            return result[0] if result else -1
+            return result[0] if result else None
         except Exception as e:
             self.logger.error(f"[{log_name}] Insert failed: {e}")
             self.conn.rollback()

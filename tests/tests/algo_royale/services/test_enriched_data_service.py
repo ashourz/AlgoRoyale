@@ -1,3 +1,5 @@
+from uuid import UUID
+
 import pytest
 
 from algo_royale.services.enriched_data_service import EnrichedDataService
@@ -57,22 +59,24 @@ class TestEnrichedDataService:
         order_id = "order123"
         enriched_data = {"foo": "bar"}
         result = enriched_data_service.insert_enriched_data(order_id, enriched_data)
-        assert result == 1 or result > 0
+        assert (
+            result == UUID("11111111-1111-1111-1111-111111111111") or result is not None
+        )
 
     def test_insert_enriched_data_exception(
         self, enriched_data_service: EnrichedDataService
     ):
         set_enriched_data_service_raise_exception(enriched_data_service, True)
-        order_id = "order123"
+        order_id = UUID("33333333-3333-3333-3333-333333333333")
         enriched_data = {"foo": "bar"}
         result = enriched_data_service.insert_enriched_data(order_id, enriched_data)
-        assert result == -1
+        assert result is None
         reset_enriched_data_service_raise_exception(enriched_data_service)
 
     def test_fetch_enriched_data_by_order_id_normal(
         self, enriched_data_service: EnrichedDataService
     ):
-        order_id = "order123"
+        order_id = UUID("44444444-4444-4444-4444-444444444444")
         result = enriched_data_service.fetch_enriched_data_by_order_id(order_id)
         assert isinstance(result, list)
 
@@ -80,7 +84,7 @@ class TestEnrichedDataService:
         self, enriched_data_service: EnrichedDataService
     ):
         set_enriched_data_service_raise_exception(enriched_data_service, True)
-        order_id = "order123"
+        order_id = UUID("55555555-5555-5555-5555-555555555555")
         result = enriched_data_service.fetch_enriched_data_by_order_id(order_id)
         assert result == []
         reset_enriched_data_service_raise_exception(enriched_data_service)

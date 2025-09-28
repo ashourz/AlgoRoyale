@@ -84,7 +84,7 @@ class MockTradesService(TradesService):
         quantity: int,
         price: float,
         executed_at: str,
-    ) -> str:
+    ) -> UUID | None:
         if self.raise_exception:
             raise ValueError("Database error")
         new_trade = DBTrade(
@@ -103,7 +103,7 @@ class MockTradesService(TradesService):
             updated_at="2023-10-01T10:00:00Z",
         )
         self.trades.append(new_trade)
-        return str(new_trade.id)
+        return UUID(str(new_trade.id))
 
     def fetch_trades_by_date_range(self, start_date, end_date, limit=100, offset=0):
         if self.raise_exception:

@@ -104,7 +104,7 @@ class OrderService:
                 order_class=order.order_class,
                 time_in_force=order.time_in_force,
                 extended_hours=order.extended_hours,
-                client_order_id=order_id,
+                client_order_id=str(order_id),
                 notional=order.notional,
             )
             if confirmed_order:

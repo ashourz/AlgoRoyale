@@ -51,7 +51,7 @@ class TradeRepo:
         quantity: int,
         executed_at: datetime,
         order_id: UUID,
-    ) -> int:
+    ) -> UUID | None:
         """Insert a new trade record.
         :param symbol: The stock symbol of the trade.
         :param market: The market where the trade occurred (e.g., 'NYSE', 'NASDAQ').
@@ -113,7 +113,7 @@ class TradeRepo:
         """Delete a trade record.
         :param trade_id: The ID of the trade to delete.
         :return: Number of deleted records."""
-        return self.dao.delete_trade(trade_id)
+        return self.dao.delete_trade(str(trade_id))
 
     def delete_all_trades(self) -> int:
         """Delete all trade records.
