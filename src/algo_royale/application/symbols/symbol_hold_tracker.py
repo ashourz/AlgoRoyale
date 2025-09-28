@@ -72,7 +72,7 @@ class SymbolHoldTracker:
             self.logger.error(f"Error subscribing to roster holds: {e}")
         return None
 
-    async def unsubscribe_from_roster(self, async_subscriber: AsyncSubscriber):
+    def unsubscribe_from_roster(self, async_subscriber: AsyncSubscriber):
         try:
             self._roster_hold_pubsub.unsubscribe(subscriber=async_subscriber)
         except Exception as e:

@@ -73,6 +73,8 @@ class MockTradesService(TradesService):
         return [trade.model_copy(update={"settled": False}) for trade in self.trades]
 
     def update_settled_trades(self):
+        if self.raise_exception:
+            raise Exception("Mocked exception in update_settled_trades")
         return
 
     def insert_trade(

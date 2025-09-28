@@ -15,3 +15,6 @@ class MockStreamAdapter(StreamAdapter):
 
     def reset_return_empty(self):
         self.return_empty = False
+
+    def reset(self):
+        self.return_empty = False

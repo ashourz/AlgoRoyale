@@ -33,7 +33,7 @@ class OrderExecutionService:
         self.symbol_order_subscribers: dict[str, list[AsyncSubscriber]] = {}
         self._executor_on: bool = False
 
-    async def start(self, symbols) -> dict[str, AsyncSubscriber] | None:
+    async def start(self, symbols: list[str]) -> dict[str, AsyncSubscriber] | None:
         """Start the order stream adapter to listen for order events."""
         try:
             symbol_subscriber = (

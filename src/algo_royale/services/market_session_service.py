@@ -59,10 +59,11 @@ class MarketSessionService:
             self._init_ledger_service()
             await self.order_monitor_service.async_start()
             await self._async_start_order_execution_subscription()
-            self.premarket_completed = True
-            self.logger.info("Pre-market session started.")
         except Exception as e:
             self.logger.error(f"Error starting pre-market session: {e}")
+            return
+        self.premarket_completed = True
+        self.logger.info("Pre-market session started.")
 
     async def async_start_market(self) -> dict[str, AsyncSubscriber] | None:
         """Start the market session."""

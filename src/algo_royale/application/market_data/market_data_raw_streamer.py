@@ -60,7 +60,7 @@ class MarketDataRawStreamer:
             return subscriber_dict
         except Exception as e:
             self.logger.error(f"Error subscribing to stream for {symbol}: {e}")
-        return []
+        return {}
 
     async def async_unsubscribe_from_stream(
         self, symbol_subscribers: dict[str, list[AsyncSubscriber]]

@@ -54,7 +54,7 @@ class TestSymbolHoldTracker:
 
         sub = await self.tracker.async_subscribe_to_roster(callback)
         assert sub is not None
-        await self.tracker.unsubscribe_from_roster(sub)
+        self.tracker.unsubscribe_from_roster(sub)
 
     @pytest.mark.asyncio
     async def test_async_subscribe_to_roster_exception(self):
@@ -79,4 +79,4 @@ class TestSymbolHoldTracker:
         self.tracker._roster_hold_pubsub.unsubscribe = MagicMock(
             side_effect=Exception("fail")
         )
-        await self.tracker.unsubscribe_from_roster(bad_sub)
+        self.tracker.unsubscribe_from_roster(bad_sub)
