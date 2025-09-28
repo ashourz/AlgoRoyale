@@ -82,15 +82,6 @@ class StreamDataIngestObject(QueuedAsyncUpdateObject):
             # Return a copy to avoid external modifications
             return self.latest_bar.model_copy() if self.latest_bar else None
 
-    def _set_type_hierarchy(self, hierarchy: dict):
-        """
-        Set the type hierarchy mapping: type -> priority (int).
-        """
-        self.type_hierarchy = {
-            StreamBar: 2,
-            StreamQuote: 1,
-        }
-
     async def _update(self, obj: Union[StreamQuote, StreamBar]):
         """
         Queue an update object by its type.
@@ -175,3 +166,13 @@ class StreamDataIngestObject(QueuedAsyncUpdateObject):
             self.logger.error(
                 f"[StreamDataIngestObject: {self.symbol}] Error _updating with bar: {e}"
             )
+
+    def _type_hierarchy(self):
+        """
+        Get the type hierarchy for the queued updates.
+        Higher number means higher priority.
+        """
+        return {
+            StreamBar: 2,
+            StreamQuote: 1,
+        }

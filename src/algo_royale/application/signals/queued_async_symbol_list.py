@@ -22,3 +22,7 @@ class QueuedAsyncSymbolList(QueuedAsyncUpdateObject):
         Update the list of symbols.
         """
         self.symbols.add(symbol)
+
+    def _type_hierarchy(self):
+        # No type hierarchy needed for symbol list, return empty dict
+        return {}

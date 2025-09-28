@@ -52,3 +52,6 @@ class QueuedAsyncEnrichedDataBuffer(QueuedAsyncUpdateObject):
         async with self.get_set_lock:
             self.buffer = pd.DataFrame()
             self.logger.info(f"Cleared buffer for {self.symbol}")
+
+    def _type_hierarchy(self):
+        return {pd.Series: 1}

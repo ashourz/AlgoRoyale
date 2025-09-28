@@ -13,11 +13,12 @@ class MockMarketDataRawStreamer(MarketDataRawStreamer):
 
     def __init__(self):
         super().__init__(
-            stream_adapter=MockStreamAdapter(),  # Assuming a MockStreamAdapter exists
+            stream_adapter=MockStreamAdapter(),
             logger=MockLoggable(),
             is_live=False,
         )
         self.return_empty = False
+        self.subscribers = {}  # symbol -> list of AsyncSubscriber
 
     def set_return_empty(self, value: bool):
         self.return_empty = value
@@ -34,13 +35,20 @@ class MockMarketDataRawStreamer(MarketDataRawStreamer):
     ) -> dict[str, AsyncSubscriber]:
         if self.return_empty:
             return {}
-        else:
-            return {
-                symbol: AsyncSubscriber(event_type="raw", callback=None)
-                for symbol in symbols
-            }
+        result = {}
+        for symbol in symbols:
+            subscriber = AsyncSubscriber(event_type="raw", callback=callback)
+            self.subscribers.setdefault(symbol, []).append(subscriber)
+            result[symbol] = subscriber
+        return result
 
-    async def async_unsubscribe_from_stream(self, symbol_subscribers):
+    async def async_unsubscribe_from_stream(self, symbol, async_subscriber):
+        # Remove the subscriber from the list for the symbol
+        if symbol in self.subscribers:
+            if async_subscriber in self.subscribers[symbol]:
+                self.subscribers[symbol].remove(async_subscriber)
+            if not self.subscribers[symbol]:
+                del self.subscribers[symbol]
         return
 
     async def async_restart_stream(self, symbols: list[str]) -> bool:

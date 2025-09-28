@@ -63,3 +63,9 @@ class QueuedAsyncSignalDataPayload(QueuedAsyncUpdateObject):
         if not isinstance(payload, SignalDataPayload):
             raise ValueError("Payload must be an instance of SignalDataPayload")
         self.data = payload
+
+    def _type_hierarchy(self):
+        """
+        Get the type hierarchy for the signal data payload.
+        """
+        return {SignalDataPayload: 1}

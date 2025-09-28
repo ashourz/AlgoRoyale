@@ -54,6 +54,7 @@ class MarketDataEnrichedStreamer:
             for symbol in symbols:
                 pubsub = self._get_enriched_data_pubsub(symbol)
                 async_subscriber = pubsub.subscribe(
+                    event_type=self.enrichment_event_type,
                     callback=callback,
                     queue_size=queue_size,
                 )
@@ -232,10 +233,7 @@ class MarketDataEnrichedStreamer:
         if symbol not in self.pubsub_enriched_data_map:
             self.pubsub_enriched_data_map.setdefault(
                 symbol,
-                AsyncPubSub(
-                    event_type=self.enrichment_event_type,
-                    logger=self.logger,
-                ),
+                AsyncPubSub(),
             )
         return self.pubsub_enriched_data_map[symbol]
 
