@@ -29,6 +29,7 @@ class MockPortfolioStrategyRegistry(PortfolioStrategyRegistry):
             logger=MockLoggable(),
         )
         self.return_empty = False
+        self.last_symbols = set()
 
     def set_return_empty(self, value: bool):
         self.return_empty = value
@@ -42,6 +43,7 @@ class MockPortfolioStrategyRegistry(PortfolioStrategyRegistry):
     def get_buffered_portfolio_strategy(
         self, symbols
     ) -> BufferedPortfolioStrategy | None:
+        self.last_symbols = set(symbols) if symbols is not None else set()
         if self.return_empty:
             return None
         return BufferedPortfolioStrategy(

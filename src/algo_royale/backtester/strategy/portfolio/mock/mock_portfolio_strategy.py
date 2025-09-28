@@ -1,9 +1,9 @@
 import pandas as pd
-from algo_royale.logging.loggable import Loggable
 
 from algo_royale.backtester.strategy.signal.base_signal_strategy import (
     BaseSignalStrategy,
 )
+from algo_royale.logging.loggable import Loggable
 
 
 class MockPortfolioStrategy(BaseSignalStrategy):
@@ -15,17 +15,16 @@ class MockPortfolioStrategy(BaseSignalStrategy):
     def __init__(self):
         """
         Initialize the mock portfolio strategy with a fixed signal value.
-
-        :param portfolio_value: The fixed portfolio value to return.
         """
         self.default_hash_id = "mock_portfolio_strategy"
         self.default_description = "Mock portfolio strategy for testing purposes."
         # Initialize with default values
-        self.signal_value = self.default_signal_value
-        self.required_columns = []
+        self.signal_value = getattr(self, "default_signal_value", None)
+        self._required_columns = []
         self.hash_id = self.default_hash_id
         self.description = self.default_description
-        self._allocate_return_value = None
+        # By default, always return a valid weights DataFrame for any symbol
+        self._allocate_return_value = pd.DataFrame({"AAPL": [1.0]})
         self._optuna_suggest_return_value = None
 
     def reset(self):
@@ -64,10 +63,12 @@ class MockPortfolioStrategy(BaseSignalStrategy):
     def required_columns(self) -> list[str]:
         """
         Return the required columns for this strategy.
-
-        :return: A list of required columns.
         """
-        return self.required_columns
+        return self._required_columns
+
+    @required_columns.setter
+    def required_columns(self, value):
+        self._required_columns = value
 
     def update_required_columns(self, columns: list[str]):
         """
@@ -137,16 +138,19 @@ class MockPortfolioStrategy(BaseSignalStrategy):
         """
         self._allocate_return_value = value
 
-    def allocate(self, signals: pd.DataFrame, returns: pd.DataFrame) -> pd.DataFrame:
+    def allocate(
+        self, signals: pd.DataFrame = None, returns: pd.DataFrame = None
+    ) -> pd.DataFrame:
         """
         Given signals and/or returns, produce a DataFrame of portfolio weights over time.
+        Always returns a valid DataFrame by default for testing.
         """
-        if self._allocate_return_value is None:
-            raise NotImplementedError(
-                f"{self.__class__.__name__}.allocate() must be implemented to use this strategy."
-            )
-        # Return the fixed DataFrame of weights
-        return self._allocate_return_value
+        import pandas as pd
+
+        if self._allocate_return_value is not None:
+            return self._allocate_return_value
+        # Default fallback: single symbol, single weight
+        return pd.DataFrame({"AAPL": [1.0]})
 
 
 def mockPortfolioStrategy():
