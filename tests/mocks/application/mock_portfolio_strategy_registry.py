@@ -26,7 +26,7 @@ class MockPortfolioStrategyRegistry(PortfolioStrategyRegistry):
             evaluation_json_filename="mock_evaluation.json",
             viable_strategies_path="mock_viable_strategies",
             portfolio_strategy_factory=MockPortfolioStrategyFactory(),
-            loggable=MockLoggable(),
+            logger=MockLoggable(),
         )
         self.return_empty = False
 

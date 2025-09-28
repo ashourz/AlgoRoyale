@@ -37,7 +37,7 @@ class MockSignalStrategyFactory:
 
 
 class MockCombinedWeightedSignalStrategy:
-    def __init__(self, buffered_strategies: , buy_threshold, sell_threshold):
+    def __init__(self, buffered_strategies, buy_threshold, sell_threshold):
         self.buffered_strategies = buffered_strategies
         self.buy_threshold = buy_threshold
         self.sell_threshold = sell_threshold
