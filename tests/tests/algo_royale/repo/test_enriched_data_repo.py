@@ -2,6 +2,7 @@ from uuid import UUID, uuid4
 
 import pytest
 
+from algo_royale.repo.enriched_data_repo import EnrichedDataRepo
 from tests.mocks.repo.mock_enriched_data_repo import MockEnrichedDataRepo
 
 
@@ -25,32 +26,42 @@ class TestEnrichedDataRepo:
         enriched_data_repo.reset_raise_exception()
         enriched_data_repo.reset_dao()
 
-    async def test_fetch_enriched_data_by_order_id_normal(self, enriched_data_repo):
+    async def test_fetch_enriched_data_by_order_id_normal(
+        self, enriched_data_repo: EnrichedDataRepo
+    ):
         order_id = uuid4()
         data = enriched_data_repo.fetch_enriched_data_by_order_id(order_id)
         assert len(data) == 1
         assert data[0].order_id == order_id or isinstance(data[0].order_id, UUID)
 
-    async def test_fetch_enriched_data_by_order_id_empty(self, enriched_data_repo):
+    async def test_fetch_enriched_data_by_order_id_empty(
+        self, enriched_data_repo: EnrichedDataRepo
+    ):
         enriched_data_repo._return_empty = True
         order_id = uuid4()
         data = enriched_data_repo.fetch_enriched_data_by_order_id(order_id)
         assert len(data) == 0
 
-    async def test_fetch_enriched_data_by_order_id_exception(self, enriched_data_repo):
+    async def test_fetch_enriched_data_by_order_id_exception(
+        self, enriched_data_repo: EnrichedDataRepo
+    ):
         enriched_data_repo._raise_exception = True
         order_id = uuid4()
         with pytest.raises(ValueError) as excinfo:
             enriched_data_repo.fetch_enriched_data_by_order_id(order_id)
         assert "Database error" in str(excinfo.value)
 
-    async def test_insert_enriched_data_normal(self, enriched_data_repo):
+    async def test_insert_enriched_data_normal(
+        self, enriched_data_repo: EnrichedDataRepo
+    ):
         order_id = uuid4()
         enriched_data = {"symbol": "AAPL"}
         inserted_id = enriched_data_repo.insert_enriched_data(order_id, enriched_data)
-        assert inserted_id == 1
+        assert inserted_id is not None
 
-    async def test_insert_enriched_data_exception(self, enriched_data_repo):
+    async def test_insert_enriched_data_exception(
+        self, enriched_data_repo: EnrichedDataRepo
+    ):
         enriched_data_repo._raise_exception = True
         order_id = uuid4()
         enriched_data = {"symbol": "AAPL"}
@@ -58,11 +69,15 @@ class TestEnrichedDataRepo:
             enriched_data_repo.insert_enriched_data(order_id, enriched_data)
         assert "Database error" in str(excinfo.value)
 
-    async def test_delete_all_enriched_data_normal(self, enriched_data_repo):
+    async def test_delete_all_enriched_data_normal(
+        self, enriched_data_repo: EnrichedDataRepo
+    ):
         deleted = enriched_data_repo.delete_all_enriched_data()
         assert deleted == 1
 
-    async def test_delete_all_enriched_data_exception(self, enriched_data_repo):
+    async def test_delete_all_enriched_data_exception(
+        self, enriched_data_repo: EnrichedDataRepo
+    ):
         enriched_data_repo._raise_exception = True
         with pytest.raises(ValueError) as excinfo:
             enriched_data_repo.delete_all_enriched_data()

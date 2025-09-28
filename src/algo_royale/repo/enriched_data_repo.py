@@ -22,7 +22,7 @@ class EnrichedDataRepo:
         self,
         order_id: UUID,
         enriched_data: dict,
-    ) -> int:
+    ) -> UUID | None:
         """
         Insert enriched data for a specific order.
         :param order_id: The ID of the order to associate with the enriched data.
