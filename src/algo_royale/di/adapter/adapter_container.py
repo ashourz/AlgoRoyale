@@ -59,7 +59,7 @@ class AdapterContainer:
     @property
     def quote_adapter(self) -> QuoteAdapter:
         return QuoteAdapter(
-            client=self.client_container.alpaca_quote_client,
+            client=self.client_container.alpaca_stock_client,
             logger=self.logger_container.logger(logger_type=LoggerType.QUOTE_ADAPTER),
         )
 
