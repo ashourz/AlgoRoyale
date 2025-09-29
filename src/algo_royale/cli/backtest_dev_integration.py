@@ -37,8 +37,12 @@ def cli():
             asyncio.run(application_container.async_close())
 
 
-if __name__ == "__main__":
+def main():
     try:
         cli()
     finally:
         lock.release()
+
+
+if __name__ == "__main__":
+    main()
