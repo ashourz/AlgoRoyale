@@ -157,4 +157,10 @@ class SignalBacktestContainer:
             logger=self.logger_container.logger(
                 logger_type=LoggerType.SIGNAL_STRATEGY_WALK_FORWARD
             ),
+            walk_forward_n_trials=int(
+                self.config["backtester_signal"]["walk_forward_n_trials"]
+            ),
+            walk_forward_window_size=int(
+                self.config["backtester_signal"]["walk_forward_window_size"]
+            ),
         )

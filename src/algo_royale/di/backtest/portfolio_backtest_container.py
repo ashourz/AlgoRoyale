@@ -169,6 +169,12 @@ class PortfolioBacktestContainer:
             logger=self.logger_container.logger(
                 logger_type=LoggerType.PORTFOLIO_WALK_FORWARD
             ),
+            walk_forward_n_trials=int(
+                self.config["backtester_portfolio"]["walk_forward_n_trials"]
+            ),
+            walk_forward_window_size=int(
+                self.config["backtester_portfolio"]["walk_forward_window_size"]
+            ),
         )
 
     @property

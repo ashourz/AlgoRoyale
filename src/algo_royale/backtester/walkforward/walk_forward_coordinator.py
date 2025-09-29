@@ -36,6 +36,8 @@ class WalkForwardCoordinator:
         optimization_stage_coordinator: BaseOptimizationStageCoordinator,
         testing_stage_coordinator: BaseTestingStageCoordinator,
         logger: Loggable,
+        walk_forward_n_trials: int = 5,
+        walk_forward_window_size: int = 1,
     ):
         self.stage_data_loader = stage_data_loader
         self.stage_data_manager = stage_data_manager
@@ -46,12 +48,17 @@ class WalkForwardCoordinator:
         )
         self.optimization_stage_coordinator = optimization_stage_coordinator
         self.testing_stage_coordinator = testing_stage_coordinator
+        self.walk_forward_n_trials = walk_forward_n_trials
+        self.walk_forward_window_size = walk_forward_window_size
 
     async def run_async(self):
         try:
             self.logger.info("Starting Walk-forward Pipeline...")
             # Run the pipeline stages in sequence
-            await self.run_walk_forward()
+            await self.run_walk_forward(
+                n_trials=self.walk_forward_n_trials,
+                window_size=self.walk_forward_window_size,
+            )
             self.logger.info("Walk-forward completed successfully.")
             return True
         except Exception as e:
@@ -83,9 +90,9 @@ class WalkForwardCoordinator:
 
     async def run_walk_forward(
         self,
+        n_trials: int,
+        window_size: int,
         end_date: datetime = datetime.now(),
-        n_trials: int = 5,
-        window_size: int = 1,
     ):
         try:
             if end_date is None:

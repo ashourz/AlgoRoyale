@@ -1,5 +1,5 @@
 BollingerBandsStrategyCombinator
-#ComboStrategyCombinator
+ComboStrategyCombinator
 #MACDTrailingStrategyCombinator
 #MeanReversionStrategyCombinator
 #MomentumStrategyCombinator
