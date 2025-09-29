@@ -19,7 +19,7 @@ class TradeOrchestrator:
         self.premarket_open_duration_minutes = premarket_open_duration_minutes
         self.pre_market_open_completed = False
 
-    async def start(self):
+    async def async_start(self):
         self.clock_service.start()
         await self.schedule_market_sessions()
 
@@ -38,7 +38,7 @@ class TradeOrchestrator:
         self.logger.info("Scheduling next market sessions...")
         await self.schedule_market_sessions()
 
-    async def stop(self):
+    async def async_stop(self):
         await self.clock_service.async_stop()
 
     async def schedule_market_sessions(self):
