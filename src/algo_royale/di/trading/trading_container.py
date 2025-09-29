@@ -69,5 +69,7 @@ class TradingContainer:
             logger=self.logger_container.logger(
                 logger_type=LoggerType.TRADE_ORCHESTRATOR
             ),
-            premarket_open_duration_minutes=30,
+            premarket_open_duration_minutes=int(
+                self.config["trading"].get("premarket_open_duration_minutes", 30)
+            ),
         )
