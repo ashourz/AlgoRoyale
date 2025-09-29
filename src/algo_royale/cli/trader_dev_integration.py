@@ -5,7 +5,7 @@ from algo_royale.logging.logger_env import ApplicationEnv
 from algo_royale.services.trade_orchestrator import TradeOrchestrator
 from algo_royale.utils.single_instance_lock import SingleInstanceLock
 
-LOCK_FILE = os.path.join(os.path.dirname(__file__), "trader_prod_paper.lock")
+LOCK_FILE = os.path.join(os.path.dirname(__file__), "trader_dev_integration.lock")
 lock = SingleInstanceLock(LOCK_FILE)
 lock.acquire()
 

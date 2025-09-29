@@ -53,7 +53,7 @@ class MarketSessionService:
             self.logger.info("Starting pre-market session...")
             self.trade_service.update_settled_trades()
             self.order_service.update_settled_orders()
-            self.symbol_hold_service.start()
+            await self.symbol_hold_service.start()
             await self._async_subscribe_to_symbol_holds()
             await self._async_run_validations()
             self._init_ledger_service()
