@@ -13,6 +13,11 @@ lock.acquire()
 async def async_cli(orchestrator: TradeOrchestrator):
     """Async command line interface entry point"""
     success = await orchestrator.async_start()
+    try:
+        while True:
+            await asyncio.sleep(3600)
+    except (KeyboardInterrupt, asyncio.CancelledError):
+        await orchestrator.async_stop()
     exit(0 if success else 1)
 
 

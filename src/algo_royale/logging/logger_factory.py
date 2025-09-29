@@ -36,14 +36,17 @@ class LoggerFactory:
         os.makedirs(log_dir, exist_ok=True)
 
         log_file = os.path.join(log_dir, f"{self.environment.value}.log")
-        file_handler = CustomRotatingFileHandler(
-            log_file, maxBytes=10_000_000, backupCount=100, encoding="utf-8"
-        )
-        formatter = logging.Formatter(
-            "[%(asctime)s] %(name)s %(levelname)s - %(message)s"
-        )
-        file_handler.setFormatter(formatter)
-        logger.addHandler(file_handler)
+
+        # Only add a handler if none exist to prevent duplicate logs
+        if not logger.hasHandlers():
+            file_handler = CustomRotatingFileHandler(
+                log_file, maxBytes=10_000_000, backupCount=100, encoding="utf-8"
+            )
+            formatter = logging.Formatter(
+                "[%(asctime)s] %(name)s %(levelname)s - %(message)s"
+            )
+            file_handler.setFormatter(formatter)
+            logger.addHandler(file_handler)
 
         self._loggers[logger_name] = logger
         return logger
