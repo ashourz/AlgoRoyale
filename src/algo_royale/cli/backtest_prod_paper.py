@@ -23,11 +23,11 @@ def cli():
     application_container = ApplicationContainer(environment=ApplicationEnv.PROD_PAPER)
     try:
         # Initialize and run DB migrations
-        db_container = application_container.repo_container().db_container()
-        db_container.run_migrations()
+        db_container = application_container.repo_container.db_container
+        db_container.setup_environment()
 
         coordinator = (
-            application_container.backtest_pipeline_container().pipeline_coordinator()
+            application_container.backtest_pipeline_container.pipeline_coordinator
         )
         asyncio.run(async_cli(coordinator))
     finally:

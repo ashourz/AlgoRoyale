@@ -31,7 +31,7 @@ class LedgerServiceContainer:
     @property
     def enriched_data_service(self) -> EnrichedDataService:
         return EnrichedDataService(
-            enriched_data_repo=self.adapter_container.enriched_data_repo,
+            enriched_data_repo=self.repo_container.enriched_data_repo,
             logger=self.logger_container.logger(
                 logger_type=LoggerType.ENRICHED_DATA_SERVICE
             ),

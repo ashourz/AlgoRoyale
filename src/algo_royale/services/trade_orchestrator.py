@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 from algo_royale.logging.loggable import Loggable
 from algo_royale.services.clock_service import ClockService
@@ -51,24 +51,28 @@ class TradeOrchestrator:
                 "Failed to retrieve market clock. Cannot schedule market sessions."
             )
             return
-        market_open = self.clock_service.ensure_utc(market_clock.open)
-        market_close = self.clock_service.ensure_utc(market_clock.close)
+        is_market_open = market_clock.is_open
+        if is_market_open:
+            market_open = datetime.now(timezone.utc)
+        else:
+            market_open = self.clock_service.ensure_utc(market_clock.next_open)
+        market_close = self.clock_service.ensure_utc(market_clock.next_close)
         if not market_open or not market_close:
             self.logger.error("Failed to retrieve market open/close times.")
             return
         if market_open and market_close:
             premarket_open = await self._get_premarket_open_utc(market_open)
-            await self.clock_service.schedule_job(
+            self.clock_service.schedule_job(
                 job_name="premarket_open",
                 run_time=premarket_open,
                 coro_func=self._on_pre_market_open,
             )
-            await self.clock_service.schedule_job(
+            self.clock_service.schedule_job(
                 job_name="market_open",
                 run_time=market_open,
                 coro_func=self._on_market_open,
             )
-            await self.clock_service.schedule_job(
+            self.clock_service.schedule_job(
                 job_name="market_close",
                 run_time=market_close,
                 coro_func=self._on_market_closed,

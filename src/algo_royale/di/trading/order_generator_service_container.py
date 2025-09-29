@@ -91,7 +91,6 @@ class OrderGeneratorServiceContainer:
     @property
     def symbol_hold_tracker(self) -> SymbolHoldTracker:
         return SymbolHoldTracker(
-            symbol_service=self.symbol_service,
             logger=self.logger_container.logger(
                 logger_type=LoggerType.SYMBOL_HOLD_TRACKER
             ),
