@@ -21,7 +21,7 @@ class TradeOrchestrator:
 
     async def start(self):
         self.clock_service.start()
-        await self.market_session_service.async_start_market()
+        await self.schedule_market_sessions()
 
     async def _on_pre_market_open(self):
         self.logger.info("Market pre-open")

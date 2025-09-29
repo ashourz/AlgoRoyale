@@ -5,7 +5,7 @@ from algo_royale.backtester.pipeline.pipeline_coordinator import PipelineCoordin
 from algo_royale.logging.logger_env import ApplicationEnv
 from algo_royale.utils.single_instance_lock import SingleInstanceLock
 
-LOCK_FILE = os.path.join(os.path.dirname(__file__), "backtest_prod.lock")
+LOCK_FILE = os.path.join(os.path.dirname(__file__), "backtest_prod_paper.lock")
 lock = SingleInstanceLock(LOCK_FILE)
 lock.acquire()
 
@@ -20,7 +20,7 @@ def cli():
     """Synchronous CLI wrapper"""
     from algo_royale.di.application_container import ApplicationContainer
 
-    application_container = ApplicationContainer(environment=ApplicationEnv.PROD_LIVE)
+    application_container = ApplicationContainer(environment=ApplicationEnv.PROD_PAPER)
     try:
         # Initialize and run DB migrations
         db_container = application_container.repo_container().db_container()
