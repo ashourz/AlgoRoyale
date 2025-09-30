@@ -105,8 +105,10 @@ class TradeDAO(BaseDAO):
         :return: The number of updated trade records, or -1 if the update failed.
         """
         update_count = self.update("update_settled_trades.sql", (settlement_datetime,))
-        if not update_count:
-            self.logger.error("Failed to update settled trades.")
+        if update_count < 0:
+            self.logger.error(
+                "Failed to update settled trades | update count: {update_count}"
+            )
             return -1
         return update_count
 

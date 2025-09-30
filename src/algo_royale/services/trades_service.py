@@ -46,8 +46,10 @@ class TradesService:
             self.logger.info("Updating settled trades...")
             settlement_datetime = datetime.now()
             updated_count = self.repo.update_settled_trades(settlement_datetime)
-            if updated_count == -1:
-                self.logger.error("Failed to update settled trades.")
+            if updated_count < 0:
+                self.logger.error(
+                    f"Failed to update settled trades | update count: {updated_count}"
+                )
                 return
             self.logger.info(f"Updated {updated_count} settled trades.")
         except Exception as e:
