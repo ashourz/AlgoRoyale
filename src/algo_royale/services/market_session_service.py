@@ -136,11 +136,11 @@ class MarketSessionService:
         """Run all necessary validations."""
         try:
             today = datetime.now(datetime.timezone.utc).date()
-            yesterday = today - timedelta(days=1)
-            start_of_yesterday = datetime(
-                yesterday.year,
-                yesterday.month,
-                yesterday.day,
+            last_week = today - timedelta(days=7)
+            start_of_last_week = datetime(
+                last_week.year,
+                last_week.month,
+                last_week.day,
                 0,
                 0,
                 0,
@@ -148,7 +148,7 @@ class MarketSessionService:
             )
             now = datetime.now(datetime.timezone.utc)
             await self.trade_service.reconcile_trades(
-                start_date=start_of_yesterday, end_date=now
+                start_date=start_of_last_week, end_date=now
             )
             await self.positions_service.validate_positions()
         except Exception as e:
