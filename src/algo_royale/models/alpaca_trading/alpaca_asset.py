@@ -61,7 +61,7 @@ class Asset(BaseModel):
             shortable=data["shortable"],
             easy_to_borrow=data["easy_to_borrow"],
             fractionable=data["fractionable"],
-            attributes=data.get("attributes") or [],
+            attributes=list(data.get("attributes") or []),
         )
 
     @staticmethod

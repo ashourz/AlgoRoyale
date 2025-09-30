@@ -243,7 +243,7 @@ class TradesService:
                 executed_at=trade.executed_at,
                 order_id=trade.order_id,
             )
-            if not trade_id or trade_id == -1:
+            if trade_id is None or trade_id == -1:
                 self.logger.error(f"Failed to insert trade: {trade}")
                 return -1
             self.logger.info(f"Inserted trade with ID: {trade_id}")

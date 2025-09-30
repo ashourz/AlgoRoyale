@@ -29,12 +29,12 @@ class OrderService:
         offset: int | None = None,
     ) -> list[DBOrder]:
         try:
-            if limit <= 0 | limit is None:
+            if limit <= 0 or limit is None:
                 orders = self.order_repo.fetch_all_orders_by_symbol_and_status(
                     symbol=symbol, status_list=status_list
                 )
             else:
-                if offset < 0 | offset is None:
+                if offset < 0 or offset is None:
                     self.logger.warning("Invalid offset, defaulting to 0.")
                     offset = 0
                 orders = self.order_repo.fetch_orders_by_symbol_and_status(
