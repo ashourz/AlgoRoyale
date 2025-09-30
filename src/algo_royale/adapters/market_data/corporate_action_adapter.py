@@ -13,6 +13,7 @@ from algo_royale.models.alpaca_market_data.alpaca_corporate_action import (
     CorporateActionResponse,
 )
 from algo_royale.models.alpaca_market_data.enums import CorporateActions
+from algo_royale.services.clock_service import ClockService
 
 
 class CorporateActionAdapter:
@@ -21,7 +22,12 @@ class CorporateActionAdapter:
     easier-to-use access to corporate actions, with additional business logic.
     """
 
-    def __init__(self, client: AlpacaCorporateActionClient, logger: Loggable):
+    def __init__(
+        self,
+        client: AlpacaCorporateActionClient,
+        clock_service: ClockService,
+        logger: Loggable,
+    ):
         """
         Initialize the CorporateActionAdapter with the AlpacaCorporateActionClient and a logger.
 
@@ -30,6 +36,7 @@ class CorporateActionAdapter:
             logger (Loggable): Logger instance for logging events and errors.
         """
         self.client = client
+        self.clock_service = clock_service
         self.logger = logger
 
     async def get_corporate_actions_for_symbols(
@@ -65,11 +72,11 @@ class CorporateActionAdapter:
         Date range and symbols are optional filters.
         """
         if not start_date:
-            start_date = datetime.utcnow().replace(
+            start_date = self.clock_service.now().replace(
                 hour=0, minute=0, second=0, microsecond=0
             )
         if not end_date:
-            end_date = datetime.utcnow()
+            end_date = self.clock_service.now()
 
         return await self.client.fetch_corporate_actions(
             symbols=symbols, start_date=start_date, end_date=end_date, ids=action_ids

@@ -167,7 +167,8 @@ class TradesService:
                 for activity in account_activities.activities
                 if activity is not None
             ]
-
+            # Filter out None values
+            account_trades = [t for t in account_trades if t is not None]
             # Build dicts for O(1) lookup
             local_trade_dict = {self._trade_key(trade): trade for trade in local_trades}
             account_trade_dict = {
@@ -310,7 +311,7 @@ class TradesService:
             self.logger.error(f"Error calculating settlement date: {e}")
             return None
 
-    def _account_activity_to_dbtrade(self, activity: AccountActivity) -> DBTrade:
+    def _account_activity_to_dbtrade(self, activity: AccountActivity) -> DBTrade | None:
         try:
             now = self.clock_service.now()
             settlement_date = self._get_settlement_date(activity.transaction_time)

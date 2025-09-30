@@ -53,6 +53,7 @@ class ApplicationContainer:
         return AdapterContainer(
             config=self.config,
             secrets=self.secrets,
+            clock_service=self.clock_service,
             logger_container=self.logger_container,
         )
 
