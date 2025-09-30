@@ -133,16 +133,29 @@ class SignalStrategyOptimizerImpl(SignalStrategyOptimizer):
             state_logic = self.condition_types.get("stateful_logic")
             # Defensive: If state_logic is a class, instantiate it
             if isinstance(state_logic, type):
-                try:
-                    state_logic = state_logic(logger=self.strategy_logger)
-                except Exception as e:
+                # Defensive: If it's the base class, log error and skip
+                if state_logic.__name__ == "StatefulLogic":
                     self.logger.error(
-                        f"Failed to instantiate stateful_logic class {state_logic}: {e}"
+                        f"[FATAL] Base StatefulLogic class was provided as stateful_logic for symbol {symbol}. This is not allowed. Skipping this candidate."
                     )
                     state_logic = None
+                else:
+                    try:
+                        state_logic = state_logic(logger=self.strategy_logger)
+                    except Exception as e:
+                        self.logger.error(
+                            f"Failed to instantiate stateful_logic class {state_logic}: {e}"
+                        )
+                        state_logic = None
             # If it's an instance, optionally call optuna_suggest if available
             if isinstance(state_logic, StatefulLogic):
-                if hasattr(state_logic, "optuna_suggest") and callable(
+                # Defensive: If it's the base class, log error and skip
+                if type(state_logic).__name__ == "StatefulLogic":
+                    self.logger.error(
+                        f"[FATAL] Base StatefulLogic instance was provided as stateful_logic for symbol {symbol}. This is not allowed. Skipping this candidate."
+                    )
+                    state_logic = None
+                elif hasattr(state_logic, "optuna_suggest") and callable(
                     getattr(state_logic, "optuna_suggest", None)
                 ):
                     try:
