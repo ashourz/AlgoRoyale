@@ -164,11 +164,6 @@ class PortfolioStrategyRegistry:
                     if eval_path.exists():
                         with open(eval_path) as f:
                             loaded_results = json.load(f)
-                        if not self._validate_input_report(loaded_results):
-                            self.logger.warning(
-                                f"Invalid evaluation report for {symbols} in {strat_dir}. Skipping."
-                            )
-                            continue
                         report = loaded_results
                         report["strategy"] = strat_dir.name
                         reports.append(report)

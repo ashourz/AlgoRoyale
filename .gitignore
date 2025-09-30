@@ -23,3 +23,6 @@ data/
 
 #Ignore system locks
 *.lock
+
+# Ignore PID files
+*.pids

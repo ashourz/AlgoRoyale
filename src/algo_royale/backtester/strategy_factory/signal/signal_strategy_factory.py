@@ -14,6 +14,9 @@ from algo_royale.backtester.strategy.signal.buffered_components.buffered_signal_
 from algo_royale.backtester.strategy.signal.buffered_components.buffered_stateful_logic import (
     BufferedStatefulLogic,
 )
+from algo_royale.backtester.strategy.signal.conditions.base_strategy_condition import (
+    StrategyCondition,
+)
 from algo_royale.backtester.strategy.signal.stateful_logic.base_stateful_logic import (
     StatefulLogic,
 )
@@ -55,7 +58,10 @@ class SignalStrategyFactory:
             # Wrap each condition in a BufferedSignalStrategy if not already wrapped
             buffered_conditions = []
             for i, cond in enumerate(std_conditions):
-                if not isinstance(cond, BufferedStrategyCondition):
+                if isinstance(cond, BufferedStrategyCondition):
+                    # If already buffered, just append it
+                    buffered_conditions.append(cond)
+                elif isinstance(cond, StrategyCondition):
                     # Wrap each condition in a BufferedStrategyCondition
                     buffered_conditions.append(
                         BufferedStrategyCondition(
@@ -64,9 +70,6 @@ class SignalStrategyFactory:
                             logger=self.strategy_logger,
                         )
                     )
-                else:
-                    # If already buffered, just append it
-                    buffered_conditions.append(cond)
             return buffered_conditions
         except Exception as e:
             self.logger.error(
@@ -114,15 +117,14 @@ class SignalStrategyFactory:
             if not std_logic:
                 return None
             # Wrap the standard stateful logic in a BufferedStatefulLogic
-            if not isinstance(std_logic, BufferedStatefulLogic):
+            if isinstance(std_logic, BufferedStatefulLogic):
+                return std_logic
+            elif isinstance(std_logic, StatefulLogic):
                 return BufferedStatefulLogic(
                     stateful_logic=std_logic,
                     window_size=std_logic.window_size,
                     logger=self.strategy_logger,
                 )
-            else:
-                # If already buffered, just return it
-                return std_logic
         except Exception as e:
             self.logger.error(
                 f"Error instantiating buffered stateful logic: {e}. "

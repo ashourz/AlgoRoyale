@@ -79,7 +79,10 @@ class StrategyBacktestExecutor:
                                 continue
 
                             result_df = await self._process_single_page(
-                                symbol, strategy, page_df, page_count
+                                symbol=symbol,
+                                strategy=strategy,
+                                page_df=page_df,
+                                page_num=page_count,
                             )
                             # Ensure valid pages are appended correctly
                             if result_df is not None:
@@ -162,7 +165,9 @@ class StrategyBacktestExecutor:
                 self.logger.debug(
                     f"Signals generated for page {page_num} of {symbol}-{strategy_name}: shape={signals_df.shape}, columns={list(signals_df.columns)}, head={signals_df.head(2)}"
                 )
-                self._validate_strategy_output(strategy, page_df, signals_df)
+                self._validate_strategy_output(
+                    strategy=strategy, df=page_df, signals_df=signals_df
+                )
                 self.logger.debug(
                     f"Page {page_num} for {symbol}-{strategy_name} signals validated successfully"
                 )
