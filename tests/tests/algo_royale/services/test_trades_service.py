@@ -7,6 +7,7 @@ from algo_royale.services.trades_service import TradesService
 from tests.mocks.adapters.mock_account_adapter import MockAccountAdapter
 from tests.mocks.mock_loggable import MockLoggable
 from tests.mocks.repo.mock_trade_repo import MockTradeRepo
+from tests.mocks.services.mock_clock_service import MockClockService
 
 
 @pytest.fixture
@@ -14,6 +15,7 @@ def trades_service():
     service = TradesService(
         account_adapter=MockAccountAdapter(),
         trade_repo=MockTradeRepo(),
+        clock_service=MockClockService(),
         logger=MockLoggable(),
         user_id="user_1",
         account_id="account_1",

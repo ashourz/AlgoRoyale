@@ -1,10 +1,9 @@
-from datetime import datetime
-
 from algo_royale.logging.loggable import Loggable
 from algo_royale.models.alpaca_trading.alpaca_order import Order
 from algo_royale.models.alpaca_trading.enums.order_stream_event import OrderStreamEvent
 from algo_royale.models.alpaca_trading.order_stream_data import OrderStreamData
 from algo_royale.models.db.db_order import DBOrder
+from algo_royale.services.clock_service import ClockService
 from algo_royale.services.ledger_service import LedgerService
 from algo_royale.services.order_event_service import OrderEventService
 from algo_royale.services.trades_service import TradesService
@@ -16,12 +15,14 @@ class OrderMonitorService:
         ledger_service: LedgerService,  ## Service for managing the ledger
         order_event_service: OrderEventService,  ## Incoming order events
         trades_service: TradesService,  ## Service for managing trades
+        clock_service: ClockService,
         logger: Loggable,
     ):
         self.ledger_service = ledger_service
         self.order_event_service = order_event_service
         self.trade_service = trades_service
         self.order_events_subscriber = None
+        self.clock_service = clock_service
         self.logger = logger
 
     async def async_start(self):
@@ -107,7 +108,7 @@ class OrderMonitorService:
             fill_event_notional = filled_notional - recorded_notional
             fill_price = fill_event_notional / fill_qty if fill_qty > 0 else 0
 
-            now = datetime.now()
+            now = self.clock_service.now()
 
             self.trade_service.insert_trade(
                 symbol=db_order.symbol,

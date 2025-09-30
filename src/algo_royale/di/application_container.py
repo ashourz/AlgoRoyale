@@ -94,6 +94,7 @@ class ApplicationContainer:
             factory_container=self.factory_container,
             adapter_container=self.adapter_container,
             repo_container=self.repo_container,
+            clock_service=self.clock_service,
             logger_container=self.logger_container,
         )
 

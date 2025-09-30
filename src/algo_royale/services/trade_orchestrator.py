@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timedelta
 
 from algo_royale.logging.loggable import Loggable
 from algo_royale.services.clock_service import ClockService
@@ -20,7 +20,6 @@ class TradeOrchestrator:
         self.pre_market_open_completed = False
 
     async def async_start(self):
-        self.clock_service.start()
         await self.schedule_market_sessions()
 
     async def _on_pre_market_open(self):
@@ -53,7 +52,7 @@ class TradeOrchestrator:
             return
         is_market_open = market_clock.is_open
         if is_market_open:
-            market_open = datetime.now(timezone.utc)
+            market_open = self.clock_service.now()
         else:
             market_open = self.clock_service.ensure_utc(market_clock.next_open)
         market_close = self.clock_service.ensure_utc(market_clock.next_close)

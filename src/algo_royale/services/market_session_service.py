@@ -3,6 +3,7 @@ from datetime import datetime, timedelta, timezone
 from algo_royale.application.symbols.enums import SymbolHoldStatus
 from algo_royale.application.utils.async_pubsub import AsyncSubscriber
 from algo_royale.logging.loggable import Loggable
+from algo_royale.services.clock_service import ClockService
 from algo_royale.services.ledger_service import LedgerService
 from algo_royale.services.order_monitor_service import OrderMonitorService
 from algo_royale.services.orders_execution_service import OrderExecutionService
@@ -26,6 +27,7 @@ class MarketSessionService:
         ledger_service: LedgerService,
         order_execution_service: OrderExecutionService,
         order_monitor_service: OrderMonitorService,
+        clock_service: ClockService,
         logger: Loggable,
     ):
         ## SYMBOLS
@@ -46,6 +48,8 @@ class MarketSessionService:
         self.ledger_service = ledger_service
         ## PROCESS
         self.premarket_completed = False
+        ## CLOCK
+        self.clock_service = clock_service
         ## LOGGER
         self.logger = logger
 
@@ -135,7 +139,7 @@ class MarketSessionService:
     async def _async_run_validations(self) -> None:
         """Run all necessary validations."""
         try:
-            today = datetime.now(timezone.utc).date()
+            today = self.clock_service.now().date()
             last_week = today - timedelta(days=7)
             start_of_last_week = datetime(
                 last_week.year,
@@ -146,7 +150,7 @@ class MarketSessionService:
                 0,
                 tzinfo=timezone.utc,
             )
-            now = datetime.now(timezone.utc)
+            now = self.clock_service.now()
             await self.trade_service.reconcile_trades(
                 start_date=start_of_last_week, end_date=now
             )

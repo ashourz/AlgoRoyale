@@ -1,5 +1,9 @@
+from algo_royale.di.adapter.adapter_container import AdapterContainer
+from algo_royale.di.logger_container import LoggerContainer
+from algo_royale.di.repo.repo_container import RepoContainer
 from algo_royale.logging.logger_type import LoggerType
 from algo_royale.services.account_cash_service import AccountCashService
+from algo_royale.services.clock_service import ClockService
 from algo_royale.services.enriched_data_service import EnrichedDataService
 from algo_royale.services.ledger_service import LedgerService
 from algo_royale.services.orders_service import OrderService
@@ -11,7 +15,12 @@ from algo_royale.services.trades_service import TradesService
 # Refactored to a regular class
 class LedgerServiceContainer:
     def __init__(
-        self, config, adapter_container, repo_container, logger_container, clock_service
+        self,
+        config,
+        adapter_container: AdapterContainer,
+        repo_container: RepoContainer,
+        logger_container: LoggerContainer,
+        clock_service: ClockService,
     ):
         self.config = config
         self.adapter_container = adapter_container
@@ -51,6 +60,7 @@ class LedgerServiceContainer:
         return TradesService(
             account_adapter=self.adapter_container.account_adapter,
             trade_repo=self.repo_container.trade_repo,
+            clock_service=self.clock_service,
             logger=self.logger_container.logger(logger_type=LoggerType.TRADE_SERVICE),
             user_id=self.config["db_user"]["id"],
             account_id=self.config["db_user"]["account_id"],

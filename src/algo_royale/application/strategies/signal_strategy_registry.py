@@ -227,9 +227,3 @@ class SignalStrategyRegistry:
         )
         out_dir.mkdir(parents=True, exist_ok=True)
         return out_dir
-
-
-# Usage example:
-# registry = StrategyRegistry("strategies.json")
-# registry.load_state()
-# registry.write_report("start_of_day_report.json", datetime.now())

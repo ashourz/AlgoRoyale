@@ -9,6 +9,7 @@ from algo_royale.models.alpaca_trading.alpaca_account import AccountActivity
 from algo_royale.models.alpaca_trading.enums.enums import ActivityType
 from algo_royale.models.db.db_trade import DBTrade
 from algo_royale.repo.trade_repo import TradeRepo
+from algo_royale.services.clock_service import ClockService
 
 
 class TradesService:
@@ -16,6 +17,7 @@ class TradesService:
         self,
         account_adapter: AccountAdapter,
         trade_repo: TradeRepo,
+        clock_service: ClockService,
         logger: Loggable,
         user_id: str,
         account_id: str,
@@ -23,6 +25,7 @@ class TradesService:
     ):
         self.repo = trade_repo
         self.account_adapter = account_adapter
+        self.clock_service = clock_service
         self.logger = logger
         self.user_id = user_id
         self.account_id = account_id
@@ -44,7 +47,7 @@ class TradesService:
         """Update settlement status for all trades."""
         try:
             self.logger.info("Updating settled trades...")
-            settlement_datetime = datetime.now()
+            settlement_datetime = self.clock_service.now()
             updated_count = self.repo.update_settled_trades(settlement_datetime)
             if updated_count < 0:
                 self.logger.error(
@@ -309,7 +312,7 @@ class TradesService:
 
     def _account_activity_to_dbtrade(self, activity: AccountActivity) -> DBTrade:
         try:
-            now = datetime.now()
+            now = self.clock_service.now()
             settlement_date = self._get_settlement_date(activity.transaction_time)
             isSettled = True if settlement_date and settlement_date <= now else False
             return DBTrade(

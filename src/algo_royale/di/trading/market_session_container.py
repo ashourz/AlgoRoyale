@@ -4,6 +4,7 @@ from algo_royale.di.trading.order_generator_service_container import (
     OrderGeneratorServiceContainer,
 )
 from algo_royale.logging.logger_type import LoggerType
+from algo_royale.services.clock_service import ClockService
 from algo_royale.services.market_session_service import MarketSessionService
 from algo_royale.services.order_monitor_service import OrderMonitorService
 from algo_royale.services.orders_execution_service import OrderExecutionService
@@ -12,6 +13,7 @@ from algo_royale.services.orders_execution_service import OrderExecutionService
 class MarketSessionContainer:
     def __init__(
         self,
+        clock_service: ClockService,
         logger_container: LoggerContainer,
         ledger_service_container: LedgerServiceContainer,
         order_generator_service_container: OrderGeneratorServiceContainer,
@@ -53,6 +55,7 @@ class MarketSessionContainer:
             ledger_service=self.ledger_service_container.ledger_service,
             order_execution_service=self.order_execution_service,
             order_monitor_service=self.order_monitor_service,
+            clock_service=self.clock_service,
             logger=self.logger_container.logger(
                 logger_type=LoggerType.MARKET_SESSION_SERVICE
             ),

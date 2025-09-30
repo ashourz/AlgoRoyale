@@ -2,6 +2,7 @@ import pytest
 
 from algo_royale.services.market_session_service import MarketSessionService
 from tests.mocks.mock_loggable import MockLoggable
+from tests.mocks.services.mock_clock_service import MockClockService
 from tests.mocks.services.mock_ledger_service import MockLedgerService
 from tests.mocks.services.mock_order_execution_service import MockOrderExecutionService
 from tests.mocks.services.mock_order_monitor_service import MockOrderMonitorService
@@ -23,6 +24,7 @@ def market_session_service():
         ledger_service=MockLedgerService(),
         order_execution_service=MockOrderExecutionService(),
         order_monitor_service=MockOrderMonitorService(),
+        clock_service=MockClockService(),
         logger=MockLoggable(),
     )
     yield service

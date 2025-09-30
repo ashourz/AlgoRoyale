@@ -22,7 +22,14 @@ from algo_royale.backtester.stage_coordinator.testing.signal_strategy_testing_st
 from algo_royale.backtester.walkforward.walk_forward_coordinator import (
     WalkForwardCoordinator,
 )
+from algo_royale.di.backtest.data_prep_coordinator_container import (
+    DataPrepCoordinatorContainer,
+)
+from algo_royale.di.factory_container import FactoryContainer
+from algo_royale.di.logger_container import LoggerContainer
+from algo_royale.di.stage_data_container import StageDataContainer
 from algo_royale.logging.logger_type import LoggerType
+from algo_royale.services.clock_service import ClockService
 
 
 # Refactored to a regular class
@@ -30,15 +37,17 @@ class SignalBacktestContainer:
     def __init__(
         self,
         config,
-        data_prep_coordinator_container,
-        stage_data_container,
-        factory_container,
-        logger_container,
+        data_prep_coordinator_container: DataPrepCoordinatorContainer,
+        stage_data_container: StageDataContainer,
+        factory_container: FactoryContainer,
+        clock_service: ClockService,
+        logger_container: LoggerContainer,
     ):
         self.config = config
         self.data_prep_coordinator_container = data_prep_coordinator_container
         self.stage_data_container = stage_data_container
         self.factory_container = factory_container
+        self.clock_service = clock_service
         self.logger_container = logger_container
 
     @property
@@ -154,6 +163,7 @@ class SignalBacktestContainer:
             feature_engineering_stage_coordinator=self.data_prep_coordinator_container.feature_engineering_stage_coordinator,
             optimization_stage_coordinator=self.strategy_optimization_stage_coordinator,
             testing_stage_coordinator=self.strategy_testing_stage_coordinator,
+            clock_service=self.clock_service,
             logger=self.logger_container.logger(
                 logger_type=LoggerType.SIGNAL_STRATEGY_WALK_FORWARD
             ),

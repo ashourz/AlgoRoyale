@@ -4,6 +4,7 @@ from algo_royale.backtester.walkforward.walk_forward_coordinator import (
     WalkForwardCoordinator,
 )
 from tests.mocks.mock_loggable import MockLoggable
+from tests.mocks.services.mock_clock_service import MockClockService
 
 
 class MockWalkForwardCoordinator(WalkForwardCoordinator):
@@ -15,6 +16,7 @@ class MockWalkForwardCoordinator(WalkForwardCoordinator):
             feature_engineering_stage_coordinator=MagicMock(),
             optimization_stage_coordinator=MagicMock(),
             testing_stage_coordinator=MagicMock(),
+            clock_service=MockClockService(),
             logger=MockLoggable(),
         )
         self.run_async_called = False

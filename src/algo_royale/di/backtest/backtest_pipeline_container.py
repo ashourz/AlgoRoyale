@@ -1,4 +1,5 @@
 from algo_royale.backtester.pipeline.pipeline_coordinator import PipelineCoordinator
+from algo_royale.di.adapter.adapter_container import AdapterContainer
 from algo_royale.di.backtest.data_prep_coordinator_container import (
     DataPrepCoordinatorContainer,
 )
@@ -6,7 +7,13 @@ from algo_royale.di.backtest.portfolio_backtest_container import (
     PortfolioBacktestContainer,
 )
 from algo_royale.di.backtest.signal_backtest_container import SignalBacktestContainer
+from algo_royale.di.factory_container import FactoryContainer
+from algo_royale.di.feature_engineering_container import FeatureEngineeringContainer
+from algo_royale.di.logger_container import LoggerContainer
+from algo_royale.di.repo.repo_container import RepoContainer
+from algo_royale.di.stage_data_container import StageDataContainer
 from algo_royale.logging.logger_type import LoggerType
+from algo_royale.services.clock_service import ClockService
 
 
 # Refactored to a regular class
@@ -14,12 +21,13 @@ class BacktestPipelineContainer:
     def __init__(
         self,
         config,
-        stage_data_container,
-        feature_engineering_container,
-        factory_container,
-        adapter_container,
-        repo_container,
-        logger_container,
+        stage_data_container: StageDataContainer,
+        feature_engineering_container: FeatureEngineeringContainer,
+        factory_container: FactoryContainer,
+        adapter_container: AdapterContainer,
+        repo_container: RepoContainer,
+        clock_service: ClockService,
+        logger_container: LoggerContainer,
     ):
         self.config = config
         self.stage_data_container = stage_data_container
@@ -27,6 +35,7 @@ class BacktestPipelineContainer:
         self.factory_container = factory_container
         self.adapter_container = adapter_container
         self.repo_container = repo_container
+        self.clock_service = clock_service
         self.logger_container = logger_container
 
     @property
@@ -58,6 +67,7 @@ class BacktestPipelineContainer:
             stage_data_container=self.stage_data_container,
             signal_backtest_container=self.signal_backtest_container,
             factory_container=self.factory_container,
+            clock_service=self.clock_service,
             logger_container=self.logger_container,
         )
 

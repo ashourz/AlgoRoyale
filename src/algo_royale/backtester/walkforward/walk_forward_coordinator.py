@@ -21,6 +21,7 @@ from algo_royale.backtester.stage_coordinator.testing.base_testing_stage_coordin
 from algo_royale.backtester.stage_data.loader.stage_data_loader import StageDataLoader
 from algo_royale.backtester.stage_data.stage_data_manager import StageDataManager
 from algo_royale.logging.loggable import Loggable
+from algo_royale.services.clock_service import ClockService
 
 if TYPE_CHECKING:
     pass
@@ -36,6 +37,7 @@ class WalkForwardCoordinator:
         optimization_stage_coordinator: BaseOptimizationStageCoordinator,
         testing_stage_coordinator: BaseTestingStageCoordinator,
         logger: Loggable,
+        clock_service: ClockService,
         walk_forward_n_trials: int = 5,
         walk_forward_window_size: int = 1,
     ):
@@ -50,6 +52,7 @@ class WalkForwardCoordinator:
         self.testing_stage_coordinator = testing_stage_coordinator
         self.walk_forward_n_trials = walk_forward_n_trials
         self.walk_forward_window_size = walk_forward_window_size
+        self.clock_service = clock_service
 
     async def run_async(self):
         try:
@@ -92,11 +95,11 @@ class WalkForwardCoordinator:
         self,
         n_trials: int,
         window_size: int,
-        end_date: datetime = datetime.now(),
+        end_date: datetime | None = None,
     ):
         try:
             if end_date is None:
-                end_date = datetime.now()
+                end_date = self.clock_service.now()
             # Go back n_trials + 1 years for the initial train window
             for window in self.walk_forward_windows(
                 end_date=end_date, n_trials=n_trials, window_size=window_size
