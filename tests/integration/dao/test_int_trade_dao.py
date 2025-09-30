@@ -6,7 +6,7 @@ SQL_FILES = [
     "delete_all_trades.sql",
     "delete_trade.sql",
     "fetch_open_positions.sql",
-    "fetch_trades_by_data_range.sql",
+    "fetch_trades_by_date_range.sql",
     "fetch_trades_by_order_id.sql",
     "fetch_unsettled_trades.sql",
     "insert_trade.sql",

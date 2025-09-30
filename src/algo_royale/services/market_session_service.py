@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 from algo_royale.application.symbols.enums import SymbolHoldStatus
 from algo_royale.application.utils.async_pubsub import AsyncSubscriber
@@ -135,7 +135,7 @@ class MarketSessionService:
     async def _async_run_validations(self) -> None:
         """Run all necessary validations."""
         try:
-            today = datetime.now(datetime.timezone.utc).date()
+            today = datetime.now(timezone.utc).date()
             last_week = today - timedelta(days=7)
             start_of_last_week = datetime(
                 last_week.year,
@@ -144,9 +144,9 @@ class MarketSessionService:
                 0,
                 0,
                 0,
-                tzinfo=datetime.timezone.utc,
+                tzinfo=timezone.utc,
             )
-            now = datetime.now(datetime.timezone.utc)
+            now = datetime.now(timezone.utc)
             await self.trade_service.reconcile_trades(
                 start_date=start_of_last_week, end_date=now
             )

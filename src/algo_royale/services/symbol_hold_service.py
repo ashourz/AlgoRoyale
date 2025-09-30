@@ -113,7 +113,7 @@ class SymbolHoldService:
 
                 # Fetch orders in sell-only or buy-only status
                 orders = self.order_service.fetch_orders_by_symbol_and_status(
-                    symbol=symbol, status_list=self.SELL_ONLY_OR_BUY_ONLY_EVENTS
+                    symbol=symbol, status_list=list(self.SELL_ONLY_OR_BUY_ONLY_EVENTS)
                 )
                 if len(orders) > 0:
                     for order in orders:
