@@ -28,6 +28,7 @@ class SignalStrategyRegistry:
         viable_strategies_path: str,
         signal_strategy_factory: SignalStrategyFactory,
         logger: Loggable,
+        optimization_root_path: str,
         combined_buy_threshold: float = 0.5,
         combined_sell_threshold: float = 0.5,
     ):
@@ -38,6 +39,7 @@ class SignalStrategyRegistry:
         self.signal_strategy_factory = signal_strategy_factory
         self.logger = logger
         self.combined_buy_threshold = combined_buy_threshold
+        self.optimization_root_path = Path(optimization_root_path)
         if not (0 <= self.combined_buy_threshold <= 1):
             raise ValueError("combined_buy_threshold must be between 0 and 1")
         self.combined_sell_threshold = combined_sell_threshold
@@ -223,7 +225,7 @@ class SignalStrategyRegistry:
     ) -> Path:
         """Get the path to the optimization result JSON file for a given strategy and symbol."""
         out_dir = self.stage_data_manager.get_directory_path(
-            base_dir=self.optimization_root, symbol=symbol
+            base_dir=self.optimization_root_path, symbol=symbol
         )
         out_dir.mkdir(parents=True, exist_ok=True)
         return out_dir

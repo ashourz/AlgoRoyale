@@ -25,6 +25,7 @@ class PortfolioStrategyRegistry:
         evaluation_json_filename: str,
         viable_strategies_path: str,
         portfolio_strategy_factory: PortfolioStrategyFactory,
+        optimization_root_path: str,
         logger: Loggable,
     ):
         self.symbol_manager = symbol_service
@@ -38,6 +39,7 @@ class PortfolioStrategyRegistry:
         self.portfolio_strategy_factory = portfolio_strategy_factory
         self.logger = logger
         self.portfolio_strategy_map: dict[list[str], BufferedPortfolioStrategy] = {}
+        self.optimization_root_path = Path(optimization_root_path)
         self._load_existing_viable_strategy_params()
 
     def get_buffered_portfolio_strategy(
@@ -219,7 +221,7 @@ class PortfolioStrategyRegistry:
         symbol_str = self._get_symbols_dir_name(symbols)
         self.logger.debug(f"Getting symbols directory for {symbol_str}")
         out_dir = self.stage_data_manager.get_directory_path(
-            base_dir=self.optimization_root, symbol=symbol_str
+            base_dir=self.optimization_root_path, symbol=symbol_str
         )
         out_dir.mkdir(parents=True, exist_ok=True)
         return out_dir

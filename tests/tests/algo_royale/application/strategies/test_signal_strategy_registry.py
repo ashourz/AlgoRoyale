@@ -54,6 +54,7 @@ def registry(tmp_path):
         viable_strategies_path=str(viable_strategies_path),
         signal_strategy_factory=MockSignalStrategyFactory(),
         logger=MockLoggable(),
+        optimization_root_path=str(tmp_path / "optimization"),
         combined_buy_threshold=0.5,
         combined_sell_threshold=0.5,
     )
