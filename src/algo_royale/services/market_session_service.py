@@ -1,3 +1,5 @@
+from datetime import datetime, timedelta
+
 from algo_royale.application.symbols.enums import SymbolHoldStatus
 from algo_royale.application.utils.async_pubsub import AsyncSubscriber
 from algo_royale.logging.loggable import Loggable
@@ -133,7 +135,21 @@ class MarketSessionService:
     async def _async_run_validations(self) -> None:
         """Run all necessary validations."""
         try:
-            await self.trade_service.reconcile_trades()
+            today = datetime.now(datetime.timezone.utc).date()
+            yesterday = today - timedelta(days=1)
+            start_of_yesterday = datetime(
+                yesterday.year,
+                yesterday.month,
+                yesterday.day,
+                0,
+                0,
+                0,
+                tzinfo=datetime.timezone.utc,
+            )
+            now = datetime.now(datetime.timezone.utc)
+            await self.trade_service.reconcile_trades(
+                start_date=start_of_yesterday, end_date=now
+            )
             await self.positions_service.validate_positions()
         except Exception as e:
             self.logger.error(f"Error running validations: {e}")
