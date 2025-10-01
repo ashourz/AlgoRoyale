@@ -11,6 +11,7 @@ class MockTradeDAO(TradeDAO):
     def __init__(self):
         self.base_trade = DBTrade(
             id=UUID("123e4567-e89b-12d3-a456-426614174000"),
+            external_id="mocked_external_id_002",
             user_id="user_1",
             account_id="account_1",
             symbol="BTCUSDT",
@@ -81,6 +82,7 @@ class MockTradeDAO(TradeDAO):
 
     def insert_trade(
         self,
+        external_id: str,
         symbol: str,
         action: str,
         settlement_date: datetime,

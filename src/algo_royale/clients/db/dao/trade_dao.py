@@ -55,6 +55,7 @@ class TradeDAO(BaseDAO):
 
     def insert_trade(
         self,
+        external_id: str,
         symbol: str,
         action: str,
         settlement_date: datetime,
@@ -82,6 +83,7 @@ class TradeDAO(BaseDAO):
         returned_id = self.insert(
             "insert_trade.sql",
             (
+                external_id,
                 symbol,
                 action,
                 settlement_date,

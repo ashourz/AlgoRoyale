@@ -69,6 +69,7 @@ class TestTradeRepo:
         order_id = uuid4()
         with pytest.raises(ValueError) as excinfo:
             trade_repo.insert_trade(
+                external_id="ext_123",
                 symbol="BTCUSDT",
                 action="BUY",
                 settlement_date=datetime.now() + timedelta(days=1),

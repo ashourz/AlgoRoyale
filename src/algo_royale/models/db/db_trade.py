@@ -10,6 +10,7 @@ class DBTrade(BaseModel):
 
     Attributes:
         id (UUID): Unique identifier for the trade.
+        external_id (str): Original ID from the external system (e.g., Alpaca).
         user_id (str): Identifier for the user who made the trade.
         account_id (str): Identifier for the account associated with the trade.
         symbol (str): Trading symbol of the asset.
@@ -26,6 +27,7 @@ class DBTrade(BaseModel):
     """
 
     id: UUID
+    external_id: str  # To store the original ID from the external system
     user_id: str
     account_id: str
     symbol: str
@@ -47,6 +49,7 @@ class DBTrade(BaseModel):
         """
         return [
             "id",
+            "external_id",
             "user_id",
             "account_id",
             "symbol",
@@ -88,6 +91,7 @@ class DBTrade(BaseModel):
         """
         return DBTrade(
             id=data["id"],
+            external_id=data["external_id"],
             user_id=data["user_id"],
             account_id=data["account_id"],
             symbol=data["symbol"],

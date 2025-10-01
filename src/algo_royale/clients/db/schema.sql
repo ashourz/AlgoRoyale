@@ -37,6 +37,7 @@ CREATE TABLE
 CREATE TABLE
     trades (
         id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        external_id TEXT UNIQUE,  -- ID from external source
         symbol TEXT NOT NULL,
         action TEXT NOT NULL,
         settled BOOLEAN DEFAULT FALSE,

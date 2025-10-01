@@ -25,6 +25,7 @@ class MockTradesService(TradesService):
         self.base_trades: list[DBTrade] = [
             DBTrade(
                 id=UUID("00000000-0000-0000-0000-000000000001"),
+                external_id="mocked_external_id_001",
                 user_id="user_1",
                 account_id="account_1",
                 symbol="AAPL",
@@ -93,6 +94,7 @@ class MockTradesService(TradesService):
             raise ValueError("Database error")
         new_trade = DBTrade(
             id=UUID("00000000-0000-0000-0000-000000000003"),
+            external_id="mocked_external_id_003",
             user_id=self.user_id,
             account_id=self.account_id,
             symbol=symbol,

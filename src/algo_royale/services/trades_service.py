@@ -1,7 +1,7 @@
 ## service\trade_service.py
 from datetime import datetime, timedelta
 from decimal import Decimal
-from uuid import UUID
+from uuid import UUID, uuid4
 
 from algo_royale.adapters.trading.account_adapter import AccountAdapter
 from algo_royale.logging.loggable import Loggable
@@ -241,6 +241,7 @@ class TradesService:
         """Insert a trade into the local database."""
         try:
             trade_id = self.repo.insert_trade(
+                external_id=trade.external_id,
                 symbol=trade.symbol,
                 action=trade.action,
                 settlement_date=trade.settlement_date,
@@ -327,7 +328,8 @@ class TradesService:
                 )
                 return None
             return DBTrade(
-                id=UUID(activity.id),
+                id=uuid4(),
+                external_id=activity.id,
                 symbol=activity.symbol,
                 action=activity.side,
                 settled=isSettled,

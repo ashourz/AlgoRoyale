@@ -50,6 +50,7 @@ class MockTradeRepo(TradeRepo):
 
     def insert_trade(
         self,
+        external_id: str,
         symbol: str,
         action: str,
         settlement_date: datetime,
@@ -61,6 +62,7 @@ class MockTradeRepo(TradeRepo):
         if self._raise_exception:
             raise ValueError("Database error")
         return self.dao.insert_trade(
+            external_id=external_id,
             symbol=symbol,
             action=action,
             settlement_date=settlement_date,
