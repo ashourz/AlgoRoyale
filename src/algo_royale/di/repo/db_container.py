@@ -47,12 +47,14 @@ class DBContainer:
             self.logger.error(f"Error setting up database environment: {e}")
             raise e
 
+    ## TODO: Not being called anywhere
     def teardown_environment(self):
         try:
             self.logger.info("🧹 Tearing down database environment...")
-            self.database_admin.user_manager.delete_user(
-                username=self.config["db_connection"]["db_user"]
-            )
+            ## TODO: Consider checking if user/db exist before attempting to delete/drop
+            # self.database_admin.user_manager.delete_user(
+            #     username=self.config["db_connection"]["db_user"]
+            # )
             self.database_admin.database_manager.drop_database(
                 master_db_connection=self.database_admin.get_master_db_connection(),
                 db_name=self.config["db_connection"]["db_name"],
