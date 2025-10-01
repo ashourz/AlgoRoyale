@@ -316,8 +316,18 @@ class TradesService:
             now = self.clock_service.now()
             settlement_date = self._get_settlement_date(activity.transaction_time)
             isSettled = True if settlement_date and settlement_date <= now else False
+            if activity is None:
+                self.logger.error(
+                    "Account activity is None, cannot convert to DBTrade."
+                )
+                return None
+            if not activity.id:
+                self.logger.error(
+                    f"Account activity ID is None, cannot convert to DBTrade. Activity: {activity}"
+                )
+                return None
             return DBTrade(
-                id=activity.id,
+                id=UUID(activity.id),
                 symbol=activity.symbol,
                 action=activity.side,
                 settled=isSettled,

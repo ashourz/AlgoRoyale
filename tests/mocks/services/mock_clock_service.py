@@ -36,6 +36,8 @@ class MockClockService(ClockService):
                 now = datetime.now(timezone.utc)
                 self.open = now + timedelta(minutes=1)
                 self.close = now + timedelta(hours=6)
+                self.next_open = self.open + timedelta(days=1)
+                self.next_close = self.close + timedelta(days=1)
 
         if hasattr(self, "return_empty") and self.return_empty:
             return None
