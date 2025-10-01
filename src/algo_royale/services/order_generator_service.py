@@ -31,6 +31,11 @@ class OrderGeneratorService:
             symbol_subscribers = await self._async_subscribe_to_orders(
                 symbols, callback
             )
+            if not symbol_subscribers:
+                self.logger.error(
+                    "No symbol subscribers returned from _async_subscribe_to_orders."
+                )
+                return None
             for symbol, subscriber in symbol_subscribers.items():
                 self.symbol_order_subscribers.setdefault(symbol, []).append(subscriber)
             return symbol_subscribers

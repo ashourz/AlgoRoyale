@@ -276,7 +276,7 @@ class PortfolioBacktestExecutor:
                             f"[{timestamp}] Skipping sell for {asset_name} at step {t} after lot adjustment due to non-finite or negative shares_to_sell: {shares_to_sell} (price: {step_prices[i]})"
                         )
                         shares_to_sell = 0
-                    shares_to_sell = int(shares_to_sell)
+                    shares_to_sell = float(shares_to_sell)
                     proceeds = shares_to_sell * sell_price * (1 - self.transaction_cost)
                     if shares_to_sell > 0:
                         holdings[i] -= shares_to_sell
@@ -300,7 +300,9 @@ class PortfolioBacktestExecutor:
                                 PortfolioTransactionKeys.STEP: t,
                                 PortfolioTransactionKeys.ASSET: asset_name,
                                 PortfolioTransactionKeys.ACTION: "sell",
-                                PortfolioTransactionKeys.QUANTITY: int(shares_to_sell),
+                                PortfolioTransactionKeys.QUANTITY: float(
+                                    shares_to_sell
+                                ),
                                 PortfolioTransactionKeys.PRICE: float(sell_price),
                                 PortfolioTransactionKeys.PROCEEDS: float(proceeds),
                                 PortfolioTransactionKeys.CASH_AFTER: float(cash),

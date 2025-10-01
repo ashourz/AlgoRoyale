@@ -334,7 +334,7 @@ class TradesService:
                 settled=isSettled,
                 settlement_date=settlement_date,
                 price=float(activity.price),
-                quantity=int(activity.qty),
+                quantity=float(activity.qty),
                 executed_at=activity.transaction_time,
                 created_at=now,
                 updated_at=now,
