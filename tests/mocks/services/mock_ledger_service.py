@@ -124,8 +124,8 @@ class MockLedgerService(LedgerService):
         self,
         order_id: str,
         status: str,
-        quantity: int | None = None,
+        quantity: float | None = None,
         price: float | None = None,
-        filled_qty: int | None = None,
+        filled_qty: float | None = None,
     ) -> None:
         return None

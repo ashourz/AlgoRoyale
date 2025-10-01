@@ -1,5 +1,4 @@
 from datetime import datetime
-from decimal import Decimal
 from uuid import UUID
 
 from algo_royale.models.db.db_position import DBPosition
@@ -54,8 +53,8 @@ class MockTradeRepo(TradeRepo):
         symbol: str,
         action: str,
         settlement_date: datetime,
-        price: Decimal,
-        quantity: int,
+        price: float,
+        quantity: float,
         executed_at: datetime,
         order_id: UUID,
     ) -> UUID | None:

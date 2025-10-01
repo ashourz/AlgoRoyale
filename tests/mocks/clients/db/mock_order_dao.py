@@ -64,7 +64,7 @@ class MockOrderDAO(OrderDAO):
         status: str,
         action: str,
         notional: float | None,
-        quantity: int | None,
+        quantity: float | None,
         price: float | None,
         user_id: str,
         account_id: str,
@@ -73,7 +73,7 @@ class MockOrderDAO(OrderDAO):
         return self.base_order.id
 
     def update_order(
-        self, order_id: UUID, status: str, quantity: int, price: float
+        self, order_id: UUID, status: str, quantity: float, price: float
     ) -> int:
         return 1
 

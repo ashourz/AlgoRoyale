@@ -33,7 +33,7 @@ class DBOrder(BaseModel):
     action: str
     settled: bool
     notional: float | None
-    quantity: int | None
+    quantity: float | None
     price: float | None
     created_at: datetime
     updated_at: datetime

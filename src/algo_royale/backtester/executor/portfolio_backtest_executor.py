@@ -248,7 +248,7 @@ class PortfolioBacktestExecutor:
                                 PortfolioTransactionKeys.STEP: t,
                                 PortfolioTransactionKeys.ASSET: asset_name,
                                 PortfolioTransactionKeys.ACTION: "buy",
-                                PortfolioTransactionKeys.QUANTITY: int(shares_to_buy),
+                                PortfolioTransactionKeys.QUANTITY: float(shares_to_buy),
                                 PortfolioTransactionKeys.PRICE: float(buy_price),
                                 PortfolioTransactionKeys.COST: float(cost),
                                 PortfolioTransactionKeys.CASH_AFTER: float(cash),

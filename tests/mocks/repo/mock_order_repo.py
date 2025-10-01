@@ -90,7 +90,7 @@ class MockOrderRepo(OrderRepo):
         status: DBOrderStatus,
         action: OrderAction,
         notional: float | None = None,
-        quantity: int | None = None,
+        quantity: float | None = None,
         price: float | None = None,
     ) -> UUID | None:
         if self._raise_exception:
@@ -111,7 +111,7 @@ class MockOrderRepo(OrderRepo):
         self,
         order_id: UUID,
         new_status: DBOrderStatus,
-        quantity: int | None,
+        quantity: float | None,
         price: float | None,
     ) -> int:
         if self._raise_exception:

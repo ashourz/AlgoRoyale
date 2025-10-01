@@ -1,7 +1,6 @@
 ## service\trade_service.py
 from abc import ABC
 from datetime import datetime
-from decimal import Decimal
 from uuid import UUID
 
 from algo_royale.clients.db.dao.trade_dao import TradeDAO
@@ -48,8 +47,8 @@ class TradeRepo:
         symbol: str,
         action: str,
         settlement_date: datetime,
-        price: Decimal,
-        quantity: int,
+        price: float,
+        quantity: float,
         executed_at: datetime,
         order_id: UUID,
     ) -> UUID | None:

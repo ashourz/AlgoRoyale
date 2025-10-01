@@ -106,7 +106,7 @@ class OrderRepo:
         status: DBOrderStatus,
         action: OrderAction,
         notional: float | None = None,
-        quantity: int | None = None,
+        quantity: float | None = None,
         price: float | None = None,
     ) -> UUID | None:
         """Insert a new order record.
@@ -138,7 +138,7 @@ class OrderRepo:
         self,
         order_id: UUID,
         new_status: DBOrderStatus,
-        quantity: int | None,
+        quantity: float | None,
         price: float | None,
     ) -> int:
         """Update the status of an existing order.

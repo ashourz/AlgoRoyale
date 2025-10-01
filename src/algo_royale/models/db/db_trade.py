@@ -35,7 +35,7 @@ class DBTrade(BaseModel):
     settled: bool = False
     settlement_date: datetime
     price: float
-    quantity: int
+    quantity: float
     executed_at: datetime
     created_at: datetime
     order_id: UUID

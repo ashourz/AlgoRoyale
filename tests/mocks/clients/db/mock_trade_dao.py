@@ -87,7 +87,7 @@ class MockTradeDAO(TradeDAO):
         action: str,
         settlement_date: datetime,
         price: Decimal,
-        quantity: int,
+        quantity: float,
         executed_at: datetime,
         order_id: UUID,
         user_id: str,

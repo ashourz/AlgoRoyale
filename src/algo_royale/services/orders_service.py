@@ -50,7 +50,7 @@ class OrderService:
         self,
         order_id: str,
         status: DBOrderStatus,
-        quantity: int | None,
+        quantity: float | None,
         price: float | None,
     ) -> int:
         try:

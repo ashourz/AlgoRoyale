@@ -1,6 +1,5 @@
 ## service\trade_service.py
 from datetime import datetime, timedelta
-from decimal import Decimal
 from uuid import UUID, uuid4
 
 from algo_royale.adapters.trading.account_adapter import AccountAdapter
@@ -62,8 +61,8 @@ class TradesService:
         self,
         symbol: str,
         action: str,
-        price: Decimal,
-        quantity: int,
+        price: float,
+        quantity: float,
         executed_at: datetime,
         order_id: UUID,
     ) -> UUID | None:

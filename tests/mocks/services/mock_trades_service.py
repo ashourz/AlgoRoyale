@@ -86,7 +86,7 @@ class MockTradesService(TradesService):
         action: str,
         settled: bool,
         settlement_date: str,
-        quantity: int,
+        quantity: float,
         price: float,
         executed_at: str,
     ) -> UUID | None:
