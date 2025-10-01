@@ -246,10 +246,7 @@ class OrderGenerator:
         If it does not exist, create a new one.
         """
         if symbol not in self.pubsub_orders_map:
-            self.pubsub_orders_map[symbol] = AsyncPubSub(
-                event_type=self.order_event_type,
-                logger=self.logger,
-            )
+            self.pubsub_orders_map[symbol] = AsyncPubSub()
         return self.pubsub_orders_map[symbol]
 
     async def _async_publish_order_event(self, order_payload: SignalOrderPayload):
