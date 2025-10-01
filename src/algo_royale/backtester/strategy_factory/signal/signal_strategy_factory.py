@@ -14,6 +14,9 @@ from algo_royale.backtester.strategy.signal.buffered_components.buffered_signal_
 from algo_royale.backtester.strategy.signal.buffered_components.buffered_stateful_logic import (
     BufferedStatefulLogic,
 )
+from algo_royale.backtester.strategy.signal.conditions.base_strategy_condition import (
+    StrategyCondition,
+)
 from algo_royale.backtester.strategy.signal.stateful_logic.base_stateful_logic import (
     StatefulLogic,
 )
@@ -55,7 +58,10 @@ class SignalStrategyFactory:
             # Wrap each condition in a BufferedSignalStrategy if not already wrapped
             buffered_conditions = []
             for i, cond in enumerate(std_conditions):
-                if not isinstance(cond, BufferedStrategyCondition):
+                if isinstance(cond, BufferedStrategyCondition):
+                    # If already buffered, just append it
+                    buffered_conditions.append(cond)
+                elif isinstance(cond, StrategyCondition):
                     # Wrap each condition in a BufferedStrategyCondition
                     buffered_conditions.append(
                         BufferedStrategyCondition(
@@ -64,9 +70,14 @@ class SignalStrategyFactory:
                             logger=self.strategy_logger,
                         )
                     )
+                elif isinstance(cond, type) and issubclass(cond, StrategyCondition):
+                    self.logger.error(
+                        f"Condition at index {i} is a class, not an instance: {cond}. Ensure all conditions are instantiated."
+                    )
                 else:
-                    # If already buffered, just append it
-                    buffered_conditions.append(cond)
+                    self.logger.error(
+                        f"Condition at index {i} is not a StrategyCondition: {cond}"
+                    )
             return buffered_conditions
         except Exception as e:
             self.logger.error(
@@ -88,7 +99,14 @@ class SignalStrategyFactory:
                 # There should only be one key
                 class_name, params = next(iter(logic.items()))
                 cls = STATEFUL_LOGIC_CLASS_MAP[class_name]
-                return cls(logger=self.strategy_logger, **params)
+                instance = cls(logger=self.strategy_logger, **params)
+                if isinstance(instance, StatefulLogic):
+                    return instance
+                else:
+                    self.logger.error(
+                        f"Instantiated logic is not a StatefulLogic: {instance}"
+                    )
+                    return None
             else:
                 self.logger.error(
                     f"Unsupported logic format: {logic}. Expected dict with class name as key."
@@ -114,15 +132,22 @@ class SignalStrategyFactory:
             if not std_logic:
                 return None
             # Wrap the standard stateful logic in a BufferedStatefulLogic
-            if not isinstance(std_logic, BufferedStatefulLogic):
+            if isinstance(std_logic, BufferedStatefulLogic):
+                return std_logic
+            elif isinstance(std_logic, StatefulLogic):
                 return BufferedStatefulLogic(
                     stateful_logic=std_logic,
                     window_size=std_logic.window_size,
                     logger=self.strategy_logger,
                 )
+            elif isinstance(std_logic, type) and issubclass(std_logic, StatefulLogic):
+                self.logger.error(
+                    f"Stateful logic is a class, not an instance: {std_logic}. Ensure the logic is instantiated."
+                )
+                return None
             else:
-                # If already buffered, just return it
-                return std_logic
+                self.logger.error(f"Stateful logic is not a StatefulLogic: {std_logic}")
+                return None
         except Exception as e:
             self.logger.error(
                 f"Error instantiating buffered stateful logic: {e}. "
@@ -151,9 +176,14 @@ class SignalStrategyFactory:
 
         # Convert stateful_logic dict to object, if present
         if "stateful_logic" in params and params["stateful_logic"] is not None:
-            params["stateful_logic"] = self.instantiate_stateful_logic(
-                logic=params["stateful_logic"]
-            )
+            instance = self.instantiate_stateful_logic(logic=params["stateful_logic"])
+            if isinstance(instance, StatefulLogic):
+                params["stateful_logic"] = instance
+            else:
+                self.logger.error(
+                    f"Failed to instantiate stateful_logic: {params['stateful_logic']}. Setting to None."
+                )
+                params["stateful_logic"] = None
 
         return strategy_class(logger=self.strategy_logger, **params)
 
@@ -180,9 +210,15 @@ class SignalStrategyFactory:
 
         # Convert stateful_logic dict to object, if present
         if "stateful_logic" in params and params["stateful_logic"] is not None:
-            params["stateful_logic"] = self.instantiate_buffered_stateful_logic(
+            instance = self.instantiate_buffered_stateful_logic(
                 logic=params["stateful_logic"]
             )
+            if not isinstance(instance, BufferedStatefulLogic):
+                self.logger.error(
+                    f"Failed to instantiate buffered stateful_logic: {params['stateful_logic']}. Setting to None."
+                )
+                instance = None
+            params["stateful_logic"] = instance
 
         return BufferedSignalStrategy(
             strategy_type=strategy_class, logger=self.strategy_logger, **params

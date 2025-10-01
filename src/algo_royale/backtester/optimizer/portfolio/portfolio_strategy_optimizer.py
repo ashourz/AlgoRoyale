@@ -123,10 +123,19 @@ class PortfolioStrategyOptimizerImpl(PortfolioStrategyOptimizer):
             params = self.strategy_class.optuna_suggest(
                 logger=self.strategy_logger, trial=trial
             )
+            logger.debug(
+                f"[PortfolioStrategyOptimizer] optuna_suggest returned type: {type(params)} value: {params}"
+            )
             if isinstance(params, dict):
                 strategy = self.strategy_class(logger=self.strategy_logger, **params)
+                logger.debug(
+                    f"[PortfolioStrategyOptimizer] Instantiated strategy from dict: {strategy} (type: {type(strategy)})"
+                )
             else:
                 strategy = params
+                logger.debug(
+                    f"[PortfolioStrategyOptimizer] Used params directly as strategy: {strategy} (type: {type(strategy)})"
+                )
             logger.debug(
                 f"[PortfolioStrategyOptimizer] [{symbols}] PortfolioStrategy: {self.strategy_class.__name__} | Params: {params}"
             )

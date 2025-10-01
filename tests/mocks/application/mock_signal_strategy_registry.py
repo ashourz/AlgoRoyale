@@ -21,6 +21,7 @@ class MockSignalStrategyRegistry(SignalStrategyRegistry):
             viable_strategies_path="mock_viable_strategies",
             signal_strategy_factory=MockSignalStrategyFactory(),
             logger=MockLoggable(),
+            optimization_root_path="mock_optimization_root",
             combined_buy_threshold=0.5,
             combined_sell_threshold=0.5,
         )

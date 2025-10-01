@@ -37,6 +37,9 @@ class RegistryContainer:
             logger=self.logger_container.logger(
                 logger_type=LoggerType.SIGNAL_STRATEGY_REGISTRY
             ),
+            optimization_root_path=self.config["backtester_signal_paths"][
+                "signal_optimization_root_path"
+            ],
             combined_buy_threshold=float(
                 self.config["trading"]["combined_buy_threshold"]
             ),
@@ -57,6 +60,9 @@ class RegistryContainer:
                 "viable_portfolio_strategies_path"
             ],
             portfolio_strategy_factory=self.factory_container.portfolio_strategy_combinator_factory,
+            optimization_root_path=self.config["backtester_portfolio_paths"][
+                "portfolio_optimization_root_path"
+            ],
             logger=self.logger_container.logger(
                 logger_type=LoggerType.PORTFOLIO_STRATEGY_REGISTRY
             ),

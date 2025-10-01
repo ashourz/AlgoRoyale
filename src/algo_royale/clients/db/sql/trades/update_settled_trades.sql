@@ -1,4 +1,4 @@
 UPDATE trades
-SET status = 1
-WHERE status = 0 AND settlement_date <= %s
+SET settled = TRUE
+WHERE settled = FALSE AND settlement_date <= %s
 RETURNING id;

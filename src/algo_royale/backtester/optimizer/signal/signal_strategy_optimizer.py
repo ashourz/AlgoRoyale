@@ -131,12 +131,44 @@ class SignalStrategyOptimizerImpl(SignalStrategyOptimizer):
                 for i, cond_cls in enumerate(self.condition_types.get("filter", []))
             ]
             state_logic = self.condition_types.get("stateful_logic")
+            # Defensive: If state_logic is a class, instantiate it
+            if isinstance(state_logic, type):
+                # Defensive: If it's the base class, log error and skip
+                if state_logic.__name__ == "StatefulLogic":
+                    self.logger.error(
+                        f"[FATAL] Base StatefulLogic class was provided as stateful_logic for symbol {symbol}. This is not allowed. Skipping this candidate."
+                    )
+                    state_logic = None
+                else:
+                    try:
+                        state_logic = state_logic(logger=self.strategy_logger)
+                    except Exception as e:
+                        self.logger.error(
+                            f"Failed to instantiate stateful_logic class {state_logic}: {e}"
+                        )
+                        state_logic = None
+            # If it's an instance, optionally call optuna_suggest if available
             if isinstance(state_logic, StatefulLogic):
-                state_logic = state_logic.optuna_suggest(
-                    logger=self.strategy_logger,
-                    trial=trial,
-                    prefix=f"{symbol}_logic_{state_logic.__name__}_",
-                )
+                # Defensive: If it's the base class, log error and skip
+                if type(state_logic).__name__ == "StatefulLogic":
+                    self.logger.error(
+                        f"[FATAL] Base StatefulLogic instance was provided as stateful_logic for symbol {symbol}. This is not allowed. Skipping this candidate."
+                    )
+                    state_logic = None
+                elif hasattr(state_logic, "optuna_suggest") and callable(
+                    getattr(state_logic, "optuna_suggest", None)
+                ):
+                    try:
+                        state_logic = state_logic.optuna_suggest(
+                            logger=self.strategy_logger,
+                            trial=trial,
+                            prefix=f"{symbol}_logic_{type(state_logic).__name__}_",
+                        )
+                    except Exception as e:
+                        self.logger.error(
+                            f"Failed to call optuna_suggest on stateful_logic: {e}"
+                        )
+                        state_logic = None
 
             # Build full candidate kwargs
             init_kwargs = {
@@ -279,15 +311,33 @@ class SignalStrategyOptimizerImpl(SignalStrategyOptimizer):
             def runner():
                 new_loop = asyncio.new_event_loop()
                 asyncio.set_event_loop(new_loop)
-                result_container["result"] = new_loop.run_until_complete(coro)
-                new_loop.close()
+                try:
+                    result_container["result"] = new_loop.run_until_complete(coro)
+                except Exception as e:
+                    result_container["result"] = None
+                    import traceback
+
+                    result_container["exception"] = str(e)
+                    result_container["traceback"] = traceback.format_exc()
+                finally:
+                    new_loop.close()
 
             t = threading.Thread(target=runner)
             t.start()
             t.join()
-            return result_container["result"]
+            if "result" in result_container:
+                return result_container["result"]
+            else:
+                # Defensive fallback
+                return None
         else:
-            return asyncio.run(coro)
+            try:
+                return asyncio.run(coro)
+            except Exception as e:
+                import traceback
+
+                print(f"Exception in run_async: {e}\n{traceback.format_exc()}")
+                return None
 
 
 class MockSignalStrategyOptimizer(SignalStrategyOptimizer):

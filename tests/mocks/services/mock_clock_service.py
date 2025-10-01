@@ -1,4 +1,5 @@
 from algo_royale.services.clock_service import ClockService
+from algo_royale.utils.clock_provider import ClockProvider
 from tests.mocks.adapters.mock_clock_adapter import MockClockAdapter
 from tests.mocks.mock_loggable import MockLoggable
 
@@ -11,6 +12,7 @@ class MockClockService(ClockService):
     def __init__(self):
         super().__init__(
             clock_adapter=MockClockAdapter(),
+            clock_provider=ClockProvider(),
             logger=MockLoggable(),
         )
 

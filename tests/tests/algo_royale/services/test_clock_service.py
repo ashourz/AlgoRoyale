@@ -1,6 +1,7 @@
 import pytest
 
 from algo_royale.services.clock_service import ClockService
+from algo_royale.utils.clock_provider import ClockProvider
 from tests.mocks.adapters.mock_clock_adapter import MockClockAdapter
 from tests.mocks.mock_loggable import MockLoggable
 from tests.mocks.services.mock_clock_service import MockClockService
@@ -10,6 +11,7 @@ from tests.mocks.services.mock_clock_service import MockClockService
 def clock_service():
     service = ClockService(
         clock_adapter=MockClockAdapter(),
+        clock_provider=ClockProvider(),
         logger=MockLoggable(),
     )
     yield service

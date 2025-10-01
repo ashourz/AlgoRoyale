@@ -6,8 +6,6 @@ from algo_royale.logging.logger_env import ApplicationEnv
 from algo_royale.utils.single_instance_lock import SingleInstanceLock
 
 LOCK_FILE = os.path.join(os.path.dirname(__file__), "backtest_dev_integration.lock")
-lock = SingleInstanceLock(LOCK_FILE)
-lock.acquire()
 
 
 async def async_cli(coordinator: PipelineCoordinator):
@@ -38,10 +36,11 @@ def cli():
 
 
 def main():
-    try:
-        cli()
-    finally:
-        lock.release()
+    with SingleInstanceLock(LOCK_FILE):
+        try:
+            cli()
+        except KeyboardInterrupt:
+            pass  # Graceful exit on Ctrl+C
 
 
 if __name__ == "__main__":

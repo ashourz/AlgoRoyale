@@ -4,9 +4,6 @@ Add new strategy classes here as needed.
 """
 
 # --- Signal strategy imports ---
-from algo_royale.backtester.strategy.signal.base_signal_strategy import (
-    BaseSignalStrategy,
-)
 from algo_royale.backtester.strategy.signal.bollinger_bands_strategy import (
     BollingerBandsStrategy,
 )
@@ -53,7 +50,6 @@ from algo_royale.backtester.strategy.signal.wick_reversal_strategy import (
 # --- Add more as needed ---
 
 SYMBOL_STRATEGY_CLASS_MAP: dict[str, type] = {
-    "BaseSignalStrategy": BaseSignalStrategy,
     "BollingerBandsStrategy": BollingerBandsStrategy,
     "ComboStrategy": ComboStrategy,
     "MACDTrailingStopStrategy": MACDTrailingStopStrategy,

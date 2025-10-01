@@ -7,6 +7,7 @@ from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from algo_royale.adapters.trading.clock_adapter import ClockAdapter
 from algo_royale.logging.loggable import Loggable
 from algo_royale.models.alpaca_trading.alpaca_clock import Clock
+from algo_royale.utils.clock_provider import ClockProvider
 
 
 class ClockService:
@@ -15,16 +16,19 @@ class ClockService:
     def __init__(
         self,
         clock_adapter: ClockAdapter,
+        clock_provider: ClockProvider,
         logger: Loggable,
     ):
         self.clock_adapter = clock_adapter
+        self.clock_provider = clock_provider
         self.scheduler = AsyncIOScheduler()
         self.stop_event = asyncio.Event()
         self.running_jobs = set()
         self.logger = logger
 
-    def start(self):
-        self.scheduler.start()
+    def now(self) -> datetime:
+        """Get the current UTC time."""
+        return self.clock_provider.now()
 
     async def async_stop(self):
         self.stop_event.set()
@@ -44,7 +48,12 @@ class ClockService:
         If the job is due to run within the next 60 seconds, execute it immediately.
         Otherwise, schedule it to run at the specified time.
         """
-        now = self.get_system_utc_time()
+        # Start the scheduler if not already running
+        if self.scheduler.running is False:
+            self.scheduler.start()
+            self.logger.info("Scheduler started.")
+
+        now = self.now()
         duration_until_start = (run_time - now).total_seconds()
         if duration_until_start < 60:
             self.logger.warning(
@@ -78,10 +87,6 @@ class ClockService:
                 run_date=run_time,
                 replace_existing=True,
             )
-
-    def get_system_utc_time(self) -> datetime:
-        """Get the current system time."""
-        return datetime.now(timezone.utc)
 
     async def async_get_market_clock(self) -> Clock | None:
         """Get the market clock."""

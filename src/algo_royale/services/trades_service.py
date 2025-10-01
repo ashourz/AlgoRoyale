@@ -9,6 +9,7 @@ from algo_royale.models.alpaca_trading.alpaca_account import AccountActivity
 from algo_royale.models.alpaca_trading.enums.enums import ActivityType
 from algo_royale.models.db.db_trade import DBTrade
 from algo_royale.repo.trade_repo import TradeRepo
+from algo_royale.services.clock_service import ClockService
 
 
 class TradesService:
@@ -16,6 +17,7 @@ class TradesService:
         self,
         account_adapter: AccountAdapter,
         trade_repo: TradeRepo,
+        clock_service: ClockService,
         logger: Loggable,
         user_id: str,
         account_id: str,
@@ -23,6 +25,7 @@ class TradesService:
     ):
         self.repo = trade_repo
         self.account_adapter = account_adapter
+        self.clock_service = clock_service
         self.logger = logger
         self.user_id = user_id
         self.account_id = account_id
@@ -44,10 +47,12 @@ class TradesService:
         """Update settlement status for all trades."""
         try:
             self.logger.info("Updating settled trades...")
-            settlement_datetime = datetime.now()
+            settlement_datetime = self.clock_service.now()
             updated_count = self.repo.update_settled_trades(settlement_datetime)
-            if updated_count == -1:
-                self.logger.error("Failed to update settled trades.")
+            if updated_count < 0:
+                self.logger.error(
+                    f"Failed to update settled trades | update count: {updated_count}"
+                )
                 return
             self.logger.info(f"Updated {updated_count} settled trades.")
         except Exception as e:
@@ -162,7 +167,8 @@ class TradesService:
                 for activity in account_activities.activities
                 if activity is not None
             ]
-
+            # Filter out None values
+            account_trades = [t for t in account_trades if t is not None]
             # Build dicts for O(1) lookup
             local_trade_dict = {self._trade_key(trade): trade for trade in local_trades}
             account_trade_dict = {
@@ -243,7 +249,7 @@ class TradesService:
                 executed_at=trade.executed_at,
                 order_id=trade.order_id,
             )
-            if not trade_id or trade_id == -1:
+            if trade_id is None or trade_id == -1:
                 self.logger.error(f"Failed to insert trade: {trade}")
                 return -1
             self.logger.info(f"Inserted trade with ID: {trade_id}")
@@ -305,12 +311,13 @@ class TradesService:
             self.logger.error(f"Error calculating settlement date: {e}")
             return None
 
-    def _account_activity_to_dbtrade(self, activity: AccountActivity) -> DBTrade:
+    def _account_activity_to_dbtrade(self, activity: AccountActivity) -> DBTrade | None:
         try:
-            now = datetime.now()
+            now = self.clock_service.now()
             settlement_date = self._get_settlement_date(activity.transaction_time)
             isSettled = True if settlement_date and settlement_date <= now else False
             return DBTrade(
+                id=activity.id,
                 symbol=activity.symbol,
                 action=activity.side,
                 settled=isSettled,
@@ -318,6 +325,8 @@ class TradesService:
                 price=float(activity.price),
                 quantity=int(activity.qty),
                 executed_at=activity.transaction_time,
+                created_at=now,
+                updated_at=now,
                 order_id=activity.order_id,
                 user_id=self.user_id,
                 account_id=self.account_id,

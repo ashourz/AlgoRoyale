@@ -1,6 +1,9 @@
+from datetime import datetime, timedelta, timezone
+
 from algo_royale.application.symbols.enums import SymbolHoldStatus
 from algo_royale.application.utils.async_pubsub import AsyncSubscriber
 from algo_royale.logging.loggable import Loggable
+from algo_royale.services.clock_service import ClockService
 from algo_royale.services.ledger_service import LedgerService
 from algo_royale.services.order_monitor_service import OrderMonitorService
 from algo_royale.services.orders_execution_service import OrderExecutionService
@@ -24,6 +27,7 @@ class MarketSessionService:
         ledger_service: LedgerService,
         order_execution_service: OrderExecutionService,
         order_monitor_service: OrderMonitorService,
+        clock_service: ClockService,
         logger: Loggable,
     ):
         ## SYMBOLS
@@ -44,6 +48,8 @@ class MarketSessionService:
         self.ledger_service = ledger_service
         ## PROCESS
         self.premarket_completed = False
+        ## CLOCK
+        self.clock_service = clock_service
         ## LOGGER
         self.logger = logger
 
@@ -53,7 +59,7 @@ class MarketSessionService:
             self.logger.info("Starting pre-market session...")
             self.trade_service.update_settled_trades()
             self.order_service.update_settled_orders()
-            self.symbol_hold_service.start()
+            await self.symbol_hold_service.start()
             await self._async_subscribe_to_symbol_holds()
             await self._async_run_validations()
             self._init_ledger_service()
@@ -133,7 +139,21 @@ class MarketSessionService:
     async def _async_run_validations(self) -> None:
         """Run all necessary validations."""
         try:
-            await self.trade_service.reconcile_trades()
+            today = self.clock_service.now().date()
+            last_week = today - timedelta(days=7)
+            start_of_last_week = datetime(
+                last_week.year,
+                last_week.month,
+                last_week.day,
+                0,
+                0,
+                0,
+                tzinfo=timezone.utc,
+            )
+            now = self.clock_service.now()
+            await self.trade_service.reconcile_trades(
+                start_date=start_of_last_week, end_date=now
+            )
             await self.positions_service.validate_positions()
         except Exception as e:
             self.logger.error(f"Error running validations: {e}")

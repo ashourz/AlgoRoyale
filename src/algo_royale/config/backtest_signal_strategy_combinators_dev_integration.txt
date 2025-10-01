@@ -1,7 +1,7 @@
 BollingerBandsStrategyCombinator
-#ComboStrategyCombinator
-#MACDTrailingStrategyCombinator
-#MeanReversionStrategyCombinator
+ComboStrategyCombinator
+MACDTrailingStrategyCombinator
+MeanReversionStrategyCombinator
 #MomentumStrategyCombinator
 #MovingAverageCrossoverStrategyCombinator
 #MovingAverageStrategyCombinator
