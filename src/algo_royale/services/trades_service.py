@@ -317,6 +317,7 @@ class TradesService:
             settlement_date = self._get_settlement_date(activity.transaction_time)
             isSettled = True if settlement_date and settlement_date <= now else False
             return DBTrade(
+                id=activity.id,
                 symbol=activity.symbol,
                 action=activity.side,
                 settled=isSettled,
@@ -324,6 +325,8 @@ class TradesService:
                 price=float(activity.price),
                 quantity=int(activity.qty),
                 executed_at=activity.transaction_time,
+                created_at=now,
+                updated_at=now,
                 order_id=activity.order_id,
                 user_id=self.user_id,
                 account_id=self.account_id,

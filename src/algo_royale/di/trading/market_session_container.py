@@ -18,6 +18,7 @@ class MarketSessionContainer:
         ledger_service_container: LedgerServiceContainer,
         order_generator_service_container: OrderGeneratorServiceContainer,
     ):
+        self.clock_service = clock_service
         self.logger_container = logger_container
         self.ledger_service_container = ledger_service_container
         self.order_generator_service_container = order_generator_service_container
@@ -39,6 +40,7 @@ class MarketSessionContainer:
             ledger_service=self.ledger_service_container.ledger_service,
             order_event_service=self.order_generator_service_container.order_event_service,
             trades_service=self.ledger_service_container.trades_service,
+            clock_service=self.clock_service,
             logger=self.logger_container.logger(
                 logger_type=LoggerType.ORDER_MONITOR_SERVICE
             ),
