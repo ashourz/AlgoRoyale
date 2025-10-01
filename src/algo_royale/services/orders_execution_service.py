@@ -41,9 +41,11 @@ class OrderExecutionService:
                     symbols=symbols, callback=self._handle_order_generation
                 )
             )
-            self.symbol_order_subscribers.setdefault(symbols, []).append(
-                symbol_subscriber
-            )
+            if symbol_subscriber:
+                for symbol in symbols:
+                    self.symbol_order_subscribers.setdefault(symbol, []).append(
+                        symbol_subscriber.get(symbol)
+                    )
             return symbol_subscriber
         except Exception as e:
             self.logger.error(f"Error starting order stream: {e}")
