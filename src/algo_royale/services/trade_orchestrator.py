@@ -50,7 +50,8 @@ class TradeOrchestrator:
                 "Failed to retrieve market clock. Cannot schedule market sessions."
             )
             return
-        is_market_open = market_clock.is_open
+        # is_market_open = market_clock.is_open
+        is_market_open = True
         if is_market_open:
             market_open = self.clock_service.now()
         else:

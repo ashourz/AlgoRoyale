@@ -14,6 +14,7 @@ from algo_royale.di.trading.trading_container import TradingContainer
 from algo_royale.logging.logger_env import ApplicationEnv
 from algo_royale.logging.logger_type import LoggerType
 from algo_royale.services.clock_service import ClockService
+from algo_royale.utils.clock_provider import ClockProvider
 
 
 class ApplicationContainer:
@@ -37,6 +38,10 @@ class ApplicationContainer:
             )
 
     @property
+    def clock_provider(self) -> ClockProvider:
+        return ClockProvider()
+
+    @property
     def logger_container(self) -> LoggerContainer:
         return LoggerContainer(environment=self.environment)
 
@@ -53,7 +58,7 @@ class ApplicationContainer:
         return AdapterContainer(
             config=self.config,
             secrets=self.secrets,
-            clock_service=self.clock_service,
+            clock_provider=self.clock_provider,
             logger_container=self.logger_container,
         )
 
@@ -61,6 +66,7 @@ class ApplicationContainer:
     def clock_service(self) -> ClockService:
         return ClockService(
             clock_adapter=self.adapter_container.clock_adapter,
+            clock_provider=self.clock_provider,
             logger=self.logger_container.logger(logger_type=LoggerType.CLOCK_SERVICE),
         )
 

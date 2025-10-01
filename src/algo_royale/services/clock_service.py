@@ -7,6 +7,7 @@ from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from algo_royale.adapters.trading.clock_adapter import ClockAdapter
 from algo_royale.logging.loggable import Loggable
 from algo_royale.models.alpaca_trading.alpaca_clock import Clock
+from algo_royale.utils.clock_provider import ClockProvider
 
 
 class ClockService:
@@ -15,9 +16,11 @@ class ClockService:
     def __init__(
         self,
         clock_adapter: ClockAdapter,
+        clock_provider: ClockProvider,
         logger: Loggable,
     ):
         self.clock_adapter = clock_adapter
+        self.clock_provider = clock_provider
         self.scheduler = AsyncIOScheduler()
         self.stop_event = asyncio.Event()
         self.running_jobs = set()
@@ -25,7 +28,7 @@ class ClockService:
 
     def now(self) -> datetime:
         """Get the current UTC time."""
-        return datetime.now(timezone.utc)
+        return self.clock_provider.now()
 
     async def async_stop(self):
         self.stop_event.set()

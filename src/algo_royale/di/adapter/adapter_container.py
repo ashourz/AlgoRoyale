@@ -18,7 +18,7 @@ from algo_royale.adapters.trading.watchlist_adapter import WatchlistAdapter
 from algo_royale.di.adapter.client_container import ClientContainer
 from algo_royale.di.logger_container import LoggerContainer
 from algo_royale.logging.logger_type import LoggerType
-from algo_royale.services.clock_service import ClockService
+from algo_royale.utils.clock_provider import ClockProvider
 
 # Refactored AdapterContainer to assign sub-containers and adapters as attributes in __init__
 
@@ -30,12 +30,12 @@ class AdapterContainer:
         self,
         config,
         secrets,
-        clock_service: ClockService,
+        clock_provider: ClockProvider,
         logger_container: LoggerContainer,
     ):
         self.config = config
         self.secrets = secrets
-        self.clock_service = clock_service
+        self.clock_provider = clock_provider
         self.logger_container = logger_container
 
     # Initialize client_container as an attribute
@@ -52,7 +52,7 @@ class AdapterContainer:
     def corporate_action_adapter(self) -> CorporateActionAdapter:
         return CorporateActionAdapter(
             client=self.client_container.alpaca_corporate_action_client,
-            clock_service=self.clock_service,
+            clock_provider=self.clock_provider,
             logger=self.logger_container.logger(
                 logger_type=LoggerType.CORPORATE_ACTION_ADAPTER
             ),

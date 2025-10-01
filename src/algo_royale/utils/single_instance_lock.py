@@ -18,3 +18,10 @@ class SingleInstanceLock:
     def release(self):
         if os.path.exists(self.lock_file):
             os.remove(self.lock_file)
+
+    def __enter__(self):
+        self.acquire()
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.release()
