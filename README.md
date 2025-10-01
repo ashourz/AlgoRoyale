@@ -1,7 +1,8 @@
 
 
-
 # AlgoRoyale
+
+> **A modular, production-grade algorithmic trading orchestration platform for equities and derivatives, supporting research, live trading, and portfolio optimization.**
 
 **AlgoRoyale** is a modular, production-grade algorithmic trading orchestration platform for equities. It is designed for robust, automated trading, and portfolio backtest optimization, with a focus on extensibility, observability, and clean architecture.
 
