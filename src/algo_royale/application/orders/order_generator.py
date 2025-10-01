@@ -60,7 +60,7 @@ class OrderGenerator:
             await self._async_start(symbols=symbols)
             async_subscribers = {}
             for symbol in symbols:
-                pubsub = self.pubsub_orders_map[symbol]
+                pubsub = self._get_order_pubsub(symbol)
                 if not pubsub:
                     self.logger.error(f"No pubsub found for symbol: {symbol}")
                     continue
