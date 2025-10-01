@@ -47,20 +47,46 @@ class DBContainer:
             self.logger.error(f"Error setting up database environment: {e}")
             raise e
 
-    ## TODO: Not being called anywhere
     def teardown_environment(self):
         try:
-            self.logger.info("🧹 Tearing down database environment...")
-            ## TODO: Consider checking if user/db exist before attempting to delete/drop
-            # self.database_admin.user_manager.delete_user(
-            #     username=self.config["db_connection"]["db_user"]
-            # )
-            self.database_admin.database_manager.drop_database(
-                master_db_connection=self.database_admin.get_master_db_connection(),
-                db_name=self.config["db_connection"]["db_name"],
-            )
+            self.database_admin.teardown_environment()
         except Exception as e:
             self.logger.error(f"Error tearing down database environment: {e}")
+            raise e
+
+    def drop_database(self, db_name: str):
+        try:
+            self.database_admin.drop_database(
+                db_name=db_name,
+            )
+        except Exception as e:
+            self.logger.error(f"Error dropping database: {e}")
+            raise e
+
+    def drop_user(self, username: str):
+        try:
+            self.database_admin.drop_user(
+                username=username,
+            )
+        except Exception as e:
+            self.logger.error(f"Error dropping user: {e}")
+            raise e
+
+    def drop_all_tables(self, db_name: str):
+        try:
+            self.database_admin.drop_all_tables(db_name=db_name)
+        except Exception as e:
+            self.logger.error(f"Error dropping all tables: {e}")
+            raise e
+
+    def drop_table(self, db_name: str, table_name: str):
+        try:
+            self.database_admin.drop_table(
+                db_name=db_name,
+                table_name=table_name,
+            )
+        except Exception as e:
+            self.logger.error(f"Error dropping table {table_name}: {e}")
             raise e
 
     @property
