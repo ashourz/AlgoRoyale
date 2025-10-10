@@ -65,6 +65,7 @@ class MarketDataRawStreamer:
                     self.logger.error(
                         f"Symbol {symbol} not found in stream data ingest objects."
                     )
+            self.logger.info(f"Subscription complete for symbols: {symbols}")
             return subscriber_dict
         except Exception as e:
             self.logger.error(f"Error subscribing to stream for {symbol}: {e}")

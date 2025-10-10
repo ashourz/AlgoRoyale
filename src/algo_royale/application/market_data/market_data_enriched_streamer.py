@@ -49,6 +49,7 @@ class MarketDataEnrichedStreamer:
         :param queue_size: The size of the queue for the subscriber.
         """
         try:
+            self.logger.debug(f"Subscribing to enriched data for symbols: {symbols}")
             await self._async_start(symbols=symbols)
             symbol_subscriber_map = {}
             for symbol in symbols:
@@ -60,6 +61,7 @@ class MarketDataEnrichedStreamer:
                 )
                 self.pubsub_subscribers.setdefault(symbol, []).append(async_subscriber)
                 symbol_subscriber_map[symbol] = async_subscriber
+                self.logger.info(f"Subscribed to enriched data for {symbol}")
             return symbol_subscriber_map
         except Exception as e:
             self.logger.error(f"Error subscribing to enriched data for {symbol}: {e}")
@@ -113,6 +115,7 @@ class MarketDataEnrichedStreamer:
             self._initialize_symbol_enrichment_lock(symbols=symbols)
             self._create_enrichment_buffers(symbols=symbols)
             await self._async_subscribe_to_market_streams(symbols=symbols)
+            self.logger.info(f"Market data enrichment started for symbols: {symbols}.")
         except Exception as e:
             self.logger.error(f"Error starting signal generation: {e}")
 

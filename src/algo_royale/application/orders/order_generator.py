@@ -73,7 +73,9 @@ class OrderGenerator:
                 if symbol not in self.signal_order_subscribers:
                     self.signal_order_subscribers[symbol] = set()
                 self.signal_order_subscribers[symbol].add(async_subscribers[symbol])
-                self.logger.info(f"Subscribed to order events for {symbol}")
+                self.logger.info(
+                    f"Subscribed to order events for {symbol}: {async_subscribers[symbol]}"
+                )
             return async_subscribers
         except Exception as e:
             self.logger.error(f"Error subscribing to order events: {e}")
@@ -117,13 +119,24 @@ class OrderGenerator:
         Start the order generation process for the given symbols.
         """
         try:
+            self.logger.info(f"Starting order generation for symbols: {symbols}")
             self.symbols.update(set(symbols))
             self.portfolio_strategy = (
                 self.portfolio_strategy_registry.get_buffered_portfolio_strategy(
                     symbols=self.symbols
                 )
             )
+            if not self.portfolio_strategy:
+                self.logger.error(
+                    f"No portfolio strategy found for symbols: {self.symbols}"
+                )
+                return
+            else:
+                self.logger.info(
+                    f"Using portfolio strategy: {self.portfolio_strategy.get_description()}"
+                )
             await self._async_subscribe_to_roster_stream()
+            self.logger.info(f"Order generation started for symbols: {self.symbols}")
         except Exception as e:
             self.logger.error(
                 f"Error starting order generation for symbols {self.symbols}: {e}"
@@ -132,12 +145,16 @@ class OrderGenerator:
     async def _async_subscribe_to_roster_stream(self):
         """Subscribe to the signal roster stream to receive updates."""
         try:
-            if self.signal_roster_subscriber is not None:
+            self.logger.info("Subscribing to signal roster stream...")
+            if self.signal_roster_subscriber is None:
+
+                async def roster_callback(roster):
+                    await self._async_generate_orders(roster=roster)
+
                 async_subscriber = (
                     await self.signal_generator.async_subscribe_to_signals(
-                        callback=lambda roster: self._async_generate_orders(
-                            roster=roster
-                        ),
+                        symbols=list(self.symbols),
+                        callback=roster_callback,
                     )
                 )
                 if async_subscriber is None:

@@ -27,7 +27,6 @@ class StreamDataIngestObject(QueuedAsyncUpdateObject):
         self.latest_bar: StreamBar = None
         self.get_set_lock = asyncio.Lock()
         self.data: dict = {
-            DataIngestColumns.PRICE: None,
             DataIngestColumns.TIMESTAMP: None,
             DataIngestColumns.OPEN_PRICE: None,
             DataIngestColumns.HIGH_PRICE: None,
