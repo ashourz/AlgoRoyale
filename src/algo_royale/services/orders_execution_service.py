@@ -58,7 +58,8 @@ class OrderExecutionService:
                 await self.order_generator_service.unsubscribe_from_symbol_orders(
                     symbols=[symbol]
                 )
-                self.symbol_order_subscribers.get(symbol, []).remove(subscribers)
+                for subscriber in subscribers:
+                    self.symbol_order_subscribers.get(symbol, []).remove(subscriber)
                 if not self.symbol_order_subscribers.get(symbol, []):
                     del self.symbol_order_subscribers[symbol]
             return True

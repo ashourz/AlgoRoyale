@@ -7,23 +7,31 @@ from algo_royale.application.market_data.market_data_raw_streamer import (
 from algo_royale.application.orders.order_generator import OrderGenerator
 from algo_royale.application.signals.signal_generator import SignalGenerator
 from algo_royale.application.symbols.symbol_hold_tracker import SymbolHoldTracker
+from algo_royale.di.adapter.adapter_container import AdapterContainer
+from algo_royale.di.feature_engineering_container import FeatureEngineeringContainer
+from algo_royale.di.ledger_service_container import LedgerServiceContainer
+from algo_royale.di.logger_container import LoggerContainer
+from algo_royale.di.repo.repo_container import RepoContainer
+from algo_royale.di.trading.registry_container import RegistryContainer
 from algo_royale.logging.logger_type import LoggerType
 from algo_royale.services.order_event_service import OrderEventService
 from algo_royale.services.order_generator_service import OrderGeneratorService
 from algo_royale.services.symbol_hold_service import SymbolHoldService
 from algo_royale.services.symbol_service import SymbolService
+from algo_royale.utils.clock_provider import ClockProvider
 
 
 class OrderGeneratorServiceContainer:
     def __init__(
         self,
         config,
-        adapter_container,
-        repo_container,
-        feature_engineering_container,
-        ledger_service_container,
-        registry_container,
-        logger_container,
+        adapter_container: AdapterContainer,
+        repo_container: RepoContainer,
+        feature_engineering_container: FeatureEngineeringContainer,
+        ledger_service_container: LedgerServiceContainer,
+        registry_container: RegistryContainer,
+        logger_container: LoggerContainer,
+        clock_provider: ClockProvider,
     ):
         self.config = config
         self.adapter_container = adapter_container
@@ -32,14 +40,17 @@ class OrderGeneratorServiceContainer:
         self.ledger_service_container = ledger_service_container
         self.registry_container = registry_container
         self.logger_container = logger_container
+        self.clock_provider = clock_provider
 
     @property
     def market_data_streamer(self) -> MarketDataRawStreamer:
         return MarketDataRawStreamer(
             stream_adapter=self.adapter_container.stream_adapter,
+            data_stream_session_repo=self.repo_container.data_stream_session_repo,
             logger=self.logger_container.logger(
                 logger_type=LoggerType.MARKET_DATA_RAW_STREAMER
             ),
+            clock_provider=self.clock_provider,
             is_live=bool(self.config["environment"]["is_live"]),
         )
 

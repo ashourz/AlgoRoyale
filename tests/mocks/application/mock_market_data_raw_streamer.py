@@ -4,8 +4,10 @@ from algo_royale.application.market_data.market_data_raw_streamer import (
     MarketDataRawStreamer,
 )
 from algo_royale.application.utils.async_pubsub import AsyncSubscriber
+from algo_royale.utils.clock_provider import ClockProvider
 from tests.mocks.adapters.mock_stream_adapter import MockStreamAdapter
 from tests.mocks.mock_loggable import MockLoggable
+from tests.mocks.repo.mock_data_stream_session_repo import MockDataStreamSessionRepo
 
 
 class MockMarketDataRawStreamer(MarketDataRawStreamer):
@@ -14,6 +16,8 @@ class MockMarketDataRawStreamer(MarketDataRawStreamer):
     def __init__(self):
         super().__init__(
             stream_adapter=MockStreamAdapter(),
+            data_stream_session_repo=MockDataStreamSessionRepo(),
+            clock_provider=ClockProvider(),
             logger=MockLoggable(),
             is_live=False,
         )

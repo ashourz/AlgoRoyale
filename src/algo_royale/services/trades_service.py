@@ -59,6 +59,7 @@ class TradesService:
 
     def insert_trade(
         self,
+        external_id: str,
         symbol: str,
         action: str,
         price: float,
@@ -67,6 +68,7 @@ class TradesService:
         order_id: UUID,
     ) -> UUID | None:
         """Insert a new trade record.
+        :param external_id: The external ID of the trade from the trading platform.
         :param symbol: The stock symbol of the trade.
         :param action: The action of the trade (e.g., 'buy', 'sell').
         :param price: The price at which the trade was executed.
@@ -77,6 +79,7 @@ class TradesService:
         """
         settlement_date = self._get_settlement_date(executed_at)
         return self.repo.insert_trade(
+            external_id=external_id,
             symbol=symbol,
             action=action,
             settlement_date=settlement_date,

@@ -32,7 +32,11 @@ class MockDataStreamSessionDAO(DataStreamSessionDAO):
         return [self.test_session]
 
     def insert_data_stream_session(
-        self, stream_type: str, symbol: str, strategy_name: str, start_time: datetime
+        self,
+        stream_class_name: str,
+        symbol: str,
+        application_env: str,
+        start_time: datetime,
     ) -> UUID | None:
         return UUID("123e4567-e89b-12d3-a456-426614174abc")
 

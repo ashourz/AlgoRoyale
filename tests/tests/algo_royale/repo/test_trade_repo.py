@@ -43,13 +43,14 @@ class TestTradeRepo:
             trade_repo.fetch_unsettled_trades()
         assert "Database error" in str(excinfo.value)
 
-    async def test_insert_trade_normal(self, trade_repo):
+    async def test_insert_trade_normal(self, trade_repo: TradeRepo):
         from datetime import datetime, timedelta
         from decimal import Decimal
         from uuid import uuid4
 
         order_id = uuid4()
         trade_id = trade_repo.insert_trade(
+            external_id="ext_123",
             symbol="BTCUSDT",
             action="BUY",
             settlement_date=datetime.now() + timedelta(days=1),

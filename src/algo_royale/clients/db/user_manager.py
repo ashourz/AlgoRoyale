@@ -10,10 +10,10 @@ class UserManager:
     ):
         self.logger = logger
 
-    def is_valid_identifier(identifier):
+    def is_valid_identifier(self, identifier):
         return re.match(r"^[A-Za-z_][A-Za-z0-9_]*$", identifier) is not None
 
-    def is_valid_password(password):
+    def is_valid_password(self, password):
         return isinstance(password, str) and len(password) >= 8
 
     def create_user(

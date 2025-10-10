@@ -13,6 +13,7 @@ from algo_royale.di.trading.registry_container import RegistryContainer
 from algo_royale.logging.logger_type import LoggerType
 from algo_royale.services.clock_service import ClockService
 from algo_royale.services.trade_orchestrator import TradeOrchestrator
+from algo_royale.utils.clock_provider import ClockProvider
 
 
 # Refactored to a regular class
@@ -28,6 +29,7 @@ class TradingContainer:
         ledger_service_container: LedgerServiceContainer,
         logger_container: LoggerContainer,
         clock_service: ClockService,
+        clock_provider: ClockProvider,
     ):
         self.config = config
         self.adapter_container = adapter_container
@@ -38,6 +40,7 @@ class TradingContainer:
         self.ledger_service_container = ledger_service_container
         self.logger_container = logger_container
         self.clock_service = clock_service
+        self.clock_provider = clock_provider
 
     @property
     def registry_container(self) -> RegistryContainer:
@@ -59,6 +62,7 @@ class TradingContainer:
             ledger_service_container=self.ledger_service_container,
             registry_container=self.registry_container,
             logger_container=self.logger_container,
+            clock_provider=self.clock_provider,
         )
 
     @property

@@ -63,9 +63,8 @@ class TestDataStreamSessionRepo:
     ):
         start_time = datetime.datetime.now()
         inserted_id = data_stream_session_repo.insert_data_stream_session(
-            stream_type="live",
+            stream_class_name="test_stream",
             symbol="AAPL",
-            strategy_name="test_strategy",
             start_time=start_time,
         )
         assert inserted_id is not None
@@ -77,9 +76,8 @@ class TestDataStreamSessionRepo:
         start_time = datetime.datetime.now()
         with pytest.raises(ValueError) as excinfo:
             data_stream_session_repo.insert_data_stream_session(
-                stream_type="live",
+                stream_class_name="test_stream",
                 symbol="AAPL",
-                strategy_name="test_strategy",
                 start_time=start_time,
             )
         assert "Database error" in str(excinfo.value)

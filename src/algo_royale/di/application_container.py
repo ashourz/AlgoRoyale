@@ -127,6 +127,7 @@ class ApplicationContainer:
             ledger_service_container=self.ledger_service_container,
             logger_container=self.logger_container,
             clock_service=self.clock_service,
+            clock_provider=self.clock_provider,
         )
 
     async def async_close(self):

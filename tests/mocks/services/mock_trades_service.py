@@ -82,6 +82,7 @@ class MockTradesService(TradesService):
 
     def insert_trade(
         self,
+        external_id: str,
         symbol: str,
         action: str,
         settled: bool,
@@ -94,7 +95,7 @@ class MockTradesService(TradesService):
             raise ValueError("Database error")
         new_trade = DBTrade(
             id=UUID("00000000-0000-0000-0000-000000000003"),
-            external_id="mocked_external_id_003",
+            external_id=external_id,
             user_id=self.user_id,
             account_id=self.account_id,
             symbol=symbol,

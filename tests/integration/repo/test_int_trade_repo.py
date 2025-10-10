@@ -7,7 +7,7 @@ import pytest
 ## Removed unused import
 from algo_royale.di.application_container import ApplicationContainer
 from algo_royale.models.alpaca_trading.enums.enums import OrderType
-from algo_royale.repo.order_repo import DBOrderStatus, OrderAction
+from algo_royale.repo.order_repo import DBOrderStatus, OrderAction, OrderRepo
 
 
 @pytest.fixture
@@ -32,7 +32,7 @@ def order_repo(environment_setup: bool, application: ApplicationContainer):
     repo.delete_all_orders()
 
 
-def test_trade_repo_methods(trade_repo, order_repo):
+def test_trade_repo_methods(trade_repo, order_repo: OrderRepo):
     # Insert an order to link with the trade
     order_id = order_repo.insert_order(
         symbol="TEST",
@@ -44,6 +44,7 @@ def test_trade_repo_methods(trade_repo, order_repo):
     )
     print(f"Inserted order ID: {order_id}")
     trade_id = trade_repo.insert_trade(
+        external_id="mocked_external_id_001",
         symbol="TEST",
         action=OrderAction.BUY,
         settlement_date=datetime.utcnow(),

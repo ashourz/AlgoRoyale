@@ -39,7 +39,7 @@ class DBTrade(BaseModel):
     executed_at: datetime
     created_at: datetime
     order_id: UUID
-    updated_at: datetime
+    updated_at: datetime | None = None
 
     @classmethod
     def columns(cls):
@@ -103,5 +103,5 @@ class DBTrade(BaseModel):
             executed_at=data["executed_at"],
             created_at=data["created_at"],
             order_id=data["order_id"],
-            updated_at=data["updated_at"],
+            updated_at=data.get("updated_at"),
         )
