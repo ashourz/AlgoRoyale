@@ -1,5 +1,5 @@
 import asyncio
-from typing import Any, Callable
+from typing import Any, Callable, Optional
 
 from algo_royale.application.market_data.market_data_enriched_streamer import (
     MarketDataEnrichedStreamer,
@@ -47,7 +47,7 @@ class SignalGenerator:
         symbols: list[str],
         callback: Callable[[dict[str, SignalDataPayload], type], Any],
         queue_size=1,
-    ) -> AsyncSubscriber | None:
+    ) -> tuple[list[str], Optional[AsyncSubscriber]]:
         """
         Subscribe to signals for a specific symbol.
 
@@ -55,17 +55,17 @@ class SignalGenerator:
         :param callback: The callback function to call with the generated signals.
         """
         try:
-            await self._async_start(symbols=symbols)
+            loaded_symbols = await self._async_start(symbols=symbols)
             subscriber = self.signal_roster.subscribe(
                 callback=callback,
                 queue_size=queue_size,
             )
             self.subscribers.append(subscriber)
-            self.logger.info(f"Subscribed to signals for symbols: {symbols}")
-            return subscriber
+            self.logger.info(f"Subscribed to signals for symbols: {loaded_symbols}")
+            return (loaded_symbols, subscriber)
         except Exception as e:
             self.logger.error(f"Error subscribing to signals: {e}")
-            return None
+            return ([], None)
 
     async def async_unsubscribe_from_signals(self, subscriber: AsyncSubscriber):
         """
@@ -82,17 +82,18 @@ class SignalGenerator:
         except Exception as e:
             self.logger.error(f"Error unsubscribing from signals: {e}")
 
-    async def async_restart_stream(self):
+    async def async_restart_stream(self) -> list[str] | None:
         """
         Restart the signal generation stream.
         """
         try:
             await self._async_stop()
-            await self._async_start()
+            return await self._async_start()
         except Exception as e:
             self.logger.error(f"Error restarting signal stream: {e}")
+            return None
 
-    async def _async_start(self, symbols: list[str]):
+    async def _async_start(self, symbols: list[str]) -> list[str]:
         """
         Generate a trading signal based on the provided data and strategy.
         """
@@ -103,8 +104,10 @@ class SignalGenerator:
             self.logger.info(
                 f"Signal generation service started for symbols: {loaded_symbols}."
             )
+            return loaded_symbols
         except Exception as e:
             self.logger.error(f"Error starting signal generation: {e}")
+            return []
 
     def _load_symbol_strategies(self, symbols: list[str]) -> list[str]:
         """
@@ -141,6 +144,11 @@ class SignalGenerator:
                         self.logger.info(
                             f"Symbol strategies loaded successfully for {symbol}: {self.symbol_strategy_map[symbol]}."
                         )
+                else:
+                    signals_with_strategies.append(symbol)
+                    self.logger.info(
+                        f"Symbol strategies already loaded for {symbol}: {self.symbol_strategy_map[symbol]}."
+                    )
             if not signals_with_strategies:
                 self.logger.warning(
                     f"No valid strategies found for any of the requested symbols: {symbols}. Signal generation will not proceed."

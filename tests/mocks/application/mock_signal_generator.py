@@ -54,12 +54,12 @@ class MockSignalGenerator(SignalGenerator):
 
     async def async_subscribe_to_signals(
         self, symbols, callback, queue_size=1, roster=None
-    ) -> AsyncSubscriber | None:
+    ) -> tuple[list[str], AsyncSubscriber | None]:
         if self.return_empty:
-            return None
+            return ([], None)
         # Simulate signal processing and order generation for test symbols
         await self._simulate_signal_and_order(symbols, callback, roster=roster)
-        return AsyncSubscriber(event_type="signal", callback=callback)
+        return (symbols, AsyncSubscriber(event_type="signal", callback=callback))
 
     async def async_unsubscribe_from_signals(self, subscriber):
         return
