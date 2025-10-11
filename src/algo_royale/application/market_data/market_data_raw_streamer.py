@@ -39,29 +39,35 @@ class MarketDataRawStreamer:
         self.clock_provider = clock_provider
 
     ## Subscribe Methods
-    async def subscribe(
+    async def async_subscribe(
         self, symbols: List[str], callback: Callable
     ) -> Dict[str, AsyncSubscriber]:
-        result = {}
-        for symbol in symbols:
-            if not self._can_subscribe(symbol):
-                continue
-            # Create a new subscriber for the symbol
-            subscriber = await self._create_subscriber(symbol, callback)
-            if subscriber:
-                if symbol not in self.upstream_subscriber_map:
-                    self.upstream_subscriber_map[symbol] = []
-                self.upstream_subscriber_map[symbol].append(subscriber)
-                result[symbol] = subscriber
-            else:
-                self.logger.error(f"Failed to create subscriber for symbol: {symbol}")
-        # Return the result mapping of symbols to their subscribers
-        return result
+        try:
+            result = {}
+            for symbol in symbols:
+                if not self._can_subscribe(symbol):
+                    continue
+                # Create a new subscriber for the symbol
+                subscriber = await self._async_create_subscriber(symbol, callback)
+                if subscriber:
+                    if symbol not in self.upstream_subscriber_map:
+                        self.upstream_subscriber_map[symbol] = []
+                    self.upstream_subscriber_map[symbol].append(subscriber)
+                    result[symbol] = subscriber
+                else:
+                    self.logger.error(
+                        f"Failed to create subscriber for symbol: {symbol}"
+                    )
+            # Return the result mapping of symbols to their subscribers
+            return result
+        except Exception as e:
+            self.logger.error(f"Error in async_subscribe: {e}")
+            return {}
 
     def _can_subscribe(self, symbol):
         return True
 
-    async def _create_subscriber(
+    async def _async_create_subscriber(
         self, symbol: str, callback: Callable
     ) -> AsyncSubscriber | None:
         """
@@ -122,7 +128,6 @@ class MarketDataRawStreamer:
                     self.logger.warning(
                         f"Failed to start data stream session for symbol: {symbol}"
                     )
-                    ## TODO: Consider stopping the stream if session start fails
             else:
                 self.logger.info(f"Symbol {symbol} already in stream, not adding.")
             return True
@@ -219,7 +224,7 @@ class MarketDataRawStreamer:
             return None
 
     ## Unsubscribe Methods
-    async def unsubscribe(self, subscribers: List[AsyncSubscriber]) -> List[str]:
+    async def async_unsubscribe(self, subscribers: List[AsyncSubscriber]) -> List[str]:
         """
         Unsubscribe a list of subscribers from all symbols they are registered to.
         Streaming for a symbol is stopped only when no subscribers remain for that symbol.
@@ -239,6 +244,7 @@ class MarketDataRawStreamer:
                     self.logger.info(
                         f"Unsubscribed subscriber {subscriber} from symbol: {symbol}"
                     )
+                    unsubscribed_symbols.append(symbol)
                     # If no subscribers remain, stop streaming and clean up
                     if not self.upstream_subscriber_map[symbol]:
                         self.logger.info(
@@ -248,7 +254,9 @@ class MarketDataRawStreamer:
                         self.stream_data_ingest_object_map[symbol].unsubscribe()
                         self._stop_data_stream_session(symbol)
                         self.upstream_subscriber_map.pop(symbol)
-                        unsubscribed_symbols.append(symbol)
+            if self._should_stop_stream():
+                await self.stream_adapter.async_stop_stream()
+                self.logger.info("No symbols left in stream. Stream stopped.")
         except Exception as e:
             self.logger.error(f"Error unsubscribing subscribers: {e}")
         return unsubscribed_symbols
@@ -299,6 +307,13 @@ class MarketDataRawStreamer:
         should_remove_from_quote = symbol in quote_symbols
         return should_remove_from_bar | should_remove_from_quote
 
+    def _should_stop_stream(self) -> bool:
+        """Check if the stream should be stopped (no symbols left)."""
+        current_stream_symbols = self.stream_adapter.get_stream_symbols()
+        return not (
+            any(current_stream_symbols.bars) or any(current_stream_symbols.quotes)
+        )
+
     async def async_stop(self):
         """
         Outward-facing method to gracefully shut down the market data streamer.
@@ -311,7 +326,7 @@ class MarketDataRawStreamer:
             all_subscribers = []
             for subs in self.upstream_subscriber_map.values():
                 all_subscribers.extend(subs)
-            unsubscribed_symbols = await self.unsubscribe(all_subscribers)
+            unsubscribed_symbols = await self.async_unsubscribe(all_subscribers)
             self.logger.info(
                 f"Unsubscribed all subscribers. Symbols fully unsubscribed: {unsubscribed_symbols}"
             )
