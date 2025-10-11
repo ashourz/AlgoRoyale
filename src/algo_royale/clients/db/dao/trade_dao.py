@@ -1,6 +1,5 @@
 # src/algo_royale/clients/db/dao/trade_dao.py
 from datetime import datetime
-from decimal import Decimal
 from uuid import UUID
 
 import psycopg2
@@ -55,11 +54,12 @@ class TradeDAO(BaseDAO):
 
     def insert_trade(
         self,
+        external_id: str,
         symbol: str,
         action: str,
         settlement_date: datetime,
-        price: Decimal,
-        quantity: int,
+        price: float,
+        quantity: float,
         executed_at: datetime,
         order_id: UUID,
         user_id: str,
@@ -82,6 +82,7 @@ class TradeDAO(BaseDAO):
         returned_id = self.insert(
             "insert_trade.sql",
             (
+                external_id,
                 symbol,
                 action,
                 settlement_date,

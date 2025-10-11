@@ -25,19 +25,23 @@ class DataStreamSessionDAO(BaseDAO):
         return [DBDataStreamSession.from_tuple(row) for row in rows] if rows else []
 
     def insert_data_stream_session(
-        self, stream_type: str, symbol: str, strategy_name: str, start_time: datetime
+        self,
+        stream_class: str,
+        symbol: str,
+        application_env: str,
+        start_time: datetime,
     ) -> UUID | None:
         """
         Insert a new data stream session.
-        :param stream_type: The type of the data stream (e.g., 'live', 'historical').
+        :param stream_class: The class name performing the data streaming.
         :param symbol: The symbol associated with the data stream (e.g., 'AAPL').
-        :param strategy_name: The name of the trading strategy being used.
+        :param application_env: The application environment (prod_live, prod_paper, etc.).
         :param start_time: The start time of the data stream session.
         :return: The ID of the newly created session, or -1 if the insertion failed.
         """
         inserted_id = self.insert(
             "insert_data_stream_session.sql",
-            (stream_type, symbol, strategy_name, start_time),
+            (stream_class, symbol, application_env, start_time),
         )
         if not inserted_id:
             self.logger.error(

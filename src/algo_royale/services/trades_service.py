@@ -1,7 +1,6 @@
 ## service\trade_service.py
 from datetime import datetime, timedelta
-from decimal import Decimal
-from uuid import UUID
+from uuid import UUID, uuid4
 
 from algo_royale.adapters.trading.account_adapter import AccountAdapter
 from algo_royale.logging.loggable import Loggable
@@ -60,14 +59,16 @@ class TradesService:
 
     def insert_trade(
         self,
+        external_id: str,
         symbol: str,
         action: str,
-        price: Decimal,
-        quantity: int,
+        price: float,
+        quantity: float,
         executed_at: datetime,
         order_id: UUID,
     ) -> UUID | None:
         """Insert a new trade record.
+        :param external_id: The external ID of the trade from the trading platform.
         :param symbol: The stock symbol of the trade.
         :param action: The action of the trade (e.g., 'buy', 'sell').
         :param price: The price at which the trade was executed.
@@ -78,6 +79,7 @@ class TradesService:
         """
         settlement_date = self._get_settlement_date(executed_at)
         return self.repo.insert_trade(
+            external_id=external_id,
             symbol=symbol,
             action=action,
             settlement_date=settlement_date,
@@ -241,6 +243,7 @@ class TradesService:
         """Insert a trade into the local database."""
         try:
             trade_id = self.repo.insert_trade(
+                external_id=trade.external_id,
                 symbol=trade.symbol,
                 action=trade.action,
                 settlement_date=trade.settlement_date,
@@ -316,14 +319,25 @@ class TradesService:
             now = self.clock_service.now()
             settlement_date = self._get_settlement_date(activity.transaction_time)
             isSettled = True if settlement_date and settlement_date <= now else False
+            if activity is None:
+                self.logger.error(
+                    "Account activity is None, cannot convert to DBTrade."
+                )
+                return None
+            if not activity.id:
+                self.logger.error(
+                    f"Account activity ID is None, cannot convert to DBTrade. Activity: {activity}"
+                )
+                return None
             return DBTrade(
-                id=activity.id,
+                id=uuid4(),
+                external_id=activity.id,
                 symbol=activity.symbol,
                 action=activity.side,
                 settled=isSettled,
                 settlement_date=settlement_date,
                 price=float(activity.price),
-                quantity=int(activity.qty),
+                quantity=float(activity.qty),
                 executed_at=activity.transaction_time,
                 created_at=now,
                 updated_at=now,

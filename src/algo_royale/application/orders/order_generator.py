@@ -42,7 +42,7 @@ class OrderGenerator:
         self.order_lock: asyncio.Lock = asyncio.Lock()
         self.pubsub_orders_map: dict[str, AsyncPubSub] = {}
         self.portfolio_strategy: BufferedPortfolioStrategy = None
-        self.signal_roster_subscriber: AsyncSubscriber = None
+        self.signal_roster_subscribers: list[AsyncSubscriber] = []
         self.signal_order_subscribers: dict[str, set[AsyncSubscriber]] = {}
         self.symbols: set[str] = set()
         self.logger.info("OrderGenerator initialized.")
@@ -57,10 +57,10 @@ class OrderGenerator:
         Subscribe to order events for a specific symbol.
         """
         try:
-            await self._async_start(symbols=symbols)
+            subscribed_symbols = await self._async_start(symbols=symbols)
             async_subscribers = {}
-            for symbol in symbols:
-                pubsub = self.pubsub_orders_map[symbol]
+            for symbol in subscribed_symbols:
+                pubsub = self._get_order_pubsub(symbol)
                 if not pubsub:
                     self.logger.error(f"No pubsub found for symbol: {symbol}")
                     continue
@@ -73,7 +73,9 @@ class OrderGenerator:
                 if symbol not in self.signal_order_subscribers:
                     self.signal_order_subscribers[symbol] = set()
                 self.signal_order_subscribers[symbol].add(async_subscribers[symbol])
-                self.logger.info(f"Subscribed to order events for {symbol}")
+                self.logger.info(
+                    f"Subscribed to order events for {symbol}: {async_subscribers[symbol]}"
+                )
             return async_subscribers
         except Exception as e:
             self.logger.error(f"Error subscribing to order events: {e}")
@@ -91,10 +93,10 @@ class OrderGenerator:
                 self.logger.error(f"No pubsub found for symbol: {symbol}")
                 return
             pubsub.unsubscribe(subscriber=async_subscriber)
-            self.signal_roster_subscriber[symbol].remove(async_subscriber)
-            if not self.signal_roster_subscriber[symbol]:
-                self.signal_roster_subscriber.pop(symbol)
-            if not any(self.signal_roster_subscriber.values()):
+            self.signal_order_subscribers[symbol].remove(async_subscriber)
+            if not self.signal_order_subscribers[symbol]:
+                self.signal_order_subscribers.pop(symbol)
+            if not any(self.signal_order_subscribers.values()):
                 await self._async_stop()
             self.logger.info(f"Unsubscribed from order events for {symbol}")
         except Exception as e:
@@ -102,51 +104,80 @@ class OrderGenerator:
                 f"Error unsubscribing from order events for {symbol}: {e}"
             )
 
-    async def async_restart_stream(self, symbols: list[str]):
+    async def async_restart_stream(self, symbols: list[str]) -> list[str]:
         """
         Restart the order generation stream.
         """
         try:
             await self._async_stop()
-            await self._async_start(symbols=symbols)
+            subscribed_symbols = await self._async_start(symbols=symbols)
+            return subscribed_symbols
         except Exception as e:
             self.logger.error(f"Error restarting order generation stream: {e}")
+            return []
 
-    async def _async_start(self, symbols: list[str]):
+    async def _async_start(self, symbols: list[str]) -> list[str]:
         """
         Start the order generation process for the given symbols.
         """
         try:
-            self.symbols.update(set(symbols))
+            self.logger.info(f"Starting order generation for symbols: {symbols}")
             self.portfolio_strategy = (
                 self.portfolio_strategy_registry.get_buffered_portfolio_strategy(
-                    symbols=self.symbols
+                    symbols=symbols
                 )
             )
-            await self._async_subscribe_to_roster_stream()
+            if not self.portfolio_strategy:
+                self.logger.error(f"No portfolio strategy found for symbols: {symbols}")
+                return
+            else:
+                self.logger.info(
+                    f"Using portfolio strategy: {self.portfolio_strategy.get_description()}"
+                )
+            subscribed_symbols = await self._async_subscribe_to_roster_stream(symbols)
+            self.logger.info(
+                f"Order generation started for symbols: {subscribed_symbols}"
+            )
+            # Update internal symbol set
+            self.symbols.update(set(subscribed_symbols))
+            self.logger.info(f"Internal symbol set updated: {self.symbols}")
+            return subscribed_symbols
         except Exception as e:
             self.logger.error(
-                f"Error starting order generation for symbols {self.symbols}: {e}"
+                f"Error starting order generation for symbols {symbols}: {e}"
             )
+            return []
 
-    async def _async_subscribe_to_roster_stream(self):
+    async def _async_subscribe_to_roster_stream(self, symbols: list[str]) -> list[str]:
         """Subscribe to the signal roster stream to receive updates."""
         try:
-            if self.signal_roster_subscriber is not None:
-                async_subscriber = (
-                    await self.signal_generator.async_subscribe_to_signals(
-                        callback=lambda roster: self._async_generate_orders(
-                            roster=roster
-                        ),
-                    )
-                )
-                if async_subscriber is None:
-                    self.logger.error("Failed to subscribe to signal roster stream")
-                    return
-                self.signal_roster_subscriber = async_subscriber
-                self.logger.info("Subscribed to signal roster stream")
+            self.logger.info("Subscribing to signal roster stream...")
+            # Unsubscribe existing subscribers
+            await self._async_unsubscribe_all_subscribers()
+
+            # Subscribe to the signal roster stream
+            async def roster_callback(roster):
+                await self._async_generate_orders(roster=roster)
+
+            (
+                loaded_symbols,
+                async_subscriber,
+            ) = await self.signal_generator.async_subscribe_to_signals(
+                symbols=list(symbols),
+                callback=roster_callback,
+            )
+            if async_subscriber is None:
+                self.logger.error("Failed to subscribe to signal roster stream")
+                return
+            self.signal_roster_subscribers.append(async_subscriber)
+            self.logger.info(
+                f"Subscribed to signal roster stream with symbols: {loaded_symbols}"
+            )
+            return loaded_symbols
+
         except Exception as e:
             self.logger.error(f"Error subscribing to signal stream: {e}")
+            return []
 
     async def _async_generate_orders(self, roster: dict[str, SignalDataPayload]):
         """
@@ -246,10 +277,7 @@ class OrderGenerator:
         If it does not exist, create a new one.
         """
         if symbol not in self.pubsub_orders_map:
-            self.pubsub_orders_map[symbol] = AsyncPubSub(
-                event_type=self.order_event_type,
-                logger=self.logger,
-            )
+            self.pubsub_orders_map[symbol] = AsyncPubSub()
         return self.pubsub_orders_map[symbol]
 
     async def _async_publish_order_event(self, order_payload: SignalOrderPayload):
@@ -290,11 +318,11 @@ class OrderGenerator:
         Stop the order generation service.
         """
         try:
-            if self.signal_roster_subscriber:
+            for subscriber in self.signal_roster_subscribers:
                 await self.signal_generator.async_unsubscribe_from_signals(
-                    subscriber=self.signal_roster_subscriber
+                    subscriber=subscriber
                 )
-                self.signal_roster_subscriber = None
+            self.signal_roster_subscribers.clear()
             self.pubsub_orders_map.clear()
             self.portfolio_strategy = None
             self.signal_order_subscribers.clear()

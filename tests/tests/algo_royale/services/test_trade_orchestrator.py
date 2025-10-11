@@ -44,60 +44,72 @@ class TestTradeOrchestrator:
         reset_services(trade_orchestrator)
 
     @pytest.mark.asyncio
-    async def test_start_success(self, trade_orchestrator):
-        await trade_orchestrator.start()
+    async def test_start_success(self, trade_orchestrator: TradeOrchestrator):
+        await trade_orchestrator.async_start()
 
     @pytest.mark.asyncio
-    async def test_start_clock_service_exception(self, trade_orchestrator):
+    async def test_start_clock_service_exception(
+        self, trade_orchestrator: TradeOrchestrator
+    ):
         set_raise_exception_clock_service(trade_orchestrator)
         try:
-            await trade_orchestrator.start()
+            await trade_orchestrator.async_start()
         except Exception:
             pass  # Should not raise, but if it does, we catch for test completeness
 
     @pytest.mark.asyncio
-    async def test_on_pre_market_open_success(self, trade_orchestrator):
+    async def test_on_pre_market_open_success(
+        self, trade_orchestrator: TradeOrchestrator
+    ):
         await trade_orchestrator._on_pre_market_open()
 
     @pytest.mark.asyncio
-    async def test_on_market_open_success(self, trade_orchestrator):
+    async def test_on_market_open_success(self, trade_orchestrator: TradeOrchestrator):
         await trade_orchestrator._on_market_open()
 
     @pytest.mark.asyncio
-    async def test_on_market_closed_success(self, trade_orchestrator):
+    async def test_on_market_closed_success(
+        self, trade_orchestrator: TradeOrchestrator
+    ):
         await trade_orchestrator._on_market_closed()
 
     @pytest.mark.asyncio
-    async def test_stop_success(self, trade_orchestrator):
-        await trade_orchestrator.stop()
+    async def test_stop_success(self, trade_orchestrator: TradeOrchestrator):
+        await trade_orchestrator.async_stop()
 
     @pytest.mark.asyncio
-    async def test_stop_clock_service_exception(self, trade_orchestrator):
+    async def test_stop_clock_service_exception(
+        self, trade_orchestrator: TradeOrchestrator
+    ):
         set_raise_exception_clock_service(trade_orchestrator)
         try:
-            await trade_orchestrator.stop()
+            await trade_orchestrator.async_stop()
         except Exception:
             pass
 
     @pytest.mark.asyncio
-    async def test_schedule_market_sessions_success(self, trade_orchestrator):
+    async def test_schedule_market_sessions_success(
+        self, trade_orchestrator: TradeOrchestrator
+    ):
         await trade_orchestrator.schedule_market_sessions()
 
     @pytest.mark.asyncio
-    async def test_schedule_market_sessions_empty_clock(self, trade_orchestrator):
+    async def test_schedule_market_sessions_empty_clock(
+        self, trade_orchestrator: TradeOrchestrator
+    ):
         set_return_empty_clock_service(trade_orchestrator)
         await trade_orchestrator.schedule_market_sessions()
 
     @pytest.mark.asyncio
     async def test_schedule_market_sessions_empty_market_session(
-        self, trade_orchestrator
+        self, trade_orchestrator: TradeOrchestrator
     ):
         set_return_empty_market_session_service(trade_orchestrator)
         await trade_orchestrator.schedule_market_sessions()
 
     @pytest.mark.asyncio
     async def test_schedule_market_sessions_clock_service_exception(
-        self, trade_orchestrator
+        self, trade_orchestrator: TradeOrchestrator
     ):
         set_raise_exception_clock_service(trade_orchestrator)
         try:

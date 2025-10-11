@@ -1,1 +1,1 @@
-INSERT INTO data_stream_session (stream_type, symbol, strategy_name, start_time) VALUES (%s, %s, %s, %s) RETURNING id;
+INSERT INTO data_stream_session (stream_class, symbol, application_env, start_time) VALUES (%s, %s, %s, %s) RETURNING id;

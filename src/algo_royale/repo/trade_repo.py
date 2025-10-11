@@ -1,7 +1,6 @@
 ## service\trade_service.py
 from abc import ABC
 from datetime import datetime
-from decimal import Decimal
 from uuid import UUID
 
 from algo_royale.clients.db.dao.trade_dao import TradeDAO
@@ -44,11 +43,12 @@ class TradeRepo:
 
     def insert_trade(
         self,
+        external_id: str,
         symbol: str,
         action: str,
         settlement_date: datetime,
-        price: Decimal,
-        quantity: int,
+        price: float,
+        quantity: float,
         executed_at: datetime,
         order_id: UUID,
     ) -> UUID | None:
@@ -65,12 +65,13 @@ class TradeRepo:
         :return: The ID of the newly inserted trade record.
         """
         return self.dao.insert_trade(
-            symbol,
-            action,
-            settlement_date,
-            price,
-            quantity,
-            executed_at,
+            external_id=external_id,
+            symbol=symbol,
+            action=action,
+            settlement_date=settlement_date,
+            price=price,
+            quantity=quantity,
+            executed_at=executed_at,
             order_id=order_id,
             user_id=self.user_id,
             account_id=self.account_id,

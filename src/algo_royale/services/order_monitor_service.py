@@ -111,6 +111,7 @@ class OrderMonitorService:
             now = self.clock_service.now()
 
             self.trade_service.insert_trade(
+                external_id=order.id,
                 symbol=db_order.symbol,
                 action=db_order.action,
                 price=fill_price,

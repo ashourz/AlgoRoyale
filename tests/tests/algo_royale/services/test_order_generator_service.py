@@ -70,7 +70,7 @@ class TestOrderGeneratorService:
         result = await market_session_service.subscribe_to_symbol_orders(
             symbols, callback
         )
-        assert result == {}
+        assert result is None
 
     @pytest.mark.asyncio
     async def test_subscribe_to_symbol_orders_exception(

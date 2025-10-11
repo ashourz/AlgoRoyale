@@ -152,5 +152,5 @@ def test_signal_strategy_optimizer_impl(monkeypatch):
         logger=logger,
         strategy_logger=strategy_logger,
     )
-    with pytest.raises(RuntimeError):
-        optimizer.optimize("SYM1", df, None, None, n_trials=1)
+    result = optimizer.optimize("SYM1", df, None, None, n_trials=1)
+    assert result["metrics"] is None

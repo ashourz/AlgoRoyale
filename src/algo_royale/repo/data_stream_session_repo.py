@@ -7,9 +7,12 @@ from algo_royale.models.db.db_data_stream_session import DBDataStreamSession
 
 
 class DataStreamSessionRepo:
-    def __init__(self, dao: DataStreamSessionDAO, logger: Loggable):
+    def __init__(
+        self, dao: DataStreamSessionDAO, logger: Loggable, application_env: str
+    ):
         self.dao = dao
         self.logger = logger
+        self.application_env = application_env
 
     def fetch_data_stream_session_by_timestamp(
         self, start_timestamp: datetime, end_timestamp: datetime
@@ -26,21 +29,23 @@ class DataStreamSessionRepo:
 
     def insert_data_stream_session(
         self,
-        stream_type: str,
+        stream_class_name: str,
         symbol: str,
-        strategy_name: str,
         start_time: datetime,
     ) -> UUID | None:
         """
         Insert a new data stream session.
-        :param stream_type: The type of the data stream (e.g., 'live', 'historical').
+        :param stream_class_name: The class name performing the data streaming.
         :param symbol: The symbol associated with the data stream (e.g., 'AAPL').
-        :param strategy_name: The name of the trading strategy being used.
+        :param application_env: The application environment (e.g., 'production', 'staging').
         :param start_time: The start time of the data stream session.
         :return: The ID of the newly created session, or -1 if the insertion failed.
         """
         return self.dao.insert_data_stream_session(
-            stream_type, symbol, strategy_name, start_time
+            stream_class=stream_class_name,
+            symbol=symbol,
+            application_env=self.application_env,
+            start_time=start_time,
         )
 
     def update_data_stream_session_end_time(

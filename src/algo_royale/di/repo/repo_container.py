@@ -41,6 +41,7 @@ class RepoContainer:
             logger=self.logger_container.logger(
                 logger_type=LoggerType.DATA_STREAM_SESSION_REPO
             ),
+            application_env=self.config["environment"]["application_env"],
         )
 
     @property

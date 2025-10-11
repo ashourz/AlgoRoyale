@@ -4,9 +4,9 @@
 CREATE TABLE
     data_stream_session (
         id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-        stream_type TEXT NOT NULL, -- e.g., 'portfolio', 'symbol', etc.
+        stream_class TEXT NOT NULL,
         symbol TEXT NOT NULL,
-        strategy_name TEXT,
+        application_env TEXT NOT NULL,
         start_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         end_time TIMESTAMP DEFAULT NULL
     );

@@ -49,6 +49,7 @@ class MarketDataEnrichedStreamer:
         :param queue_size: The size of the queue for the subscriber.
         """
         try:
+            self.logger.debug(f"Subscribing to enriched data for symbols: {symbols}")
             await self._async_start(symbols=symbols)
             symbol_subscriber_map = {}
             for symbol in symbols:
@@ -60,6 +61,7 @@ class MarketDataEnrichedStreamer:
                 )
                 self.pubsub_subscribers.setdefault(symbol, []).append(async_subscriber)
                 symbol_subscriber_map[symbol] = async_subscriber
+                self.logger.info(f"Subscribed to enriched data for {symbol}")
             return symbol_subscriber_map
         except Exception as e:
             self.logger.error(f"Error subscribing to enriched data for {symbol}: {e}")
@@ -112,7 +114,8 @@ class MarketDataEnrichedStreamer:
         try:
             self._initialize_symbol_enrichment_lock(symbols=symbols)
             self._create_enrichment_buffers(symbols=symbols)
-            await self._async_subscribe_to_market_streams(symbols=symbols)
+            subscribed_symbols = await self._async_subscribe_to_market_streams(symbols=symbols)
+            self.logger.info(f"Market data enrichment started for symbols: {subscribed_symbols}.")
         except Exception as e:
             self.logger.error(f"Error starting signal generation: {e}")
 
@@ -151,7 +154,9 @@ class MarketDataEnrichedStreamer:
         except Exception as e:
             self.logger.error(f"Error creating enrichment buffers: {e}")
 
-    async def _async_subscribe_to_market_streams(self, symbols: list[str]):
+    async def _async_subscribe_to_market_streams(
+        self, symbols: list[str]
+    ) -> list[str] | None:
         """
         Subscribe to the market stream for a specific symbol.
         This will allow the signal generator to receive real-time data updates.
@@ -160,7 +165,7 @@ class MarketDataEnrichedStreamer:
             self.logger.debug(f"Subscribing to stream for symbols: {symbols}")
             symbols_to_subscribe = []  # Ensure unique symbols
             for symbol in set(symbols):
-                if not any(self.market_data_raw_subscriber_map.get(symbol, [])):
+                if not any(self.market_data_raw_subscriber_map.(symbol, [])):
                     symbols_to_subscribe.append(symbol)
 
             async_subscriber_map = (
@@ -171,7 +176,7 @@ class MarketDataEnrichedStreamer:
             )
             if not any(async_subscriber_map.values()):
                 self.logger.error(f"Failed to subscribe to market stream for {symbols}")
-                return
+                return None
             else:
                 for symbol, async_subscriber in async_subscriber_map.items():
                     self.market_data_raw_subscriber_map.setdefault(symbol, []).append(
@@ -180,6 +185,7 @@ class MarketDataEnrichedStreamer:
                     self.logger.info(
                         f"Subscribed to market stream for symbol: {symbol}"
                     )
+            return async_subscriber_map.keys()
         except Exception as e:
             self.logger.error(f"Error subscribing to market stream for {symbol}: {e}")
 

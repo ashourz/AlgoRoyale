@@ -94,7 +94,7 @@ class OrderDAO(BaseDAO):
         status: str,
         action: str,
         notional: float | None,
-        quantity: int | None,
+        quantity: float | None,
         price: float | None,
         user_id: str,
         account_id: str,
@@ -137,7 +137,7 @@ class OrderDAO(BaseDAO):
         self,
         order_id: UUID,
         status: str,
-        quantity: int,
+        quantity: float,
         price: float,
     ) -> int:
         """

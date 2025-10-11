@@ -1,0 +1,294 @@
+from typing import Any, Callable
+from uuid import UUID
+
+from algo_royale.adapters.market_data.stream_adapter import StreamAdapter
+from algo_royale.application.signals.stream_data_ingest_object import (
+    StreamDataIngestObject,
+)
+from algo_royale.application.utils.async_pubsub import AsyncSubscriber
+from algo_royale.application.utils.symbol_subscriber_manager import (
+    SymbolSubscriberManager,
+)
+from algo_royale.logging.loggable import Loggable
+from algo_royale.models.alpaca_market_data.alpaca_stream_bar import StreamBar
+from algo_royale.models.alpaca_market_data.alpaca_stream_quote import StreamQuote
+from algo_royale.models.alpaca_market_data.enums import DataFeed
+from algo_royale.repo.data_stream_session_repo import DataStreamSessionRepo
+from algo_royale.utils.clock_provider import ClockProvider
+
+
+class MarketDataRawStreamer(SymbolSubscriberManager):
+    """
+    MarketDataStreamer is responsible for managing the streaming of market data
+    for various stock symbols. It initializes stream data ingest objects for each
+    symbol and subscribes to the relevant market data feeds.
+    """
+
+    def __init__(
+        self,
+        stream_adapter: StreamAdapter,
+        data_stream_session_repo: DataStreamSessionRepo,
+        logger: Loggable,
+        clock_provider: ClockProvider,
+        is_live: bool = False,
+    ):
+        self.stream_adapter = stream_adapter
+        self.data_stream_session_repo = data_stream_session_repo
+        self.stream_data_ingest_object_map: dict[str, StreamDataIngestObject] = {}
+        self.symbol_data_stream_session_ids: dict[str, UUID] = {}
+        self.logger = logger
+        self.is_live = is_live
+        self.clock_provider = clock_provider
+
+    def _can_subscribe(self, symbol):
+        return True
+
+    async def _create_subscriber(
+        self, symbol: str, callback: Callable
+    ) -> AsyncSubscriber | None:
+        """
+        Create a subscriber for the specified symbol and callback.
+        This will start the signal generator for the symbol if not already started.
+        :param symbol: The stock symbol to subscribe to.
+        :param callback: The callback function to handle incoming data.
+        """
+        try:
+            stream_started = await self._async_start_streaming_symbol(symbol=symbol)
+            if not stream_started:
+                self.logger.error(f"Failed to start stream for symbol: {symbol}")
+                return None
+            subscriber = self._subscribe_to_stream_data_ingest_object(symbol, callback)
+            if subscriber:
+                self.stream_subscribers[symbol] = subscriber
+                self.logger.info(f"Subscribed to stream for symbol: {symbol}")
+            else:
+                self.logger.error(f"Failed to subscribe to stream for symbol: {symbol}")
+            return subscriber
+        except Exception as e:
+            self.logger.error(f"Error subscribing to stream for {symbol}: {e}")
+            return None
+
+    async def _remove_subscriber(self, symbol: str, subscriber: AsyncSubscriber):
+        try:
+            symbols_to_stop = []
+            self._unsubscribe_from_stream_data_ingest_object(symbol)
+            await self._async_stop_streaming_symbols(symbols=symbols_to_stop)
+            if not any(self.stream_subscribers.values()):
+                await self._async_stop()
+        except Exception as e:
+            self.logger.error(f"Error unsubscribing from stream for {symbol}: {e}")
+
+    def _start_data_stream_session(self, symbol: str) -> UUID:
+        """Start a new data stream session for the specified symbol."""
+        try:
+            session_uuid = self.data_stream_session_repo.insert_data_stream_session(
+                stream_class_name="MarketDataRawStreamer",
+                symbol=symbol,
+                start_time=self.clock_provider.now(),
+            )
+            self.symbol_data_stream_session_ids[symbol] = session_uuid
+            return session_uuid
+        except Exception as e:
+            self.logger.error(f"Error starting data stream session for {symbol}: {e}")
+            raise
+
+    def _stop_data_stream_session(self, symbol: str):
+        """Stop the data stream session for the specified symbol."""
+        try:
+            if symbol in self.symbol_data_stream_session_ids:
+                session_id = self.symbol_data_stream_session_ids.pop(symbol)
+                self.data_stream_session_repo.update_data_stream_session_end_time(
+                    session_id=session_id,
+                    end_time=self.clock_provider.now(),
+                )
+        except Exception as e:
+            self.logger.error(f"Error stopping data stream session for {symbol}: {e}")
+
+    def _remove_subscriber(self, symbol: str, subscriber: AsyncSubscriber):
+        """Remove a subscriber from the specified symbol's subscriber list."""
+        try:
+            if symbol in self.stream_subscribers:
+                self.stream_subscribers[symbol].remove(subscriber)
+                if not self.stream_subscribers[symbol]:
+                    self.stream_subscribers.pop(symbol)
+        except Exception as e:
+            self.logger.error(f"Error removing subscriber for {symbol}: {e}")
+
+    def _is_stream_started(self) -> bool:
+        """Check if the stream is currently started."""
+        current_stream_symbols = self.stream_adapter.get_stream_symbols()
+        return any(current_stream_symbols.bars) or any(current_stream_symbols.quotes)
+
+    def _should_add_symbol(self, symbol: str) -> bool:
+        """Return symbols that are not already in the stream."""
+        current_stream_symbols = self.stream_adapter.get_stream_symbols()
+        bar_symbols = set(current_stream_symbols.bars)
+        quote_symbols = set(current_stream_symbols.quotes)
+        should_add_to_bar = symbol not in bar_symbols
+        should_add_to_quote = symbol not in quote_symbols
+        return should_add_to_bar | should_add_to_quote
+
+    def _should_remove_symbol(self, symbol: str) -> bool:
+        """Return symbols that are already in the stream."""
+        current_stream_symbols = self.stream_adapter.get_stream_symbols()
+        bar_symbols = set(current_stream_symbols.bars)
+        quote_symbols = set(current_stream_symbols.quotes)
+        should_remove_from_bar = symbol in bar_symbols
+        should_remove_from_quote = symbol in quote_symbols
+        return should_remove_from_bar | should_remove_from_quote
+
+    async def _async_start_streaming_symbol(self, symbol: str) -> bool:
+        """
+        Start the market data stream for the specified symbol.
+        This will initialize the stream data ingest object and subscribe to the market data feed.
+        :param symbol: The stock symbol to start streaming data for.
+        :return: True if the stream was started successfully, False otherwise.
+        """
+        try:
+            self.logger.info(f"Starting signal generation for symbol {symbol}...")
+            if self._should_add_symbol(symbol):
+                self.logger.info(f"Symbol {symbol} not in stream, adding it.")
+                if self._is_stream_started():
+                    await self.stream_adapter.async_add_symbols(
+                        quotes=[symbol], bars=[symbol]
+                    )
+                    self.logger.info(f"Added symbol {symbol} to stream.")
+                else:
+                    feed = DataFeed.SIP if self.is_live else DataFeed.IEX
+                    await self.stream_adapter.async_start_stream(
+                        symbols=[symbol],
+                        feed=feed,
+                        on_quote=self._onQuote,
+                        on_bar=self._onBar,
+                    )
+                    self.logger.info(f"Started stream for symbol: {symbol}")
+                self._start_data_stream_session(symbol)
+                self.logger.info(f"Started data stream session for symbol: {symbol}")
+            else:
+                self.logger.info(f"Symbol {symbol} already in stream, not adding.")
+            return True
+        except Exception as e:
+            self.logger.error(f"Error starting signal generation: {e}")
+        return False
+
+    async def _async_stop_streaming_symbol(self, symbol: str):
+        """
+        Stop the market data stream for the specified symbol.
+        """
+        try:
+            self.logger.info(f"Stopping stream for symbol: {symbol}")
+            if self._should_remove_symbol(symbol):
+                await self.stream_adapter.async_remove_symbols(symbols=[symbol])
+                self.logger.info(f"Removed symbol from stream: {symbol}")
+                self._stop_data_stream_session(symbol)
+            else:
+                self.logger.info(f"Symbol {symbol} not in stream, nothing to remove.")
+        except Exception as e:
+            self.logger.error(f"Error stopping stream for symbol {symbol}: {e}")
+
+    def _subscribe_to_stream_data_ingest_object(
+        self, symbol: str, callback: Callable
+    ) -> AsyncSubscriber | None:
+        """Get the stream data ingest object for the specified symbol."""
+        try:
+            if symbol not in self.stream_data_ingest_object_map:
+                self.logger.debug(
+                    f"Creating StreamDataIngestObject for symbol: {symbol}"
+                )
+                self.stream_data_ingest_object_map[symbol] = StreamDataIngestObject(
+                    symbol
+                )
+            else:
+                self.logger.debug(
+                    f"StreamDataIngestObject already exists for symbol: {symbol}"
+                )
+            return self.stream_data_ingest_object_map[symbol].subscribe(
+                callback=callback
+            )
+        except Exception as e:
+            self.logger.error(
+                f"Error subscribing to StreamDataIngestObject for {symbol}: {e}"
+            )
+            return None
+
+    def _unsubscribe_from_stream_data_ingest_object(self, symbol: str) -> None:
+        """Unsubscribe all subscribers from the specified symbol's stream data ingest object."""
+        try:
+            if symbol in self.stream_data_ingest_object_map:
+                self.stream_data_ingest_object_map[symbol].unsubscribe()
+                self.logger.info(f"Unsubscribed all from stream for symbol: {symbol}")
+            else:
+                self.logger.error(
+                    f"StreamDataIngestObject for symbol {symbol} is None. No subscribers to unsubscribe."
+                )
+        except Exception as e:
+            self.logger.error(
+                f"Error unsubscribing from StreamDataIngestObject for {symbol}: {e}"
+            )
+
+    async def _onQuote(self, raw_quote: Any):
+        """
+        Handle incoming market quotes and generate signals.
+
+        :param quote: The market quote data.
+        """
+        try:
+            self.logger.debug(f"Received raw quote: {raw_quote}")
+            quote = StreamQuote.from_raw(raw_quote)
+            self.logger.info(f"Received quote: {quote}")
+            await self.stream_data_ingest_object_map[
+                quote.symbol
+            ].async_update_with_quote(quote)
+            self.logger.debug(f"Updated stream data ingest object for {quote.symbol}")
+
+        except Exception as e:
+            self.logger.error(f"Error processing quote: {e}")
+
+    async def _onBar(self, raw_bar: Any):
+        """
+        Handle incoming market bars and generate signals.
+
+        :param bar: The market bar data.
+        """
+        try:
+            self.logger.debug(f"Received raw bar: {raw_bar}")
+            bar = StreamBar.from_raw(raw_bar)
+            self.logger.info(f"Received bar: {bar}")
+            await self.stream_data_ingest_object_map[bar.symbol].async_update_with_bar(
+                bar
+            )
+            self.logger.debug(f"Updated stream data ingest object for {bar.symbol}")
+        except Exception as e:
+            self.logger.error(f"Error processing bar: {e}")
+
+    async def _async_unsubscribe_all_subscribers(self):
+        """
+        Unsubscribe all subscribers from their respective streams.
+        """
+        try:
+            self.logger.info("Unsubscribing all subscribers from streams...")
+            for symbol, subscriber in self.stream_subscribers.items():
+                if symbol in self.stream_data_ingest_object_map and subscriber:
+                    self.stream_data_ingest_object_map[symbol].unsubscribe(subscriber)
+                    self.logger.info(f"Unsubscribed from stream for symbol: {symbol}")
+        except Exception as e:
+            self.logger.error(f"Error unsubscribing all subscribers: {e}")
+        finally:
+            self.stream_subscribers.clear()
+            self.stream_data_ingest_object_map.clear()
+
+    async def _async_stop(self):
+        """
+        Stop the market data streamer and clean up resources.
+        """
+        try:
+            await self._async_unsubscribe_all_subscribers()
+            self.logger.info("Stopping market data streamer...")
+            for symbol, ingest_object in self.stream_data_ingest_object_map.items():
+                await ingest_object.async_shutdown()
+                self.logger.info(f"Shutdown stream data ingest object for {symbol}")
+                self._stop_data_stream_session(symbol)
+            await self.stream_adapter.async_stop_stream()
+            self.logger.info("Market data streamer stopped successfully.")
+        except Exception as e:
+            self.logger.error(f"Error stopping market data streamer: {e}")

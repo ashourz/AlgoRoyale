@@ -117,6 +117,7 @@ class TestTradesService:
 
     async def test_insert_trade_normal(self, trades_service: TradesService):
         trade_id = trades_service.insert_trade(
+            external_id="external_123",
             symbol="AAPL",
             action="buy",
             price=100.0,
@@ -130,6 +131,7 @@ class TestTradesService:
         set_trades_service_raise_exception(trades_service, True)
         with pytest.raises(ValueError) as excinfo:
             trades_service.insert_trade(
+                external_id="external_123",
                 symbol="AAPL",
                 action="buy",
                 price=100.0,
@@ -177,6 +179,7 @@ class TestTradesService:
 
     async def test_delete_trade_normal(self, trades_service: TradesService):
         trade_id = trades_service.insert_trade(
+            external_id="external_123",
             symbol="AAPL",
             action="buy",
             price=100.0,

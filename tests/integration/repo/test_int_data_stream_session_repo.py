@@ -20,9 +20,8 @@ def repo(environment_setup: bool, application: ApplicationContainer):
 async def test_data_stream_session_lifecycle(repo):
     # Insert
     session_id = repo.insert_data_stream_session(
-        stream_type="test_stream",
+        stream_class_name="test_stream",
         symbol="TEST",
-        strategy_name="test_strategy",
         start_time=datetime.now(timezone.utc),
     )
     session_id = session_id[0] if isinstance(session_id, tuple) else session_id

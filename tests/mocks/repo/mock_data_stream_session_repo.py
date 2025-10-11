@@ -11,7 +11,7 @@ class MockDataStreamSessionRepo(DataStreamSessionRepo):
     def __init__(self):
         self.dao = MockDataStreamSessionDAO()
         self.logger = MockLoggable()
-        super().__init__(dao=self.dao, logger=self.logger)
+        super().__init__(dao=self.dao, logger=self.logger, application_env="test_env")
         self._return_empty = False
         self._raise_exception = False
 
@@ -37,15 +37,17 @@ class MockDataStreamSessionRepo(DataStreamSessionRepo):
 
     def insert_data_stream_session(
         self,
-        stream_type: str,
+        stream_class_name: str,
         symbol: str,
-        strategy_name: str,
         start_time: datetime.datetime,
     ) -> UUID | None:
         if self._raise_exception:
             raise ValueError("Database error")
         return self.dao.insert_data_stream_session(
-            stream_type, symbol, strategy_name, start_time
+            stream_class_name=stream_class_name,
+            symbol=symbol,
+            application_env="test_env",
+            start_time=start_time,
         )
 
     def update_data_stream_session_end_time(

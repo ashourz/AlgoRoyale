@@ -4,6 +4,7 @@ import psycopg2
 from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
 
 from algo_royale.clients.db.database_manager import DatabaseManager
+from algo_royale.clients.db.db_utils import is_valid_db_name
 from algo_royale.clients.db.migrations.migration_manager import MigrationManager
 from algo_royale.clients.db.process_manager import ProcessManager
 from algo_royale.clients.db.user_manager import UserManager
@@ -105,17 +106,21 @@ class DatabaseAdmin:
         self,
         retries: int = 3,
         delay: int = 2,
+        db_name: str = None,
     ) -> psycopg2.extensions.connection:
         """
         Create a new database.
         """
+        db_name = db_name or self.master_db_name
+        if not is_valid_db_name(db_name):
+            raise ValueError(f"Invalid database name: {db_name}")
         attempt = 0
         while attempt < retries:
             try:
                 # Connect to the "postgres" database for creation if needed
                 self.logger.info("🔗 Attempting to connect to the database...")
                 conn = psycopg2.connect(
-                    dbname=self.master_db_name,
+                    dbname=db_name,
                     user=self.master_db_user,
                     password=self.master_db_password,
                     host=self.db_host,
@@ -144,7 +149,62 @@ class DatabaseAdmin:
             create_if_not_exists=True,
         )
 
+    def drop_database(self, db_name: str):
+        try:
+            master_db_connection = self.get_master_db_connection()
+            self.database_manager.drop_database(
+                master_db_connection=master_db_connection,
+                db_name=db_name,
+            )
+        except Exception as e:
+            self.logger.error(f"Error dropping database {db_name}: {e}")
+            raise e
+        finally:
+            master_db_connection.close()
+
+    def drop_user(self, username: str):
+        try:
+            master_db_connection = self.get_master_db_connection()
+            self.user_manager.delete_user(
+                master_db_connection=master_db_connection,
+                username=username,
+            )
+        except Exception as e:
+            self.logger.error(f"Error dropping user {username}: {e}")
+            raise e
+        finally:
+            master_db_connection.close()
+
+    def drop_all_tables(self, db_name: str):
+        try:
+            master_db_connection = self.get_master_db_connection(db_name=db_name)
+            self.database_manager.drop_all_tables(
+                master_db_connection=master_db_connection
+            )
+        except Exception as e:
+            self.logger.error(f"Error dropping all tables: {e}")
+            raise e
+        finally:
+            master_db_connection.close()
+
+    def drop_table(self, db_name: str, table_name: str):
+        try:
+            master_db_connection = self.get_master_db_connection(db_name=db_name)
+            self.database_manager.drop_table(
+                master_db_connection=master_db_connection,
+                table_name=table_name,
+            )
+        except Exception as e:
+            self.logger.error(f"Error dropping table {table_name}: {e}")
+            raise e
+        finally:
+            master_db_connection.close()
+
     def teardown_environment(self, service_name="postgresql-x64-13"):
+        """
+        Tear down the database environment by unregistering the instance and stopping
+        the PostgreSQL service if no other instances are running.
+        """
         self.process_manager.unregister_instance()
         if not self.process_manager.any_other_instances_running():
             self.process_manager.stop_postgres_service(service_name)

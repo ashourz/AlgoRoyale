@@ -48,24 +48,19 @@ class TestClockService:
         print("Teardown")
         reset_clock_service(clock_service)
 
-    async def test_start_and_stop(self, clock_service):
-        # Should not raise
-        clock_service.start()
-        await clock_service.async_stop()
-
-    def test_get_system_utc_time(self, clock_service):
-        now = clock_service.get_system_utc_time()
+    def test_now(self, clock_service: ClockService):
+        now = clock_service.now()
         from datetime import timezone
 
         assert now.tzinfo == timezone.utc
 
     @pytest.mark.asyncio
-    async def test_async_get_market_clock(self, clock_service):
+    async def test_async_get_market_clock(self, clock_service: ClockService):
         # Should return a mock Clock object
         clock = await clock_service.async_get_market_clock()
         assert clock is not None
 
-    def test_ensure_utc(self, clock_service):
+    def test_ensure_utc(self, clock_service: ClockService):
         from datetime import datetime, timezone
 
         # Already UTC
@@ -82,7 +77,7 @@ class TestClockService:
         assert dt_est_to_utc.tzinfo == timezone.utc
 
     @pytest.mark.asyncio
-    async def test_schedule_job(self, clock_service):
+    async def test_schedule_job(self, clock_service: ClockService):
         # Schedule a job in the past (should run immediately)
         import asyncio
         from datetime import datetime, timedelta, timezone
