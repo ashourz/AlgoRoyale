@@ -2,7 +2,7 @@ import json
 from pathlib import Path
 from typing import Dict, Sequence
 
-from algo_royale.backtester.evaluator import symbol
+# (removed unused import 'symbol')
 from algo_royale.backtester.maps.portfolio_strategy_class_map import (
     PORTFOLIO_STRATEGY_CLASS_MAP,
 )
@@ -22,7 +22,7 @@ class PortfolioStrategyRegistry:
         self,
         symbol_service: SymbolService,
         stage_data_manager: StageDataManager,
-        evaluation_json_filename: str,
+        strategy_summary_json_filename: str,
         viable_strategies_path: str,
         portfolio_strategy_factory: PortfolioStrategyFactory,
         optimization_root_path: str,
@@ -30,9 +30,9 @@ class PortfolioStrategyRegistry:
     ):
         self.symbol_manager = symbol_service
         self.stage_data_manager = stage_data_manager
-        if not evaluation_json_filename:
-            raise ValueError("evaluation_json_filename must be provided")
-        self.evaluation_json_filename = evaluation_json_filename
+        if not strategy_summary_json_filename:
+            raise ValueError("strategy_summary_json_filename must be provided")
+        self.strategy_summary_json_filename = strategy_summary_json_filename
         if not viable_strategies_path:
             raise ValueError("viable_strategies_path must be provided")
         self.viable_strategies_path = Path(viable_strategies_path)
@@ -64,7 +64,7 @@ class PortfolioStrategyRegistry:
             return self._get_buffered_portfolio_strategy(best_portfolio_strategy_map)
         except Exception as e:
             self.logger.error(
-                f"Error getting weighted buffer signal strategy for {symbol}: {e}"
+                f"Error getting weighted buffer signal strategy for {symbols}: {e}"
             )
         return None
 
@@ -84,6 +84,9 @@ class PortfolioStrategyRegistry:
                 self.portfolio_strategy_map = {}
             with open(self.viable_strategies_path, "r") as f:
                 try:
+                    self.logger.info(
+                        f"Loading viable strategies from {self.viable_strategies_path}..."
+                    )
                     self.portfolio_strategy_map = json.load(f)
                 except json.JSONDecodeError as e:
                     self.logger.error(
@@ -120,7 +123,7 @@ class PortfolioStrategyRegistry:
                     }
             if best_strategy_dict:
                 self.logger.info(
-                    f"Best buffered strategy for {symbol}: {best_strategy_dict['name']} with viability score {best_strategy_dict['viability_score']}"
+                    f"Best buffered strategy for {symbol_str}: {best_strategy_dict['name']} with viability score {best_strategy_dict['viability_score']}"
                 )
                 self.portfolio_strategy_map[symbol_str] = best_strategy_dict
             return best_strategy_dict
@@ -157,23 +160,27 @@ class PortfolioStrategyRegistry:
         viable_strategy_params = {}
         try:
             symbol_dir = self._get_symbols_dir(symbols)
-            strategy_dirs = [d for d in symbol_dir.iterdir() if d.is_dir()]
+            # Only look for the portfolio summary file at the symbol directory
             reports = []
-            for strat_dir in strategy_dirs:
+            symbol_summary = symbol_dir / self.strategy_summary_json_filename
+            if symbol_summary.exists():
                 try:
-                    self.logger.debug(f"Checking strategy directory: {strat_dir}")
-                    eval_path = strat_dir / self.evaluation_json_filename
-                    if eval_path.exists():
-                        with open(eval_path) as f:
-                            loaded_results = json.load(f)
-                        report = loaded_results
-                        report["strategy"] = strat_dir.name
-                        reports.append(report)
+                    self.logger.debug(
+                        f"Found {self.strategy_summary_json_filename} for {symbols}: {symbol_summary}"
+                    )
+                    with open(symbol_summary) as f:
+                        loaded_results = json.load(f)
+                    report = loaded_results
+                    # Ensure strategy name is present (some outputs may omit it)
+                    if not report.get("strategy"):
+                        report["strategy"] = (
+                            loaded_results.get("strategy") or symbol_dir.name
+                        )
+                    reports.append(report)
                 except Exception as e:
                     self.logger.error(
-                        f"Error processing strategy directory {strat_dir}: {e}"
+                        f"Error processing summary_result.json for {symbols}: {e}"
                     )
-
             if not reports:
                 self.logger.warning(
                     f"No evaluation results found for {symbols} in {symbol_dir}. Skipping."
@@ -198,15 +205,15 @@ class PortfolioStrategyRegistry:
                     )
                 except json.JSONDecodeError as e:
                     self.logger.error(
-                        f"Failed to decode JSON for {symbols} in {strat_dir}: {e}"
+                        f"Failed to decode JSON for {symbols} in {symbol_summary}: {e}"
                     )
                 except FileNotFoundError as e:
                     self.logger.error(
-                        f"Evaluation file not found for {symbols} in {strat_dir}: {e}"
+                        f"Evaluation file not found for {symbols} in {symbol_summary}: {e}"
                     )
                 except Exception as e:
                     self.logger.error(
-                        f"Unexpected error processing report for {symbols} in {strat_dir}: {e}"
+                        f"Unexpected error processing report for {symbols} in {symbol_summary}: {e}"
                     )
 
         except Exception as e:

@@ -53,9 +53,9 @@ class RegistryContainer:
         return PortfolioStrategyRegistry(
             symbol_service=self.ledger_service_container.symbol_service,
             stage_data_manager=self.stage_data_container.stage_data_manager,
-            evaluation_json_filename=self.config["backtester_portfolio_filenames"][
-                "portfolio_strategy_evaluation_json_filename"
-            ],
+            strategy_summary_json_filename=self.config[
+                "backtester_portfolio_filenames"
+            ]["portfolio_summary_json_filename"],
             viable_strategies_path=self.config["trading_paths"][
                 "viable_portfolio_strategies_path"
             ],

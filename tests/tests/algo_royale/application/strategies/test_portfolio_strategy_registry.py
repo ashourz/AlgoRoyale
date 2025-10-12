@@ -43,7 +43,7 @@ def registry(tmp_path):
     return PortfolioStrategyRegistry(
         symbol_service=MockSymbolService(),
         stage_data_manager=MockStageDataManager(),
-        evaluation_json_filename="eval.json",
+        strategy_summary_json_filename="eval.json",
         viable_strategies_path=str(viable_strategies_path),
         portfolio_strategy_factory=MockPortfolioStrategyFactory(),
         optimization_root_path=str(tmp_path / "optimization"),

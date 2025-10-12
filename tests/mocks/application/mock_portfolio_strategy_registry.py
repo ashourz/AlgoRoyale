@@ -23,7 +23,7 @@ class MockPortfolioStrategyRegistry(PortfolioStrategyRegistry):
         super().__init__(
             symbol_service=MockSymbolService(),
             stage_data_manager=MockStageDataManager(),
-            evaluation_json_filename="mock_evaluation.json",
+            strategy_summary_json_filename="mock_evaluation.json",
             viable_strategies_path="mock_viable_strategies",
             portfolio_strategy_factory=MockPortfolioStrategyFactory(),
             optimization_root_path="mock_optimization_root",
