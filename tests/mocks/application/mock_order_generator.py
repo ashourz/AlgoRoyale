@@ -38,6 +38,3 @@ class MockOrderGenerator(OrderGenerator):
 
     async def async_unsubscribe_from_order_events(self, symbol, async_subscriber):
         return
-
-    async def async_restart_stream(self, symbols):
-        return

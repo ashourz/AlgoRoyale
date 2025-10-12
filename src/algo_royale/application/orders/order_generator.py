@@ -104,43 +104,36 @@ class OrderGenerator:
                 f"Error unsubscribing from order events for {symbol}: {e}"
             )
 
-    async def async_restart_stream(self, symbols: list[str]) -> list[str]:
-        """
-        Restart the order generation stream.
-        """
-        try:
-            await self._async_stop()
-            subscribed_symbols = await self._async_start(symbols=symbols)
-            return subscribed_symbols
-        except Exception as e:
-            self.logger.error(f"Error restarting order generation stream: {e}")
-            return []
-
     async def _async_start(self, symbols: list[str]) -> list[str]:
         """
         Start the order generation process for the given symbols.
         """
         try:
-            self.logger.info(f"Starting order generation for symbols: {symbols}")
+            self.logger.info(f"Subscribing to order events for symbols: {symbols}")
+            if not symbols:
+                self.logger.error("No symbols provided to start order generation.")
+                return []
+            subscribed_symbols = await self._async_subscribe_to_roster_stream(symbols)
+            self.logger.info(
+                f"Subscribed to roster stream for symbols: {subscribed_symbols}"
+            )
             self.portfolio_strategy = (
                 self.portfolio_strategy_registry.get_buffered_portfolio_strategy(
-                    symbols=symbols
+                    symbols=subscribed_symbols
                 )
             )
             if not self.portfolio_strategy:
-                self.logger.error(f"No portfolio strategy found for symbols: {symbols}")
+                self.logger.error(
+                    f"No portfolio strategy found for symbols: {subscribed_symbols}"
+                )
                 return
             else:
                 self.logger.info(
                     f"Using portfolio strategy: {self.portfolio_strategy.get_description()}"
                 )
-            subscribed_symbols = await self._async_subscribe_to_roster_stream(symbols)
-            self.logger.info(
-                f"Order generation started for symbols: {subscribed_symbols}"
-            )
             # Update internal symbol set
             self.symbols.update(set(subscribed_symbols))
-            self.logger.info(f"Internal symbol set updated: {self.symbols}")
+            self.logger.info(f"Internal symbol set updated: {subscribed_symbols}")
             return subscribed_symbols
         except Exception as e:
             self.logger.error(
