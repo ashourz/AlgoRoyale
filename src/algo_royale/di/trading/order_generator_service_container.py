@@ -51,7 +51,6 @@ class OrderGeneratorServiceContainer:
                 logger_type=LoggerType.MARKET_DATA_RAW_STREAMER
             ),
             clock_provider=self.clock_provider,
-            is_live=bool(self.config["environment"]["is_live"]),
         )
 
     @property

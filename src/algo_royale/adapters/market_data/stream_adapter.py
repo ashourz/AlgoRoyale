@@ -6,7 +6,6 @@ from algo_royale.clients.alpaca.alpaca_market_data.alpaca_stream_client import (
     AlpacaStreamClient,
 )
 from algo_royale.logging.loggable import Loggable
-from algo_royale.models.alpaca_market_data.enums import DataFeed
 
 
 class StreamSymbols(BaseModel):
@@ -50,7 +49,6 @@ class StreamAdapter:
     async def async_start_stream(
         self,
         symbols: list[str],
-        feed: DataFeed = DataFeed.IEX,
         on_quote: Callable = None,
         on_trade: Callable = None,
         on_bar: Callable = None,
@@ -60,14 +58,12 @@ class StreamAdapter:
 
         Args:
             symbols (list[str]): The list of symbols to subscribe to.
-            feed (DataFeed): The data feed to use (IEX, SIP, or TEST).
             on_quote (Callable): A coroutine function for handling quote messages.
             on_trade (Callable): A coroutine function for handling trade messages.
             on_bar (Callable): A coroutine function for handling bar messages.
         """
         await self.stream_client.stream(
             symbols=symbols,
-            feed=feed,
             on_quote=on_quote,
             on_trade=on_trade,
             on_bar=on_bar,

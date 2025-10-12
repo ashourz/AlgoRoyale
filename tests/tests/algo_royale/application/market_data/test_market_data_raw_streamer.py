@@ -16,7 +16,6 @@ def market_data_raw_streamer():
         data_stream_session_repo=MockDataStreamSessionRepo(),
         clock_provider=ClockProvider(),
         logger=MockLoggable(),
-        is_live=False,
     )
     yield service
 

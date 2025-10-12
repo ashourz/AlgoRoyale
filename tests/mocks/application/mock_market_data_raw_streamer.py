@@ -19,7 +19,6 @@ class MockMarketDataRawStreamer(MarketDataRawStreamer):
             data_stream_session_repo=MockDataStreamSessionRepo(),
             clock_provider=ClockProvider(),
             logger=MockLoggable(),
-            is_live=False,
         )
         self.return_empty = False
         self.subscribers = {}  # symbol -> list of AsyncSubscriber

@@ -3,13 +3,12 @@ import asyncio
 import json
 from typing import Callable, Optional
 
-from websockets.client import connect
+from websockets import connect
 from websockets.exceptions import ConnectionClosed
 
 from algo_royale.clients.alpaca.alpaca_base_client import AlpacaBaseClient
 from algo_royale.logging.loggable import Loggable
 from algo_royale.models.alpaca_market_data.alpaca_stream_quote import StreamQuote
-from algo_royale.models.alpaca_market_data.enums import DataFeed
 
 
 class AlpacaStreamClient(AlpacaBaseClient):
@@ -31,6 +30,7 @@ class AlpacaStreamClient(AlpacaBaseClient):
         api_secret: str,
         api_key_header: str,
         api_secret_header: str,
+        data_stream_feed: str,
         http_timeout: int = 10,
         reconnect_delay: int = 5,
         keep_alive_timeout: int = 20,
@@ -46,7 +46,7 @@ class AlpacaStreamClient(AlpacaBaseClient):
             reconnect_delay=reconnect_delay,
             keep_alive_timeout=keep_alive_timeout,
         )
-
+        self.data_stream_feed = data_stream_feed
         # Sets to track what you're subscribed to
         self.quote_symbols = set()
         self.trade_symbols = set()
@@ -62,7 +62,6 @@ class AlpacaStreamClient(AlpacaBaseClient):
     async def stream(
         self,
         symbols: list[str],
-        feed: DataFeed = DataFeed.IEX,
         on_quote: Optional[Callable] = None,
         on_trade: Optional[Callable] = None,
         on_bar: Optional[Callable] = None,
@@ -85,13 +84,26 @@ class AlpacaStreamClient(AlpacaBaseClient):
         """
         self.quote_symbols.update(symbols)
 
-        url = f"{self.base_url}/{feed.value}"
+        url = f"{self.base_url}/{self.data_stream_feed}"
 
         while not self.stop_stream:
             try:
-                async with connect(url, ping_interval=self.keep_alive_timeout) as ws:
+                self.logger.info(f"Connecting to WebSocket at {url}...")
+                # Prepare auth headers for handshake
+                auth_headers = self._get_auth_headers() or {}
+
+                async with connect(
+                    url,
+                    ping_interval=self.keep_alive_timeout,
+                    additional_headers=auth_headers,
+                ) as ws:
                     self.websocket = ws
-                    await self._authenticate(ws)
+
+                    # If we didn't provide auth via handshake headers, send the auth frame
+                    # If auth headers were used by the handshake, avoid sending an additional auth
+                    if not auth_headers:
+                        await self._authenticate(ws)
+
                     await self._send_subscription(ws)
 
                     self.logger.info("WebSocket connection established")
@@ -118,12 +130,19 @@ class AlpacaStreamClient(AlpacaBaseClient):
 
     async def _send_subscription(self, ws):
         """Send subscription message for quotes/trades/bars."""
-        msg = {
-            "action": "subscribe",
-            "quotes": list(self.quote_symbols),
-            "trades": list(self.trade_symbols),
-            "bars": list(self.bar_symbols),
-        }
+        msg = {"action": "subscribe"}
+        if self.quote_symbols:
+            msg["quotes"] = list(self.quote_symbols)
+        if self.trade_symbols:
+            msg["trades"] = list(self.trade_symbols)
+        if self.bar_symbols:
+            msg["bars"] = list(self.bar_symbols)
+
+        # Don't send an empty subscribe request
+        if len(msg) == 1:
+            self.logger.debug("No symbols to subscribe to; skipping subscribe request")
+            return
+
         await ws.send(json.dumps(msg))
         self.logger.info(
             f"Subscribed to quotes: {self.quote_symbols}, trades: {self.trade_symbols}, bars: {self.bar_symbols}"
@@ -131,12 +150,18 @@ class AlpacaStreamClient(AlpacaBaseClient):
 
     async def _unsubscribe(self, ws, quotes=[], trades=[], bars=[]):
         """Send unsubscribe message."""
-        msg = {
-            "action": "unsubscribe",
-            "quotes": quotes,
-            "trades": trades,
-            "bars": bars,
-        }
+        msg = {"action": "unsubscribe"}
+        if quotes:
+            msg["quotes"] = quotes
+        if trades:
+            msg["trades"] = trades
+        if bars:
+            msg["bars"] = bars
+
+        if len(msg) == 1:
+            self.logger.debug("No symbols to unsubscribe; skipping unsubscribe request")
+            return
+
         await ws.send(json.dumps(msg))
         self.logger.info(
             f"Unsubscribed from quotes: {quotes}, trades: {trades}, bars: {bars}"
@@ -182,9 +207,13 @@ class AlpacaStreamClient(AlpacaBaseClient):
         """Send periodic ping messages to keep the connection alive."""
         try:
             while not self.stop_stream:
-                ping_msg = {"action": "ping"}
-                await ws.send(json.dumps(ping_msg))
-                self.logger.debug("Sent ping")
+                # Use websocket-level ping (binary ping frame) rather than sending a JSON ping
+                # which some Alpaca servers may interpret as malformed JSON commands.
+                try:
+                    await ws.ping()
+                    self.logger.debug("Sent ping")
+                except Exception as e:
+                    self.logger.warning(f"Ping send failed: {e}")
                 await asyncio.sleep(self.keep_alive_timeout)
         except Exception as e:
             self.logger.warning(f"Ping loop terminated: {e}")

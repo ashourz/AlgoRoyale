@@ -128,6 +128,7 @@ class ClientContainer:
             api_secret=self.secrets["alpaca"]["api_secret"],
             api_key_header=self.config["alpaca_headers"]["api_key"],
             api_secret_header=self.config["alpaca_headers"]["api_secret"],
+            data_stream_feed=self.config["alpaca_params"]["data_stream_feed"],
             http_timeout=int(self.config["alpaca_params"]["http_timeout"]),
             reconnect_delay=int(self.config["alpaca_params"]["reconnect_delay"]),
             keep_alive_timeout=int(self.config["alpaca_params"]["keep_alive_timeout"]),

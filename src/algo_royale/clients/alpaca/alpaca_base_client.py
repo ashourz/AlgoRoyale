@@ -103,9 +103,19 @@ class AlpacaBaseClient(ABC):
 
     def _get_headers(self) -> Dict[str, str]:
         """Return headers needed for API requests."""
-        return {
+        # Base headers for all requests
+        base_headers: Dict[str, str] = {
             "accept": "application/json",
             "content-type": "application/json",
+        }
+
+        # Merge auth headers and return a new dict (dict.update() returns None)
+        merged = {**base_headers, **self._get_auth_headers()}
+        return merged
+
+    def _get_auth_headers(self) -> Dict[str, str]:
+        """Return auth headers needed for API requests."""
+        return {
             self.api_key_header: self.api_key,
             self.api_secret_header: self.api_secret,
         }

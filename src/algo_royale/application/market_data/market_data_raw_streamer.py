@@ -9,7 +9,6 @@ from algo_royale.application.utils.async_pubsub import AsyncSubscriber
 from algo_royale.logging.loggable import Loggable
 from algo_royale.models.alpaca_market_data.alpaca_stream_bar import StreamBar
 from algo_royale.models.alpaca_market_data.alpaca_stream_quote import StreamQuote
-from algo_royale.models.alpaca_market_data.enums import DataFeed
 from algo_royale.repo.data_stream_session_repo import DataStreamSessionRepo
 from algo_royale.utils.clock_provider import ClockProvider
 
@@ -27,7 +26,6 @@ class MarketDataRawStreamer:
         data_stream_session_repo: DataStreamSessionRepo,
         logger: Loggable,
         clock_provider: ClockProvider,
-        is_live: bool = False,
     ):
         self.stream_adapter = stream_adapter
         self.data_stream_session_repo = data_stream_session_repo
@@ -35,7 +33,6 @@ class MarketDataRawStreamer:
         self.upstream_subscriber_map: Dict[str, list[AsyncSubscriber]] = {}
         self.symbol_data_stream_session_ids: dict[str, UUID] = {}
         self.logger = logger
-        self.is_live = is_live
         self.clock_provider = clock_provider
 
     ## Subscribe Methods
@@ -111,10 +108,8 @@ class MarketDataRawStreamer:
                     )
                     self.logger.info(f"Added symbol {symbol} to stream.")
                 else:
-                    feed = DataFeed.SIP if self.is_live else DataFeed.IEX
                     await self.stream_adapter.async_start_stream(
                         symbols=[symbol],
-                        feed=feed,
                         on_quote=self._onQuote,
                         on_bar=self._onBar,
                     )
@@ -157,11 +152,22 @@ class MarketDataRawStreamer:
         """
         try:
             self.logger.debug(f"Received raw quote: {raw_quote}")
-            quote = StreamQuote.from_raw(raw_quote)
+            # Accept either a raw dict from the websocket or an already-parsed StreamQuote
+            if isinstance(raw_quote, StreamQuote):
+                quote = raw_quote
+            else:
+                quote = StreamQuote.from_raw(raw_quote)
+
             self.logger.info(f"Received quote: {quote}")
-            await self.stream_data_ingest_object_map[
-                quote.symbol
-            ].async_update_with_quote(quote)
+
+            # Do nothing if there's no StreamDataIngestObject for this symbol
+            if quote.symbol not in self.stream_data_ingest_object_map:
+                self.logger.debug(f"No StreamDataIngestObject for {quote.symbol}")
+                return
+
+            await self.stream_data_ingest_object_map[quote.symbol]._update_with_quote(
+                quote
+            )
             self.logger.debug(f"Updated stream data ingest object for {quote.symbol}")
 
         except Exception as e:
@@ -175,8 +181,19 @@ class MarketDataRawStreamer:
         """
         try:
             self.logger.debug(f"Received raw bar: {raw_bar}")
-            bar = StreamBar.from_raw(raw_bar)
+            # Accept either a raw dict from the websocket or an already-parsed StreamBar
+            if isinstance(raw_bar, StreamBar):
+                bar = raw_bar
+            else:
+                bar = StreamBar.from_raw(raw_bar)
+
             self.logger.info(f"Received bar: {bar}")
+
+            # Do nothing if there's no StreamDataIngestObject for this symbol
+            if bar.symbol not in self.stream_data_ingest_object_map:
+                self.logger.debug(f"No StreamDataIngestObject for {bar.symbol}")
+                return
+
             await self.stream_data_ingest_object_map[bar.symbol].async_update_with_bar(
                 bar
             )

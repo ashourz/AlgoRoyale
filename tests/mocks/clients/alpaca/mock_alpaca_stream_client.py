@@ -25,7 +25,7 @@ class MockAlpacaStreamClient(AlpacaStreamClient):
         self.trade_symbols = set()
         self.bar_symbols = set()
 
-    async def stream(self, symbols, feed, on_quote, on_trade, on_bar):
+    async def stream(self, symbols, on_quote, on_trade, on_bar):
         # Simulate subscribing to symbols for each type
         if on_quote is not None:
             self.quote_symbols.update(symbols)
