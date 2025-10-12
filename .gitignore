@@ -1,6 +1,4 @@
 # Ignore config files
-secrets.ini
-env_secrets*.ini
 .env
 
 # Ignore virtual environment folder
