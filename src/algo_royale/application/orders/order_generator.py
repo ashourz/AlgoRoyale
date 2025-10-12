@@ -126,7 +126,8 @@ class OrderGenerator:
                 self.logger.error(
                     f"No portfolio strategy found for symbols: {subscribed_symbols}"
                 )
-                return
+                # Return an empty list to the caller to avoid iterating over None
+                return []
             else:
                 self.logger.info(
                     f"Using portfolio strategy: {self.portfolio_strategy.get_description()}"

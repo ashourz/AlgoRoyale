@@ -1,4 +1,5 @@
 import json
+import threading
 from pathlib import Path
 from typing import Dict, Sequence
 
@@ -38,7 +39,10 @@ class PortfolioStrategyRegistry:
         self.viable_strategies_path = Path(viable_strategies_path)
         self.portfolio_strategy_factory = portfolio_strategy_factory
         self.logger = logger
-        self.portfolio_strategy_map: dict[list[str], BufferedPortfolioStrategy] = {}
+        # Map of symbol_dir_name -> strategy descriptor dict (persisted as JSON)
+        self.portfolio_strategy_map: dict[str, dict] = {}
+        # Lock to protect concurrent access to portfolio_strategy_map and file writes
+        self._lock = threading.RLock()
         self.optimization_root_path = Path(optimization_root_path)
         self._load_existing_viable_strategy_params()
 
@@ -49,9 +53,11 @@ class PortfolioStrategyRegistry:
         try:
             self.logger.info(f"Getting portfolio strategy for {symbols}...")
             symbol_str = self._get_symbols_dir_name(symbols)
-            best_portfolio_strategy_map = self.portfolio_strategy_map.get(
-                symbol_str, {}
-            )
+            # Acquire lock when reading shared in-memory map
+            with self._lock:
+                best_portfolio_strategy_map = self.portfolio_strategy_map.get(
+                    symbol_str, {}
+                )
             if not best_portfolio_strategy_map:
                 self.logger.info(
                     f"No buffered strategies found for {symbol_str}. Retrieving existing viable strategies."
@@ -59,7 +65,13 @@ class PortfolioStrategyRegistry:
                 best_portfolio_strategy_map = self._update_portfolio_strategy_map(
                     symbols
                 )
-                self._sync_viable_strategy_params()
+                # Only persist if we actually found a viable best strategy.
+                if best_portfolio_strategy_map:
+                    self._sync_viable_strategy_params()
+                else:
+                    self.logger.info(
+                        f"No viable portfolio strategies found for {symbol_str}; skipping sync."
+                    )
 
             return self._get_buffered_portfolio_strategy(best_portfolio_strategy_map)
         except Exception as e:
@@ -100,8 +112,15 @@ class PortfolioStrategyRegistry:
         """Sync the current state with the viable strategies file."""
         self.logger.info("Syncing viable portfolio strategy parameters...")
         try:
-            with open(self.viable_strategies_path, "w") as f:
-                json.dump(self.portfolio_strategy_map, f, indent=2)
+            # Write atomically: write to a temp file then replace the target.
+            tmp_path = self.viable_strategies_path.with_suffix(".tmp")
+            # Lock map snapshot during write to ensure consistency
+            with self._lock:
+                snapshot = dict(self.portfolio_strategy_map)
+            with open(tmp_path, "w") as f:
+                json.dump(snapshot, f, indent=2)
+            # Use Path.replace/rename which is atomic on most OSes
+            tmp_path.replace(self.viable_strategies_path)
             self.logger.info(
                 f"Viable portfolio strategies successfully synced to {self.viable_strategies_path}"
             )
@@ -111,27 +130,35 @@ class PortfolioStrategyRegistry:
     def _update_portfolio_strategy_map(self, symbols: list[str]) -> dict:
         try:
             symbol_str = self._get_symbols_dir_name(symbols)
-            best_strategy_dict: dict = {}
             strategy_params = self._get_viable_strategies(symbols)
-            for strategy_name, metrics in strategy_params.items():
-                viability_score = metrics.get("viability_score", 0)
-                if viability_score > best_strategy_dict.get("viability_score", 0):
-                    best_strategy_dict = {
-                        "name": strategy_name,
-                        "viability_score": viability_score,
-                        "params": metrics.get("params", {}),
-                    }
-            if best_strategy_dict:
-                self.logger.info(
-                    f"Best buffered strategy for {symbol_str}: {best_strategy_dict['name']} with viability score {best_strategy_dict['viability_score']}"
-                )
-                self.portfolio_strategy_map[symbol_str] = best_strategy_dict
+
+            # Choose the strategy with the highest viability_score. If strategy_params
+            # is empty, return an empty dict.
+            if not strategy_params:
+                return {}
+
+            # strategy_params is a dict: {strategy_name: {"viability_score": x, "params": {...}}}
+            best_name, best_metrics = max(
+                strategy_params.items(),
+                key=lambda item: item[1].get("viability_score", float("-inf")),
+            )
+
+            best_strategy_dict = {
+                "name": best_name,
+                "viability_score": best_metrics.get("viability_score", 0),
+                "params": best_metrics.get("params", {}),
+            }
+
+            self.logger.info(
+                f"Best buffered strategy for {symbol_str}: {best_strategy_dict['name']} with viability score {best_strategy_dict['viability_score']}"
+            )
+            self.portfolio_strategy_map[symbol_str] = best_strategy_dict
             return best_strategy_dict
         except Exception as e:
             self.logger.error(
                 f"Error getting best buffered strategies for {symbols}: {e}"
             )
-        return None
+        return {}
 
     def _get_buffered_portfolio_strategy(
         self, strategy_dict: dict
@@ -146,9 +173,25 @@ class PortfolioStrategyRegistry:
             if not strategy_class:
                 self.logger.error(f"Unknown portfolio strategy: {strategy_name}")
                 return None
-            return self.portfolio_strategy_factory.build_buffered_strategy(
-                strategy_class=strategy_class, params=params
-            )
+            try:
+                strategy_obj = self.portfolio_strategy_factory.build_buffered_strategy(
+                    strategy_class=strategy_class, params=params
+                )
+                try:
+                    self.logger.debug(
+                        f"Successfully built buffered strategy for {strategy_name}: {strategy_obj.get_description()}"
+                    )
+                except Exception:
+                    # Description call is best-effort for diagnostics
+                    self.logger.debug(
+                        f"Successfully built buffered strategy for {strategy_name}"
+                    )
+                return strategy_obj
+            except Exception as e:
+                self.logger.error(
+                    f"Error building buffered strategy for {strategy_dict}: {e}"
+                )
+                return None
         except Exception as e:
             self.logger.error(
                 f"Error building buffered strategy for {strategy_dict}: {e}"
@@ -161,7 +204,6 @@ class PortfolioStrategyRegistry:
         try:
             symbol_dir = self._get_symbols_dir(symbols)
             # Only look for the portfolio summary file at the symbol directory
-            reports = []
             symbol_summary = symbol_dir / self.strategy_summary_json_filename
             # Log the path we are checking so runtime can be diagnosed
             try:
@@ -174,59 +216,50 @@ class PortfolioStrategyRegistry:
                     f"Checking for summary file for {symbols} at: {repr(symbol_summary)}"
                 )
 
-            if symbol_summary.exists():
-                try:
-                    self.logger.debug(
-                        f"Found {self.strategy_summary_json_filename} for {symbols}: {symbol_summary}"
-                    )
-                    with open(symbol_summary) as f:
-                        loaded_results = json.load(f)
-                    report = loaded_results
-                    # Ensure strategy name is present (some outputs may omit it)
-                    if not report.get("strategy"):
-                        report["strategy"] = (
-                            loaded_results.get("strategy") or symbol_dir.name
-                        )
-                    reports.append(report)
-                except Exception as e:
-                    self.logger.error(
-                        f"Error processing summary_result.json for {symbols}: {e}"
-                    )
-            if not reports:
+            if not symbol_summary.exists():
                 self.logger.warning(
                     f"No evaluation results found for {symbols} in {symbol_dir}. Skipping."
                 )
                 return {}
 
-            # Filter only viable strategies
-            for report in reports:
-                try:
-                    if report.get("is_viable", False):
-                        strategy_name = report["strategy"]
-                        viability_score = report.get("viability_score", 0)
-                        params = report.get("most_common_best_params", {})
-                        metrics = {
-                            "viability_score": viability_score,
-                            "params": params,
-                        }
-                        viable_strategy_params[strategy_name] = metrics
-                except KeyError as e:
-                    self.logger.error(
-                        f"Missing expected key in report for {symbols}: {e}"
-                    )
-                except json.JSONDecodeError as e:
-                    self.logger.error(
-                        f"Failed to decode JSON for {symbols} in {symbol_summary}: {e}"
-                    )
-                except FileNotFoundError as e:
-                    self.logger.error(
-                        f"Evaluation file not found for {symbols} in {symbol_summary}: {e}"
-                    )
-                except Exception as e:
-                    self.logger.error(
-                        f"Unexpected error processing report for {symbols} in {symbol_summary}: {e}"
-                    )
-
+            try:
+                self.logger.debug(
+                    f"Found {self.strategy_summary_json_filename} for {symbols}: {symbol_summary}"
+                )
+                with open(symbol_summary) as f:
+                    report = json.load(f)
+                # Ensure strategy name is present (some outputs may omit it)
+                if not report.get("strategy"):
+                    report["strategy"] = report.get("strategy") or symbol_dir.name
+                # If summary indicates viability, add to map
+                if report.get("is_viable", False):
+                    strategy_name = report.get("strategy")
+                    viability_score = report.get("viability_score", 0)
+                    params = report.get("most_common_best_params", {})
+                    viable_strategy_params[strategy_name] = {
+                        "viability_score": viability_score,
+                        "params": params,
+                    }
+            except json.JSONDecodeError as e:
+                self.logger.error(
+                    f"Failed to decode JSON for {symbols} in {symbol_summary}: {e}"
+                )
+            except FileNotFoundError as e:
+                self.logger.error(
+                    f"Evaluation file not found for {symbols} in {symbol_summary}: {e}"
+                )
+            except Exception as e:
+                self.logger.error(
+                    f"Unexpected error processing summary for {symbols} in {symbol_summary}: {e}"
+                )
+            # Log the viable strategies found for easier runtime diagnosis
+            try:
+                self.logger.debug(
+                    f"Viable strategies detected for {symbols}: {viable_strategy_params}"
+                )
+            except Exception:
+                # Avoid logging failures causing selection failure
+                pass
         except Exception as e:
             self.logger.error(f"Error getting viable strategies for {symbols}: {e}")
         return viable_strategy_params
