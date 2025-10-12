@@ -1,3 +1,6 @@
+from algo_royale.backtester.data_preparer.asset_matrix_preparer import (
+    AssetMatrixPreparer,
+)
 from algo_royale.backtester.optimizer.portfolio.portfolio_strategy_optimizer_factory import (
     PortfolioStrategyOptimizerFactoryImpl,
 )
@@ -6,6 +9,9 @@ from algo_royale.backtester.optimizer.signal.signal_strategy_optimizer_factory i
 )
 from algo_royale.backtester.strategy_factory.portfolio.portfolio_strategy_combinator_factory import (
     PortfolioStrategyCombinatorFactory,
+)
+from algo_royale.backtester.strategy_factory.portfolio.portfolio_strategy_factory import (
+    PortfolioStrategyFactory,
 )
 from algo_royale.backtester.strategy_factory.signal.signal_strategy_combinator_factory import (
     SignalStrategyCombinatorFactory,
@@ -77,6 +83,26 @@ class FactoryContainer:
         return PortfolioStrategyOptimizerFactoryImpl(
             logger=self.logger_container.logger(
                 logger_type=LoggerType.PORTFOLIO_STRATEGY_OPTIMIZER_FACTORY
+            ),
+            strategy_logger=self.logger_container.logger(
+                logger_type=LoggerType.PORTFOLIO_STRATEGY
+            ),
+        )
+
+    @property
+    def asset_matrix_preparer(self) -> AssetMatrixPreparer:
+        return AssetMatrixPreparer(
+            logger=self.logger_container.logger(
+                logger_type=LoggerType.ASSET_MATRIX_PREPARER
+            )
+        )
+
+    @property
+    def portfolio_strategy_factory(self) -> PortfolioStrategyFactory:
+        return PortfolioStrategyFactory(
+            asset_matrix_preparer=self.asset_matrix_preparer,
+            logger=self.logger_container.logger(
+                logger_type=LoggerType.PORTFOLIO_STRATEGY_FACTORY
             ),
             strategy_logger=self.logger_container.logger(
                 logger_type=LoggerType.PORTFOLIO_STRATEGY

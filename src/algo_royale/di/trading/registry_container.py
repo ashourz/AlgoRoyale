@@ -4,6 +4,10 @@ from algo_royale.application.strategies.portfolio_strategy_registry import (
 from algo_royale.application.strategies.signal_strategy_registry import (
     SignalStrategyRegistry,
 )
+from algo_royale.di.factory_container import FactoryContainer
+from algo_royale.di.ledger_service_container import LedgerServiceContainer
+from algo_royale.di.logger_container import LoggerContainer
+from algo_royale.di.stage_data_container import StageDataContainer
 from algo_royale.logging.logger_type import LoggerType
 
 
@@ -11,10 +15,10 @@ class RegistryContainer:
     def __init__(
         self,
         config,
-        factory_container,
-        stage_data_container,
-        ledger_service_container,
-        logger_container,
+        factory_container: FactoryContainer,
+        stage_data_container: StageDataContainer,
+        ledger_service_container: LedgerServiceContainer,
+        logger_container: LoggerContainer,
     ):
         self.config = config
         self.factory_container = factory_container
@@ -59,7 +63,7 @@ class RegistryContainer:
             viable_strategies_path=self.config["trading_paths"][
                 "viable_portfolio_strategies_path"
             ],
-            portfolio_strategy_factory=self.factory_container.portfolio_strategy_combinator_factory,
+            portfolio_strategy_factory=self.factory_container.portfolio_strategy_factory,
             optimization_root_path=self.config["backtester_portfolio_paths"][
                 "portfolio_optimization_root_path"
             ],

@@ -32,6 +32,19 @@ class BufferedPortfolioStrategy(BaseStrategy):
     def get_strategy_name(self) -> str:
         return self.strategy.__class__.__name__
 
+    def get_description(self) -> str:
+        """Return a human-readable description for the wrapped strategy.
+
+        The underlying BasePortfolioStrategy implementations expose get_description().
+        Delegate to that so callers (including OrderGenerator and registry diagnostics)
+        can call get_description() on the buffered wrapper transparently.
+        """
+        try:
+            return self.strategy.get_description()
+        except Exception:
+            # Fall back to class name if underlying strategy doesn't provide description
+            return self.get_strategy_name()
+
     def update(
         self, roster: dict[str, SignalDataPayload]
     ) -> dict[str, pd.DataFrame] | None:
