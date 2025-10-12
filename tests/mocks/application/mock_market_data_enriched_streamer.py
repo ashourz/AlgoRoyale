@@ -38,7 +38,7 @@ class MockMarketDataEnrichedStreamer(MarketDataEnrichedStreamer):
                 for symbol in symbols
             }
 
-    async def async_unsubscribe_from_enriched_data(self, symbol_subscribers):
+    async def async_unsubscribe(self, symbol_subscribers):
         return
 
     async def async_restart_stream(self, symbols):

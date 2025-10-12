@@ -162,7 +162,7 @@ class OrderGenerator:
             (
                 loaded_symbols,
                 async_subscriber,
-            ) = await self.signal_generator.async_subscribe_to_signals(
+            ) = await self.signal_generator.async_subscribe(
                 symbols=list(symbols),
                 callback=roster_callback,
             )
@@ -305,9 +305,7 @@ class OrderGenerator:
             self.logger.info("Unsubscribing all subscribers from order events...")
             for symbol, subscribers in self.signal_order_subscribers.items():
                 for subscriber in subscribers:
-                    await self.signal_generator.async_unsubscribe_from_signals(
-                        subscriber=subscriber
-                    )
+                    await self.signal_generator.async_unsubscribe(subscriber=subscriber)
         except Exception as e:
             self.logger.error(f"Error unsubscribing all subscribers: {e}")
         finally:
@@ -319,9 +317,7 @@ class OrderGenerator:
         """
         try:
             for subscriber in self.signal_roster_subscribers:
-                await self.signal_generator.async_unsubscribe_from_signals(
-                    subscriber=subscriber
-                )
+                await self.signal_generator.async_unsubscribe(subscriber=subscriber)
             self.signal_roster_subscribers.clear()
             self.pubsub_orders_map.clear()
             self.portfolio_strategy = None

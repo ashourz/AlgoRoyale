@@ -1,5 +1,5 @@
 import asyncio
-from typing import Any, Callable, Optional
+from typing import Any, Callable
 
 from algo_royale.application.market_data.market_data_enriched_streamer import (
     MarketDataEnrichedStreamer,
@@ -42,12 +42,11 @@ class SignalGenerator:
         self.subscribers = []
         self.logger.info("SignalGenerator initialized.")
 
-    async def async_subscribe_to_signals(
+    async def async_subscribe(
         self,
         symbols: list[str],
         callback: Callable[[dict[str, SignalDataPayload], type], Any],
-        queue_size=1,
-    ) -> tuple[list[str], Optional[AsyncSubscriber]]:
+    ) -> tuple[list[str], AsyncSubscriber | None]:
         """
         Subscribe to signals for a specific symbol.
 
@@ -55,10 +54,9 @@ class SignalGenerator:
         :param callback: The callback function to call with the generated signals.
         """
         try:
-            loaded_symbols = await self._async_start(symbols=symbols)
+            loaded_symbols = await self._async_start_signal_generation(symbols=symbols)
             subscriber = self.signal_roster.subscribe(
                 callback=callback,
-                queue_size=queue_size,
             )
             self.subscribers.append(subscriber)
             self.logger.info(f"Subscribed to signals for symbols: {loaded_symbols}")
@@ -67,7 +65,7 @@ class SignalGenerator:
             self.logger.error(f"Error subscribing to signals: {e}")
             return ([], None)
 
-    async def async_unsubscribe_from_signals(self, subscriber: AsyncSubscriber):
+    async def async_unsubscribe(self, subscriber: AsyncSubscriber):
         """
         Unsubscribe from signals for a specific subscriber.
 
@@ -82,29 +80,20 @@ class SignalGenerator:
         except Exception as e:
             self.logger.error(f"Error unsubscribing from signals: {e}")
 
-    async def async_restart_stream(self) -> list[str] | None:
-        """
-        Restart the signal generation stream.
-        """
-        try:
-            await self._async_stop()
-            return await self._async_start()
-        except Exception as e:
-            self.logger.error(f"Error restarting signal stream: {e}")
-            return None
-
-    async def _async_start(self, symbols: list[str]) -> list[str]:
+    async def _async_start_signal_generation(self, symbols: list[str]) -> list[str]:
         """
         Generate a trading signal based on the provided data and strategy.
         """
         try:
-            loaded_symbols = self._load_symbol_strategies(symbols=symbols)
-            self._initialize_symbol_signal_lock(symbols=loaded_symbols)
-            await self._async_subscribe_to_enriched_streams(symbols=loaded_symbols)
-            self.logger.info(
-                f"Signal generation service started for symbols: {loaded_symbols}."
+            symbols_with_strategies = self._load_symbol_strategies(symbols=symbols)
+            self._initialize_symbol_signal_lock(symbols=symbols_with_strategies)
+            await self._async_subscribe_to_enriched_streams(
+                symbols=symbols_with_strategies
             )
-            return loaded_symbols
+            self.logger.info(
+                f"Signal generation service started for symbols: {symbols_with_strategies}."
+            )
+            return symbols_with_strategies
         except Exception as e:
             self.logger.error(f"Error starting signal generation: {e}")
             return []
@@ -116,33 +105,22 @@ class SignalGenerator:
         try:
             signals_with_strategies = []
             for symbol in symbols:
-                if self.symbol_strategy_map.get(symbol) is None:
+                if symbol not in self.symbol_strategy_map:
                     self.logger.debug(f"Loading strategies for symbol: {symbol}")
-                    self.symbol_strategy_map[symbol] = (
+                    strategy = (
                         self.strategy_registry.get_combined_weighted_signal_strategy(
                             symbol=symbol
                         )
                     )
-                    if self.symbol_strategy_map.get(symbol) is None:
-                        self.logger.debug(f"Loading strategies for symbol: {symbol}")
-                        strategy = self.strategy_registry.get_combined_weighted_signal_strategy(
-                            symbol=symbol
+                    if strategy is None:
+                        self.logger.warning(
+                            f"No strategy found for symbol: {symbol}. It will be skipped."
                         )
-                        if strategy is None:
-                            self.logger.warning(
-                                f"No strategy found for symbol: {symbol}. It will be skipped."
-                            )
-                            # Do not add to symbol_strategy_map
-                        else:
-                            self.symbol_strategy_map[symbol] = strategy
-                            signals_with_strategies.append(symbol)
-                            self.logger.info(
-                                f"Symbol strategies loaded successfully for {symbol}: {strategy}."
-                            )
                     else:
+                        self.symbol_strategy_map[symbol] = strategy
                         signals_with_strategies.append(symbol)
                         self.logger.info(
-                            f"Symbol strategies loaded successfully for {symbol}: {self.symbol_strategy_map[symbol]}."
+                            f"Symbol strategies loaded successfully for {symbol}: {strategy}."
                         )
                 else:
                     signals_with_strategies.append(symbol)
@@ -167,6 +145,8 @@ class SignalGenerator:
                 if symbol not in self.symbol_signal_lock_map:
                     self.symbol_signal_lock_map[symbol] = asyncio.Lock()
                     self.logger.debug(f"Initialized lock for symbol: {symbol}")
+                else:
+                    self.logger.debug(f"Lock already exists for symbol: {symbol}")
         except Exception as e:
             self.logger.error(f"Error initializing symbol signal locks: {e}")
 
@@ -179,7 +159,6 @@ class SignalGenerator:
             self.logger.debug(f"Subscribing to enriched stream for symbols: {symbols}")
 
             async def enriched_data_callback(enriched_data):
-                # Extract symbol from enriched_data if possible, otherwise iterate
                 symbol = (
                     enriched_data.get("symbol")
                     if isinstance(enriched_data, dict) and "symbol" in enriched_data
@@ -188,15 +167,13 @@ class SignalGenerator:
                 if symbol and symbol in self.symbol_strategy_map:
                     await self._async_generate_signal(symbol, enriched_data)
                 else:
-                    # fallback: try all symbols
-                    for sym in symbols:
-                        await self._async_generate_signal(sym, enriched_data)
+                    self.logger.warning(
+                        f"Received enriched data for unknown symbol: {symbol}"
+                    )
 
-            symbol_subscriber_map = (
-                await self.enriched_data_streamer.async_subscribe_to_enriched_data(
-                    symbols=symbols,
-                    callback=enriched_data_callback,
-                )
+            symbol_subscriber_map = await self.enriched_data_streamer.async_subscribe(
+                symbols=symbols,
+                callback=enriched_data_callback,
             )
             if symbol_subscriber_map is None:
                 self.logger.error(
@@ -268,13 +245,15 @@ class SignalGenerator:
         """
         try:
             symbol_subscribers = {
-                symbol: [async_subscriber]
+                async_subscriber
                 for symbol, async_subscriber in self.symbol_async_subscriber_map.items()
             }
-            await self.enriched_data_streamer.async_unsubscribe_from_enriched_data(
+            unsubscribed_symbols = await self.enriched_data_streamer.async_unsubscribe(
                 symbol_subscribers=symbol_subscribers
             )
-            self.logger.info("Unsubscribed from all enriched data streams")
+            self.logger.info(
+                f"Unsubscribed from all enriched data streams: {unsubscribed_symbols}"
+            )
         except Exception as e:
             self.logger.error(
                 f"Error unsubscribing from all enriched data streams: {e}"

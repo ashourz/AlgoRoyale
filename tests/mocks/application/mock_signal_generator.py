@@ -52,7 +52,7 @@ class MockSignalGenerator(SignalGenerator):
     def reset(self):
         self.return_empty = False
 
-    async def async_subscribe_to_signals(
+    async def async_subscribe(
         self, symbols, callback, queue_size=1, roster=None
     ) -> tuple[list[str], AsyncSubscriber | None]:
         if self.return_empty:
@@ -61,8 +61,5 @@ class MockSignalGenerator(SignalGenerator):
         await self._simulate_signal_and_order(symbols, callback, roster=roster)
         return (symbols, AsyncSubscriber(event_type="signal", callback=callback))
 
-    async def async_unsubscribe_from_signals(self, subscriber):
-        return
-
-    async def async_restart_stream(self):
+    async def async_unsubscribe(self, subscriber):
         return

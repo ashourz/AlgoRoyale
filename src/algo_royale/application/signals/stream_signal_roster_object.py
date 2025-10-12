@@ -118,7 +118,11 @@ class StreamSignalRosterObject:
         ],  # callback receives (data, object_type)
         queue_size: int = 1,
     ) -> AsyncSubscriber:
-        """Subscribe to updates with a callback."""
+        """Subscribe to updates with a callback.
+        :param callback: The function to call with updates.
+        :param queue_size: The size of the queue for the subscriber.
+        :return: An AsyncSubscriber object.
+        """
         return self._pubsub.subscribe(
             event_type=self.update_type, callback=callback, queue_size=queue_size
         )
