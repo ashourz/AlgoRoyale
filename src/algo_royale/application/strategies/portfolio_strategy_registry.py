@@ -163,6 +163,17 @@ class PortfolioStrategyRegistry:
             # Only look for the portfolio summary file at the symbol directory
             reports = []
             symbol_summary = symbol_dir / self.strategy_summary_json_filename
+            # Log the path we are checking so runtime can be diagnosed
+            try:
+                self.logger.info(
+                    f"Checking for summary file for {symbols} at: {symbol_summary} (exists={symbol_summary.exists()})"
+                )
+            except Exception:
+                # If symbol_dir isn't a Path for some reason, still log its repr
+                self.logger.info(
+                    f"Checking for summary file for {symbols} at: {repr(symbol_summary)}"
+                )
+
             if symbol_summary.exists():
                 try:
                     self.logger.debug(
