@@ -17,3 +17,8 @@ def get_project_root() -> Path:
 def get_config_dir() -> Path:
     """Get the config directory path."""
     return get_project_root() / "src/algo_royale/config"
+
+
+def get_secrets_dir() -> Path:
+    """Get the secrets directory path."""
+    return get_project_root() / "secrets"

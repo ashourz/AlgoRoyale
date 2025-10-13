@@ -1,6 +1,6 @@
 from enum import Enum
 
-from algo_royale.utils.path_utils import get_config_dir
+from algo_royale.utils.path_utils import get_config_dir, get_secrets_dir
 
 
 class ApplicationEnv(Enum):
@@ -23,7 +23,7 @@ class ApplicationEnv(Enum):
 
     @property
     def secrets_ini_path(self) -> str:
-        base = get_config_dir()
+        base = get_secrets_dir()
         if self is ApplicationEnv.PROD_LIVE:
             return str(base / "env_secrets_prod_live.ini")
         elif self is ApplicationEnv.PROD_PAPER:
