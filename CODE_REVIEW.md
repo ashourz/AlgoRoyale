@@ -109,7 +109,19 @@ Findings are grouped by priority and by file.
 
 Immediate (1–2 days):
 
-- Finish auditing all `cur.execute(...)` sites and fix any remaining f-string/concatenated SQL uses (I have fixed the most obvious ones).
+- SQL execute audit: completed. I inspected all `cur.execute(...)` call sites under `src/algo_royale/clients/db/` and verified they use safe patterns (parameterized queries, `psycopg2.sql.Identifier` for identifiers, or server-side `quote_ident` inside PL/pgSQL). Files reviewed:
+  - `src/algo_royale/clients/db/user_manager.py` (uses `sql.Identifier` + parameterized password and validation via `is_valid_identifier`).
+  - `src/algo_royale/clients/db/database_manager.py` (uses parameterized checks and `sql.Identifier`; `drop_all_tables` uses a server-side PL/pgSQL loop with `quote_ident`, which is safe on the server side).
+  - `src/algo_royale/clients/db/migrations/migration_manager.py` (executes migration SQL files from the repo — expected behaviour; these files are trusted source-controlled SQL scripts).
+  - `src/algo_royale/clients/db/database.py` (centralized `execute_query` helper that uses `cur.execute(query, params)` — callers should supply parameterized SQL and not format strings themselves).
+  - `src/algo_royale/clients/db/dao/base_dao.py` and DAO implementations (load SQL from `sql/` files and call `cur.execute(query, params)` — this pattern is safe provided SQL files use `%s` placeholders and callers pass `params` tuples).
+
+  Conclusion: I did not find remaining `cur.execute(...)` sites that build SQL using Python f-strings or simple concatenation. The patterns above are safe. That said, callers that read SQL files must be careful to pass parameters via the DB API rather than formatting them into the SQL files at runtime.
+
+Follow-ups (recommended):
+  - Add unit tests for `is_valid_identifier()` to assert behavior on malicious inputs (e.g. `"; DROP TABLE users; --"`) and edge cases (empty, >63 chars, invalid chars).
+  - Add a CI check that scans the repository for suspicious patterns (simple grep for `cur.execute` occurrences that include `{` or `+` or `f"` in the adjacent lines) and fails the build if any are found. Optionally add a Bandit scan as a security lint step.
+  - Add unit tests that mock a `psycopg2` cursor to assert that DDL functions call `cur.execute` with `sql.Identifier` objects where expected (this can be done with `unittest.mock` and asserting `.execute` call args contain `psycopg2.sql.Composed` / `Identifier`).
 - Add unit tests for `is_valid_identifier` and basic DB manager operations (mock psycopg2).
 - Add a smoke integration test that runs the stream client against a mocked websocket server to verify auth/subscribe flow.
 
@@ -127,21 +139,6 @@ Medium (2–6 weeks):
 
 ---
 
-## What I can do next (I can implement these for you)
-
-- Create GitHub Actions workflow template and add tests for the DB validators and UserManager.
-- Auto-fix remaining `cur.execute` instances where interpolation appears.
-- Add CONTRIBUTING.md and a developer setup script (docker-compose) for local integration testing.
-
----
-
 ## Conclusion
 
 AlgoRoyale is a robust starting point for a professional algorithmic trading platform. With a focused sprint to harden DB usage, add CI and tests, and create a reliable local integration environment, it will be excellent for a professional portfolio and production deployments.
-
-If you'd like, I will:
-- Commit the README changes (done),
-- Add `CODE_REVIEW.md` (this file),
-- Continue the security audit/fixes or add CI templates and tests next.
-
-Tell me which follow-up you prefer and I'll continue.
