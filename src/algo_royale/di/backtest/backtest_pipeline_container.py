@@ -56,6 +56,7 @@ class BacktestPipelineContainer:
             data_prep_coordinator_container=self.data_prep_coordinator_container,
             stage_data_container=self.stage_data_container,
             factory_container=self.factory_container,
+            clock_service=self.clock_service,
             logger_container=self.logger_container,
         )
 
