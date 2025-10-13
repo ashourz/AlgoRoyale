@@ -53,56 +53,143 @@ strategy = MovingAverageStrategy(window=20)
 
 # 2. Generate signals
 signals = strategy.generate_signals(historical_data)
+# AlgoRoyale
 
-# 3. Backtest performance
-results = backtest(strategy, historical_data)
+> A production-minded algorithmic trading orchestration platform for equities — research, optimization, and live execution.
 
-# 4. Optimize strategy parameters
-best_params = optimize(strategy, param_grid, historical_data)
+AlgoRoyale is designed to demonstrate professional, production-oriented architecture for algorithmic trading. It brings together real-time market-data ingestion, robust backtesting, portfolio optimization, and live order execution with clear separation of concerns, testability, and observability.
+
+---
+
+Badges
+- Add CI / Coverage / PyPI badges here when available.
+
+## Table of contents
+- Features
+- Quick start
+- Architecture & diagrams
+- Configuration & environments
+- Development & testing
+- Security & best practices
+- Code review summary (link)
+- Roadmap
+- Contributing
+- License
+
+## Features
+
+- Modular service architecture with dependency injection (dependency_injector)
+- Real-time market-data ingestion and normalization (Alpaca adapters)
+- Order execution and market session orchestration (pre-market, open, close)
+- Portfolio strategy framework and buffered strategy adapter
+- Backtesting and parameter optimization (Optuna)
+- Centralized, taggable logging with per-environment config
+- Data pipelines for feature engineering and research
+- Postgres-based persistence and migration utilities
+- CLI entry points for multiple environments (dev, dev_integration, production)
+
+## Quick start
+
+1. Install dependencies (Poetry):
+
+```powershell
+poetry install
 ```
 
----
+2. Configure environment (example):
 
-## Getting Started
+- Copy the example config for the environment you want to run (e.g. `env_config_dev_integration.ini.example`) and fill in API keys and DB credentials.
+- Keep secrets out of source control (use a `.env` locally and CI secrets in GitHub Actions).
 
-1. **Install dependencies** (uses Poetry):
-   ```sh
-   poetry install
-   ```
+3. Run the development/integration CLI:
 
-2. **Configure environment**:
-   - Copy `config.ini.example` to `config.ini` and fill in your API keys and settings.
-   - Do **not** commit `config.ini` to GitHub.
+```powershell
+poetry run python -m src.algo_royale.cli.trader_dev_integration
+```
 
-3. **Run the orchestrator CLI**:
-   ```sh
-   poetry run python -m src.algo_royale.cli.trader_dev_integration
-   ```
+4. Run tests:
 
-4. **Run the Flask API**:
-   ```sh
-   poetry run python src/app.py
-   ```
+```powershell
+# $env:PYTHONPATH=".\src;$env:PYTHONPATH"
+poetry run pytest -q
+```
 
-5. **Run tests**:
-   ```sh
-   $env:PYTHONPATH=".\src;$env:PYTHONPATH"
-   poetry run python -m unittest discover -s tests -p "test_*.py"
-   ```
+## Architecture & diagrams
 
----
+The codebase is organized into clear modules:
 
-## Tech Stack
+- `src/algo_royale/application` — orchestrators, services, order generation, strategy registries
+- `src/algo_royale/clients` — external integrations (Alpaca, Postgres helpers)
+- `src/algo_royale/backtester` — backtesting and strategy implementations
+- `src/algo_royale/feature_engineering` — feature extraction and transforms
+- `src/algo_royale/optimization` — Optuna-based optimization and results
+- `tests` — unit and integration tests and mocks
 
-- **Python 3.10+**
-- **Poetry** for dependency management
-- **APScheduler** for job scheduling
-- **Optuna** for optimization
-- **Flask** for API
-- **Pandas, Numpy** for data analysis
-- **Alpaca API** for trading and market data
+High level data flow (Mermaid):
 
----
+```mermaid
+flowchart LR
+  subgraph STREAM
+    A[Alpaca WebSocket] -->|messages| B[Alpaca Stream Client]
+  end
+  B --> C[MarketDataRawStreamer]
+  C --> D[StreamDataIngestObject(s)]
+  D --> E[Feature Engineering Pipelines]
+  E --> F[Backtester / Signal Generators]
+  F --> G[Portfolio Strategy Registry]
+  G --> H[BufferedPortfolioStrategy]
+  H --> I[OrderGenerator]
+  I --> J[Alpaca Orders Client]
+  J --> K[Broker]
+  subgraph DB
+    L[Postgres: state, users, migrations]
+  end
+  F --> L
+  G --> L
+  I --> L
+```
+
+Notes:
+
+- The `PortfolioStrategyRegistry` reads persisted optimization summaries and selects viable strategies per symbol.
+- The `BufferedPortfolioStrategy` wraps compact strategies and exposes a stable interface for `OrderGenerator` to produce orders.
+
+## Configuration & environments
+
+- Multiple CLI entry points and environment configs are provided for `dev`, `dev_integration`, and `production`.
+- Logging is environment-specific with tags and environment loggers (dev_integration logs are configured for tighter diagnostics).
+- Secrets: store API keys and DB credentials outside the repo. Use `.env` or a secret manager in CI.
+
+## Development & testing
+
+- Use `poetry` to manage dependencies and virtualenv.
+- Run linters (black/flake8/isort) and type checks (mypy) before committing.
+- Tests: `pytest` for unit and integration tests. Some integration tests require a running Postgres or use mocks.
+
+CI suggestions
+
+- Add GitHub Actions to run: lint -> mypy -> pytest (unit) -> optional integration job with Dockerized Postgres.
+
+## Security & best practices
+
+- Database safety: always use parameterized queries and `psycopg2.sql.Identifier` for identifiers. Identifier validators are included.
+- Don't log secrets. Redact or avoid printing credentials in logs.
+- Migration SQL files should be trusted and code-reviewed before applying in production.
+
+## Code review summary
+
+See `CODE_REVIEW.md` for a detailed, file-level code review, findings, and remediation plan. This includes security notes, tests to add, and next steps to harden the codebase for production.
+
+## Roadmap
+
+- Add GitHub Actions CI + coverage and badges
+- Add CONTRIBUTING.md and developer onboarding steps
+- Add a minimal dashboard/UI to manage symbols & strategies
+- Harden integration tests and provide docker-compose for local dev
+
+## Contributing
+
+- Open an issue or PR. Run linters/tests locally before submitting.
 
 ## License
 
