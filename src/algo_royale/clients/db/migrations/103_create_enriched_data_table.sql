@@ -1,4 +1,4 @@
--- db\migrations\002_create_trades_table.sql
+-- db\migrations\103_create_enriched_data_table.sql
 
 -- Enriched Data table
 CREATE TABLE

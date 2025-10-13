@@ -1,8 +1,9 @@
 import time
 
 import psycopg2
+from psycopg2 import sql
 
-from algo_royale.clients.db.db_utils import is_valid_db_name
+from algo_royale.clients.db.db_utils import is_valid_identifier
 
 
 class DatabaseManager:
@@ -68,7 +69,7 @@ class DatabaseManager:
         Create a new database.
         """
         # Validate database name
-        if not is_valid_db_name(db_name):
+        if not is_valid_identifier(db_name):
             raise ValueError(f"Invalid database name: {db_name}")
 
         attempt = 0
@@ -79,12 +80,18 @@ class DatabaseManager:
                     self.logger.info(f"🛠️ Ensuring database '{db_name}' exists...")
                     # Check if the target database exists; create it if it doesn't
                     with master_db_connection.cursor() as cur:
+                        # Parameterize the datname check to avoid injection
                         cur.execute(
-                            f"SELECT 1 FROM pg_database WHERE datname = '{db_name}'"
+                            "SELECT 1 FROM pg_database WHERE datname = %s", (db_name,)
                         )
                         if not cur.fetchone():
                             self.logger.info(f"🛠️ Creating database: {db_name}")
-                            cur.execute(f"CREATE DATABASE {db_name}")
+                            # Use Identifier for the database name
+                            cur.execute(
+                                sql.SQL("CREATE DATABASE {};").format(
+                                    sql.Identifier(db_name)
+                                )
+                            )
                             self.logger.info(f"✅ Created database: {db_name}")
                         else:
                             self.logger.info(f"ℹ️ Database already exists: {db_name}")
@@ -112,7 +119,7 @@ class DatabaseManager:
         Drop an existing database.
         """
         # Validate database name
-        if not is_valid_db_name(db_name):
+        if not is_valid_identifier(db_name):
             raise ValueError(f"Invalid database name: {db_name}")
 
         try:
@@ -121,16 +128,17 @@ class DatabaseManager:
                 psycopg2.extensions.ISOLATION_LEVEL_AUTOCOMMIT
             )
             with master_db_connection.cursor() as cur:
-                # Terminate all connections to the target database
+                # Terminate all connections to the target database (parameterized)
                 cur.execute(
-                    f"""
-                    SELECT pg_terminate_backend(pid)
-                    FROM pg_stat_activity
-                    WHERE datname = '{db_name}' AND pid <> pg_backend_pid();
-                    """
+                    "SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname = %s AND pid <> pg_backend_pid();",
+                    (db_name,),
                 )
-                # Drop the target database
-                cur.execute(f"DROP DATABASE IF EXISTS {db_name}")
+                # Drop the target database using an Identifier
+                cur.execute(
+                    sql.SQL("DROP DATABASE IF EXISTS {};").format(
+                        sql.Identifier(db_name)
+                    )
+                )
                 self.logger.info(f"✅ Dropped database: {db_name}")
         except Exception as e:
             self.logger.error(f"❌ Error dropping database '{db_name}': {e}")
@@ -139,12 +147,16 @@ class DatabaseManager:
     def drop_table(
         self, master_db_connection: psycopg2.extensions.connection, table_name: str
     ):
-        if not self.is_valid_identifier(table_name):
+        if not is_valid_identifier(table_name):
             raise ValueError(f"Invalid table name: {table_name}")
         try:
             self.logger.info(f"Dropping table '{table_name}'...")
             with master_db_connection.cursor() as cur:
-                cur.execute(f"DROP TABLE IF EXISTS {table_name} CASCADE;")
+                cur.execute(
+                    sql.SQL("DROP TABLE IF EXISTS {} CASCADE;").format(
+                        sql.Identifier(table_name)
+                    )
+                )
                 master_db_connection.commit()
             self.logger.info(f"Table '{table_name}' dropped successfully.")
         except Exception as e:

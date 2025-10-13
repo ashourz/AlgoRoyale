@@ -8,7 +8,7 @@ DROP TABLE IF EXISTS trades;
 DROP TABLE IF EXISTS enriched_data;
 DROP TABLE IF EXISTS data_stream_session;
 
--- DB Migrations
+-- Database Migrations
 CREATE TABLE schema_migrations (
     id SERIAL PRIMARY KEY,
     version VARCHAR(50) NOT NULL,
@@ -43,7 +43,7 @@ CREATE TABLE
         settled BOOLEAN DEFAULT FALSE,
         settlement_date TIMESTAMP,
         price NUMERIC(20, 10),
-        quantity INTEGER,
+        quantity NUMERIC(20, 10),
         executed_at TIMESTAMP,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         order_id UUID REFERENCES orders (id) ON DELETE CASCADE,

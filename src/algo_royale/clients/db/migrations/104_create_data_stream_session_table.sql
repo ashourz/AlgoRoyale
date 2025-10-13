@@ -1,4 +1,4 @@
--- db\migrations\002_create_trades_table.sql
+-- db\migrations\104_create_data_stream_session_table.sql
 
 -- Data Stream Session table
 CREATE TABLE

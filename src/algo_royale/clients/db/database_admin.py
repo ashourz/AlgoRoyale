@@ -4,7 +4,7 @@ import psycopg2
 from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
 
 from algo_royale.clients.db.database_manager import DatabaseManager
-from algo_royale.clients.db.db_utils import is_valid_db_name
+from algo_royale.clients.db.db_utils import is_valid_identifier
 from algo_royale.clients.db.migrations.migration_manager import MigrationManager
 from algo_royale.clients.db.process_manager import ProcessManager
 from algo_royale.clients.db.user_manager import UserManager
@@ -112,7 +112,7 @@ class DatabaseAdmin:
         Create a new database.
         """
         db_name = db_name or self.master_db_name
-        if not is_valid_db_name(db_name):
+        if not is_valid_identifier(db_name):
             raise ValueError(f"Invalid database name: {db_name}")
         attempt = 0
         while attempt < retries:

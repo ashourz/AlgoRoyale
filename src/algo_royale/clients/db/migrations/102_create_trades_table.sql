@@ -1,4 +1,4 @@
--- db\migrations\002_create_trades_table.sql
+-- db\migrations\102_create_trades_table.sql
 
 -- Trades table
 CREATE TABLE

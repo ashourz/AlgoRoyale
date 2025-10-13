@@ -349,7 +349,7 @@ class AlpacaOrdersClient(AlpacaBaseClient):
 
         return Order.from_raw(response)
 
-    async def delete_order_by_id(
+    async def delete_order_by_order_id(
         self,
         order_id: str,
     ):

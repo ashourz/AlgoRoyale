@@ -42,7 +42,7 @@ class TestAlpacaOrdersClientIntegration:
         assert fetched is not None and fetched.id == order.id
         # Cancel/delete the order using order.id
         try:
-            await alpaca_client.delete_order_by_id(order.id)
+            await alpaca_client.delete_order_by_order_id(order.id)
         except Exception as e:
             # Accept if order is already filled
             if "filled" not in str(e).lower():

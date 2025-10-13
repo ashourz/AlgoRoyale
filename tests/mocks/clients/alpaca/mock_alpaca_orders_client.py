@@ -149,7 +149,7 @@ class MockAlpacaOrdersClient(AlpacaOrdersClient):
             time_in_force=TimeInForce.DAY,
         )
 
-    async def delete_order_by_id(self, order_id):
+    async def delete_order_by_order_id(self, order_id):
         if self.raise_exception:
             raise Exception(
                 "MockAlpacaOrdersClient: Exception forced by throw_exception flag."

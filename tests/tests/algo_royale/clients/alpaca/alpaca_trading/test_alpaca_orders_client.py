@@ -252,7 +252,7 @@ class TestAlpacaOrdersClientIntegration:
             )
 
             # DELETE ORDER
-            await alpaca_client.delete_order_by_id(order_id=get_order.id)
+            await alpaca_client.delete_order_by_order_id(order_id=get_order.id)
         except InsufficientBuyingPowerOrSharesError:
             return None
         except UnprocessableOrderException:
