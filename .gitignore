@@ -1,0 +1,27 @@
+# Ignore config files
+.env
+
+# Ignore virtual environment folder
+venv/
+.algo_royale_env/
+.venv/
+
+# Ignore build dist folder
+dist/ 
+
+# Ignore Python cache files
+*.pyc
+__pycache__/
+
+#Ignore log files
+logs/
+.log
+
+#Ignore data files
+data/
+
+#Ignore system locks
+*.lock
+
+# Ignore PID files
+*.pids

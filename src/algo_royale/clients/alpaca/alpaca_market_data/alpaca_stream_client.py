@@ -1,0 +1,264 @@
+## client\alpaca_market_data\alpaca_stream_client.py
+import asyncio
+import json
+from typing import Callable, Optional
+
+from websockets import connect
+from websockets.exceptions import ConnectionClosed
+
+from algo_royale.clients.alpaca.alpaca_base_client import AlpacaBaseClient
+from algo_royale.logging.loggable import Loggable
+from algo_royale.models.alpaca_market_data.alpaca_stream_quote import StreamQuote
+
+
+class AlpacaStreamClient(AlpacaBaseClient):
+    """
+    Singleton client for streaming real-time stock market data (quotes, trades, bars) from Alpaca WebSocket API.
+
+    Features:
+    - Reconnection handling
+    - Keep-alive pings
+    - Dynamic symbol subscriptions/unsubscriptions
+    - Asynchronous event handling
+    """
+
+    def __init__(
+        self,
+        logger: Loggable,
+        base_url: str,
+        api_key: str,
+        api_secret: str,
+        api_key_header: str,
+        api_secret_header: str,
+        data_stream_feed: str,
+        http_timeout: int = 10,
+        reconnect_delay: int = 5,
+        keep_alive_timeout: int = 20,
+    ):
+        super().__init__(
+            logger=logger,
+            base_url=base_url,
+            api_key=api_key,
+            api_secret=api_secret,
+            api_key_header=api_key_header,
+            api_secret_header=api_secret_header,
+            http_timeout=http_timeout,
+            reconnect_delay=reconnect_delay,
+            keep_alive_timeout=keep_alive_timeout,
+        )
+        self.data_stream_feed = data_stream_feed
+        # Sets to track what you're subscribed to
+        self.quote_symbols = set()
+        self.trade_symbols = set()
+        self.bar_symbols = set()
+        self.websocket = None
+        self.stop_stream = False
+
+    @property
+    def client_name(self) -> str:
+        """Subclasses must define a name for logging and ID purposes"""
+        return "AlpacaStreamClient"
+
+    async def stream(
+        self,
+        symbols: list[str],
+        on_quote: Optional[Callable] = None,
+        on_trade: Optional[Callable] = None,
+        on_bar: Optional[Callable] = None,
+    ):
+        """
+        Start the stream for given symbols and handlers.
+
+        Args:
+            symbols (list[str]): Initial list of symbols to subscribe to.
+            feed (DataFeed): Chosen feed type (IEX or SIP).
+                - IEX: IEX Cloud data (free tier).
+                - SIP: SIP data (paid tier).
+                - TEST: Test data (for development purposes).
+            on_quote (callable): Coroutine function for quote messages.
+                - Occurs: Every time the best bid or ask price for a stock changes.
+            on_trade (callable): Coroutine function for trade messages.
+                - Occurs: Every time a buy and sell order are matched and a trade is executed.
+            on_bar (callable): Coroutine function for bar messages.
+                - Occurs: At regular intervals (e.g., every minute) to summarize price movements.
+        """
+        self.quote_symbols.update(symbols)
+
+        url = f"{self.base_url}/{self.data_stream_feed}"
+
+        while not self.stop_stream:
+            try:
+                self.logger.info(f"Connecting to WebSocket at {url}...")
+                # Prepare auth headers for handshake
+                auth_headers = self._get_auth_headers() or {}
+
+                async with connect(
+                    url,
+                    ping_interval=self.keep_alive_timeout,
+                    additional_headers=auth_headers,
+                ) as ws:
+                    self.websocket = ws
+
+                    # If we didn't provide auth via handshake headers, send the auth frame
+                    # If auth headers were used by the handshake, avoid sending an additional auth
+                    if not auth_headers:
+                        await self._authenticate(ws)
+
+                    await self._send_subscription(ws)
+
+                    self.logger.info("WebSocket connection established")
+
+                    # Run both loops concurrently
+                    await asyncio.gather(
+                        self._receive_loop(ws, on_quote, on_trade, on_bar),
+                        self._ping_loop(ws),
+                    )
+
+            except Exception as e:
+                self.logger.warning(f"WebSocket disconnected: {e}")
+                self.logger.info(
+                    f"Attempting reconnect in {self.reconnect_delay} seconds..."
+                )
+                await asyncio.sleep(self.reconnect_delay)
+
+    async def _authenticate(self, ws):
+        """Authenticate with the WebSocket using API key/secret."""
+        auth_msg = {"action": "auth", "key": self.api_key, "secret": self.api_secret}
+        await ws.send(json.dumps(auth_msg))
+        response = await ws.recv()
+        self.logger.info(f"Auth response: {response}")
+
+    async def _send_subscription(self, ws):
+        """Send subscription message for quotes/trades/bars."""
+        msg = {"action": "subscribe"}
+        if self.quote_symbols:
+            msg["quotes"] = list(self.quote_symbols)
+        if self.trade_symbols:
+            msg["trades"] = list(self.trade_symbols)
+        if self.bar_symbols:
+            msg["bars"] = list(self.bar_symbols)
+
+        # Don't send an empty subscribe request
+        if len(msg) == 1:
+            self.logger.debug("No symbols to subscribe to; skipping subscribe request")
+            return
+
+        await ws.send(json.dumps(msg))
+        self.logger.info(
+            f"Subscribed to quotes: {self.quote_symbols}, trades: {self.trade_symbols}, bars: {self.bar_symbols}"
+        )
+
+    async def _unsubscribe(self, ws, quotes=[], trades=[], bars=[]):
+        """Send unsubscribe message."""
+        msg = {"action": "unsubscribe"}
+        if quotes:
+            msg["quotes"] = quotes
+        if trades:
+            msg["trades"] = trades
+        if bars:
+            msg["bars"] = bars
+
+        if len(msg) == 1:
+            self.logger.debug("No symbols to unsubscribe; skipping unsubscribe request")
+            return
+
+        await ws.send(json.dumps(msg))
+        self.logger.info(
+            f"Unsubscribed from quotes: {quotes}, trades: {trades}, bars: {bars}"
+        )
+
+    async def _receive_loop(self, ws, on_quote, on_trade, on_bar):
+        """
+        Continuously receive and handle incoming messages.
+
+        Args:
+            ws: WebSocket connection.
+            on_quote: Callable to handle quote messages.
+            on_trade: Callable to handle trade messages.
+            on_bar: Callable to handle bar messages.
+        """
+        try:
+            while not self.stop_stream:
+                message = await ws.recv()
+                data = json.loads(message)
+                self.logger.debug(f"Received: {data}")
+
+                # Handle each item in list individually
+                for item in data if isinstance(data, list) else [data]:
+                    msg_type = item.get("T")
+                    if msg_type == "q" and on_quote:  # Quote message
+                        try:
+                            quote = StreamQuote.from_raw(item)
+                            await on_quote(quote)
+                        except Exception as e:
+                            self.logger.error(
+                                f"Failed to parse StreamQuote: {e}; raw: {item}"
+                            )
+                    elif msg_type == "t" and on_trade:  # Trade message
+                        await on_trade(item)
+                    elif msg_type == "b" and on_bar:  # Bar message
+                        await on_bar(item)
+        except ConnectionClosed as e:
+            self.logger.warning(f"WebSocket closed: {e}")
+        except Exception as e:
+            self.logger.error(f"Receive error: {e}")
+
+    async def _ping_loop(self, ws):
+        """Send periodic ping messages to keep the connection alive."""
+        try:
+            while not self.stop_stream:
+                # Use websocket-level ping (binary ping frame) rather than sending a JSON ping
+                # which some Alpaca servers may interpret as malformed JSON commands.
+                try:
+                    await ws.ping()
+                    self.logger.debug("Sent ping")
+                except Exception as e:
+                    self.logger.warning(f"Ping send failed: {e}")
+                await asyncio.sleep(self.keep_alive_timeout)
+        except Exception as e:
+            self.logger.warning(f"Ping loop terminated: {e}")
+
+    async def add_symbols(self, quotes=[], trades=[], bars=[]):
+        """
+        Add new symbols dynamically and subscribe to them.
+
+        Args:
+            quotes (list[str]): Symbols for quote updates.
+            trades (list[str]): Symbols for trade updates.
+            bars (list[str]): Symbols for bar updates.
+        """
+        if self.websocket and self.websocket.open:
+            await self._send_subscription(self.websocket)
+
+        self.quote_symbols.update(quotes)
+        self.trade_symbols.update(trades)
+        self.bar_symbols.update(bars)
+
+    async def remove_symbols(self, quotes=[], trades=[], bars=[]):
+        """
+        Remove symbols dynamically and unsubscribe from them.
+
+        Args:
+            quotes (list[str]): Symbols to unsubscribe from quote updates.
+            trades (list[str]): Symbols to unsubscribe from trade updates.
+            bars (list[str]): Symbols to unsubscribe from bar updates.
+        """
+        if self.websocket and self.websocket.open:
+            await self._unsubscribe(self.websocket, quotes, trades, bars)
+
+        self.quote_symbols.difference_update(quotes)
+        self.trade_symbols.difference_update(trades)
+        self.bar_symbols.difference_update(bars)
+
+    async def stop(self):
+        """
+        Stop the WebSocket stream gracefully.
+        """
+        self.logger.info("Stopping stream...")
+        self.stop_stream = True
+        if self.websocket:
+            await self.websocket.close()
+            self.websocket = None
+            self.logger.info("Stream stopped.")
+        else:
+            self.logger.warning("No active stream to stop.")

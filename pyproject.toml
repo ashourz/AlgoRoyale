@@ -1,0 +1,207 @@
+[tool.poetry]
+name = "algo_royale"
+version = "0.1.0"
+description = ""
+authors = ["Zakaraya Ashour <ashourz@gmail.com>"]
+license = "MIT"
+
+# Dependencies for the project.
+[tool.poetry.dependencies]
+# Specifies the Python version range. 
+# The caret (^) allows compatible updates within the specified major version.
+# E.g., "^3.8" means any version >=3.8, but <4.0.
+# python = "^3.8"
+# Use the latest stable versions of dependencies, with explicit versions.
+# To find the latest version of a package, use `poetry show <package-name> --latest'
+# or check the official Python Package Index (PyPI) at https://pypi.org/
+python = "^3.10,<3.12"          # Python version range.
+alpaca-py = "^0.39.2"           # For Alpaca API integration.
+pandas = "^1.3.0"               # For data manipulation and analysis.
+numpy = "^1.21.0"               # For numerical computations and array manipulations.
+# scikit-learn = "^1.6.1"         # For machine learning and data mining.
+# matplotlib = "^3.4.3"           # For data visualization.
+psycopg2 = "^2.9.1"             # PostgreSQL adapter for Python.
+requests = "^2.25.1"            # For making HTTP requests.
+flask = "^2.0.1"                # Flask is a lightweight WSGI web application framework in Python.
+# flask-cors = "^3.0.10"          # For CORS support in Flask applications.
+# python-dotenv = "^0.19.0"       # For loading environment variables from a `.env` file.
+httpx = "^0.18.0"               # For making HTTP requests with async support.
+plotly = "^6.0.1"
+streamlit = "v1.45.0"
+optuna = "^4.3.0"
+# Issue between poetry and tensorflow metadata since >=2.11
+# This is a temporary workaround
+# related to https://github.com/python-poetry/poetry/issues/8271
+# Inspired from https://github.com/tensorflow/tensorflow/blob/adb39b04e9cb116df4659a7e2de9eea27e62f25c/tensorflow/tools/pip_package/setup.py#L148-L162
+# TensorFlow and its dependencies
+# tensorflow = "^2.5.0"
+# tensorflow = { version = "^2.13.0" }
+# Platform-specific configurations for TensorFlow and related libraries
+# tensorflow-intel = { version = "^2.13.0", platform = "win32" }
+# tensorflow-io-gcs-filesystem = [
+    # { version = ">= 0.23.1", markers = "platform_machine!='arm64' or platform_system!='Darwin'" },
+    # { version = "< 0.32.0", markers = "platform_system == 'Windows'" }
+# ]
+dependency_injector = "^4.46.0"      # For dependency injection in Python applications.
+apscheduler = "^3.8.1"               # For scheduling tasks in Python applications.
+psutil = "^5.8.0"                   # For system and process utilities.
+# Development dependencies (tools you need for development, not production).
+# These are optional and can be installed separately if needed.
+# You can use `poetry add --dev <package-name>` to add them later.
+[tool.poetry.group.dev.dependencies]
+pytest = "^6.2"
+# pytest-cov = "^2.12"            # For testing and coverage reporting.
+pytest-mock = "^3.6"            # For mocking in tests.
+pytest-asyncio = "^0.16"        # For testing async code with pytest.
+# pytest-flask = "^1.2"           # For testing Flask applications with pytest.
+# For file watching, `watchdog` is specified in the dev dependencies.
+# This is useful for automatically reloading or executing scripts when files change.
+watchdog = "^2.1.0"             # For monitoring file system events.
+# flake8 = "^3.9.2"               # For linting Python code.
+black = "^21.7b0"               # For automatic code formatting.
+# isort = "^5.9.3"                # For sorting imports in Python files.     
+# mypy = "^0.910"                 # For static type checking in Python.
+ruff = "^0.11.11"
+
+# Poetry script configuration.
+# This allows you to define custom scripts that can be run with `poetry run <script-name>`
+# or `poetry run watch` in this case.
+# The script "watch" will execute the function "start_watcher" from the module "scripts.mirror_watcher".    
+[tool.poetry.scripts]
+testmaker = "scripts.create_test_directory:start_watcher"
+fileheader = "scripts.add_file_headers:start_watcher"
+backtest_prod_live = "src.algo_royale.cli.backtest_prod_live:main"
+backtest_prod_paper = "src.algo_royale.cli.backtest_prod_paper:main"
+backtest_dev_integration = "src.algo_royale.cli.backtest_dev_integration:main"
+trader_prod_live = "src.algo_royale.cli.trader_prod_live:main"
+trader_prod_paper = "src.algo_royale.cli.trader_prod_paper:main"
+trader_dev_integration = "src.algo_royale.cli.trader_dev_integration:main"
+drop_database_dev_integration = "src.algo_royale.cli.drop_database_dev_integration:main"
+drop_database_dev_unit = "src.algo_royale.cli.drop_database_dev_unit:main"
+drop_database_prod_live = "src.algo_royale.cli.drop_database_prod_live:main"
+drop_database_prod_paper = "src.algo_royale.cli.drop_database_prod_paper:main"
+drop_all_tables_dev_integration = "src.algo_royale.cli.drop_all_tables_dev_integration:main"
+drop_all_tables_dev_unit = "src.algo_royale.cli.drop_all_tables_dev_unit:main"
+drop_all_tables_prod_live = "src.algo_royale.cli.drop_all_tables_prod_live:main"
+drop_all_tables_prod_paper = "src.algo_royale.cli.drop_all_tables_prod_paper:main"
+drop_table_dev_integration = "src.algo_royale.cli.drop_table_dev_integration:main"
+drop_table_dev_unit = "src.algo_royale.cli.drop_table_dev_unit:main"
+drop_table_prod_live = "src.algo_royale.cli.drop_table_prod_live:main"
+drop_table_prod_paper = "src.algo_royale.cli.drop_table_prod_paper:main"
+drop_user_dev_integration = "src.algo_royale.cli.drop_user_dev_integration:main"
+drop_user_dev_unit = "src.algo_royale.cli.drop_user_dev_unit:main"
+drop_user_prod_live = "src.algo_royale.cli.drop_user_prod_live:main"
+drop_user_prod_paper = "src.algo_royale.cli.drop_user_prod_paper:main"
+
+importhelper = "scripts.import_helper:main"
+# trader = "src.algo_royale.live_trading.main"
+# watchlist = "src.algo_royale.watchlist_generator.main"
+backtest-visual = "src.algo_royale.for_your_eyes_only.cli:main"
+
+# Build system configuration.
+# This section is required for building the package.
+# It specifies the build system requirements and the backend to use for building the package.
+[build-system]  
+# The `poetry-core` package is a core dependency for building Python packages.
+requires = ["poetry-core>=1.0.0"]
+# The `build-backend` specifies the backend to use for building the package.
+build-backend = "poetry.core.masonry.api"
+
+[tool.pytest.ini_options]
+# asyncio_mode = "auto"
+log_cli = true
+log_cli_level = "DEBUG"
+log_cli_format = "%(asctime)s [%(levelname)8s] %(message)s (%(filename)s:%(lineno)s)"
+log_cli_date_format = "%Y-%m-%d %H:%M:%S"
+# ------------------------------------------------------------
+# 📚 Documentation
+# 🛠 How to Build:
+#   After installing Poetry and setting up the environment, you can build the project using the following command:
+#   ```bash
+#   poetry build
+#   ```
+#   This will generate the distribution files in the `dist/` folder for packaging and sharing.
+
+# 🚀 How to Install Poetry:
+#   If you haven't installed Poetry yet, use one of the following methods:
+#
+#   1. **Official Installation (Recommended)**:
+#      - This is the easiest and most stable method:
+#      ```bash
+#      curl -sSL https://install.python-poetry.org | python3 -
+#      ```
+#      📝 *This ensures Poetry is installed properly and in an isolated manner, preventing potential conflicts with other packages.*
+#
+#   2. **Using pip (Not Recommended)**:
+#      - If you need to use `pip`, you can install Poetry via:
+#      ```bash
+#      pip install poetry
+#      ```
+#      ⚠️ *Note: This method might result in conflicts and is less recommended. It's better to use the official installation script.*
+
+# 🖥️ **Installing Poetry from PowerShell**:
+#   If you're using PowerShell on Windows, follow these steps to install Poetry:
+#
+#   1. **Open PowerShell as Administrator**:
+#      - Press `Win + X` and select "Windows PowerShell (Admin)" to open an elevated PowerShell window.
+#
+#   2. **Install Poetry Using the Official Installation Script**:
+#      - Run the following command in your PowerShell terminal:
+#      ```bash
+#      (Invoke-WebRequest -Uri https://install.python-poetry.org -UseBasicParsing).Content | py -
+#      ```
+#      📝 *This command downloads and runs the Poetry installer script, ensuring Poetry is installed correctly.*
+#
+#   3. **Verify Poetry Installation**:
+#      - After installation, verify that Poetry was installed successfully:
+#      ```bash
+#      poetry --version
+#      ```
+#      ✔️ *You should see the version of Poetry installed, confirming it’s working.*
+
+# 🛠 Initializing a Poetry Project:
+#   If you want to initialize a new Poetry project, run:
+#   ```bash
+#   poetry init
+#   ```
+#   🎯 *This will guide you through setting up your `pyproject.toml` and configuring dependencies.*
+
+# ⚡ Installing Dependencies: (not dev dependencies)
+#   To install the dependencies specified in `pyproject.toml`, run:
+#   ```bash
+#   poetry install --only main
+#   ```
+#   📦 *This will automatically set up your virtual environment and install all necessary packages.*
+
+# 📈 Installing for Development: (both main and dev)
+#   To install the development dependencies (e.g., `watchdog`, `pytest`), use:
+#   ```bash
+#   poetry install
+#   ```
+
+# 💡 Managing Existing Virtual Environments:
+#   If you already have a virtual environment and are inside it, you don't need to install Poetry globally. Just follow these steps:
+#
+#   1. **Install Poetry inside the virtual environment**:
+#      ```bash
+#      curl -sSL https://install.python-poetry.org | python3 -
+#      ```
+#
+#   2. **Initialize or configure your project**:
+#      - If you're starting a new project, use `poetry init`.
+#      - If you're adding dependencies, use `poetry add <package_name>`.
+#
+#   📘 *Poetry will handle virtual environments for you, making it easy to manage dependencies for the project.*
+
+# 🗑 Cleaning the Project:
+#   To clean up the project (remove `dist/`, `.tox/`, `.nox/`, etc.), use:
+#   ```bash
+#   poetry run python -m clean
+#   ```
+
+# 📌 Updating Dependencies:
+#   To update the dependencies specified in `pyproject.toml`:
+#   ```bash
+#   poetry update
+#   ```
+#   🔄 *Poetry will ensure that you have the latest compatible versions for all your dependencies.*

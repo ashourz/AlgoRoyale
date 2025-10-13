@@ -1,0 +1,73 @@
+import pandas as pd
+from optuna import Trial
+
+from algo_royale.backtester.column_names.strategy_columns import SignalStrategyColumns
+from algo_royale.backtester.strategy.signal.conditions.base_strategy_condition import (
+    StrategyCondition,
+)
+from algo_royale.logging.loggable import Loggable
+
+
+class BollingerBandsEntryCondition(StrategyCondition):
+    """
+    Condition based on Bollinger Bands.
+    True when price is below lower band or above upper band.
+    """
+
+    def __init__(
+        self,
+        close_col: SignalStrategyColumns = SignalStrategyColumns.CLOSE_PRICE,
+        window=20,
+        num_std=2,
+        logger: Loggable = None,
+    ):
+        super().__init__(
+            close_col=close_col, window=window, num_std=num_std, logger=logger
+        )
+        self.close_col = close_col
+        self.window = window
+        self.num_std = num_std
+
+    @property
+    def required_columns(self):
+        return [self.close_col]
+
+    @property
+    def window_size(self) -> int:
+        return self.window if self.window is not None else 1
+
+    def _apply(self, df: pd.DataFrame) -> pd.Series:
+        rolling_mean = df[self.close_col].rolling(window=self.window).mean()
+        rolling_std = df[self.close_col].rolling(window=self.window).std()
+        upper_band = rolling_mean + (rolling_std * self.num_std)
+        lower_band = rolling_mean - (rolling_std * self.num_std)
+        valid_idx = rolling_mean.notna()
+        condition = pd.Series(False, index=df.index)
+        condition[
+            valid_idx
+            & ((df[self.close_col] < lower_band) | (df[self.close_col] > upper_band))
+        ] = True
+        return condition
+
+    @classmethod
+    def available_param_grid(cls) -> dict:
+        return {
+            "close_col": [
+                SignalStrategyColumns.CLOSE_PRICE,
+                SignalStrategyColumns.OPEN_PRICE,
+            ],
+            "window": [10, 20, 30],
+            "num_std": [1, 2, 3],
+        }
+
+    @classmethod
+    def optuna_suggest(cls, logger: Loggable, trial: Trial, prefix: str = ""):
+        return cls(
+            logger=logger,
+            close_col=trial.suggest_categorical(
+                f"{prefix}close_col",
+                [SignalStrategyColumns.CLOSE_PRICE, SignalStrategyColumns.OPEN_PRICE],
+            ),
+            window=trial.suggest_int(f"{prefix}window", 10, 30),
+            num_std=trial.suggest_categorical(f"{prefix}num_std", [1, 2, 3]),
+        )

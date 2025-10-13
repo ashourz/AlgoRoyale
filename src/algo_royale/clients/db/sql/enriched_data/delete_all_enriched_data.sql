@@ -1,0 +1,1 @@
+DELETE FROM enriched_data RETURNING id;

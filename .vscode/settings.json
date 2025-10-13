@@ -1,0 +1,27 @@
+{
+    // "vscode_custom_css.imports": [
+    //     "file:///C:/Users/ashou/.vscode/extensions/awaken-the-synth-dragon-1.0.2/synthwave-x-fluoromachine.css",
+    //     "file:///C:/Users/ashou/.vscode/extensions/awaken-the-synth-dragon-1.0.2/epic-80s-transitions.css"
+    // ],
+    "python.testing.unittestArgs": [
+    "-v",
+    "-s",
+    "./tests",
+    "-p",
+    "test_*.py"
+    ],
+    "python.testing.pytestArgs": ["tests"],
+    "python.testing.pytestEnabled": true,
+    "python.testing.unittestEnabled": false,
+    "python.testing.autoTestDiscoverOnSaveEnabled": true,
+    "python.defaultInterpreterPath": "C:\\Users\\ashou\\AlgoRoyale\\.algo_royale_env\\Scripts\\python.exe",
+    // Ruff settings
+    "[python]": {
+        "editor.formatOnSave": true,
+        "editor.codeActionsOnSave": {
+        "source.fixAll": "explicit",
+        "source.organizeImports": "explicit"
+        },
+        "editor.defaultFormatter": "charliermarsh.ruff"
+    }
+}

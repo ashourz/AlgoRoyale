@@ -1,0 +1,52 @@
+from uuid import UUID
+
+from algo_royale.models.db.db_enriched_data import DBEnrichedData
+from algo_royale.repo.enriched_data_repo import EnrichedDataRepo
+from tests.mocks.clients.db.mock_enriched_data_dao import MockEnrichedDataDAO
+from tests.mocks.mock_loggable import MockLoggable
+
+
+class MockEnrichedDataRepo(EnrichedDataRepo):
+    def __init__(self):
+        self.dao = MockEnrichedDataDAO()
+        self.logger = MockLoggable()
+        super().__init__(dao=self.dao, logger=self.logger)
+        self._return_empty = False
+        self._raise_exception = False
+
+    def set_return_empty(self, value: bool):
+        self._return_empty = value
+
+    def set_raise_exception(self, value: bool):
+        self._raise_exception = value
+
+    def reset_return_empty(self):
+        self._return_empty = False
+
+    def reset_raise_exception(self):
+        self._raise_exception = False
+
+    def reset_dao(self):
+        self.dao.reset()
+
+    def reset(self):
+        self.reset_return_empty()
+        self.reset_raise_exception()
+        self.reset_dao()
+
+    def fetch_enriched_data_by_order_id(self, order_id: UUID) -> list[DBEnrichedData]:
+        if self._raise_exception:
+            raise ValueError("Database error")
+        if self._return_empty:
+            return []
+        return self.dao.fetch_enriched_data_by_order_id(order_id)
+
+    def insert_enriched_data(self, order_id: UUID, enriched_data: dict) -> UUID | None:
+        if self._raise_exception:
+            raise ValueError("Database error")
+        return self.dao.insert_enriched_data(order_id, enriched_data)
+
+    def delete_all_enriched_data(self) -> int:
+        if self._raise_exception:
+            raise ValueError("Database error")
+        return self.dao.delete_all_enriched_data()
