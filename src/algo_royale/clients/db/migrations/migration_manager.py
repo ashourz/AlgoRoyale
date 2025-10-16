@@ -1,6 +1,5 @@
 from pathlib import Path
 import psycopg2
-from psycopg2 import sql
 from algo_royale.logging.loggable import Loggable
 
 
