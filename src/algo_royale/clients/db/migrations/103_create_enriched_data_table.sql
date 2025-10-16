@@ -1,7 +1,7 @@
 -- db\migrations\103_create_enriched_data_table.sql
 
 -- Enriched Data table
-CREATE TABLE
+CREATE TABLE IF NOT EXISTS
     enriched_data (
         id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
         order_id UUID REFERENCES orders (id) ON DELETE CASCADE,

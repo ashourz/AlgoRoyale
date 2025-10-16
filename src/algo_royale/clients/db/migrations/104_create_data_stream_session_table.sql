@@ -1,7 +1,7 @@
 -- db\migrations\104_create_data_stream_session_table.sql
 
 -- Data Stream Session table
-CREATE TABLE
+CREATE TABLE IF NOT EXISTS
     data_stream_session (
         id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
         stream_class TEXT NOT NULL,

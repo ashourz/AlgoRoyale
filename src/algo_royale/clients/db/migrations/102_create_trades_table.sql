@@ -1,7 +1,7 @@
 -- db\migrations\102_create_trades_table.sql
 
 -- Trades table
-CREATE TABLE
+CREATE TABLE IF NOT EXISTS
     trades (
         id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
         external_id TEXT UNIQUE,  -- ID from external source

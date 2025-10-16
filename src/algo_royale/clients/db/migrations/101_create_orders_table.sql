@@ -1,5 +1,5 @@
 -- Orders table
-CREATE TABLE
+CREATE TABLE IF NOT EXISTS
     orders (
         id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
         symbol TEXT NOT NULL,
