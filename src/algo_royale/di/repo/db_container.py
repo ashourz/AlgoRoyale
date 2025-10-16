@@ -118,3 +118,15 @@ class DBContainer:
                 self._shared_connection.close()
         except Exception as e:
             self.logger.error(f"Error closing DB connection: {e}")
+
+    def is_initialized(self) -> bool:
+        try:
+            # Delegate the richer initialization heuristic to DatabaseAdmin which has
+            # access to the master/user creation and migration file set logic.
+            return self.database_admin.is_initialized(
+                db_name=self.config["db_connection"]["db_name"],
+                db_user=self.config["db_connection"]["db_user"],
+            )
+        except Exception as e:
+            self.logger.debug(f"DBContainer.is_initialized delegation failed: {e}")
+            return False

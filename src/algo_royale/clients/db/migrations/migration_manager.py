@@ -75,3 +75,48 @@ class MigrationManager:
             with conn.cursor() as cur:
                 cur.execute("SELECT pg_advisory_unlock(%s);", (lock_id,))
             self.logger.info("Migration process completed.")
+
+    def verify_migrations(self, conn: psycopg2.extensions.connection) -> bool:
+        """
+        Confirm that all migration files have been applied to the database.
+        Returns True if all migrations are applied, False otherwise.
+        """
+        try:
+            with conn.cursor() as cur:
+                cur.execute("SELECT to_regclass('public.schema_migrations');")
+                res = cur.fetchone()
+                if not res or res[0] is None:
+                    self.logger.debug("is_initialized: schema_migrations table not found")
+                    return False
+
+                # Retrieve all applied migration versions (version column stores filenames/stems)
+                cur.execute("SELECT version FROM schema_migrations;")
+                rows = cur.fetchall()
+                applied_versions = {r[0] for r in rows}
+        except Exception as e:
+            self.logger.debug(f"is_initialized migrations check failed: {e}")
+            try:
+                conn.close()
+            except Exception:
+                pass
+            return False
+
+        try:
+            conn.close()
+        except Exception:
+            pass
+
+        # Count migration files shipped with the project and compare explicit versions
+        try:
+            migrations_folder = Path(__file__).parent / "migrations"
+            migration_files = sorted(migrations_folder.glob("*.sql"))
+            migration_versions = [m.stem for m in migration_files]
+        except Exception as e:
+            self.logger.debug(f"is_initialized: failed to enumerate migration files: {e}")
+            migration_versions = []
+
+        missing = [v for v in migration_versions if v not in applied_versions]
+        self.logger.debug(f"is_initialized: applied_versions={applied_versions} migration_files={migration_versions} missing={missing}")
+
+        # Consider initialized only if there is at least one migration file and none are missing
+        return len(migration_versions) > 0 and len(missing) == 0

@@ -208,3 +208,120 @@ class DatabaseAdmin:
         self.process_manager.unregister_instance()
         if not self.process_manager.any_other_instances_running():
             self.process_manager.stop_postgres_service(service_name)
+
+    def is_initialized(self, db_name: str, db_user: str) -> bool:
+        """
+        Heuristic check to determine whether the database environment has already been
+        prepared by `setup_environment`.
+
+        Checks performed:
+        - The target role/user exists in the cluster (pg_roles).
+        - The `schema_migrations` table exists in the target database and the number
+          of applied migrations is >= the number of migration files shipped with the
+          project.
+
+        This method is intentionally read-only and will not create databases, users,
+        or run migrations.
+        """
+        # Basic validation
+        try:
+            if not is_valid_identifier(db_name) or not is_valid_identifier(db_user):
+                self.logger.debug("is_initialized: invalid db_name or db_user identifier")
+                return False
+        except Exception:
+            # If the identifier helper is not available for any reason, proceed with checks
+            pass
+
+        # 1) Verify user exists in the cluster using UserManager helper
+        try:
+            master_conn = self.get_master_db_connection()
+            try:
+                user_exists = self.user_manager.verify_user_exists(
+                    master_db_connection=master_conn, username=db_user
+                )
+            finally:
+                try:
+                    master_conn.close()
+                except Exception:
+                    pass
+
+            if not user_exists:
+                self.logger.debug(f"is_initialized: user '{db_user}' not found")
+                return False
+        except Exception as e:
+            self.logger.debug(f"is_initialized user check failed: {e}")
+            return False
+
+        # 2) Connect to the target database (read-only - do not create if missing)
+        try:
+            conn = self.database_manager.get_db_connection(
+                db_name=db_name,
+                username=self.master_db_user,
+                password=self.master_db_password,
+                create_if_not_exists=False,
+            )
+        except Exception as e:
+            self.logger.debug(f"is_initialized: could not connect to target DB '{db_name}': {e}")
+            return False
+
+        try:
+            is_migration_confirmed = self.migration_manager.verify_migrations(conn)
+            if not is_migration_confirmed:
+                self.logger.debug("is_initialized: migrations not confirmed")
+                try:
+                    conn.close()
+                except Exception:
+                    pass
+                return False
+
+            # 3) Verify privileges for the target user on the target database using UserManager helper
+            master_conn_for_priv = None
+            try:
+                master_conn_for_priv = self.get_master_db_connection()
+                has_privs = self.user_manager.verify_user_privileges(
+                    master_db_connection=master_conn_for_priv,
+                    target_db_connection=conn,
+                    username=db_user,
+                    db_name=db_name,
+                )
+            except Exception as e:
+                self.logger.debug(f"is_initialized privilege verification failed: {e}")
+                try:
+                    conn.close()
+                except Exception:
+                    pass
+                try:
+                    if master_conn_for_priv:
+                        master_conn_for_priv.close()
+                except Exception:
+                    pass
+                return False
+            finally:
+                try:
+                    if master_conn_for_priv:
+                        master_conn_for_priv.close()
+                except Exception:
+                    pass
+
+            if not has_privs:
+                self.logger.debug(f"is_initialized: user '{db_user}' lacks required privileges on '{db_name}'")
+                try:
+                    conn.close()
+                except Exception:
+                    pass
+                return False
+
+            try:
+                conn.close()
+            except Exception:
+                pass
+
+            # All checks passed
+            return True
+        except Exception as e:
+            self.logger.debug(f"is_initialized migration check failed: {e}")
+            try:
+                conn.close()
+            except Exception:
+                pass
+            return False
