@@ -1,13 +1,14 @@
 from pathlib import Path
-
 import psycopg2
-
+from psycopg2 import sql
 from algo_royale.logging.loggable import Loggable
 
 
 class MigrationManager:
     """
-    Manages database schema migrations.
+    Manages database schema migrations safely.
+    Each migration runs in its own transaction.
+    Supports multi-instance deployments using advisory locks.
     """
 
     def __init__(self, logger: Loggable):
@@ -15,52 +16,63 @@ class MigrationManager:
 
     def apply_migrations(self, conn: psycopg2.extensions.connection):
         """
-        Apply the pending migrations to the database.
+        Apply pending migrations from the migrations folder to the database.
         """
-        # Get the list of all migration files from the migrations directory
-        migrations_folder = Path(__file__).parent
+        migrations_folder = Path(__file__).parent / "migrations"
         self.logger.info(f"Looking for migration files in {migrations_folder}")
-        migrations_files = sorted(
-            migrations_folder.glob("*.sql")
-        )  # Sort to apply in order
+
+        migrations_files = sorted(migrations_folder.glob("*.sql"))
         self.logger.info(f"Found {len(migrations_files)} migration files.")
 
         with conn.cursor() as cur:
-            # Ensure the migrations table exists
-            self.logger.info("Ensuring schema_migrations table exists...")
+            # Ensure migrations table exists
             cur.execute("""
                 CREATE TABLE IF NOT EXISTS schema_migrations (
                     id SERIAL PRIMARY KEY,
-                    version VARCHAR(50) NOT NULL,
+                    version VARCHAR(50) NOT NULL UNIQUE,
                     applied_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                 );
             """)
-            self.logger.info("schema_migrations table is ready.")
             conn.commit()
-            # Get the list of applied migrations
-            cur.execute("SELECT version FROM schema_migrations;")
-            applied_versions = {row[0] for row in cur.fetchall()}
-            self.logger.info(f"Already applied migrations: {applied_versions}")
-            # Apply each migration that hasn't been applied yet
+            self.logger.info("schema_migrations table is ready.")
+
+        # Acquire an advisory lock to prevent race conditions if multiple instances run migrations
+        lock_id = 123456789  # arbitrary unique integer
+        with conn.cursor() as cur:
+            cur.execute("SELECT pg_try_advisory_lock(%s);", (lock_id,))
+            locked = cur.fetchone()[0]
+            if not locked:
+                self.logger.warning("Another instance is running migrations. Skipping.")
+                return
+
+        try:
             for migration in migrations_files:
-                version = (
-                    migration.stem
-                )  # Use the file name without extension as version
+                version = migration.stem
 
-                if version not in applied_versions:
-                    with open(migration, "r") as file:
-                        schema_sql = file.read()
-                        cur.execute(schema_sql)
-                        self.logger.info(
-                            f"✅ Applied migration {version} by {migration.name}"
-                        )
+                with conn.cursor() as cur:
+                    cur.execute("SELECT 1 FROM schema_migrations WHERE version = %s;", (version,))
+                    if cur.fetchone():
+                        self.logger.info(f"Migration {version} already applied. Skipping.")
+                        continue
 
-                    # Log the applied migration in the schema_migrations table
-                    cur.execute(
-                        """
-                        INSERT INTO schema_migrations (version) 
-                        VALUES (%s);
-                    """,
-                        (version,),
-                    )
-                    conn.commit()
+                # Apply migration inside a transaction
+                try:
+                    with conn:
+                        with conn.cursor() as cur:
+                            self.logger.info(f"Applying migration {version}...")
+                            schema_sql = migration.read_text()
+                            cur.execute(schema_sql)
+                            cur.execute(
+                                "INSERT INTO schema_migrations (version) VALUES (%s);",
+                                (version,)
+                            )
+                            self.logger.info(f"✅ Successfully applied migration {version}")
+                except Exception as e:
+                    self.logger.error(f"Failed to apply migration {version}: {e}")
+                    raise
+
+        finally:
+            # Release advisory lock
+            with conn.cursor() as cur:
+                cur.execute("SELECT pg_advisory_unlock(%s);", (lock_id,))
+            self.logger.info("Migration process completed.")
