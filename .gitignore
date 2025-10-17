@@ -35,4 +35,5 @@ data/
 .coverage.*
 
 # Ignore secrets files
-secrets
+/secrets
+secrets.diff
