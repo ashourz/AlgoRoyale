@@ -33,3 +33,6 @@ data/
 # Ignore coverage files
 .coverage
 .coverage.*
+
+# Ignore secrets files
+secrets
