@@ -23,9 +23,12 @@ numpy = "^1.21.0"               # For numerical computations and array manipulat
 psycopg2 = "^2.9.1"             # PostgreSQL adapter for Python.
 requests = "^2.25.1"            # For making HTTP requests.
 flask = "^2.0.1"                # Flask is a lightweight WSGI web application framework in Python.
+# Cross-platform file locking
+portalocker = "^2.8.0"
 # flask-cors = "^3.0.10"          # For CORS support in Flask applications.
 # python-dotenv = "^0.19.0"       # For loading environment variables from a `.env` file.
 httpx = "^0.18.0"               # For making HTTP requests with async support.
+aiohttp = "^3.8.4"
 plotly = "^6.0.1"
 streamlit = "v1.45.0"
 optuna = "^4.3.0"

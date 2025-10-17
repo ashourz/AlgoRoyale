@@ -5,6 +5,7 @@ import argparse
 from algo_royale.logging.logger_env import ApplicationEnv
 from algo_royale.services.trade_orchestrator import TradeOrchestrator
 from algo_royale.utils.single_instance_lock import SingleInstanceLock
+from algo_royale.utils.control_server import ControlServer
 
 
 def parse_args():
@@ -49,13 +50,21 @@ async def async_cli(orchestrator: TradeOrchestrator):
     ------
     Called internally by the main CLI after environment is prepared.
     """
+    # start orchestrator
     success = await orchestrator.async_start()
+    control = ControlServer()
+    control.set_stop_callback(orchestrator.async_stop)
+    # start control server in background
+    await control.start()
+    print(f"Control server listening on {control.host}:{control.port}")
     try:
         while True:
             # Keep scheduler alive for trading day
             await asyncio.sleep(3600)
     except (KeyboardInterrupt, asyncio.CancelledError):
         await orchestrator.async_stop()
+    finally:
+        await control.stop()
     exit(0 if success else 1)
 
 
