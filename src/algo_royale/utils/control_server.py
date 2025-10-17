@@ -7,14 +7,15 @@ import json
 # passed via env var ALGO_ROYALE_CONTROL_TOKEN (if set). Exposes /stop and /status.
 
 class ControlServer:
-    def __init__(self, host='127.0.0.1', port=8765, token_env='ALGO_ROYALE_CONTROL_TOKEN'):
+    def __init__(self, token: str, host='127.0.0.1', port=8765):
         self.host = host
         self.port = port
         self._app = web.Application()
         self._runner = None
         self._site = None
         self._stop_cb = None
-        self._token = os.environ.get(token_env)
+        # token provided explicitly (preferred) otherwise fall back to env
+        self._token = token
         self._app.add_routes([
             web.get('/status', self._handle_status),
             web.post('/stop', self._handle_stop),

@@ -140,3 +140,41 @@ poetry run pytest -q
 
 MIT License
 
+
+---
+
+## Start / Stop (trader runtime)
+
+The trading runtime provides a controlled start/stop flow using a per-environment lock and a local control endpoint.
+
+Start (example, PowerShell):
+
+```powershell
+# Start trader for the dev_integration environment
+poetry run python -m src.algo_royale.cli.trader --env dev_integration
+```
+
+Behavior when starting:
+- A `SingleInstanceLock` file is created for the environment to prevent concurrent runs.
+- The process writes a `control.meta` file (local discovery data) and starts a small HTTP control server bound to localhost.
+- The control server accepts a POST /stop which triggers a graceful shutdown callback in the running process. The control token is loaded from the per-environment secrets file and is not written to disk.
+
+Stop (preferred - uses control endpoint):
+
+```powershell
+# Stop trader for the same environment
+poetry run python -m src.algo_royale.cli.stop_trader --env dev_integration
+```
+
+What stop does:
+- `stop_trader` first looks for the runtime `control.meta` and attempts to POST /stop with the configured token header.
+- If the control endpoint is unavailable, the CLI falls back to a PID-based stop (SIGINT on Unix or taskkill on Windows).
+
+Troubleshooting:
+- If `stop_trader` reports the control endpoint is missing, confirm the process is running and that `control.meta` exists next to the CLI module or lock file.
+- If the control endpoint responds with 403, verify the environment's secrets file contains the correct control token (`secrets/env_secrets_<env>.ini`).
+- If a stale lock/meta remains after a crash, inspect the PID in the meta file and verify whether the process is alive before removing the files manually.
+
+Security notes:
+- `control.meta` intentionally does not include the control token. The token only lives in your environment secrets. Do not store secrets in `control.meta`.
+

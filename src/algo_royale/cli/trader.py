@@ -39,7 +39,7 @@ def parse_args():
     return parser.parse_args()
 
 
-async def async_cli(orchestrator: TradeOrchestrator):
+async def async_cli(orchestrator: TradeOrchestrator, control_token: str | None = None):
     """
     Async scheduler entry point.
 
@@ -52,7 +52,7 @@ async def async_cli(orchestrator: TradeOrchestrator):
     """
     # start orchestrator
     success = await orchestrator.async_start()
-    control = ControlServer()
+    control = ControlServer(token=control_token)
     control.set_stop_callback(orchestrator.async_stop)
     # start control server in background
     await control.start()
@@ -93,6 +93,10 @@ def cli(env: str, run_migrations: bool):
     }
     application_env = env_map[env]
 
+    # Load secrets for the given environment into process env before constructing container
+    from algo_royale.utils.secrets_loader import load_env_secrets
+    load_env_secrets(env)
+
     application_container = ApplicationContainer(environment=application_env)
     try:
         db_container = application_container.repo_container.db_container
@@ -104,7 +108,9 @@ def cli(env: str, run_migrations: bool):
             print(f"✅ Migrations applied for {env}")
 
         orchestrator: TradeOrchestrator = application_container.trading_container.trade_orchestrator
-        asyncio.run(async_cli(orchestrator))
+        from algo_royale.utils.secrets_loader import get_control_token
+        token = get_control_token(env)
+        asyncio.run(async_cli(orchestrator, control_token=token))
     finally:
         if hasattr(application_container, "async_close"):
             asyncio.run(application_container.async_close())
