@@ -27,7 +27,6 @@ data/
 *.pids
 
 # Ignore VSCode settings folder
-.vscode/
 .VSCodeCounter/
 
 # Ignore coverage files
