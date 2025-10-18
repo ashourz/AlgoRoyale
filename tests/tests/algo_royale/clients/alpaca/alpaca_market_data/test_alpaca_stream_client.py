@@ -1,9 +1,9 @@
 # src/algo_royale/tests/integration/client/test_alpaca_stream_client.py
 import asyncio
 
+from algo_royale.models.alpaca_market_data.enums import DataFeed
 import pytest
 
-from algo_royale.clients.alpaca.alpaca_market_data.alpaca_stream_client import DataFeed
 from tests.mocks.clients.alpaca.mock_alpaca_stream_client import MockAlpacaStreamClient
 
 
