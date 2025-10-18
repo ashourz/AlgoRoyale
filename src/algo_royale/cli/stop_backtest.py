@@ -6,8 +6,6 @@ import requests
 
 from algo_royale.utils.single_instance_lock import stop_process
 
-LOCK_FILE = os.path.join(os.path.dirname(__file__), "trader_prod_paper.lock")
-
 
 def parse_args():
     """
@@ -16,13 +14,13 @@ def parse_args():
     Usage examples:
     ----------------
     # Run in dev_integration
-    python stop_trader.py --env dev_integration
+    python stop_backtest.py --env dev_integration
 
     # Run in prod_paper
-    python stop_trader.py --env prod_paper
+    python stop_backtest.py --env prod_paper
 
     # Run in prod_live
-    python stop_trader.py --env prod_live
+    python stop_backtest.py --env prod_live
     """
     parser = argparse.ArgumentParser(description="Run the trading scheduler.")
     parser.add_argument(
@@ -30,7 +28,7 @@ def parse_args():
         type=str,
         choices=["dev_integration", "prod_paper", "prod_live"],
         default="dev_integration",
-        help="Select the environment to run the stop_trader in.",
+        help="Select the environment to run the stop_backtest in.",
     )
     return parser.parse_args()
 
@@ -38,7 +36,7 @@ def cli(lock_file: str, env: str = "dev_integration"):
     """Synchronous CLI wrapper
 
     The `env` parameter is used to look up the control token the same
-    way the `trader` CLI does (via `get_control_token`). If no token
+    way the `backtest` CLI does (via `get_control_token`). If no token
     is available from secrets, we fall back to the ALGO_ROYALE_CONTROL_TOKEN
     environment variable for backward compatibility.
     """
@@ -49,7 +47,7 @@ def cli(lock_file: str, env: str = "dev_integration"):
             with open(meta_file) as f:
                 meta = json.load(f)
             url = f"http://{meta.get('host')}:{meta.get('port')}/stop"
-            # Prefer secrets loader (same as trader) then fallback to env var
+            # Prefer secrets loader (same as backtest) then fallback to env var
             headers = {}
             try:
                 from algo_royale.utils.secrets_loader import get_control_token
@@ -78,7 +76,7 @@ def cli(lock_file: str, env: str = "dev_integration"):
 
 def main():
     args = parse_args()
-    lock_file = os.path.join(os.path.dirname(__file__), f"trader_{args.env}.lock")
+    lock_file = os.path.join(os.path.dirname(__file__), f"backtest_{args.env}.lock")
     try:
         # Do NOT try to acquire the same lock the running process holds; doing so
         # will fail and prevent us from sending the stop signal. Instead, read

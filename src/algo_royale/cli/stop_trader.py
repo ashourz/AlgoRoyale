@@ -6,8 +6,6 @@ import requests
 
 from algo_royale.utils.single_instance_lock import stop_process
 
-LOCK_FILE = os.path.join(os.path.dirname(__file__), "trader_prod_paper.lock")
-
 
 def parse_args():
     """
