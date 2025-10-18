@@ -1,12 +1,13 @@
 import uuid
 
+from algo_royale.models.alpaca_trading.enums.enums import OrderSide, OrderType, TimeInForce
 import pytest
 
 from algo_royale.clients.alpaca.alpaca_trading.alpaca_orders_client import (
     AlpacaOrdersClient,
 )
 from algo_royale.di.application_container import ApplicationContainer
-from algo_royale.logging.logger_env import ApplicationEnv
+from algo_royale.utils.application_env import ApplicationEnv
 
 
 @pytest.fixture
@@ -31,9 +32,9 @@ class TestAlpacaOrdersClientIntegration:
         order = await alpaca_client.create_order(
             symbol=penny_stock_symbol,
             notional=1.00,  # Minimal notional (e.g., $1)
-            side="buy",
-            order_type="market",
-            time_in_force="day",
+            side=OrderSide.BUY,
+            order_type=OrderType.MARKET,
+            time_in_force=TimeInForce.DAY,
             client_order_id=client_order_id,
         )
         assert order is not None and hasattr(order, "id")

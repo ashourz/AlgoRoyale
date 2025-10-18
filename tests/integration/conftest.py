@@ -5,7 +5,7 @@ import asyncio
 import pytest
 
 from algo_royale.di.application_container import ApplicationContainer
-from algo_royale.logging.logger_env import ApplicationEnv
+from algo_royale.utils.application_env import ApplicationEnv
 
 
 @pytest.fixture(scope="session")

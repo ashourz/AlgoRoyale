@@ -1,17 +1,23 @@
-# Ignore config files
-.env
 
 # Ignore virtual environment folder
 venv/
 .algo_royale_env/
 .venv/
+.env
 
 # Ignore build dist folder
 dist/ 
 
+
 # Ignore Python cache files
-*.pyc
 __pycache__/
+*.pyc
+*.pyo
+
+# Build & install metadata
+*.egg-info/
+*.dist-info/
+*.meta
 
 #Ignore log files
 logs/
@@ -32,6 +38,7 @@ data/
 # Ignore coverage files
 .coverage
 .coverage.*
+^.meta
 
 # Ignore secrets files
 /secrets
@@ -39,3 +46,7 @@ secrets.diff
 
 # Ignore mock data files
 mock_viable_strategies 
+
+# OS files
+.DS_Store
+Thumbs.db

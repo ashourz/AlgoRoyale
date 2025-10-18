@@ -1,7 +1,7 @@
 import os
 from pathlib import Path
 
-from algo_royale.logging.logger_env import ApplicationEnv
+from algo_royale.utils.application_env import ApplicationEnv
 from algo_royale.logging.logger_factory import LoggerFactory
 
 logger = LoggerFactory.get_base_logger(ApplicationEnv.PROD)

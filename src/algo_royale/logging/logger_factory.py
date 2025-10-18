@@ -3,7 +3,7 @@ import os
 
 from algo_royale.logging.custom_rotating_file_handler import CustomRotatingFileHandler
 from algo_royale.logging.loggable import Loggable
-from algo_royale.logging.logger_env import ApplicationEnv
+from algo_royale.utils.application_env import ApplicationEnv
 from algo_royale.utils.path_utils import get_project_root
 
 PROJECT_ROOT = get_project_root()
@@ -12,9 +12,26 @@ BASE_LOG_DIR = os.getenv("LOG_DIR", PROJECT_ROOT / "logs")
 
 class TaggedLoggerAdapter(logging.LoggerAdapter):
     def process(self, msg, kwargs):
-        if "extra" not in kwargs:
-            kwargs["extra"] = {}
-        kwargs["extra"]["tag"] = self.extra["tag"]
+        # `kwargs` may be None (logging API sometimes passes None).
+        # Also `kwargs.get("extra")` may be None. Normalize both to dicts
+        # so we can safely subscript them without triggering Pylance warnings.
+        if kwargs is None:
+            kwargs = {}
+
+        extra = kwargs.get("extra")
+        if extra is None:
+            extra = {}
+            kwargs["extra"] = extra
+
+        # `self.extra` is provided when the adapter is created. Be defensive
+        # in case it's not a dict (tests or callers may pass an object).
+        tag = None
+        if isinstance(self.extra, dict):
+            tag = self.extra.get("tag")
+        else:
+            tag = getattr(self.extra, "tag", None)
+
+        extra["tag"] = tag
         return msg, kwargs
 
 
@@ -56,7 +73,7 @@ def mockLogger() -> logging.Logger:
     """
     Creates a mock logger for testing purposes.
     """
-    from algo_royale.logging.logger_env import ApplicationEnv
+    from algo_royale.utils.application_env import ApplicationEnv
 
     logger: Loggable = LoggerFactory(ApplicationEnv.DEV_UNIT).get_base_logger()
     return logger

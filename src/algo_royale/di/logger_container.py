@@ -5,7 +5,7 @@ from algo_royale.logging.env_logger_type_dev_unit import EnvLoggerTypeDevUnit
 from algo_royale.logging.env_logger_type_prod_live import EnvLoggerTypeProdLive
 from algo_royale.logging.env_logger_type_prod_paper import EnvLoggerTypeProdPaper
 from algo_royale.logging.loggable import TaggableLogger
-from algo_royale.logging.logger_env import ApplicationEnv
+from algo_royale.utils.application_env import ApplicationEnv
 from algo_royale.logging.logger_factory import LoggerFactory
 from algo_royale.logging.logger_type import LoggerType
 

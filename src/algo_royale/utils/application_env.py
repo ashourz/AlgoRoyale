@@ -32,3 +32,11 @@ class ApplicationEnv(Enum):
             return str(base / "env_secrets_dev_integration.ini")
         else:
             raise ValueError(f"Unsupported environment: {self}")
+
+    @classmethod
+    def from_str(cls, env_str: str) -> "ApplicationEnv":
+        """Convert string to ApplicationEnv enum."""
+        for env in cls:
+            if env.value == env_str:
+                return env
+        raise ValueError(f"Unknown environment string: {env_str}")

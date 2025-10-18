@@ -2,7 +2,7 @@ import asyncio
 import os
 import argparse
 
-from algo_royale.logging.logger_env import ApplicationEnv
+from algo_royale.utils.application_env import ApplicationEnv
 from algo_royale.services.trade_orchestrator import TradeOrchestrator
 from algo_royale.utils.single_instance_lock import SingleInstanceLock
 from algo_royale.utils.control_server import ControlServer
@@ -86,12 +86,7 @@ def cli(env: str, run_migrations: bool):
     from algo_royale.di.application_container import ApplicationContainer
 
     # Map string to ApplicationEnv
-    env_map = {
-        "dev_integration": ApplicationEnv.DEV_INTEGRATION,
-        "prod_paper": ApplicationEnv.PROD_PAPER,
-        "prod_live": ApplicationEnv.PROD_LIVE,
-    }
-    application_env = env_map[env]
+    application_env = ApplicationEnv.from_str(env)
 
     # Load secrets for the given environment into process env before constructing container
     from algo_royale.utils.secrets_loader import load_env_secrets

@@ -2,7 +2,7 @@ import argparse
 import asyncio
 import os
 
-from algo_royale.logging.logger_env import ApplicationEnv
+from algo_royale.utils.application_env import ApplicationEnv
 from algo_royale.utils.single_instance_lock import SingleInstanceLock
 
 LOCK_FILE = os.path.join(os.path.dirname(__file__), "drop_prod_paper.lock")

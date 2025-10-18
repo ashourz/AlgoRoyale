@@ -34,8 +34,14 @@ def parse_args():
     )
     return parser.parse_args()
 
-def cli(lock_file: str):
-    """Synchronous CLI wrapper"""
+def cli(lock_file: str, env: str = "dev_integration"):
+    """Synchronous CLI wrapper
+
+    The `env` parameter is used to look up the control token the same
+    way the `trader` CLI does (via `get_control_token`). If no token
+    is available from secrets, we fall back to the ALGO_ROYALE_CONTROL_TOKEN
+    environment variable for backward compatibility.
+    """
     # Try to read control.meta to discover control endpoint
     meta_file = os.path.join(os.path.dirname(__file__), '..', 'control.meta')
     if os.path.exists(meta_file):
@@ -43,15 +49,27 @@ def cli(lock_file: str):
             with open(meta_file) as f:
                 meta = json.load(f)
             url = f"http://{meta.get('host')}:{meta.get('port')}/stop"
-            # token header read from env
+            # Prefer secrets loader (same as trader) then fallback to env var
             headers = {}
-            token = os.environ.get('ALGO_ROYALE_CONTROL_TOKEN')
+            try:
+                from algo_royale.utils.secrets_loader import get_control_token
+
+                token = get_control_token(env)
+            except Exception:
+                token = None
+
+            if not token:
+                token = os.environ.get('ALGO_ROYALE_CONTROL_TOKEN')
+
             if token:
                 headers['X-ALGO-TOKEN'] = token
+
             resp = requests.post(url, headers=headers, timeout=2)
             if resp.status_code in (200, 202):
                 print('[Stop] Control endpoint accepted stop request.')
                 return
+            else:
+                print(f"[Stop] Control endpoint returned {resp.status_code}, falling back to PID kill.")
         except Exception as e:
             print(f"[Stop] Control endpoint call failed: {e}. Falling back to PID kill.")
 
@@ -65,7 +83,7 @@ def main():
         # Do NOT try to acquire the same lock the running process holds; doing so
         # will fail and prevent us from sending the stop signal. Instead, read
         # the PID from the lock file and signal it via stop_process.
-        cli(lock_file)
+        cli(lock_file, env=args.env)
     except KeyboardInterrupt:
         pass  # Graceful exit on Ctrl+C
 
