@@ -36,3 +36,6 @@ data/
 # Ignore secrets files
 /secrets
 secrets.diff
+
+# Ignore mock data files
+mock_viable_strategies 

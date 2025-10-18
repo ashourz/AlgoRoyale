@@ -1,4 +1,3 @@
-from pathlib import Path
 import importlib
 from typing import cast
 import psycopg2
