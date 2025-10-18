@@ -15,13 +15,13 @@ def parse_args():
     Usage examples:
     ----------------
     # Run in dev_integration without forcing migrations
-    python start_scheduler.py --env dev_integration
+    python trader.py --env dev_integration
 
     # Run in prod_paper and force migrations
-    python start_scheduler.py --env prod_paper --run-migrations
+    python trader.py --env prod_paper --run-migrations
 
     # Run in prod_live without migrations
-    python start_scheduler.py --env prod_live
+    python trader.py --env prod_live
     """
     parser = argparse.ArgumentParser(description="Run the trading scheduler.")
     parser.add_argument(
@@ -140,6 +140,17 @@ def main():
         except KeyboardInterrupt:
             pass  # Graceful exit on Ctrl+C
 
-
 if __name__ == "__main__":
     main()
+
+def run_dev():
+    """Run trader in dev_integration without migrations"""
+    cli(env="dev_integration", run_migrations=True)
+
+def run_paper():
+    """Run trader in prod_paper and force migrations"""
+    cli(env="prod_paper", run_migrations=True)
+
+def run_live():
+    """Run trader in prod_live without migrations"""
+    cli(env="prod_live", run_migrations=True)
