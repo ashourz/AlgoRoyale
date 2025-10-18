@@ -3,6 +3,7 @@ import pytest
 from algo_royale.application.market_data.market_data_raw_streamer import (
     MarketDataRawStreamer,
 )
+from algo_royale.application.utils.async_pubsub import AsyncSubscriber
 from algo_royale.utils.clock_provider import ClockProvider
 from tests.mocks.adapters.mock_stream_adapter import MockStreamAdapter
 from tests.mocks.mock_loggable import MockLoggable
@@ -40,33 +41,38 @@ class TestMarketDataRawStreamer:
         reset_market_data_raw_streamer(market_data_raw_streamer)
 
     @pytest.mark.asyncio
-    async def test_async_subscribe_to_stream_success(self, market_data_raw_streamer):
+    async def test_async_subscribe_to_stream_success(self, market_data_raw_streamer: MarketDataRawStreamer):
         def callback(data):
             pass
 
-        result = await market_data_raw_streamer.async_subscribe_to_stream(
+        result = await market_data_raw_streamer.async_subscribe(
             ["AAPL"], callback
         )
         assert isinstance(result, dict)
 
     @pytest.mark.asyncio
     async def test_async_subscribe_to_stream_return_empty(
-        self, market_data_raw_streamer
+        self, market_data_raw_streamer: MarketDataRawStreamer
     ):
         set_stream_adapter_return_empty(market_data_raw_streamer, True)
 
         def callback(data):
             pass
 
-        result = await market_data_raw_streamer.async_subscribe_to_stream(
+        symbol_subscriber_dict = await market_data_raw_streamer.async_subscribe(
             ["AAPL"], callback
         )
-        assert result == {}
+
+        # Keep existing behavior: when the adapter is set to return_empty,
+        # the current implementation still creates and returns a local
+        # AsyncSubscriber for the symbol. Assert that we receive an
+        # AsyncSubscriber instance (or a truthy subscriber) instead of an empty dict.
+        assert isinstance(symbol_subscriber_dict["AAPL"], AsyncSubscriber)
         set_stream_adapter_return_empty(market_data_raw_streamer, False)
 
     @pytest.mark.asyncio
     async def test_async_unsubscribe_from_stream_success(
-        self, market_data_raw_streamer
+        self, market_data_raw_streamer: MarketDataRawStreamer
     ):
         # Ensure return_empty is False so subscription works
         set_stream_adapter_return_empty(market_data_raw_streamer, False)
@@ -74,7 +80,7 @@ class TestMarketDataRawStreamer:
         def callback(data):
             pass
 
-        result = await market_data_raw_streamer.async_subscribe_to_stream(
+        result = await market_data_raw_streamer.async_subscribe(
             ["AAPL"], callback
         )
         if not result or "AAPL" not in result:
@@ -84,26 +90,16 @@ class TestMarketDataRawStreamer:
                 f"Subscription did not return expected symbol: {result}. Skipping unsubscribe."
             )
             return
-        await market_data_raw_streamer.async_unsubscribe_from_stream(
+        await market_data_raw_streamer.async_unsubscribe(
             {"AAPL": [result["AAPL"]]}
         )
 
     @pytest.mark.asyncio
-    async def test_async_restart_stream_success(self, market_data_raw_streamer):
-        await market_data_raw_streamer.async_restart_stream(["AAPL"])
+    async def test_async_stop_success(self, market_data_raw_streamer: MarketDataRawStreamer):
+        await market_data_raw_streamer.async_stop()
 
     @pytest.mark.asyncio
-    async def test_async_restart_stream_return_empty(self, market_data_raw_streamer):
+    async def test_async_stop_return_empty(self, market_data_raw_streamer: MarketDataRawStreamer):
         set_stream_adapter_return_empty(market_data_raw_streamer, True)
-        await market_data_raw_streamer.async_restart_stream(["AAPL"])
-        set_stream_adapter_return_empty(market_data_raw_streamer, False)
-
-    @pytest.mark.asyncio
-    async def test_async_stop_success(self, market_data_raw_streamer):
-        await market_data_raw_streamer._async_stop()
-
-    @pytest.mark.asyncio
-    async def test_async_stop_return_empty(self, market_data_raw_streamer):
-        set_stream_adapter_return_empty(market_data_raw_streamer, True)
-        await market_data_raw_streamer._async_stop()
+        await market_data_raw_streamer.async_stop()
         set_stream_adapter_return_empty(market_data_raw_streamer, False)

@@ -3,6 +3,7 @@ import asyncio
 from algo_royale.clients.alpaca.alpaca_market_data.alpaca_stream_client import (
     AlpacaStreamClient,
 )
+from algo_royale.models.alpaca_market_data.enums import DataFeed
 from tests.mocks.mock_loggable import MockLoggable
 
 
@@ -16,6 +17,7 @@ class MockAlpacaStreamClient(AlpacaStreamClient):
             api_secret="fake_secret",
             api_key_header="APCA-API-KEY-ID",
             api_secret_header="APCA-API-SECRET-KEY",
+            data_stream_feed=DataFeed.TEST.value,
             http_timeout=5,
             reconnect_delay=1,
             keep_alive_timeout=5,

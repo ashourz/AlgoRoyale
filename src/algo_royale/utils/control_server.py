@@ -45,6 +45,22 @@ class ControlServer:
         await self._runner.setup()
         self._site = web.TCPSite(self._runner, self.host, self.port)
         await self._site.start()
+        # If an ephemeral port was requested (port=0), the actual bound port
+        # will be available on the site's server sockets after start(). Update
+        # self.port so callers can inspect the assigned port.
+        try:
+            server = getattr(self._site, '_server', None)
+            sockets = getattr(server, 'sockets', None) if server is not None else None
+            if sockets:
+                # take the first socket's port
+                sock = sockets[0]
+                addr = sock.getsockname()
+                # getsockname may return (host, port) or (host, port, ...)
+                if isinstance(addr, tuple) and len(addr) >= 2:
+                    self.port = int(addr[1])
+        except Exception:
+            # best-effort only; don't fail start if introspection is not possible
+            pass
         # write metadata for client discovery
         try:
             meta = {'host': self.host, 'port': self.port}

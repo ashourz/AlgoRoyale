@@ -39,7 +39,7 @@ def parse_args():
     return parser.parse_args()
 
 
-async def async_cli(orchestrator: TradeOrchestrator, control_token: str | None = None):
+async def async_cli(orchestrator: TradeOrchestrator, control_token: str):
     """
     Async scheduler entry point.
 
@@ -110,6 +110,9 @@ def cli(env: str, run_migrations: bool):
         orchestrator: TradeOrchestrator = application_container.trading_container.trade_orchestrator
         from algo_royale.utils.secrets_loader import get_control_token
         token = get_control_token(env)
+        if token is None:
+            print("Error: Control token not found. Cannot start control server.")
+            exit(1)
         asyncio.run(async_cli(orchestrator, control_token=token))
     finally:
         if hasattr(application_container, "async_close"):

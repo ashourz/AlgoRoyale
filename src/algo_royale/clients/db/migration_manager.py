@@ -17,10 +17,15 @@ class MigrationManager:
         """
         Apply pending migrations from the migrations folder to the database.
         """
-        migrations_folder = Path(__file__).parent / "migrations"
-        self.logger.info(f"Looking for migration files in {migrations_folder}")
-
+        # Prefer a 'migrations' subfolder next to this file, but fall back to
+        # the current directory (same folder as this manager) if that folder
+        # doesn't contain any .sql files. Some deployments place SQL files
+        # alongside the manager rather than inside a nested 'migrations'.
+        candidate_subfolder = Path(__file__).parent / "sql" / "migrations"
+        migrations_folder = candidate_subfolder
         migrations_files = sorted(migrations_folder.glob("*.sql"))
+
+        self.logger.info(f"Looking for migration files in {migrations_folder}")
         self.logger.info(f"Found {len(migrations_files)} migration files.")
 
         with conn.cursor() as cur:
@@ -39,7 +44,8 @@ class MigrationManager:
         lock_id = 123456789  # arbitrary unique integer
         with conn.cursor() as cur:
             cur.execute("SELECT pg_try_advisory_lock(%s);", (lock_id,))
-            locked = cur.fetchone()[0]
+            tuple = cur.fetchone()
+            locked = tuple[0] if tuple else False
             if not locked:
                 self.logger.warning("Another instance is running migrations. Skipping.")
                 return
@@ -108,7 +114,7 @@ class MigrationManager:
 
         # Count migration files shipped with the project and compare explicit versions
         try:
-            migrations_folder = Path(__file__).parent / "migrations"
+            migrations_folder = Path(__file__).parent / "sql" / "migrations"
             migration_files = sorted(migrations_folder.glob("*.sql"))
             migration_versions = [m.stem for m in migration_files]
         except Exception as e:

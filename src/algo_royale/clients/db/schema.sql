@@ -2,23 +2,26 @@
 -- This file defines the schema for the Algo Royale database
 -- It includes the creation of tables, indexes, and other database objects
 -- This file is for reference only and should not be executed directly
-
 DROP TABLE IF EXISTS orders;
+
 DROP TABLE IF EXISTS trades;
+
 DROP TABLE IF EXISTS enriched_data;
+
 DROP TABLE IF EXISTS data_stream_session;
 
 -- Database Migrations
-CREATE TABLE schema_migrations (
-    id SERIAL PRIMARY KEY,
-    version VARCHAR(50) NOT NULL,
-    applied_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
+CREATE TABLE
+    schema_migrations (
+        id SERIAL PRIMARY KEY,
+        version VARCHAR(50) NOT NULL,
+        applied_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    );
 
 -- Orders table
 CREATE TABLE
     orders (
-        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid (),
         symbol TEXT NOT NULL,
         order_type TEXT NOT NULL,
         status TEXT NOT NULL,
@@ -36,8 +39,8 @@ CREATE TABLE
 -- Trades table
 CREATE TABLE
     trades (
-        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-        external_id TEXT UNIQUE,  -- ID from external source
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid (),
+        external_id TEXT UNIQUE, -- ID from external source
         symbol TEXT NOT NULL,
         action TEXT NOT NULL,
         settled BOOLEAN DEFAULT FALSE,
@@ -55,7 +58,7 @@ CREATE TABLE
 -- Enriched Data table
 CREATE TABLE
     enriched_data (
-        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid (),
         order_id UUID REFERENCES orders (id) ON DELETE CASCADE,
         market_timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         symbol TEXT NOT NULL,
@@ -127,7 +130,7 @@ CREATE TABLE
 -- Data Stream Session table
 CREATE TABLE
     data_stream_session (
-        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid (),
         stream_class TEXT NOT NULL,
         symbol TEXT NOT NULL,
         application_env TEXT NOT NULL,
@@ -135,7 +138,19 @@ CREATE TABLE
         end_time TIMESTAMP DEFAULT NULL
     );
 
+-- Process Runs table
+CREATE TABLE
+    process_runs (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid (),
+        process_name TEXT NOT NULL,
+        scheduled_at TIMESTAMP NOT NULL,
+        started_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        ended_at TIMESTAMP DEFAULT NULL,
+        status TEXT NOT NULL,
+        error_message TEXT DEFAULT NULL
+    );
 
 -- Indexes for performance
 CREATE INDEX idx_trade_symbol ON trades (symbol);
+
 CREATE INDEX idx_orders_user_account ON orders (user_id, account_id);

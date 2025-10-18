@@ -1,3 +1,4 @@
+from algo_royale.application.utils.async_pubsub import AsyncSubscriber
 import pytest
 
 from algo_royale.application.signals.signal_generator import SignalGenerator
@@ -10,6 +11,7 @@ from tests.mocks.application.mock_signal_strategy_registry import (
 from tests.mocks.mock_loggable import MockLoggable
 
 
+
 @pytest.fixture
 def signal_generator():
     generator = SignalGenerator(
@@ -20,15 +22,15 @@ def signal_generator():
     yield generator
 
 
-def set_enriched_streamer_return_empty(signal_generator: SignalGenerator, value: bool):
+def set_enriched_streamer_return_empty(signal_generator, value: bool):
     signal_generator.enriched_data_streamer.set_return_empty(value)
 
 
-def set_strategy_registry_return_empty(signal_generator: SignalGenerator, value: bool):
+def set_strategy_registry_return_empty(signal_generator, value: bool):
     signal_generator.strategy_registry.set_return_empty(value)
 
 
-def reset_signal_generator(signal_generator: SignalGenerator):
+def reset_signal_generator(signal_generator):
     signal_generator.enriched_data_streamer.reset()
     signal_generator.strategy_registry.reset()
 
@@ -36,60 +38,50 @@ def reset_signal_generator(signal_generator: SignalGenerator):
 @pytest.mark.asyncio
 class TestSignalGenerator:
     @pytest.mark.asyncio
-    async def test_async_subscribe_to_signals_return_empty(self, signal_generator):
+    async def test_async_subscribe_to_signals_return_empty(self, signal_generator: SignalGenerator):
         set_enriched_streamer_return_empty(signal_generator, True)
 
         def callback(roster):
             pass
 
-        result = await signal_generator.async_subscribe_to_signals(["AAPL"], callback)
-        from algo_royale.application.utils.async_pubsub import AsyncSubscriber
+        symbol_subscriber_tuple = await signal_generator.async_subscribe(["AAPL"], callback)
+        subscriber = symbol_subscriber_tuple[1]
 
-        assert isinstance(result, AsyncSubscriber)
+        assert isinstance(subscriber, AsyncSubscriber)
         set_enriched_streamer_return_empty(signal_generator, False)
 
     @pytest.mark.asyncio
-    async def test_async_subscribe_to_signals_exception(self, signal_generator):
+    async def test_async_subscribe_to_signals_exception(self, signal_generator: SignalGenerator):
         # Simulate exception by passing invalid symbols (should be handled gracefully)
         def callback(roster):
             pass
 
-        result = await signal_generator.async_subscribe_to_signals(None, callback)
-        from algo_royale.application.utils.async_pubsub import AsyncSubscriber
-
-        assert isinstance(result, AsyncSubscriber)
+        symbol_subscriber_tuple = await signal_generator.async_subscribe([], callback)
+        subscriber = symbol_subscriber_tuple[1]
+        assert isinstance(subscriber, AsyncSubscriber)
 
     @pytest.mark.asyncio
-    async def test_async_unsubscribe_from_signals_success(self, signal_generator):
+    async def test_async_unsubscribe_from_signals_success(self, signal_generator: SignalGenerator):
         def callback(roster):
             pass
 
-        subscriber = await signal_generator.async_subscribe_to_signals(
+        symbol_subscriber_tuple = await signal_generator.async_subscribe(
             ["AAPL"], callback
         )
-        await signal_generator.async_unsubscribe_from_signals(subscriber)
+        subscriber = symbol_subscriber_tuple[1]
+        await signal_generator.async_unsubscribe(subscriber)
 
     @pytest.mark.asyncio
-    async def test_async_unsubscribe_from_signals_exception(self, signal_generator):
+    async def test_async_unsubscribe_from_signals_exception(self, signal_generator: SignalGenerator):
         # Simulate exception by passing None as subscriber
-        await signal_generator.async_unsubscribe_from_signals(None)
+        await signal_generator.async_unsubscribe(None)
 
     @pytest.mark.asyncio
-    async def test_async_restart_stream_success(self, signal_generator):
-        await signal_generator.async_restart_stream()
-
-    @pytest.mark.asyncio
-    async def test_async_restart_stream_exception(self, signal_generator):
-        set_enriched_streamer_return_empty(signal_generator, True)
-        await signal_generator.async_restart_stream()
-        set_enriched_streamer_return_empty(signal_generator, False)
-
-    @pytest.mark.asyncio
-    async def test_async_stop_success(self, signal_generator):
+    async def test_async_stop_success(self, signal_generator: SignalGenerator):
         await signal_generator._async_stop()
 
     @pytest.mark.asyncio
-    async def test_async_stop_exception(self, signal_generator):
+    async def test_async_stop_exception(self, signal_generator: SignalGenerator):
         # Simulate by clearing internal state
         signal_generator.subscribers.clear()
         signal_generator.symbol_strategy_map.clear()

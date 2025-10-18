@@ -1,11 +1,12 @@
 import time
 
+from algo_royale.clients.db.db_utils import is_valid_identifier
+from algo_royale.logging.loggable import Loggable
 import psycopg2
 from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
 
 from algo_royale.clients.db.database_manager import DatabaseManager
-from algo_royale.clients.db.db_utils import is_valid_identifier
-from algo_royale.clients.db.migrations.migration_manager import MigrationManager
+from algo_royale.clients.db.migration_manager import MigrationManager
 from algo_royale.clients.db.process_manager import ProcessManager
 from algo_royale.clients.db.user_manager import UserManager
 
@@ -13,12 +14,12 @@ from algo_royale.clients.db.user_manager import UserManager
 class DatabaseAdmin:
     def __init__(
         self,
-        master_db_name,
-        master_db_user,
-        master_db_password,
-        db_host,
-        db_port,
-        logger,
+        master_db_name: str,
+        master_db_user: str,
+        master_db_password: str,
+        db_host: str,
+        db_port: int,
+        logger: Loggable,
     ):
         self.master_db_name = master_db_name
         self.master_db_user = master_db_user
@@ -106,7 +107,7 @@ class DatabaseAdmin:
         self,
         retries: int = 3,
         delay: int = 2,
-        db_name: str = None,
+        db_name: str | None = None,
     ) -> psycopg2.extensions.connection:
         """
         Create a new database.
@@ -139,7 +140,16 @@ class DatabaseAdmin:
                     self.logger.error(
                         "❌ Max retries reached. Could not complete database creation."
                     )
-                    raise
+                    # Raise an explicit RuntimeError to make the failure explicit
+                    # and to ensure this function never returns None on any code path.
+                    raise RuntimeError(
+                        f"Could not connect to master DB '{db_name}' after {retries} attempts: {e}"
+                    )
+
+        # If the loop exits without returning, raise to satisfy static type checkers
+        raise RuntimeError(
+            f"Could not obtain master DB connection for '{db_name}' after {retries} attempts"
+        )
 
     def get_db_connection(self, db_name: str, username: str, password: str):
         return self.database_manager.get_db_connection(

@@ -47,16 +47,6 @@ class TestOrderGenerator:
         await order_generator.async_unsubscribe_from_order_events("FAKE", None)
 
     @pytest.mark.asyncio
-    async def test_async_restart_stream_success(self, order_generator):
-        await order_generator.async_restart_stream(["AAPL"])
-
-    @pytest.mark.asyncio
-    async def test_async_restart_stream_exception(self, order_generator):
-        set_portfolio_strategy_registry_return_empty(order_generator, True)
-        await order_generator.async_restart_stream(["AAPL"])
-        set_portfolio_strategy_registry_return_empty(order_generator, False)
-
-    @pytest.mark.asyncio
     async def test_async_stop_success(self, order_generator):
         await order_generator._async_stop()
 

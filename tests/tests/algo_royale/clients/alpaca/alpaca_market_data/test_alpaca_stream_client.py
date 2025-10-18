@@ -1,6 +1,7 @@
 # src/algo_royale/tests/integration/client/test_alpaca_stream_client.py
 import asyncio
 
+from algo_royale.clients.alpaca.alpaca_market_data.alpaca_stream_client import AlpacaStreamClient
 from algo_royale.models.alpaca_market_data.enums import DataFeed
 import pytest
 
@@ -35,7 +36,7 @@ async def alpaca_client():
 
 @pytest.mark.asyncio
 class TestAlpacaStreamClientIntegration:
-    async def test_stream_receives_quote(self, alpaca_client):
+    async def test_stream_receives_quote(self, alpaca_client: AlpacaStreamClient):
         """
         Integration test for the AlpacaStreamClient to check if it receives quote messages.
         """
@@ -46,7 +47,6 @@ class TestAlpacaStreamClientIntegration:
         task = asyncio.create_task(
             alpaca_client.stream(
                 symbols=["FAKEPACA"],
-                feed=DataFeed.TEST,
                 on_quote=handler.on_quote,
                 on_trade=handler.on_trade,
                 on_bar=handler.on_bar,
@@ -57,7 +57,7 @@ class TestAlpacaStreamClientIntegration:
         await asyncio.sleep(5)
 
         # Stop the client and wait for cleanup
-        alpaca_client.stop()
+        await alpaca_client.stop()
         await asyncio.sleep(1)
 
         task.cancel()

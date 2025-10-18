@@ -48,7 +48,7 @@ class TestMarketDataEnrichedStreamer:
         def callback(data, typ):
             pass
 
-        result = await market_data_enriched_streamer.async_subscribe_to_enriched_data(
+        result = await market_data_enriched_streamer.async_subscribe(
             ["AAPL"], callback
         )
         assert result is not None
@@ -57,28 +57,21 @@ class TestMarketDataEnrichedStreamer:
 
     @pytest.mark.asyncio
     async def test_async_unsubscribe_from_enriched_data_success(
-        self, market_data_enriched_streamer
+        self, market_data_enriched_streamer: MarketDataEnrichedStreamer
     ):
         def callback(data, typ):
             pass
 
-        result = await market_data_enriched_streamer.async_subscribe_to_enriched_data(
+        result = await market_data_enriched_streamer.async_subscribe(
             ["AAPL"], callback
         )
-        await market_data_enriched_streamer.async_unsubscribe_from_enriched_data(
-            {"AAPL": [result["AAPL"]]}
-        )
+        subscriber = result["AAPL"]
+        await market_data_enriched_streamer.async_unsubscribe([subscriber])
 
     # Removed test_async_unsubscribe_from_enriched_data_exception: mock_market_data_streamer never raises
 
     @pytest.mark.asyncio
-    async def test_async_restart_stream_success(self, market_data_enriched_streamer):
-        await market_data_enriched_streamer.async_restart_stream(["AAPL"])
-
-    # Removed test_async_restart_stream_exception: mock_market_data_streamer never raises
-
-    @pytest.mark.asyncio
-    async def test_async_stop_success(self, market_data_enriched_streamer):
+    async def test_async_stop_success(self, market_data_enriched_streamer: MarketDataEnrichedStreamer):
         await market_data_enriched_streamer._async_stop()
 
     # Removed test_async_stop_exception: mock_market_data_streamer never raises

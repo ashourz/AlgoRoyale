@@ -1,7 +1,9 @@
 from pathlib import Path
 import importlib
+from typing import cast
+import psycopg2
 
-from algo_royale.clients.db.migrations.migration_manager import MigrationManager
+from algo_royale.clients.db.migration_manager import MigrationManager
 from algo_royale.logging.loggable import Loggable
 
 
@@ -18,6 +20,11 @@ class DummyLogger(Loggable):
     def error(self, *a, **k):
         pass
 
+    def critical(self, *a, **k):
+        pass
+    
+    def exception(self, msg: str, *args, **kwargs):
+        pass
 
 class MockCursor:
     def __init__(self, applied_versions):
@@ -62,9 +69,14 @@ def test_verify_migrations_all_and_missing(tmp_path):
     """Test verify_migrations returns True when all migration files are applied and False when missing."""
     mm = MigrationManager(DummyLogger())
 
-    # locate the migrations folder used by the module and create two test migration files
-    mod = importlib.import_module('algo_royale.clients.db.migrations.migration_manager')
-    migrations_folder = Path(mod.__file__).parent / 'migrations'
+    # Import the module and point its __file__ to our tmp_path so
+    # MigrationManager will look for migrations inside the temporary
+    # directory instead of the repository folder (which may contain
+    # many real migrations and would break this isolated test).
+    mod = importlib.import_module('algo_royale.clients.db.migration_manager')
+    # Monkey-patch the module's __file__ so Path(__file__).parent -> tmp_path
+    mod.__file__ = str(tmp_path / "migration_manager.py")
+    migrations_folder = tmp_path / 'sql' / 'migrations'
     migrations_folder.mkdir(parents=True, exist_ok=True)
 
     f1 = migrations_folder / 'zz_test_001.sql'
@@ -76,11 +88,14 @@ def test_verify_migrations_all_and_missing(tmp_path):
     try:
         # Case 1: both files applied
         conn_ok = MockConn(['zz_test_001', 'zz_test_002'])
-        assert mm.verify_migrations(conn_ok) is True
+        # Cast our MockConn to the expected psycopg2 connection type for the
+        # purpose of the test so static type checkers (Pylance) are satisfied.
+        assert mm.verify_migrations(cast(psycopg2.extensions.connection, conn_ok)) is True
 
         # Case 2: only first applied -> should be considered not initialized
         conn_missing = MockConn(['zz_test_001'])
-        assert mm.verify_migrations(conn_missing) is False
+        assert mm.verify_migrations(cast(psycopg2.extensions.connection, conn_missing)) is False
+
     finally:
         # cleanup test files
         try:

@@ -1,0 +1,30 @@
+{
+  "20220701_20221231": {
+    "strategy": "DummyStrategy",
+    "symbols": [
+      "AAPL",
+      "GOOG"
+    ],
+    "test": {
+      "params": {
+        "foo": 1
+      },
+      "transactions": [],
+      "metrics": {
+        "sharpe": 2.0
+      }
+    },
+    "window": {
+      "start_date": "2022-07-01 00:00:00",
+      "end_date": "2022-12-31 00:00:00",
+      "window_id": "20220701_20221231"
+    }
+  },
+  "20220101_20220630": {
+    "optimization": {
+      "best_params": {
+        "foo": 1
+      }
+    }
+  }
+}
