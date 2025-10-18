@@ -1,7 +1,7 @@
 ## client\alpaca_market_data\alpaca_stream_client.py
 import asyncio
 import json
-from typing import Callable, Optional
+from typing import Any, Callable, Optional
 
 from websockets import connect
 from websockets.exceptions import ConnectionClosed
@@ -51,7 +51,7 @@ class AlpacaStreamClient(AlpacaBaseClient):
         self.quote_symbols = set()
         self.trade_symbols = set()
         self.bar_symbols = set()
-        self.websocket = None
+        self.websocket: Any = None
         self.stop_stream = False
 
     @property
@@ -130,7 +130,7 @@ class AlpacaStreamClient(AlpacaBaseClient):
 
     async def _send_subscription(self, ws):
         """Send subscription message for quotes/trades/bars."""
-        msg = {"action": "subscribe"}
+        msg: dict[str, Any] = {"action": "subscribe"}
         if self.quote_symbols:
             msg["quotes"] = list(self.quote_symbols)
         if self.trade_symbols:
@@ -150,7 +150,7 @@ class AlpacaStreamClient(AlpacaBaseClient):
 
     async def _unsubscribe(self, ws, quotes=[], trades=[], bars=[]):
         """Send unsubscribe message."""
-        msg = {"action": "unsubscribe"}
+        msg: dict[str, Any] = {"action": "unsubscribe"}
         if quotes:
             msg["quotes"] = quotes
         if trades:
@@ -227,7 +227,7 @@ class AlpacaStreamClient(AlpacaBaseClient):
             trades (list[str]): Symbols for trade updates.
             bars (list[str]): Symbols for bar updates.
         """
-        if self.websocket and self.websocket.open:
+        if self.websocket and getattr(self.websocket, "open", False):
             await self._send_subscription(self.websocket)
 
         self.quote_symbols.update(quotes)
@@ -243,7 +243,7 @@ class AlpacaStreamClient(AlpacaBaseClient):
             trades (list[str]): Symbols to unsubscribe from trade updates.
             bars (list[str]): Symbols to unsubscribe from bar updates.
         """
-        if self.websocket and self.websocket.open:
+        if self.websocket and getattr(self.websocket, "open", False):
             await self._unsubscribe(self.websocket, quotes, trades, bars)
 
         self.quote_symbols.difference_update(quotes)

@@ -2,8 +2,8 @@ import asyncio
 import os
 import argparse
 
+from algo_royale.backtester.pipeline.pipeline_coordinator import PipelineCoordinator
 from algo_royale.utils.application_env import ApplicationEnv
-from algo_royale.services.trade_orchestrator import TradeOrchestrator
 from algo_royale.utils.single_instance_lock import SingleInstanceLock
 from algo_royale.utils.control_server import ControlServer
 
@@ -15,13 +15,13 @@ def parse_args():
     Usage examples:
     ----------------
     # Run in dev_integration without forcing migrations
-    python trader.py --env dev_integration
+    python backtest.py --env dev_integration
 
     # Run in prod_paper and force migrations
-    python trader.py --env prod_paper --run-migrations
+    python backtest.py --env prod_paper --run-migrations
 
     # Run in prod_live without migrations
-    python trader.py --env prod_live
+    python backtest.py --env prod_live
     """
     parser = argparse.ArgumentParser(description="Run the trading scheduler.")
     parser.add_argument(
@@ -39,31 +39,24 @@ def parse_args():
     return parser.parse_args()
 
 
-async def async_cli(orchestrator: TradeOrchestrator, control_token: str) -> int:
+async def async_cli(coordinator: PipelineCoordinator, control_token: str):
     """
     Async scheduler entry point.
 
-    This runs your trading-day scheduler asynchronously and keeps it alive
-    until the end of the trading day or until cancelled (Ctrl+C or system stop).
+    This runs your backtester asynchronously and keeps it alive
+    until the completed or until cancelled (Ctrl+C or system stop).
 
     Usage:
     ------
     Called internally by the main CLI after environment is prepared.
     """
-    # Start control server first so the /stop endpoint is available during startup.
+    # Start control server first so stop endpoint is available during coordinator startup
     control = ControlServer(token=control_token)
-    control.set_stop_callback(orchestrator.async_stop)
-    await control.start()
-    print(f"Control server listening on {control.host}:{control.port}")
     success = False
     try:
-        # start orchestrator (may raise)
-        success = await orchestrator.async_start()
-        # Keep scheduler alive; orchestrator is responsible for work lifecycle.
-        while True:
-            await asyncio.sleep(3600)
-    except (KeyboardInterrupt, asyncio.CancelledError):
-        await orchestrator.async_stop()
+        await control.start()
+        print(f"Control server listening on {control.host}:{control.port}")
+        success = await coordinator.run_async()
     finally:
         await control.stop()
     return 0 if success else 1
@@ -103,13 +96,15 @@ def cli(env: str, run_migrations: bool):
             db_container.setup_environment()
             print(f"✅ Migrations applied for {env}")
 
-        orchestrator: TradeOrchestrator = application_container.trading_container.trade_orchestrator
+        coordinator: PipelineCoordinator = (
+            application_container.backtest_pipeline_container.pipeline_coordinator
+        )
         from algo_royale.utils.secrets_loader import get_control_token
         token = get_control_token(env)
         if token is None:
             print("Error: Control token not found. Cannot start control server.")
             raise SystemExit(1)
-        code = asyncio.run(async_cli(orchestrator, control_token=token))
+        code = asyncio.run(async_cli(coordinator, control_token=token))
         raise SystemExit(code)
     finally:
         if hasattr(application_container, "async_close"):
@@ -128,7 +123,7 @@ def main():
     """
     args = parse_args()
     lock_file = os.path.join(
-        os.path.dirname(__file__), f"trader_{args.env}.lock"
+        os.path.dirname(__file__), f"backtest_{args.env}.lock"
     )
 
     with SingleInstanceLock(lock_file):
@@ -141,13 +136,13 @@ if __name__ == "__main__":
     main()
 
 def run_dev():
-    """Run trader in dev_integration without migrations"""
+    """Run backtest in dev_integration and force migrations"""
     cli(env="dev_integration", run_migrations=True)
 
 def run_paper():
-    """Run trader in prod_paper and force migrations"""
+    """Run backtest in prod_paper and force migrations"""
     cli(env="prod_paper", run_migrations=True)
 
 def run_live():
-    """Run trader in prod_live without migrations"""
+    """Run backtest in prod_live and force migrations"""
     cli(env="prod_live", run_migrations=True)
